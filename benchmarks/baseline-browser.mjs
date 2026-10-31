@@ -108,6 +108,9 @@ for (const browserName of (process.env.PHP_WASM_BROWSERS ?? 'chromium,firefox').
           const sortedSql = [...sqlTimes].sort((a, b) => a - b);
           result.sqlOnly = { milliseconds: sqlTimes, p50: sortedSql[Math.ceil(sortedSql.length * .5) - 1], p95: sortedSql[Math.ceil(sortedSql.length * .95) - 1] };
           result.memorySqlOnly = await memory();
+          // The pinned JoomEngine v0.1.1 bridge allows one active SQL lease.
+          // Release the SQL-only console lease BEFORE the first PDO request.
+          await consoleConnection.close();
           started = now();
           php = await createPHP({ ...options, hostCalls: db.hostCalls });
           result.phpWithSqlStartupMs = now() - started;
@@ -116,10 +119,11 @@ for (const browserName of (process.env.PHP_WASM_BROWSERS ?? 'chromium,firefox').
           for (const count of [1, 10, 100]) {
             result.phpSql[count] = await measureRuns(php, `<?php $db = new PDO('mysql:dbname=joomla;charset=utf8mb4', 'root', ''); for ($i=0; $i<${count}; $i++) { if ((string)$db->query('SELECT 42')->fetchColumn() !== '42') throw new RuntimeException('Bad SQL result'); } echo 'ok';`, 20);
           }
-          // A PHP request ending must not invalidate an unrelated console lease.
-          await consoleConnection.query('CREATE TABLE benchmark_persist (id INT PRIMARY KEY, value VARCHAR(30)) ENGINE=InnoDB');
-          await consoleConnection.query("INSERT INTO benchmark_persist VALUES (1, 'persisted')");
-          await consoleConnection.close();
+          // Keep the JoomEngine v0.1.1 baseline sequential: persistence is
+          // written through PDO, not through a simultaneous console lease.
+          await php.fs.writeFile('/workspace/persist.php', '<?php $db = new PDO("mysql:dbname=joomla;charset=utf8mb4", "root", ""); $db->exec("CREATE TABLE benchmark_persist (id INT PRIMARY KEY, value VARCHAR(30)) ENGINE=InnoDB"); $db->exec("INSERT INTO benchmark_persist VALUES (1, \'persisted\')"); echo "ok";');
+          const persisted = await php.request({ script: '/workspace/persist.php', url: new URL('/persist.php', location.href).href });
+          if (persisted.exitCode !== 0 || persisted.status !== 200 || decode(persisted.body) !== 'ok') throw new Error(`Persistence write failed: ${decode(persisted.stderr)} ${decode(persisted.body)}`);
           result.memoryCombined = await memory();
           started = now(); await db.flush(); result.flushMs = now() - started;
           await php.close(); php = undefined;

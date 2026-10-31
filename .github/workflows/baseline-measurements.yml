@@ -9,6 +9,12 @@ on:
   workflow_run:
     workflows: ['Native upstream baseline']
     types: [completed]
+  # Harness-only changes use the latest successful native artifacts; no rebuild.
+  push:
+    branches: [main]
+    paths:
+      - 'benchmarks/baseline-browser.mjs'
+      - '.github/workflows/baseline-measurements.yml'
 permissions:
   contents: read
   actions: read
@@ -16,7 +22,7 @@ jobs:
   measure:
     # A successful PHP artifact is usable even when the independent original-MariaDB job fails.
     # Fail honestly if that PHP artifact is absent; do not skip all measurements silently.
-    if: github.event_name == 'workflow_dispatch' || contains(fromJSON('["success","failure"]'), github.event.workflow_run.conclusion)
+    if: github.event_name != 'workflow_run' || contains(fromJSON('["success","failure"]'), github.event.workflow_run.conclusion)
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     env:
@@ -33,6 +39,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Reuse latest successful native build without recompiling
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          id=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/native-baseline.yml/runs?branch=main&status=success&per_page=10" --jq '.workflow_runs[0].id')
+          [[ "$id" =~ ^[0-9]+$ ]] || { echo 'No successful native artifact run'; exit 1; }
+          echo "BASELINE_RUN_ID=$id" >> "$GITHUB_ENV"
+          echo "Reuse compiled native build run $id"
       - uses: actions/download-artifact@v4
         with:
           name: baseline-php-8.4
