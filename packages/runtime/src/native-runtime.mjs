@@ -13,9 +13,9 @@ export class NativeRuntime {
     worker.onerror = event => this.close(new Error(event.message));
     worker.onmessageerror = () => this.close(new Error('Unreadable runtime message'));
   }
-  static async create({ moduleURL, projectKey, workerURL = new URL('./native-worker.mjs', import.meta.url) }) {
+  static async create({ moduleURL, projectKey, vfsLimits, workerURL = new URL('./native-worker.mjs', import.meta.url) }) {
     const runtime = new NativeRuntime(new Worker(workerURL, { type: 'module', name: 'wasm-web-server' }));
-    try { await runtime.call('initialize', { moduleURL, projectKey }); return runtime; }
+    try { await runtime.call('initialize', { moduleURL, projectKey, vfsLimits }); return runtime; }
     catch (error) { runtime.close(error); throw error; }
   }
   call(operation, args = {}, timeoutMs = 180000) {

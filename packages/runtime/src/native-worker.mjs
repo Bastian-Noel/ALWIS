@@ -1,3 +1,4 @@
+import { installVfsQuota } from './vfs-quota.mjs';
 /** Project-owner worker: one native PHP/MariaDB instance, one bounded request queue.
  * Browser HTTP input/output and filesystem RPC use JS; SQL stays entirely in C.
  */
@@ -6,11 +7,12 @@ import { decodeSqlFrame } from './sql-frame.mjs';
 const queue = new RequestQueue({ maxPending: 32, maxBytes: 8 * 1024 * 1024 });
 const encoder = new TextEncoder();
 let module;
+let vfsQuota;
 let poisoned = false;
 let projectKey;
 let releaseLock;
 const syncFilesystem = populate => new Promise((resolve, reject) => module.FS.syncfs(populate, error => error ? reject(error) : resolve()));
-async function mountProject(key) {
+async function mountProject(key,limits) {
   if (typeof key !== 'string' || !/^[a-zA-Z0-9_-]{1,64}$/.test(key)) throw Error('Invalid persistent project key');
   if (!navigator.locks) throw Error('Persistent project ownership requires navigator.locks');
   await new Promise((resolve, reject) => {
@@ -22,6 +24,8 @@ async function mountProject(key) {
   const files = '/.pbl/projects/' + key, sql = '/.pbl/sql/' + key;
   module.FS.mkdirTree(files); module.FS.mkdirTree(sql); module.FS.mkdirTree('/mariadb');
   module.FS.mount(module.IDBFS, {}, files); module.FS.mount(module.IDBFS, {}, sql);
+  vfsQuota=installVfsQuota(module.FS,{projectRoot:files,sqlRoot:sql,limits});
+  vfsQuota.scan(files);vfsQuota.scan(sql);
   await syncFilesystem(true);
   module.FS.symlink(files, '/workspace'); module.FS.symlink(sql, '/mariadb/data');
   projectKey = key;
@@ -49,7 +53,7 @@ function copyChunks(chunks) {
   for (const chunk of chunks) { output.set(chunk, offset); offset += chunk.byteLength; }
   return output;
 }
-function state() { return { sqlStarted: module._pbl_mysql_started() !== 0, sqlConnections: module._pbl_mysql_connection_count(), linearMemoryBytes: module.HEAPU8.buffer.byteLength, allocatorUsedBytes: module._pbl_heap_used?.() ?? null, allocatorFreeBytes: module._pbl_heap_free?.() ?? null, hardwareConcurrency: navigator.hardwareConcurrency, projectKey, queue: queue.stats }; }
+function state() { return { sqlStarted: module._pbl_mysql_started() !== 0, sqlConnections: module._pbl_mysql_connection_count(), linearMemoryBytes: module.HEAPU8.buffer.byteLength, allocatorUsedBytes: module._pbl_heap_used?.() ?? null, allocatorFreeBytes: module._pbl_heap_free?.() ?? null, vfs:vfsQuota?.stats(), hardwareConcurrency: navigator.hardwareConcurrency, projectKey, queue: queue.stats }; }
 async function request(input) {
   const script = path(input.script);
   const url = new URL(input.url ?? 'https://project.local' + script.slice('/workspace'.length));
@@ -105,7 +109,8 @@ async function dispatch(message) {
     if (url.origin !== self.location.origin) throw Error('Native engine must have the same origin');
     const { default: createRuntime } = await import(url.href);
     module = await createRuntime({ noInitialRun: true });
-    if (message.projectKey !== undefined) await mountProject(message.projectKey);
+    if (message.projectKey !== undefined) await mountProject(message.projectKey,message.vfsLimits);
+    if(!vfsQuota)vfsQuota=installVfsQuota(module.FS,{limits:message.vfsLimits});
     module.FS.mkdirTree('/workspace/.sessions');
     return state();
   }
@@ -117,7 +122,7 @@ async function dispatch(message) {
       try {
         module.HEAPU8.set(data, pointer);
         const status = await module.ccall('pbl_fs_write', 'number', ['string', 'number', 'number'], [path(message.path), pointer, data.byteLength], { async: true });
-        if (status !== 0) throw Error('Native write failed: ' + status);
+        if (status !== 0) throw Error(status===-51?'Project filesystem quota exceeded':'Native write failed: ' + status);
         return { written: data.byteLength };
       } finally { module._free(pointer); }
     }

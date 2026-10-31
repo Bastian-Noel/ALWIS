@@ -60,6 +60,10 @@
     {
       "path": "apps/studio/sql-export.php",
       "sha256": "980a56bc7f53dac2e9e77b986d9a8a988cda8d7c75ccef142135e176a1f0ad1c"
+    },
+    {
+      "path": "packages/runtime/src/vfs-quota.mjs",
+      "sha256": "262f63f5c021f7849f1b265c05fb5805f6ce149ecb2d7386efe2392d239bfa2f"
     }
   ]
 }

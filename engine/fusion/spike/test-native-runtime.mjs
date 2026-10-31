@@ -137,6 +137,11 @@ $stmt->close(); $db->close(); echo 'metadata-array-ok';`);
           if(abandoned.exitCode===0||!decode(abandoned.stderr).includes('intentional-abandon'))throw Error('Expected PHP abandonment was not reported');
           const rollbackCheck=await runtime.sql('SELECT COUNT(*) FROM compatibility_tx WHERE id=2','school');
           if(rollbackCheck.rows[0][0]!=='0'||(await runtime.state()).sqlConnections!==1)throw Error('Abandoned request transaction/connection leaked');
+          await runtime.sql("SELECT REPEAT('x',10485760) INTO DUMPFILE '/outside-quota-1'",'school');
+          let outsideRefused=false;try{await runtime.sql("SELECT REPEAT('x',10485760) INTO DUMPFILE '/outside-quota-2'");}catch{outsideRefused=true;}
+          const systemQuota=await runtime.state();
+          if(!outsideRefused||systemQuota.vfs.groups.system.bytes>systemQuota.vfs.groups.system.maxBytes)throw Error('SQL OUTFILE escaped the fallback VFS quota');
+          if((await runtime.sql('SELECT 42')).rows[0][0]!=='42')throw Error('SQL failed to recover after output-file quota refusal');
           const consoleSet = await runtime.sql('SET @pbl_console_marker = 42', 'school');
           const duringConsole = await checked({ script: '/workspace/object.php' });
           const consoleMarker = await runtime.sql('SELECT @pbl_console_marker AS value');
@@ -151,9 +156,41 @@ $stmt->close(); $db->close(); echo 'metadata-array-ok';`);
           if (stopped.sqlStarted) throw Error('SQL did not stop');
           const phpAfterStop = await checked({ script: '/workspace/http.php' });
           if (phpAfterStop.sqlStarted || phpAfterStop.status !== 201) throw Error('PHP is not usable independently after SQL stop');
-          return { initial, file, http, afterPurePhp, network, networkContext, bound, metadata, coverage, rollbackCheck, schema, driverResults, object, consoleMarker, consoleTypes, phpAfterStop, final, stopped };
+          return { initial, file, http, afterPurePhp, network, networkContext, bound, metadata, coverage, rollbackCheck, systemQuota, schema, driverResults, object, consoleMarker, consoleTypes, phpAfterStop, final, stopped };
         } finally { runtime.close(); }
       }, fixtures);
+      const quota=await page.evaluate(async()=>{
+        const {NativeRuntime}=await import('/packages/runtime/src/native-runtime.mjs');
+        const runtime=await NativeRuntime.create({moduleURL:new URL('/engine/pbl-runtime.mjs',location.href).href,vfsLimits:{projectBytes:8*1024*1024,projectFileBytes:4*1024*1024,projectNodes:12,openFiles:8,tempBytes:1024*1024,tempFileBytes:1024*1024}});
+        try{
+          const initial=await runtime.state();
+          await runtime.write('/workspace/quota.php',`<?php
+function must($value,$why){if(!$value)throw new Exception($why);}
+$chunk=str_repeat('a',4*1024*1024);
+must(file_put_contents(__DIR__.'/a',$chunk)===strlen($chunk),'initial write');
+$h=fopen(__DIR__.'/a','r+');unlink(__DIR__.'/a');
+must(@file_put_contents(__DIR__.'/b',$chunk)===false,'unlinked open file must retain quota');
+fclose($h);must(file_put_contents(__DIR__.'/b',$chunk)===strlen($chunk),'quota released after close');
+$h=fopen(__DIR__.'/b','a');must(@fwrite($h,'x')===false,'append limit');fclose($h);
+$h=fopen(__DIR__.'/b','r+');must(@ftruncate($h,5*1024*1024)===false,'truncate growth limit');fclose($h);
+must(@file_put_contents('/tmp/over-quota',str_repeat('t',2*1024*1024))===false,'temporary file quota');
+must(rename(__DIR__.'/b',__DIR__.'/renamed'),'rename within project');
+$handles=[];for($i=0;$i<30;$i++){$h=@fopen(__FILE__,'r');if($h===false)break;$handles[]=$h;}must(count($handles)<30,'open descriptor quota');foreach($handles as $h)fclose($h);
+echo 'quota-php-ok';`);
+          const response=await runtime.request({script:'/workspace/quota.php'});
+          if(response.exitCode!==0||new TextDecoder().decode(response.body)!=='quota-php-ok')throw Error('Quota PHP/POSIX failure: '+new TextDecoder().decode(response.stderr));
+          const before=await runtime.state();let rejected=false;
+          try{await runtime.write('/workspace/extra',new Uint8Array(4*1024*1024));}catch(error){rejected=error.message.includes('quota');}
+          if(!rejected)throw Error('Facade write exceeded aggregate project quota');
+          const after=await runtime.state();
+          if(after.vfs.groups.project.bytes!==before.vfs.groups.project.bytes||after.vfs.groups.project.nodes!==before.vfs.groups.project.nodes)throw Error('Failed atomic write leaked quota');
+          await runtime.remove('/workspace/renamed');await runtime.write('/workspace/reused',new Uint8Array(4*1024*1024));
+          let nodesRejected=false;for(let i=0;i<30;i++){try{await runtime.write('/workspace/node'+i,'');}catch{nodesRejected=true;break;}}
+          if(!nodesRejected)throw Error('Project node quota not enforced');
+          const final=await runtime.state();if(final.vfs.groups.project.nodes>12)throw Error('Node budget exceeded');
+          return {passed:true,initial,before,after,final,checks:['PHP direct writes','open/unlinked inode accounting','append','ftruncate','temporary files','rename','atomic write failure cleanup','budget reuse','node limit','descriptor limit']};
+        }finally{runtime.close();}
+      });
       const persistence = await page.evaluate(async () => {
         const { NativeRuntime } = await import('/packages/runtime/src/native-runtime.mjs');
         const projectKey = 'test-' + crypto.randomUUID();
@@ -175,7 +212,7 @@ $stmt->close(); $db->close(); echo 'metadata-array-ok';`);
           return { passed: true, projectKey, output, sql, scope: 'New owner worker and WASM instance in the same browser profile after explicit save' };
         } finally { runtime.close(); }
       });
-      const receipt = { browser: browserName, version: browser.version(), passed: true, results, persistence };
+      const receipt = { browser: browserName, version: browser.version(), passed: true, results, quota, persistence };
       await writeFile(join(dist, 'receipts', `${browserName}.json`), JSON.stringify(receipt, null, 2) + '\n');
       console.log(browserName, 'native files/CGI/network/PDO/MySQLi passed');
     } finally { await browser.close(); }

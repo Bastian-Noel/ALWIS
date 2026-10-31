@@ -24,7 +24,7 @@ Les capacités initiales « environ 740 Mio » provenaient d'un autre scénario 
 
 Le protocole embarqué généré refuse avant collecte complète un jeu dépassant son budget de blocs de résultat (16 Mio) ou 10 000 lignes. Les contrôles de copie PHP/console restent en place. Les tests provoquent ces refus via PDO émulé/natif, bufferisé/non bufferisé, MySQLi direct/préparé et console ; ils vérifient ensuite une nouvelle requête sur la même connexion. Les tris/jointures et expressions peuvent encore avoir leurs propres allocations de travail. Le plafond de 512 Mio borne la mémoire linéaire totale, pas toute la RAM du navigateur.
 
-Les appels RPC sont aussi bornés avant postMessage, y compris la somme des messages en attente. Restent à approfondir : quotas globaux VFS/temp/SQL, échecs d'allocation extrêmes, longues sessions, cycles répétés, mesure continue des pics et comparaison de profils sur plusieurs applications.
+Les appels RPC sont aussi bornés avant postMessage, y compris la somme des messages en attente. Les [quotas VFS/temp/SQL et de repli](../../packages/runtime/RESOURCE-LIMITS.md) sont désormais appliqués sous les appels POSIX et vérifiés. Restent à approfondir : erreurs de disque plein InnoDB, échecs d'allocation extrêmes, longues sessions, cycles répétés, mesure continue des pics et comparaison de profils sur plusieurs applications.
 
 Le scénario de charge sous `benchmarks/receipts/native-load/` exécute deux clients, chacun à 5 puis 10 requêtes/s offertes avec une seule en vol, pendant dix secondes par palier. Sessions et compteurs SQL sont vérifiés sur les deux navigateurs. Ce scénario court ne prouve pas l'absence de fuite sur plusieurs heures et ne remplace pas un test à plus de fenêtres.
 
