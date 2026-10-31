@@ -1,0 +1,193 @@
+{
+  "restored_on": "2026-10-31T10:03:41.537407+00:00",
+  "repositories": [
+    {
+      "repo": "seanmorris/php-wasm",
+      "sha": "1e1fb6703730759181e84c62bce35ee9129febb9",
+      "commit_date": "2026-10-01T03:43:02Z",
+      "archive": "sources/seanmorris--php-wasm-1e1fb6703730759181e84c62bce35ee9129febb9.tar.gz",
+      "archive_sha256": "dfe4d54bf3a66a0a7b564904d06cf49327b74b3545965c9e18bd0ea83fc67421",
+      "archive_bytes": 139152669,
+      "directory": "upstream/seanmorris--php-wasm",
+      "source_url": "https://github.com/seanmorris/php-wasm/tree/1e1fb6703730759181e84c62bce35ee9129febb9",
+      "status": "downloaded"
+    },
+    {
+      "repo": "joomengine/php-wasm",
+      "sha": "3b8cef42c020fbcbb6b41fad86716b7c8664b55b",
+      "commit_date": "2026-10-27T15:43:30Z",
+      "archive": "sources/joomengine--php-wasm-3b8cef42c020fbcbb6b41fad86716b7c8664b55b.tar.gz",
+      "archive_sha256": "d30679568282f94ede723c5313ba2664380ede421cfb27693dcc9bc9fe9a533c",
+      "archive_bytes": 98753,
+      "directory": "upstream/joomengine--php-wasm",
+      "source_url": "https://github.com/joomengine/php-wasm/tree/3b8cef42c020fbcbb6b41fad86716b7c8664b55b",
+      "status": "downloaded"
+    },
+    {
+      "repo": "joomengine/mariadb-wasm-bridge",
+      "sha": "56d47b4dc867af313592efa09e12df470a36e129",
+      "commit_date": "2026-10-29T20:19:03Z",
+      "archive": "sources/joomengine--mariadb-wasm-bridge-56d47b4dc867af313592efa09e12df470a36e129.tar.gz",
+      "archive_sha256": "fdb306d4264f9f33341b9b23f965543dc55b413a7f7e296ff9383268efe454ae",
+      "archive_bytes": 80081,
+      "directory": "upstream/joomengine--mariadb-wasm-bridge",
+      "source_url": "https://github.com/joomengine/mariadb-wasm-bridge/tree/56d47b4dc867af313592efa09e12df470a36e129",
+      "status": "downloaded"
+    },
+    {
+      "repo": "shyim/lite4mariadb",
+      "sha": "24be9371a2f6c71250a2356631ad6feab2280b02",
+      "commit_date": "2026-09-03T11:09:53Z",
+      "archive": "sources/shyim--lite4mariadb-24be9371a2f6c71250a2356631ad6feab2280b02.tar.gz",
+      "archive_sha256": "dd29d50f26a6bb032d5807ba6fdadb9d0ab52eb81672d1405bfc0a60e7b1f2dd",
+      "archive_bytes": 49317689,
+      "directory": "upstream/shyim--lite4mariadb",
+      "source_url": "https://github.com/shyim/lite4mariadb/tree/24be9371a2f6c71250a2356631ad6feab2280b02",
+      "status": "downloaded"
+    },
+    {
+      "repo": "WordPress/wordpress-playground",
+      "sha": "a4dbcd0bf65a82e10a5d3821f5023aeee81097e6",
+      "commit_date": "2026-10-29T19:24:55Z",
+      "archive": "sources/WordPress--wordpress-playground-a4dbcd0bf65a82e10a5d3821f5023aeee81097e6.tar.gz",
+      "archive_sha256": "b4f5945a6b3cf13979635597dfe926edd16fa839171bc9a89c2d4dab14b97aef",
+      "archive_bytes": 166917365,
+      "directory": "upstream/WordPress--wordpress-playground",
+      "source_url": "https://github.com/WordPress/wordpress-playground/tree/a4dbcd0bf65a82e10a5d3821f5023aeee81097e6",
+      "status": "downloaded"
+    },
+    {
+      "repo": "php/php-src",
+      "sha": "7ba31bb1934ae22c2d007135e89a38af131ec52e",
+      "commit_date": "2026-10-31T06:30:33Z",
+      "archive": "sources/php--php-src-7ba31bb1934ae22c2d007135e89a38af131ec52e.tar.gz",
+      "archive_sha256": "89074c8c25f07dcd1e4bb24c89fbb18d6567a45eb8bcedbe09668180a0ee460a",
+      "archive_bytes": 24609543,
+      "directory": "upstream/php--php-src",
+      "source_url": "https://github.com/php/php-src/tree/7ba31bb1934ae22c2d007135e89a38af131ec52e",
+      "status": "downloaded"
+    },
+    {
+      "repo": "emscripten-core/emscripten",
+      "sha": "91d14a4c6729752ed146751416fe96598cac3dc7",
+      "commit_date": "2026-10-31T00:29:03Z",
+      "archive": "sources/emscripten-core--emscripten-91d14a4c6729752ed146751416fe96598cac3dc7.tar.gz",
+      "archive_sha256": "4c6cbe55e08d9e81a353e963b5170a98d151ea4bb3be19f8c560bb807d7225cb",
+      "archive_bytes": 32955191,
+      "directory": "upstream/emscripten-core--emscripten",
+      "source_url": "https://github.com/emscripten-core/emscripten/tree/91d14a4c6729752ed146751416fe96598cac3dc7",
+      "status": "downloaded"
+    },
+    {
+      "repo": "zen-fs/core",
+      "sha": "ecb25b1bfd81879ef79052156c0171f215117b59",
+      "commit_date": "2026-10-28T20:02:44Z",
+      "archive": "sources/zen-fs--core-ecb25b1bfd81879ef79052156c0171f215117b59.tar.gz",
+      "archive_sha256": "b99a6228e042ab2cfee6a1a5633aa9b8692eaf8e5d45aefa6cf4528bde660a5e",
+      "archive_bytes": 218431,
+      "directory": "upstream/zen-fs--core",
+      "source_url": "https://github.com/zen-fs/core/tree/ecb25b1bfd81879ef79052156c0171f215117b59",
+      "status": "downloaded"
+    },
+    {
+      "repo": "zen-fs/dom",
+      "sha": "d9d9288471c7825a5ead485440aa87dec3c38ee2",
+      "commit_date": "2026-10-28T20:12:32Z",
+      "archive": "sources/zen-fs--dom-d9d9288471c7825a5ead485440aa87dec3c38ee2.tar.gz",
+      "archive_sha256": "c4a5ffc2f11a5a1861df16680e38131661dd133b576a2fecd8577be11eb79e17",
+      "archive_bytes": 42649,
+      "directory": "upstream/zen-fs--dom",
+      "source_url": "https://github.com/zen-fs/dom/tree/d9d9288471c7825a5ead485440aa87dec3c38ee2",
+      "status": "downloaded"
+    },
+    {
+      "repo": "zen-fs/emscripten",
+      "sha": "c9d5c47d0a420e0fa05d635d106457bf56c17dc0",
+      "commit_date": "2026-10-28T20:20:17Z",
+      "archive": "sources/zen-fs--emscripten-c9d5c47d0a420e0fa05d635d106457bf56c17dc0.tar.gz",
+      "archive_sha256": "de039a32c3213a73546c623f6432f9ad4cac28e264197c907b33ba2c05776884",
+      "archive_bytes": 35195,
+      "directory": "upstream/zen-fs--emscripten",
+      "source_url": "https://github.com/zen-fs/emscripten/tree/c9d5c47d0a420e0fa05d635d106457bf56c17dc0",
+      "status": "downloaded"
+    },
+    {
+      "repo": "kachurun/opfs-worker",
+      "sha": "c8813394795bcb26a0030ea94697114c59ec5b7e",
+      "commit_date": "2026-07-26T22:59:03Z",
+      "archive": "sources/kachurun--opfs-worker-c8813394795bcb26a0030ea94697114c59ec5b7e.tar.gz",
+      "archive_sha256": "738d9e4405e3bfe2fdd243446b440d6372de8de6c07db9b0b7e12cad1b331ce6",
+      "archive_bytes": 180574,
+      "directory": "upstream/kachurun--opfs-worker",
+      "source_url": "https://github.com/kachurun/opfs-worker/tree/c8813394795bcb26a0030ea94697114c59ec5b7e",
+      "status": "downloaded"
+    },
+    {
+      "repo": "GoogleChromeLabs/comlink",
+      "sha": "114a4a6448a855a613f1cb9a7c89290606c003cf",
+      "commit_date": "2025-06-18T00:01:59Z",
+      "archive": "sources/GoogleChromeLabs--comlink-114a4a6448a855a613f1cb9a7c89290606c003cf.tar.gz",
+      "archive_sha256": "41a24e19240eacb129192e62ad26654f12282afca6c232f74509f4176443082f",
+      "archive_bytes": 30568,
+      "directory": "upstream/GoogleChromeLabs--comlink",
+      "source_url": "https://github.com/GoogleChromeLabs/comlink/tree/114a4a6448a855a613f1cb9a7c89290606c003cf",
+      "status": "downloaded"
+    },
+    {
+      "repo": "drawdb-io/drawdb",
+      "sha": "dc32c8bde614c931ec8bf3b3c346500d7626ab72",
+      "commit_date": "2026-10-30T21:31:19Z",
+      "archive": "sources/drawdb-io--drawdb-dc32c8bde614c931ec8bf3b3c346500d7626ab72.tar.gz",
+      "archive_sha256": "70cf02fd11958311e6e188b26728a5d15c0ca0866bd17b627680780403fe47c5",
+      "archive_bytes": 1613338,
+      "directory": "upstream/drawdb-io--drawdb",
+      "source_url": "https://github.com/drawdb-io/drawdb/tree/dc32c8bde614c931ec8bf3b3c346500d7626ab72",
+      "status": "downloaded"
+    },
+    {
+      "repo": "chartdb/chartdb",
+      "sha": "57bca690cc180f7501c6aa0c163c3b1dd418efa7",
+      "commit_date": "2026-10-31T09:29:52Z",
+      "archive": "sources/chartdb--chartdb-57bca690cc180f7501c6aa0c163c3b1dd418efa7.tar.gz",
+      "archive_sha256": "54921d528e8c1ee373effbd56c21aaa6ddcb43c8634c67f056ba7ba551fa2eff",
+      "archive_bytes": 52341320,
+      "directory": "upstream/chartdb--chartdb",
+      "source_url": "https://github.com/chartdb/chartdb/tree/57bca690cc180f7501c6aa0c163c3b1dd418efa7",
+      "status": "downloaded"
+    },
+    {
+      "repo": "outerbase/studio",
+      "sha": "70c9d8e9745c161fb84746d3372bdab838c9bb36",
+      "commit_date": "2026-03-08T12:01:03Z",
+      "archive": "sources/outerbase--studio-70c9d8e9745c161fb84746d3372bdab838c9bb36.tar.gz",
+      "archive_sha256": "ce4fbd2da0d2a81981cd49126a4cce135a7fcafd659c275973f94b9f37e751c9",
+      "archive_bytes": 4223945,
+      "directory": "upstream/outerbase--studio",
+      "source_url": "https://github.com/outerbase/studio/tree/70c9d8e9745c161fb84746d3372bdab838c9bb36",
+      "status": "downloaded"
+    },
+    {
+      "repo": "xyflow/xyflow",
+      "sha": "d4bc936edad07aba995dbdb8e2c63af8cdd631c9",
+      "commit_date": "2026-10-29T11:43:09Z",
+      "archive": "sources/xyflow--xyflow-d4bc936edad07aba995dbdb8e2c63af8cdd631c9.tar.gz",
+      "archive_sha256": "733bb555b9e0d48a0d1cde252223ef2280bee02d54e97cbc6f319a662e0ede09",
+      "archive_bytes": 589167,
+      "directory": "upstream/xyflow--xyflow",
+      "source_url": "https://github.com/xyflow/xyflow/tree/d4bc936edad07aba995dbdb8e2c63af8cdd631c9",
+      "status": "downloaded"
+    },
+    {
+      "repo": "codemirror/lang-sql",
+      "sha": "f5b0b0ba1811f87db2d1733f005585bd43322980",
+      "commit_date": "2026-04-15T10:20:20Z",
+      "archive": "sources/codemirror--lang-sql-f5b0b0ba1811f87db2d1733f005585bd43322980.tar.gz",
+      "archive_sha256": "e596ebf08496d57138e8b9d476738344aed95a83eaa8c0f1d67278f0a1ac4067",
+      "archive_bytes": 25889,
+      "directory": "upstream/codemirror--lang-sql",
+      "source_url": "https://github.com/codemirror/lang-sql/tree/f5b0b0ba1811f87db2d1733f005585bd43322980",
+      "status": "downloaded"
+    }
+  ],
+  "errors": []
+}

@@ -1,0 +1,101 @@
+{
+  "sha": "57bca690cc180f7501c6aa0c163c3b1dd418efa7",
+  "node_id": "C_kwDOMfYdMNoAKDU3YmNhNjkwY2MxODBmNzUwMWM2YWEwYzE2M2MzYjFkZDQxOGVmYTc",
+  "commit": {
+    "author": {
+      "name": "dependabot[bot]",
+      "email": "49699333+dependabot[bot]@users.noreply.github.com",
+      "date": "2026-10-31T09:29:52Z"
+    },
+    "committer": {
+      "name": "GitHub",
+      "email": "noreply@github.com",
+      "date": "2026-10-31T09:29:52Z"
+    },
+    "message": "chore(deps-dev): bump js-yaml from 4.1.1 to 4.3.2 (#1160)\n\nBumps [js-yaml](https://github.com/nodeca/js-yaml) from 4.1.1 to 4.3.2.\n- [Changelog](https://github.com/nodeca/js-yaml/blob/4.3.2/CHANGELOG.md)\n- [Commits](https://github.com/nodeca/js-yaml/compare/4.1.1...4.3.2)\n\n---\nupdated-dependencies:\n- dependency-name: js-yaml\n  dependency-version: 4.3.2\n  dependency-type: indirect\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+    "tree": {
+      "sha": "79fc355aed1db840f17f9f309e9bdb59ec0a2273",
+      "url": "https://api.github.com/repos/chartdb/chartdb/git/trees/79fc355aed1db840f17f9f309e9bdb59ec0a2273"
+    },
+    "url": "https://api.github.com/repos/chartdb/chartdb/git/commits/57bca690cc180f7501c6aa0c163c3b1dd418efa7",
+    "comment_count": 0,
+    "verification": {
+      "verified": true,
+      "reason": "valid",
+      "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsFcBAABCAAQBQJq5bUQCRC1aQ7uu5UhlAAAnhsQAKuDxBK8M2yyMuujDeKoX4CQ\nGgoM3UGMMfVur905jJ/Y0vs+vr0xa0TjsF3TP/gPc3u0f8bu9NzTwhtY5b4CGK9a\nfqOA5dB+rTObKy2Wf7IrczaQsfYkKWg6tS3lfCKg/YMnZ2xsRRg4BNN8Esa+cMY1\n0APOu7ZJTXZNwiTTWOqdAlFUF9Dx9+rv9Ra0L8JZXsOJg2lRId3FSWoG4jtYkcss\nqyRmnvLncZIP1iCvGPjYFCLS8TgOr1ealgB4lPbrPThFJJ4LFLv+qcfX0vJMKeYX\nd2/RKgtLBOs6Cgl9Al1DomiM/hpYoeYKwcbbENw5IXnVW4WDM1pFafhvOLECYx1T\nYclpDOhE40wDjksxHJ1u9RrNirWt4EaaKy31tuF16IWzaH/GOdQT0qNU2ElhdE8D\n9GnBnMivgMEnu2ofqSLIWck+bicXeY1ma+oz6f/mVMkfRKtM9KMLyEWpEq01yxxD\n++iSanvLiBiOG6jRH0nPnzqi9m/NdalvglBADRSJaeoQLXnvPaUUx3xCNKaYJeXJ\n5uQIcayFPCJw5wSefxD1xiJ27+E6H5uECW3pyE16W/sGtmA8YCyc+fsX6VNq/Mqv\nlLEHW5hcSsYXG4WRaKaEU6d8y10MkAt0cYPWZbWtHNpCGLz+3aOg+MedRfxqFl95\nhKu8UQuUp0I8s6YihcFZ\n=LhrO\n-----END PGP SIGNATURE-----\n",
+      "payload": "tree 79fc355aed1db840f17f9f309e9bdb59ec0a2273\nparent 42b55f53d8b9a95b26f53dacaa30917ec1a76677\nauthor dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com> 1793438992 +0200\ncommitter GitHub <noreply@github.com> 1793438992 +0200\n\nchore(deps-dev): bump js-yaml from 4.1.1 to 4.3.2 (#1160)\n\nBumps [js-yaml](https://github.com/nodeca/js-yaml) from 4.1.1 to 4.3.2.\n- [Changelog](https://github.com/nodeca/js-yaml/blob/4.3.2/CHANGELOG.md)\n- [Commits](https://github.com/nodeca/js-yaml/compare/4.1.1...4.3.2)\n\n---\nupdated-dependencies:\n- dependency-name: js-yaml\n  dependency-version: 4.3.2\n  dependency-type: indirect\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+      "verified_at": "2026-10-31T09:29:52Z"
+    }
+  },
+  "url": "https://api.github.com/repos/chartdb/chartdb/commits/57bca690cc180f7501c6aa0c163c3b1dd418efa7",
+  "html_url": "https://github.com/chartdb/chartdb/commit/57bca690cc180f7501c6aa0c163c3b1dd418efa7",
+  "comments_url": "https://api.github.com/repos/chartdb/chartdb/commits/57bca690cc180f7501c6aa0c163c3b1dd418efa7/comments",
+  "author": {
+    "login": "dependabot[bot]",
+    "id": 49699333,
+    "node_id": "MDM6Qm90NDk2OTkzMzM=",
+    "avatar_url": "https://avatars.githubusercontent.com/in/29110?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/dependabot%5Bbot%5D",
+    "html_url": "https://github.com/apps/dependabot",
+    "followers_url": "https://api.github.com/users/dependabot%5Bbot%5D/followers",
+    "following_url": "https://api.github.com/users/dependabot%5Bbot%5D/following{/other_user}",
+    "gists_url": "https://api.github.com/users/dependabot%5Bbot%5D/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/dependabot%5Bbot%5D/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/dependabot%5Bbot%5D/subscriptions",
+    "organizations_url": "https://api.github.com/users/dependabot%5Bbot%5D/orgs",
+    "repos_url": "https://api.github.com/users/dependabot%5Bbot%5D/repos",
+    "events_url": "https://api.github.com/users/dependabot%5Bbot%5D/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/dependabot%5Bbot%5D/received_events",
+    "type": "Bot",
+    "user_view_type": "public",
+    "site_admin": false
+  },
+  "committer": {
+    "login": "web-flow",
+    "id": 19864447,
+    "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
+    "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/web-flow",
+    "html_url": "https://github.com/web-flow",
+    "followers_url": "https://api.github.com/users/web-flow/followers",
+    "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+    "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+    "organizations_url": "https://api.github.com/users/web-flow/orgs",
+    "repos_url": "https://api.github.com/users/web-flow/repos",
+    "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/web-flow/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+  },
+  "parents": [
+    {
+      "sha": "42b55f53d8b9a95b26f53dacaa30917ec1a76677",
+      "url": "https://api.github.com/repos/chartdb/chartdb/commits/42b55f53d8b9a95b26f53dacaa30917ec1a76677",
+      "html_url": "https://github.com/chartdb/chartdb/commit/42b55f53d8b9a95b26f53dacaa30917ec1a76677"
+    }
+  ],
+  "stats": {
+    "total": 16,
+    "additions": 13,
+    "deletions": 3
+  },
+  "files": [
+    {
+      "sha": "4387d5bfe6ba29277a24e9eea64798d7e528402c",
+      "filename": "package-lock.json",
+      "status": "modified",
+      "additions": 13,
+      "deletions": 3,
+      "changes": 16,
+      "blob_url": "https://github.com/chartdb/chartdb/blob/57bca690cc180f7501c6aa0c163c3b1dd418efa7/package-lock.json",
+      "raw_url": "https://github.com/chartdb/chartdb/raw/57bca690cc180f7501c6aa0c163c3b1dd418efa7/package-lock.json",
+      "contents_url": "https://api.github.com/repos/chartdb/chartdb/contents/package-lock.json?ref=57bca690cc180f7501c6aa0c163c3b1dd418efa7",
+      "patch": "@@ -7545,10 +7545,20 @@\n             \"license\": \"MIT\"\n         },\n         \"node_modules/js-yaml\": {\n-            \"version\": \"4.1.1\",\n-            \"resolved\": \"https://registry.npmjs.org/js-yaml/-/js-yaml-4.1.1.tgz\",\n-            \"integrity\": \"sha512-qQKT4zQxXl8lLwBtHMWwaTcGfFOZviOJet3Oy/xmGk2gZH677CJM9EvtfdSkgWcATZhj/55JZ0rmy3myCT5lsA==\",\n+            \"version\": \"4.3.2\",\n+            \"resolved\": \"https://registry.npmjs.org/js-yaml/-/js-yaml-4.3.2.tgz\",\n+            \"integrity\": \"sha512-SFNOvSJ+Dgf/9An904Yx+CgSlIPCkIpao4qo51lpee25TIRejdH3rhR4EZMGoNx3/TP3O+wzWuiTFl4sqbltzA==\",\n             \"dev\": true,\n+            \"funding\": [\n+                {\n+                    \"type\": \"github\",\n+                    \"url\": \"https://github.com/sponsors/puzrin\"\n+                },\n+                {\n+                    \"type\": \"github\",\n+                    \"url\": \"https://github.com/sponsors/nodeca\"\n+                }\n+            ],\n             \"license\": \"MIT\",\n             \"dependencies\": {\n                 \"argparse\": \"^2.0.1\""
+    }
+  ]
+}

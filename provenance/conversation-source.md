@@ -1,0 +1,1423 @@
+# Recherche PHP MySQL WASM
+
+**User:** Anonymous  
+**Created:** 10/30/2026 19:16:27  
+**Updated:** 10/31/2026 10:56:53  
+**Exported:** 10/31/2026 10:57:51  
+**Link:** [https://chatgpt.com/c/6ae4def7-b7e0-83ed-aeff-16d9a7b27649](https://chatgpt.com/c/6ae4def7-b7e0-83ed-aeff-16d9a7b27649)  
+
+## Prompt:
+30/10/2026 19:16:57
+
+Recherche un WASM de php avec extension essentiel et extension mysql + un mysql WASM (recherche tout les projet GitHub possible)
+
+Et regarde la couche a recorder pour faire communiquer et fonctionner et estime les perf pour chaque combo
+
+## Response:
+30/10/2026 19:16:57 · gpt-6.1-sol-wm
+
+Je vais chercher les projets PHP et MySQL en WebAssembly, vérifier les extensions réellement disponibles, puis comparer les raccordements possibles et leurs performances probables.
+
+Un point important ressort déjà : certains projets « MySQL WASM » font tourner MySQL dans une machine Linux émulée, ce qui change beaucoup les performances. Je vérifie aussi les pilotes PHP : avoir `mysqli` ou `pdo_mysql` compilé ne suffit pas à établir une connexion dans un navigateur.
+
+J’ai trouvé une piste plus complète : `lite4mariadb` et un pont PDO existent déjà pour exécuter PHP et MariaDB dans le navigateur, sans serveur externe. Je regarde leurs limites — transactions, requêtes préparées, persistance et extensions — pour comparer ce montage aux solutions avec un vrai protocole MySQL.
+
+> **Recherche github MySQL MariaDB WebAssembly wasm browser en cours**
+>
+> 
+>
+> **Rechercher des projets MySQL WebAssembly**
+>
+>
+> **Recherché des projets MySQL et PHP WebAssembly et analysé leurs README**
+>
+> 
+>
+> **Rechercher des dépôts WebAssembly MySQL/MariaDB**
+>
+>
+> **Recherché des dépôts et documentations PHP-WASM MariaDB/MySQL**
+>
+> 
+>
+> **Analyser des dépôts WebAssembly PHP/MariaDB**
+>
+>
+> **Checking extension repository paths**
+>
+> Checking extension repository paths
+>
+> **Vérifié les chemins du dépôt d’extensions**
+>
+> 
+>
+> **Analyser les scripts PHP-WASM distants**
+>
+>
+> **Analysé les dépôts, benchmarks et extensions PHP-WASM disponibles**
+>
+> 
+>
+> Réfléchi pendant 3m
+
+**Oui, il existe aujourd’hui un montage PHP + MariaDB entièrement en WASM, avec un pont PDO déjà développé.** Pour du **MySQL Oracle exact**, j’ai trouvé des solutions, mais avec davantage de contraintes.
+
+J’ai recherché directement sur GitHub et consulté les README, configurations de compilation et documents techniques. Recherche large, sans pouvoir garantir tous les dépôts et forks existants. **Les performances ci-dessous distinguent les mesures publiées des estimations ; je n’ai pas exécuté les moteurs.**
+
+Je couvre le navigateur et les runtimes locaux, car « WASM » peut désigner les deux.
+
+**1. Les projets PHP à retenir**
+
+| Projet GitHub | Extensions / MySQL | Intérêt pour ton besoin |
+|---|---|---|
+| **[WordPress/wordpress-playground](https://github.com/WordPress/wordpress-playground)** — paquets `@php-wasm/*` | Nombreuses extensions ; `mysqli` et `pdo_mysql` activés par défaut pour Node, compilation personnalisée nécessaire pour le navigateur | **Meilleure base pour garder les vrais pilotes MySQL PHP** |
+| **[seanmorris/php-wasm](https://github.com/seanmorris/php-wasm)** | Extensions chargeables : GD, intl, mbstring, OpenSSL, XML, ZIP, SQLite, etc. Pont MariaDB PDO disponible séparément | **Très bon candidat pour du 100 % navigateur** |
+| **[joomengine/php-wasm](https://github.com/joomengine/php-wasm)** | PHP 8.3/8.4/8.5 ; pilote PDO MariaDB intégré à la compilation | Montage particulièrement direct avec le bridge JoomEngine |
+| [lyrixx/php-wasm-builder](https://github.com/lyrixx/php-wasm-builder) | Extensions configurables : intl, OpenSSL, mbstring, XML, SQLite, etc. MySQL absent de la liste prise en charge | Bon constructeur personnalisable, mais raccordement MySQL à développer |
+| [derickr/php-wasm-builder](https://github.com/derickr/php-wasm-builder) | Ensemble plus réduit, utilisé pour la documentation PHP | Adapté aux exemples PHP ; moins complet pour une application avec BDD |
+| [alganet/phasm](https://github.com/alganet/phasm) | PHP 8.5, nombreuses extensions, SQLite et OPcache ; aucun pilote MySQL annoncé | Intéressant pour un runtime léger à intégrer, mais manque la partie MySQL |
+| [oraoto/pib](https://github.com/oraoto/pib) | Ancêtre des portages PHP navigateur | Intérêt historique ; je ne le choisirais pas comme nouvelle base |
+| [nalgeon/php-wasi](https://github.com/nalgeon/php-wasi) et [VMware language runtimes](https://github.com/vmware-labs/webassembly-language-runtimes) | Builds WASI ; le paquet nalgeon consulté repose sur PHP 8.2.6 et son dépôt est archivé | Peu pertinent face aux projets ci-dessus |
+| [CodeCompared/php-wasm](https://github.com/CodeCompared/php-wasm) | Correctifs pour Fibers et certains appels réseau/processus du runtime Playground | Source de correctifs, pas une pile PHP/MySQL complète |
+| [adamziel/php-wasmtime](https://github.com/adamziel/php-wasmtime) | Piste PHP sous Wasmtime | À examiner pour un hôte local ; pas mon choix pour un navigateur |
+
+Attention aux faux positifs : **[wasmerio/wasmer-php](https://github.com/wasmerio/wasmer-php)** sert à exécuter du WASM **depuis PHP**, ce qui correspond au sens inverse de ta recherche.
+
+Pour les « extensions essentielles », je viserais ce profil :
+
+| Groupe | Extensions à prévoir |
+|---|---|
+| Application courante | JSON, ctype, filter, session, tokenizer, fileinfo, mbstring |
+| Formats et fichiers | DOM, SimpleXML, XMLReader/XMLWriter, ZIP, zlib, Phar |
+| Images / internationalisation | GD, intl, iconv |
+| Cryptographie / HTTP | OpenSSL, cURL |
+| Base de données | PDO + pilote adapté ; `mysqli` si le code l’utilise |
+
+**Présence de cURL/OpenSSL ≠ accès réseau fonctionnel.** Dans le navigateur, les appels doivent passer par une intégration aux API web ou un proxy. Même distinction pour les extensions qui attendent des processus, sockets ou bibliothèques du système.
+
+**2. Les moteurs MySQL/MariaDB trouvés**
+
+| Projet GitHub | Ce qui s’exécute réellement | Limites déterminantes |
+|---|---|---|
+| **[shyim/lite4mariadb](https://github.com/shyim/lite4mariadb)** | **MariaDB embarqué compilé en WASM, avec InnoDB** | Navigateur et Node ; API JS ; pthreads et isolation interorigines nécessaires |
+| **[adamziel/wasmtime-mysql](https://github.com/adamziel/wasmtime-mysql)** | **MySQL 8.4 compilé en WASM**, dans un hôte natif Wasmtime | Expérimental ; sockets, threads et fichiers fournis par l’hôte ; pas exécutable tel quel dans le navigateur |
+| **[adamziel/wasmtime-mariadb](https://github.com/adamziel/wasmtime-mariadb)** | MariaDB 11.4 compilé en WASM, hôte Wasmtime | InnoDB et TCP ; usage local expérimental ; périmètre fonctionnel restreint |
+| [adamziel/mariadb-wasm](https://github.com/adamziel/mariadb-wasm) | MariaDB embarqué via Emscripten | **Sans InnoDB** : pas les transactions et garanties attendues d’une base moderne |
+| [shota-kizawa/mysql-wasm](https://github.com/shota-kizawa/mysql-wasm) | MySQL dans Linux/Buildroot, exécuté par l’émulateur x86 **v86** | Émulation d’une machine entière ; performances et raccordement plus compliqués |
+| [gurjeet/mysql-wasm-clone](https://github.com/gurjeet/mysql-wasm-clone) | Copie du projet précédent | Ne constitue pas une autre architecture |
+
+**`lite4mariadb` est la découverte la plus intéressante pour ton objectif navigateur.** Il annonce transactions InnoDB, clés étrangères, CTE, fonctions JSON, stockage IndexedDB, snapshots et API Worker. Son module WASM est annoncé autour de **17 Mo**.
+
+MariaDB reste toutefois distinct de MySQL : les collations, fonctions JSON, particularités SQL et comportements doivent être validés sur ton application.
+
+Les dépôts comme [second-state/wasmedge-mysql](https://github.com/second-state/wasmedge-mysql) sont des **connecteurs vers une base externe**, pas un serveur MySQL embarqué.
+
+**3. La couche à raccorder**
+
+**A — Le montage déjà disponible : PHP → PDO → MariaDB WASM**
+
+Le projet clé est **[joomengine/mariadb-wasm-bridge](https://github.com/joomengine/mariadb-wasm-bridge)**.
+
+Il fournit :
+
+- une extension compilée **`pdo_mariadb_wasm`**, enregistrée sous le nom de pilote PDO `mysql` ;
+- un protocole asynchrone **`mariadb.v1`** ;
+- un Worker MariaDB utilisant `lite4mariadb` ;
+- la gestion des connexions, résultats, erreurs et sauvegardes.
+
+L’application utilise donc une interface habituelle :
+
+```php
+$db = new PDO(
+    'mysql:dbname=demo;charset=utf8mb4',
+    'root',
+    ''
+);
+```
+
+Le chemin réel devient :
+
+```text
+PDO PHP → extension WASM → appels hôte JS → Worker → MariaDB embarqué
+```
+
+**Ce pilote ne passe pas par le protocole réseau MySQL.** C’est précisément ce qui évite d’avoir à créer un serveur TCP dans le navigateur.
+
+Deux variantes existent :
+
+| Variante | Travail restant |
+|---|---|
+| Sean Morris PHP + bridge JoomEngine | Charger l’extension compatible, brancher l’adaptateur JS, gérer le cycle des requêtes et les sauvegardes |
+| JoomEngine PHP + bridge JoomEngine | Pilote déjà compilé ; brancher les appels hôte et le Worker BDD |
+
+Limites documentées du bridge : **pas de `mysqli`**, préparations PDO émulées, résultats entièrement bufferisés, aucune authentification réseau. Le bridge et le runtime PHP évoluant séparément, il faut épingler leurs versions compatibles.
+
+**B — Garder les véritables `mysqli` et `pdo_mysql`**
+
+Ici, le chemin devient :
+
+```text
+PHP/mysqlnd → sockets adaptées → transport → serveur MySQL
+```
+
+Une démonstration existe : **[NOGUD626/phpwasm-laravel-with-mysql](https://github.com/NOGUD626/phpwasm-laravel-with-mysql)**.
+
+Elle utilise PHP Playground personnalisé, `pdo_mysql`, `mysqli` et un **proxy WebSocket ↔ TCP** vers un MySQL externe. Son README rapporte des essais PDO/Eloquent et `mysqli`.
+
+Pour employer une BDD également en WASM :
+
+- **MySQL sous Wasmtime** : le proxy rejoint son port TCP ; architecture plausible, mais combinaison complète à tester.
+- **MariaDB sous Wasmtime** : même principe.
+- **MySQL dans v86** : il faut raccorder le réseau virtuel de la machine à la couche socket PHP ; ce n’est pas fourni automatiquement.
+- **lite4mariadb** : aucun serveur TCP à joindre. Il faudrait développer une façade du protocole MySQL, ou adapter les pilotes à son API embarquée.
+
+**Compiler `mysqli` et appeler `lite4mariadb` ne suffit donc pas : les deux interfaces ne correspondent pas.**
+
+**C — Adapter le framework plutôt que PDO**
+
+**[FriendsOfShopware/shopware-playground](https://github.com/FriendsOfShopware/shopware-playground)** montre déjà Shopware exécuté avec PHP WASM + `lite4mariadb`.
+
+Son raccordement passe par des adaptations applicatives et un bridge JS. C’est une référence intéressante si tu acceptes de modifier la couche Doctrine/framework, avec moins de transparence pour du PHP quelconque.
+
+**4. Performances par combinaison**
+
+Pour les options navigateur, je donne des **enveloppes de dimensionnement très provisoires** : ordinateur récent, runtime déjà chargé, petite base, requêtes indexées, petits résultats et sauvegarde IndexedDB hors du chemin de chaque requête. Elles servent à choisir un prototype, pas à annoncer un benchmark.
+
+| Combinaison | Estimation / niveau attendu | Principal coût |
+|---|---|---|
+| **Sean Morris + bridge JoomEngine + lite4mariadb** | Viser initialement **1–10 ms par petite requête**, pont compris | Suspension PHP, messages Worker, JSON/base64, copies |
+| **JoomEngine PHP + son bridge + lite4mariadb** | Même enveloppe initiale **1–10 ms** ; aucun élément ne permet de le déclarer plus rapide | Architecture de communication similaire |
+| **PHP Playground + bridge spécifique vers lite4mariadb** | Potentiellement comparable ; dépend entièrement de l’adaptateur | Portage du pilote, ABI et mécanisme asynchrone |
+| **PHP WASM + adaptateur framework + lite4mariadb** | Potentiellement comparable ou meilleur sur certains échanges groupés | Nombre d’allers-retours et sérialisation |
+| **PHP WASM Node + MySQL Wasmtime** | TCP local ; moteur disposant de mesures publiées ci-dessous | MySQL WASM, appels hôte et synchronisation disque |
+| **PHP WASM Node + MariaDB Wasmtime** | Mesures publiées disponibles ; très dépendant des transactions | Synchronisation disque, moteur et contention |
+| **PHP navigateur + proxy WS + serveur Wasmtime** | Temps local **+ au moins la latence réseau par échange séquentiel** | Réseau ; peut dominer largement le calcul |
+| **PHP WASM + MySQL/v86** | Probablement le moins performant des montages locaux ; pas de chiffre défendable trouvé | Émulation CPU, Linux et réseau virtuel |
+| **PHP + ancien mariadb-wasm sans InnoDB** | Peut convenir aux démonstrations SQL ; comparaison transactionnelle non pertinente | Fonctionnalités absentes |
+
+**Exemple concret :** 50 requêtes séquentielles à 2 ms représentent déjà **100 ms** côté BDD et raccordement. Avec une base distante à **30 ms de RTT**, ces mêmes 50 échanges coûtent environ **1,5 seconde minimum**, avant les autres traitements.
+
+Les gros résultats peuvent aussi changer le classement : le bridge JoomEngine utilise notamment du base64, qui ajoute environ **33 % de volume**, puis des copies et allocations.
+
+**Mesures publiées par les auteurs, pas mes benchmarks :**
+
+| Moteur | Charge | Résultat publié |
+|---|---|---:|
+| [MySQL Wasmtime](https://github.com/adamziel/wasmtime-mysql#benchmark) | `SELECT 1`, une connexion | **12 811 requêtes/s** |
+| Même moteur | Transactions durables, insertion d’une ligne, un client | **524 transactions/s** |
+| Même moteur | Transactions similaires, quatre clients | **1 275 transactions/s** |
+| Même moteur | Insertions par lots de 100, un client | **26 564 lignes/s** |
+| [MariaDB Wasmtime](https://github.com/adamziel/wasmtime-mariadb#benchmark-methods) | 60 000 instructions mixtes, quatre clients, commit toutes les 20, mode strict | **162,673 s**, soit environ **369 instructions/s** |
+
+Ces résultats concernent **des charges et configurations différentes** : ils ne prouvent pas que MySQL est globalement plus rapide que MariaDB. Les nombres d’insertions par lots ne prédisent pas les performances d’une page PHP avec plusieurs petites transactions.
+
+**5. Les contraintes qui comptent vraiment**
+
+Pour PHP + `lite4mariadb` dans le navigateur :
+
+- **Hébergement :** HTTPS, `SharedArrayBuffer`, isolation via COOP/COEP et ressources compatibles.
+- **Mémoire :** prévoir provisoirement **256–768 Mo pour l’ensemble** PHP + MariaDB + fichiers + application ; davantage pour un gros framework. Ce budget reste à mesurer.
+- **Démarrage :** plusieurs dizaines de Mo d’assets possibles ; séparer téléchargement, compilation WASM, ouverture BDD et import du dump.
+- **Persistance :** un `COMMIT` InnoDB n’implique pas que l’état a déjà été sauvegardé dans IndexedDB. Attendre explicitement `flush()`/`persist()`.
+- **Concurrence :** des connexions multiples ne signifient pas que toutes les requêtes s’exécutent en parallèle ; files et Workers restent déterminants.
+
+**Mon choix serait donc :**
+
+| Ton exigence | Choix conseillé |
+|---|---|
+| **Tout dans le navigateur, application utilisant PDO** | **Sean Morris + bridge JoomEngine + lite4mariadb**, ou runtime JoomEngine intégré |
+| Application existante dépendant de **`mysqli`** | Playground avec vrais pilotes ; serveur MySQL accessible par transport adapté |
+| **MySQL Oracle exact et WASM**, exécution locale autorisée | **MySQL Wasmtime**, en environnement expérimental |
+| Démonstration d’un framework précis | Réutiliser son intégration existante, comme Shopware Playground |
+
+**Pour ton besoin général, je commencerais par le combo PDO + `lite4mariadb` : le raccordement existe déjà, InnoDB est présent et aucune machine Linux émulée n’est nécessaire.** Si `mysqli` est obligatoire, c’est cette exigence qui change le plus le travail à fournir.
+
+## Prompt:
+30/10/2026 20:13:03
+
+J'ai déjà essayé une VM X86, mais ça prenait trop de performance, ça marchait pas, c'était pas assez puissant. L'objectif, c'est d'arriver à avoir PDO et MySQLi connect qui fonctionnent, avec tout dans le navigateur PHP et la base de données qui soit communicable vers des lignes SQL ou du PDO. Et il faut que je puisse importer des petits projets scolaires dessus, avec très peu de framework, juste pouvoir écrire des fichiers, communiquer avec une base de données, faire par exemple des jeux multi-joueurs avec deux joueurs en PHP, en passant par la base de données. Voilà, il faudrait pouvoir faire ce genre de choses dans le navigateur directement, et ça avec les performances les meilleures possibles. Pas besoin d'un gros truc, et on peut réécrire des communications custom s'il faut en JavaScript ou en script intermédiaire.
+
+## Response:
+30/10/2026 20:13:04 · gpt-6.1-sol-wm
+
+Je vais vérifier le chemin le plus léger pour conserver les appels PDO et MySQLi de tes projets. Je vais aussi distinguer deux onglets sur le même navigateur de deux joueurs sur des appareils différents : le partage de la base demande une liaison dans le second cas.
+
+> **Consultation de documentation GitHub**
+>
+>
+> **Assessing mysqli compatibility**
+>
+> Assessing mysqli compatibility
+>
+> **Évalué la compatibilité de mysqli**
+>
+> 
+>
+> **Consulté la documentation GitHub**
+>
+> 
+>
+> Réfléchi pendant 28s
+
+**Pour cet usage, oui : PHP WASM + MariaDB WASM + une couche commune pour PDO et MySQLi est une architecture adaptée.** Tes petits projets scolaires ne nécessitent ni VM x86, ni serveur MySQL complet avec son protocole réseau.
+
+Le point à développer est surtout **la compatibilité MySQLi** : le raccordement PDO existe déjà.
+
+**Le montage que je choisirais**
+
+| Élément | Choix |
+|---|---|
+| Exécution PHP | [seanmorris/php-wasm](https://github.com/seanmorris/php-wasm), avec son mode CGI pour les pages web |
+| Base SQL | [lite4mariadb](https://github.com/shyim/lite4mariadb), véritable MariaDB compilé en WASM, avec InnoDB |
+| PDO | [pdo_mariadb_wasm](https://github.com/joomengine/mariadb-wasm-bridge), pilote existant |
+| MySQLi | Couche de compatibilité à écrire, utilisant **le même pont SQL** |
+| Fichiers du projet | Système de fichiers virtuel PHP, sauvegardé dans le navigateur |
+| Navigation et formulaires | Service Worker qui transmet les requêtes aux pages PHP |
+| Console SQL | Interface JavaScript qui interroge le même Worker MariaDB |
+
+MariaDB couvre très bien le SQL courant enseigné avec MySQL : tables, jointures, index, insertions, transactions, etc. Il faudra tester les éventuelles particularités de tes exercices.
+
+**Comment conserver PDO et `mysqli_connect()`**
+
+Les deux interfaces doivent rejoindre la même base :
+
+```mermaid
+flowchart TD
+    A["Fichiers PHP importés"] --> B["PDO : pilote existant"]
+    A --> C["MySQLi : compatibilité à développer"]
+    B --> D["Pont SQL JavaScript"]
+    C --> D
+    E["Console SQL"] --> D
+    D --> F["Worker MariaDB WASM"]
+```
+
+Le bridge existant expose déjà les opérations nécessaires : connexion, requête et fermeture, avec résultats, erreurs SQL, lignes affectées et identifiant inséré. Il gère également des sessions SQL indépendantes. Voir son [protocole](https://github.com/joomengine/mariadb-wasm-bridge/blob/HEAD/docs/protocol.md).
+
+Pour MySQLi, il y a deux approches :
+
+| Approche | Avantage | Limite |
+|---|---|---|
+| **Compatibilité écrite en PHP**, chargée automatiquement avant le projet | Rapide à développer ; conserve les appels courants | Il faut reproduire les fonctions, classes et comportements utilisés |
+| **Extension MySQLi adaptée, compilée en WASM** | Meilleur potentiel de fidélité et moins de traitement PHP | Développement et maintenance plus importants |
+
+**Je commencerais par la compatibilité PHP.** À condition de ne pas charger l’extension MySQLi native, on peut définir les fonctions et classes attendues :
+
+```php
+$conn = mysqli_connect("localhost", "root", "", "projet");
+$result = mysqli_query($conn, "SELECT * FROM joueurs");
+
+while ($row = mysqli_fetch_assoc($result)) {
+    echo $row["pseudo"];
+}
+```
+
+La couche intercepterait ces appels et les transmettrait au pont MariaDB. Elle serait injectée automatiquement ; tu n’aurais pas à ajouter un `require` dans chaque projet.
+
+Le premier périmètre devrait couvrir :
+
+- `mysqli_connect`, `new mysqli`, `query`, `close` ;
+- `fetch_assoc`, `fetch_array`, `fetch_object`, `num_rows` ;
+- `prepare`, `bind_param`, `execute`, `get_result` ;
+- `insert_id`, `affected_rows`, erreurs et exceptions ;
+- charset, échappement, transactions et autocommit.
+
+**Ça reste une compatibilité à implémenter et à tester**, pas l’extension MySQLi officielle qui fonctionnerait déjà. En particulier, `bind_param()` utilise des références PHP et les erreurs doivent suivre le comportement de la version PHP choisie.
+
+Pour les petits projets décrits, cette adaptation devrait suffire dans beaucoup de cas. Une fonction manquante doit produire une erreur explicite.
+
+**Importer et exécuter un projet scolaire**
+
+L’environnement pourrait fonctionner ainsi :
+
+1. Tu importes un dossier ou ZIP contenant PHP, HTML, CSS et JS.
+2. Tu importes éventuellement un fichier `.sql`.
+3. Les fichiers sont montés dans le système de fichiers PHP.
+4. Une prévisualisation affiche le site ; liens, formulaires et `fetch()` passent par le routeur PHP.
+5. Un éditeur et une console SQL permettent de modifier le projet et sa base.
+
+Il faut bien exécuter **des requêtes HTTP PHP complètes**, avec `$_GET`, `$_POST`, cookies, sessions, en-têtes et redirections. Un simple bouton qui exécute du code PHP en CLI ne suffirait pas.
+
+Le serveur `localhost` indiqué dans les fichiers serait une **connexion virtuelle vers la base du projet**. Les identifiants pourraient être configurés dans l’environnement pour reprendre les conventions scolaires.
+
+**Pour les jeux à deux joueurs**
+
+Il faut distinguer deux situations :
+
+| Situation | Solution |
+|---|---|
+| **Deux joueurs simulés dans la même application** | Deux prévisualisations avec cookies/sessions séparés, un seul PHP et une seule base partagée |
+| Deux onglets du même navigateur | Un propriétaire unique de PHP/BDD, avec échanges par messages entre les onglets |
+| **Deux ordinateurs différents** | Une liaison réseau vers le navigateur qui héberge la partie |
+
+Pour deux ordinateurs, **IndexedDB ne partage pas la base entre les joueurs**.
+
+Le montage le plus simple serait :
+
+- le navigateur du joueur hôte conserve **PHP et MariaDB** ;
+- le second joueur envoie ses requêtes web à l’hôte par **WebRTC DataChannel** ;
+- l’hôte exécute PHP, qui consulte la base, puis renvoie la réponse.
+
+Ainsi, ton code scolaire continue à faire ses `SELECT` et `UPDATE` normalement. Tu n’as pas besoin de synchroniser deux bases ni d’exécuter deux copies concurrentes du serveur de jeu.
+
+WebRTC demande un échange de connexion, automatisé par un service de signalisation ou effectué manuellement. Certains réseaux nécessitent aussi un relais TURN. **PHP et la BDD restent dans le navigateur**, même si une infrastructure de connexion peut être nécessaire.
+
+Pour un jeu au tour par tour, un quiz ou un morpion, c’est cohérent. Pour un jeu d’action rapide, le polling PHP/SQL devient surtout la limite.
+
+**Ce qui donnera les meilleures performances**
+
+Je privilégierais ces décisions :
+
+| Décision | Pourquoi |
+|---|---|
+| **Une instance PHP et une instance MariaDB réutilisées** | Évite de recharger les moteurs à chaque page ou joueur |
+| Un Worker PHP et un Worker BDD | Garde l’éditeur et la prévisualisation réactifs |
+| Une file de requêtes PHP au départ | Simple, suffisante pour deux joueurs et évite de multiplier la mémoire |
+| Résultats SQL récupérés par lots | Un échange pour le résultat, puis les `fetch_assoc()` lisent localement |
+| Sessions SQL conservées pendant la requête PHP | Préserve transactions, variables et identifiants insérés |
+| Sauvegardes regroupées | Évite une synchronisation IndexedDB à chaque petit appel |
+| Multijoueur centralisé chez l’hôte | Évite toute réplication de BDD |
+
+**Je corrige la précision de mon estimation précédente : les 1–10 ms par requête étaient une hypothèse de dimensionnement, pas une performance vérifiée.** Sans prototype sur ton matériel, je ne peux pas garantir un débit.
+
+En revanche, cette architecture supprime le coût majeur que tu as rencontré : **aucune émulation CPU x86 ni système Linux invité**. Pour des pages simples et de petites tables, les coûts à mesurer seront surtout le démarrage, les échanges PHP ↔ JS ↔ MariaDB et les sauvegardes.
+
+Le bon benchmark serait ton usage réel : une page avec 10 requêtes, deux sessions de joueurs qui interrogent l’état quelques fois par seconde, puis un rechargement qui vérifie la sauvegarde.
+
+**Ma recommandation précise : partir de Sean Morris + le bridge PDO JoomEngine + lite4mariadb, puis ajouter une compatibilité MySQLi sur ce même bridge.** C’est le chemin le plus court vers tes projets scolaires tout en conservant une vraie base MariaDB et des possibilités d’optimisation.
+
+## Prompt:
+30/10/2026 21:29:40
+
+Je veux faire les choses bien et donc avoir une extension SQL adaptée dans le WASM. Pour le système de fichiers, il faut essayer de trouver des GitHubs. avoir un système de fichiers performant. Il faut consommer le moins de mémoire, on a déjà un gros truc, et qu'il soit assez rapide. Et peut-être qu'il aille aussi avec le système de service worker derrière. Donc un système de fichiers et service worker pour qu'il marche main dans la main. Soit eux aussi l'élément du WASM pour de la performance brute, soit on le sépare en JavaScript. Après il faut aussi regarder si c'est pas une bonne idée de compiler, de récupérer le projet PHP et le projet Lite format ADB. Est-ce que de se créer un WASM avec tout dedans, c'est pas plus performant ? Charger plusieurs WASM. Donc il faut regarder tout ça, il faut regarder si est-ce qu'on met tout dans le WASM, la mémoire, est-ce qu'on fait séparé. Et le service worker, comment on fait pour qu'on puisse ouvrir plusieurs pages qui se parlent en local entre elles. Et concernant une console SQL, parce que là il faudrait pas avoir un truc aussi gros que PHPMyAdmin. Il faudrait pas un truc en PHP, il faudrait un truc qui fonctionne natif, donc JavaScript par exemple. Dans ce cas-là, on peut s'inspirer sur tous les projets connus et donc faire recoder, c'est assez facile, tout le système. On voit les... on peut visualiser les tables, recréer la structure, voir les modifier le contenu. Parce que là on récupère des projets connus sur GitHub et on refait ça en JavaScript, on recopie les grandes idées, et surtout avoir visualiser nos tables avec un schéma relationnel complet qui est dynamique. On peut quand même dragger n'importe quelle table et ajouter une table simplement sous forme de schéma relationnel directement à l'arrière et cliquer pour relier. Donc voici un éditeur visuel possible. Et donc cette interface de gestion des tables, on peut l'ouvrir dans une autre fenêtre qui, par le service worker, réagit aux autres. Regardez GitHub et réfléchissez à comment faire tout ça.
+
+## Response:
+30/10/2026 21:29:41 · gpt-6.1-sol-wm
+
+Je vais examiner ensemble le stockage, le routage entre fenêtres et l’intégration PHP/MariaDB en WASM, puis chercher des éditeurs SQL et relationnels réutilisables. Je comparerai les architectures sur leur consommation mémoire, pas seulement sur leur vitesse théorique.
+
+Deux points changent le choix : `lite4mariadb` conserve actuellement ses fichiers dans un miroir en RAM avant de les sauvegarder dans IndexedDB, et le Service Worker ne peut pas servir d’hôte permanent aux moteurs. Pour réduire la mémoire, la piste à tester est OPFS pour les données, avec un propriétaire unique des moteurs que les fenêtres contactent par messages.
+
+Le code de compilation actuel de `lite4mariadb` prévoit 256 Mio de mémoire initiale et un pool de 16 threads. Réduire ce profil et éviter le miroir des fichiers en RAM semblent des leviers plus importants que fusionner les WASM. La fusion reste une piste à mesurer ; elle ne supprime pas les caches internes de MariaDB.
+
+Pour l’éditeur relationnel, drawDB et ChartDB donnent de bonnes références d’interface. Le travail principal sera de traduire les gestes en modifications SQL réelles, puis de relire le schéma pour garder toutes les fenêtres cohérentes.
+
+> **23 sites web consultés**
+>
+> 
+>
+> **Lister les fichiers de recherche WebAssembly**
+>
+>
+> **Locating official FS sources**
+>
+> Locating official FS sources
+>
+> **Localisé les sources officielles de FS**
+>
+> 
+>
+> **Listé les fichiers de recherche WebAssembly**
+>
+> 
+>
+> **4 sites web consultés**
+>
+> 
+>
+> **Analysant des dépôts GitHub pour PHP WASM**
+>
+>
+> **Analysé des dépôts GitHub pour PHP WASM**
+>
+> 
+>
+> **22 sites web consultés**
+>
+> 
+>
+> **Checking PHP mysqli support**
+>
+> Checking PHP mysqli support
+>
+> **Vérifié la prise en charge de mysqli en PHP**
+>
+> 
+>
+> **Analyser l’architecture PHP WebAssembly**
+>
+>
+> **Analysé l’architecture PHP WebAssembly**
+>
+> 
+>
+> **28 sites web consultés**
+>
+> 
+>
+> **Analyser les fichiers web, async et sync**
+>
+>
+> **Analysé les fichiers web asynchrones et synchrones**
+>
+> 
+>
+> **36 sites web consultés**
+>
+> 
+>
+> **Checking SharedWorker routing**
+>
+> Checking SharedWorker routing
+>
+> **Checking owner routing**
+>
+> Checking owner routing
+>
+> **Vérifié le routage SharedWorker et propriétaire**
+>
+> 
+>
+> **Récupération de fichiers source GitHub**
+>
+>
+> **Récupéré des fichiers source depuis GitHub**
+>
+> 
+>
+> **Assessing mysqli reuse**
+>
+> Assessing mysqli reuse
+>
+> **Évalué la réutilisation de mysqli**
+>
+> 
+>
+> Réfléchi pendant 2m 35s
+
+**Je partirais sur deux moteurs WASM spécialisés, avec les extensions PDO/MySQLi compilées dans PHP, un stockage OPFS et un Service Worker léger pour le routage.** Je garderais la fusion PHP + MariaDB comme une optimisation à comparer, car elle peut accélérer les échanges SQL sans forcément réduire beaucoup la mémoire.
+
+La recherche fait surtout ressortir un point : **les projets existants fournissent des briques, mais leur assemblage actuel n’est pas encore optimisé pour ton objectif de faible consommation mémoire.**
+
+**1. Le système de fichiers : OPFS comme stockage, cache RAM limité**
+
+Il faut distinguer trois couches :
+
+| Couche | Fonction |
+|---|---|
+| **OPFS** | Stockage persistant privé au navigateur |
+| **Système de fichiers virtuel** | Présente à PHP les chemins, fichiers, dossiers, descripteurs et opérations habituelles |
+| **Cache** | Accélère les fichiers fréquemment utilisés, avec une taille plafonnée |
+
+OPFS permet des lectures et écritures à des positions précises, sans charger obligatoirement chaque fichier entièrement en mémoire. Son accès synchrone performant, `FileSystemSyncAccessHandle`, est réservé aux **Dedicated Workers**, pas aux Service Workers ni aux SharedWorkers. ([fs.spec.whatwg.org](https://fs.spec.whatwg.org/?utm_source=chatgpt.com))
+
+Les GitHub intéressants sont :
+
+| Projet | Ce qu’il apporte | Mon avis pour ton projet |
+|---|---|---|
+| **[Emscripten / WasmFS](https://github.com/emscripten-core/emscripten/tree/main/system/lib/wasmfs)** | Système de fichiers implémenté en WASM, multithread, backend OPFS | **Premier candidat pour les accès internes PHP/MariaDB**, avec recompilation |
+| **[ZenFS](https://github.com/zen-fs/core)** + [DOM](https://github.com/zen-fs/dom) + [Emscripten](https://github.com/zen-fs/emscripten) | VFS JavaScript, montages, OPFS, IndexedDB, interfaces Emscripten | Bon candidat d’intégration ; vérifier les caches et miroirs employés |
+| **[opfs-worker](https://github.com/kachurun/opfs-worker)** | API fichiers, descripteurs, lectures par blocs, streaming et notifications entre onglets | Bonne référence pour l’éditeur et la coordination des fichiers |
+| **[memfs](https://github.com/streamich/memfs)** | Système de fichiers mémoire et adaptateurs vers les API fichiers du navigateur | Utile pour certaines adaptations ; éviter un deuxième exemplaire complet du projet en RAM |
+| [BrowserFS](https://github.com/jvilk/BrowserFS) | Ancienne solution modulaire, compatible Emscripten | Je privilégierais les alternatives précédentes |
+
+WasmFS vise notamment à limiter les opérations de fichiers qui doivent être transférées vers le thread principal dans les programmes Emscripten multithreads. ZenFS fournit, lui, un adaptateur dans les deux sens avec le système de fichiers Emscripten. **Ce ne sont pas deux remplacements interchangeables sans travail d’intégration.** ([emscripten.org](https://emscripten.org/docs/api_reference/Filesystem-API.html?utm_source=chatgpt.com), [zenfs.dev](https://zenfs.dev/emscripten/?utm_source=chatgpt.com))
+
+`opfs-worker` propose explicitement streaming et accès par descripteurs en Dedicated Worker ; son mode SharedWorker a des capacités différentes. Je le retiendrais comme référence concrète, sans faire transiter chaque petite lecture SQL par sa façade de messages. ([github.com](https://github.com/kachurun/opfs-worker?utm_source=chatgpt.com))
+
+**La disposition que je recommande :**
+
+| Contenu | Stockage et stratégie |
+|---|---|
+| Sources PHP | OPFS + petit cache des fichiers actifs |
+| Images, vidéos, gros fichiers | OPFS ; lecture en flux, sans préchargement global |
+| Fichiers temporaires | RAM plafonnée |
+| Sessions PHP | Fichiers du projet, dans un répertoire réservé |
+| Fichiers MariaDB | OPFS via le backend propre au moteur |
+| Assets de l’application et moteurs WASM | Cache HTTP / Cache Storage |
+| Position des tables du diagramme, préférences | IndexedDB ou petit fichier de métadonnées |
+
+**Un même stockage logique ne signifie pas un même cache universel.** MariaDB doit posséder ses fichiers et son cache de pages ; PHP possède les fichiers applicatifs. L’éditeur demande les modifications au propriétaire concerné.
+
+Cela évite de faire coexister une copie OPFS, une copie complète dans un VFS JavaScript et une troisième dans le système de fichiers WASM.
+
+**2. Le chantier mémoire principal est dans MariaDB**
+
+J’ai consulté le [CMake actuel de lite4mariadb](https://github.com/shyim/lite4mariadb/blob/HEAD/wasm/CMakeLists.txt). Il configure notamment :
+
+| Paramètre | Valeur trouvée |
+|---|---:|
+| Mémoire linéaire initiale | **256 Mio** |
+| Maximum | **2 Gio** |
+| Pool initial de pthreads | **16** |
+| Croissance mémoire | Activée |
+
+Ces 16 threads **partagent la mémoire du moteur** : ce ne sont pas 16 copies de 256 Mio. Ils ajoutent néanmoins des piles, des contextes JavaScript et du travail de démarrage.
+
+Le [README de lite4mariadb](https://github.com/shyim/lite4mariadb) indique aussi que sa persistance navigateur actuelle repose sur **IDBFS, avec miroir en mémoire**, et qu’il n’a pas encore de backend OPFS.
+
+Pour ton objectif, je ferais donc un **profil de compilation dédié** :
+
+- portage des fichiers MariaDB vers OPFS ;
+- réduction progressive du nombre de threads, avec tests de démarrage et de transactions ;
+- réglage du buffer pool InnoDB pour les petites bases ;
+- taille initiale du WASM ajustée aux mesures ;
+- plafonds sur les tris, résultats et fichiers temporaires ;
+- suppression des composants réellement inutilisés.
+
+**On ne peut pas simplement choisir deux threads parce qu’il n’y a que deux joueurs.** InnoDB possède ses propres tâches internes. Le nombre minimal fonctionnel doit être mesuré.
+
+Le backend OPFS de WasmFS mérite un prototype, mais il faut vérifier les opérations attendues par MariaDB : écritures partielles, renommages, troncature, synchronisation et reprise après interruption. Des difficultés existent encore avec certaines combinaisons OPFS, pthreads et JSPI. ([github.com](https://github.com/emscripten-core/emscripten/issues/27620?utm_source=chatgpt.com))
+
+**3. PDO et MySQLi : une vraie adaptation native**
+
+Je retiens ta préférence : **extensions compilées, sans remplacement des fonctions MySQLi par du PHP.**
+
+L’architecture native devrait avoir un cœur commun :
+
+| Composant | Responsabilité |
+|---|---|
+| **Backend SQL natif commun** | Connexions, requêtes, transactions, paramètres, résultats, erreurs |
+| **Pilote PDO** | Présente l’interface PDO habituelle |
+| **Adaptation MySQLi** | Présente fonctions et classes MySQLi habituelles |
+| **Bindings JavaScript** | Donnent à la console SQL accès au même moteur |
+
+Le [bridge JoomEngine](https://github.com/joomengine/mariadb-wasm-bridge) fournit déjà un point de départ PDO. Il faut compléter ou adapter ce travail pour MySQLi et pour ton transport optimisé.
+
+**La subtilité importante : MySQLi moderne dépend de `mysqlnd`.** PHP a supprimé la possibilité de simplement compiler MySQLi contre une bibliothèque cliente externe. Relier PHP à `libmariadbd` ne rend donc pas automatiquement MySQLi fonctionnel. ([wiki.php.net](https://wiki.php.net/rfc/mysqli_support_for_libmysql?utm_source=chatgpt.com))
+
+Deux chemins natifs sont possibles :
+
+| Chemin | Avantage | Coût |
+|---|---|---|
+| Adapter le backend employé par MySQLi/mysqlnd | Conserve davantage de comportements PHP existants | Interfaces internes complexes à porter |
+| Adapter l’extension MySQLi vers notre cœur SQL natif | Contrôle direct des appels et résultats | Compatibilité à implémenter méthodiquement |
+
+Je ferais une courte étude des interfaces internes avant de trancher. **Je n’implémenterais pas le protocole réseau MySQL juste pour relier deux composants du navigateur.**
+
+Pour faire les choses correctement, les tests doivent couvrir les points souvent oubliés : références de `bind_param()`, `NULL`, valeurs binaires, entiers, `DECIMAL`, métadonnées, `get_result()`, erreurs, transactions et libération des connexions après chaque requête PHP.
+
+**4. Un seul WASM ou plusieurs ?**
+
+**Un fichier unique n’est pas automatiquement plus rapide.** Ce qui compte est le nombre de mémoires, les copies de résultats et les frontières entre threads.
+
+| Architecture | Performances SQL potentielles | Mémoire et maintenance |
+|---|---|---|
+| **PHP et MariaDB dans deux Workers** | Messages et copies à optimiser | Bon isolement ; chaque moteur peut être remplacé séparément |
+| **Deux modules WASM dans un même Worker** | Évite certains messages ; échanges entre deux mémoires toujours nécessaires | Compromis intéressant, mais intégration spécifique |
+| **PHP + MariaDB liés dans un même WASM** | **Meilleur potentiel pour les appels directs C/C++** | Build plus complexe ; moteur commun à redémarrer en cas de blocage |
+| Deux modules partageant artificiellement une mémoire | Potentiellement peu de copies | Très complexe : allocateurs, piles, données globales et ABI doivent être coordonnés |
+
+Avec un binaire fusionné, les extensions PHP pourraient appeler directement l’API embarquée MariaDB. On évite alors le détour systématique par JSON, base64 et messages.
+
+Mais la fusion :
+
+- ne supprime pas le cache InnoDB ;
+- ne supprime pas les objets PHP représentant les résultats ;
+- ne supprime pas les threads nécessaires à MariaDB ;
+- lie les contraintes de compilation des deux moteurs ;
+- rend plus difficile l’arrêt d’un PHP bloqué sans arrêter la base.
+
+**Mon choix : concevoir une API C commune qui permet les deux modes.**
+
+1. Mode séparé pour disposer d’une référence fonctionnelle.
+2. Mode fusionné pour mesurer le gain réel.
+3. Garder le fusionné seulement s’il améliore suffisamment le coût total.
+
+Les optimisations les plus prometteuses sont **OPFS sans miroir global, une seule instance de chaque moteur, des résultats transmis par blocs et un profil MariaDB réduit**. La fusion vient ensuite.
+
+**5. Service Worker et fenêtres : partager le moteur, pas seulement les fichiers**
+
+Le Service Worker doit jouer le rôle de **routeur HTTP local**. Le navigateur peut l’arrêter lorsqu’il n’a plus d’événement à traiter ; sa mémoire ne constitue donc pas un emplacement fiable pour une base vivante et durable. ([w3.org](https://www.w3.org/TR/service-workers/?utm_source=chatgpt.com))
+
+Pour une première architecture robuste, je choisirais **une fenêtre “studio” propriétaire des moteurs** :
+
+```mermaid
+flowchart TD
+    A["Pages PHP et joueurs"] --> B["Service Worker : routage HTTP"]
+    B --> C["Studio : propriétaire des moteurs"]
+    D["Fenêtre SQL et diagramme"] --> C
+    E["Éditeur de fichiers"] --> C
+    C --> F["Worker PHP"]
+    F --> G["Worker MariaDB"]
+    D -. "Commandes SQL via le studio" .-> G
+```
+
+Le dernier lien représente le chemin logique : la fenêtre SQL n’instancie pas une seconde base.
+
+Concrètement :
+
+- le studio démarre les moteurs une fois ;
+- le Service Worker transmet les requêtes PHP au studio par messages ;
+- le studio les place dans une file ;
+- la console SQL utilise une connexion distincte au **même moteur MariaDB** ;
+- les fenêtres reçoivent les événements de changement.
+
+La découverte peut passer par `BroadcastChannel`, les requêtes/réponses par `MessageChannel`, et un verrou empêche deux studios de prendre possession du même projet.
+
+**La fenêtre studio doit rester ouverte dans cette version.** Sa fermeture arrête l’environnement ; une réouverture restaure l’état sauvegardé.
+
+Pour aller plus loin, un **SharedWorker coordinateur** peut donner aux fenêtres un point de rencontre commun. Il faut cependant valider l’hébergement de ses Workers enfants sur les navigateurs visés : l’accès OPFS synchrone reste dans un Dedicated Worker. Je ne mettrais pas cette complexité sur le chemin du premier prototype.
+
+**Les routes locales pourraient ressembler à :**
+
+| Route | Usage |
+|---|---|
+| `/run/projet-a/joueur-1/index.php` | Première session de navigation |
+| `/run/projet-a/joueur-2/index.php` | Deuxième joueur |
+| `/studio/projet-a/database` | Gestion de la même base |
+
+Les joueurs doivent avoir des **cookies et sessions PHP virtuels séparés**. Deux fenêtres du même navigateur partagent normalement les cookies du site : ouvrir deux fenêtres ne suffit donc pas à simuler deux utilisateurs.
+
+**6. Une console SQL et un éditeur relationnel entièrement JavaScript**
+
+Oui, cette interface peut fonctionner **sans PHP**, en contactant directement les bindings JavaScript du moteur SQL.
+
+Les références les plus pertinentes sont :
+
+| Projet | À reprendre comme référence |
+|---|---|
+| **[drawDB](https://github.com/drawdb-io/drawdb)** | Création visuelle de tables, colonnes, relations, import/export SQL |
+| **[ChartDB](https://github.com/chartdb/chartdb)** | Introspection du schéma et représentation relationnelle |
+| **[Outerbase Studio](https://github.com/outerbase/studio)** | Grille de données, modifications préparées avant application, console SQL |
+| **[xyflow](https://github.com/xyflow/xyflow)** | Brique pour déplacer les tables, zoomer et relier les colonnes |
+| **[CodeMirror SQL](https://code.haverbeke.berlin/codemirror/lang-sql)** | Édition SQL et complétion |
+
+drawDB et ChartDB sont de bonnes références de conception visuelle ; Outerbase distingue déjà éditeur de requêtes, données et structure. Aucun de ces ensembles n’est automatiquement un gestionnaire branché sur ta MariaDB WASM. ([github.com](https://github.com/drawdb-io/drawdb?utm_source=chatgpt.com), [github.com](https://github.com/chartdb/chartdb?utm_source=chatgpt.com), [github.com](https://github.com/outerbase/studio?utm_source=chatgpt.com))
+
+**Je construirais une interface ciblée avec trois vues :**
+
+| Vue | Fonctions |
+|---|---|
+| **SQL** | Requêtes, historique, résultats paginés, erreurs, durée |
+| **Données** | Ajouter/modifier/supprimer des lignes, filtres, tri, distinction `NULL`/chaîne vide |
+| **Relations** | Tables déplaçables, colonnes, types, clés, index et relations |
+
+Le cœur graphique peut utiliser React Flow ou Svelte Flow, tous deux proposés sous licence MIT. Le dépôt GitHub historique de CodeMirror SQL renvoie désormais vers son nouvel hébergement. ([github.com](https://github.com/xyflow/xyflow?utm_source=chatgpt.com), [code.haverbeke.berlin](https://code.haverbeke.berlin/codemirror/lang-sql?utm_source=chatgpt.com))
+
+Les idées d’interface peuvent inspirer une réécriture. Si on réutilise directement du code, il faut conserver les conditions de ses licences : drawDB, ChartDB et Outerbase annoncent notamment AGPL.
+
+**Le diagramme doit représenter la base réelle**
+
+C’est la partie qui demande le plus de soin. Déplacer une table et créer une relation sont deux opérations différentes :
+
+| Geste | Conséquence |
+|---|---|
+| Déplacer une table | Sauvegarder sa position uniquement |
+| Ajouter une table | Générer et exécuter `CREATE TABLE` |
+| Ajouter une colonne | Exécuter `ALTER TABLE` |
+| Relier deux colonnes | Vérifier les types/index/données, puis créer la clé étrangère |
+| Modifier la structure en console SQL | Relire le schéma et mettre à jour le diagramme |
+
+La source de vérité doit être **MariaDB**, via `information_schema` et `SHOW CREATE TABLE`. Les positions, couleurs et regroupements sont des métadonnées de l’éditeur.
+
+Le fonctionnement serait : **geste → SQL proposé → exécution → relecture du schéma → actualisation des fenêtres**.
+
+Il faut conserver la possibilité qu’une modification échoue : une clé étrangère ne peut pas être créée si les données existantes la contredisent. Les modifications DDL peuvent aussi provoquer des commits implicites ; un bouton “annuler” graphique ne garantit pas un rollback SQL.
+
+Pour les données, pagination et identification par clé primaire évitent de charger toute une table ou de modifier accidentellement plusieurs lignes identiques.
+
+**7. L’ordre de travail que je retiendrais**
+
+| Étape | Résultat vérifiable |
+|---|---|
+| **1. Référence fonctionnelle** | PHP + MariaDB séparés, PDO natif, import d’un petit projet |
+| **2. MySQLi natif** | Même projet fonctionnant avec PDO et `mysqli_connect()` |
+| **3. Stockage OPFS** | Projet et base conservés sans miroir intégral en RAM ; reprise après interruption testée |
+| **4. Plusieurs fenêtres** | Deux joueurs et une console SQL partagent une seule base |
+| **5. Gestion visuelle** | Données éditables, schéma introspecté, DDL généré depuis le diagramme |
+| **6. Variante fusionnée** | Comparaison mesurée avec la version séparée |
+
+Je mesurerais la mémoire au repos et après import, les pics pendant les résultats SQL, le démarrage froid/chaud, les requêtes PHP avec 1/10/100 accès SQL, les sauvegardes et l’ajout d’une fenêtre.
+
+**La décision structurante est de partager un seul environnement par projet, avec un stockage OPFS et des extensions natives.** Deux ou trois fichiers WASM chargés une fois peuvent être plus économes qu’un seul gros WASM réinstancié dans chaque fenêtre.
+
+---
+
+**Sources:**
+
+- [File System Standard](https://fs.spec.whatwg.org/?utm_source=chatgpt.com)
+- [File System API](https://emscripten.org/docs/api_reference/Filesystem-API.html?utm_source=chatgpt.com)
+- [@zenfs/emscripten](https://zenfs.dev/emscripten/?utm_source=chatgpt.com)
+- [GitHub - kachurun/opfs-worker: OPFS File System Webworker](https://github.com/kachurun/opfs-worker?utm_source=chatgpt.com)
+- [PHP: rfc:mysqli_support_for_libmysql](https://wiki.php.net/rfc/mysqli_support_for_libmysql?utm_source=chatgpt.com)
+- [Service Workers Nightly](https://www.w3.org/TR/service-workers/?utm_source=chatgpt.com)
+- [codemirror/lang-sql: SQL language support for the CodeMirror code editor](https://code.haverbeke.berlin/codemirror/lang-sql?utm_source=chatgpt.com)
+
+## Prompt:
+30/10/2026 21:41:14
+
+On va voir comment minister va. On peut gérer les fenêtres avec le service worker gérer les, du coup, sur des services web qui fait tourner PHP. Est-ce qu'il y a déjà des projets sur lesquels on peut s'inspirer ou est-ce qu'on crée de communication de zéro ?
+
+## Response:
+30/10/2026 21:41:15 · gpt-6.1-sol-wm
+
+Je vais chercher les projets qui font déjà le lien entre Service Worker, fenêtres et PHP WASM, pour voir quelle communication on peut réutiliser.
+
+> **20 sites web consultés**
+>
+> 
+>
+> Réfléchi pendant 17s
+
+**Oui, des projets font déjà presque exactement cette partie. On doit écrire la coordination propre à ton application, mais pas recréer toute la communication de zéro.**
+
+Le Service Worker peut intercepter les requêtes des différentes fenêtres et les diriger vers PHP. **L’exécution persistante de PHP et MariaDB resterait dans des Workers dédiés**, comme discuté précédemment.
+
+**Les trois références utiles**
+
+| Projet | Ce qu’on peut reprendre |
+|---|---|
+| **[WordPress Playground](https://github.com/WordPress/wordpress-playground)** | Routage HTTP local, liaison Service Worker ↔ moteur PHP, distinction entre instances |
+| **[Sean Morris / php-wasm](https://github.com/seanmorris/php-wasm)** | Exécution CGI, traitement des requêtes et commandes de fichiers |
+| **[Comlink](https://github.com/GoogleChromeLabs/comlink)** | Appels de fonctions entre fenêtres/Workers via des messages, avec résultats et erreurs |
+
+**1. WordPress Playground : la meilleure référence d’architecture**
+
+Il possède déjà le chemin : requête du navigateur → Service Worker → Worker PHP → réponse HTTP. L’onglet principal démarre et coordonne ces composants. **Cette infrastructure peut servir de référence sans embarquer WordPress dans notre application.** ([developer.wordpress.org](https://developer.wordpress.org/playground/developers/architecture/browser-tab-orchestrates-execution/?utm_source=chatgpt.com))
+
+Son système de *scopes* est particulièrement pertinent : un identifiant dans l’URL permet de transmettre chaque requête à la bonne instance PHP, sans que toutes les instances répondent au même message. ([developer.wordpress.org](https://developer.wordpress.org/playground/developers/architecture/browser-scopes/?utm_source=chatgpt.com))
+
+Pour nous, il faut aller un peu plus loin : **plusieurs fenêtres doivent pouvoir cibler la même instance**, tout en gardant des sessions utilisateur distinctes.
+
+| Identifiant | Signification |
+|---|---|
+| `projectId` | Fichiers et base du projet |
+| `runtimeId` | Instance PHP/MariaDB partagée |
+| `sessionId` | Joueur ou session de navigation |
+| `requestId` | Requête précise à laquelle répondre |
+
+Deux joueurs auraient donc le même `runtimeId`, mais des `sessionId` différents.
+
+**2. Sean Morris : des échanges déjà intégrés**
+
+`php-cgi-wasm` fournit déjà des gestionnaires de requêtes et de messages. Sa documentation utilise **quickbus**, dont le protocole requête/réponse est compris par `php.handleMessageEvent`, notamment pour appeler les opérations de fichiers depuis une page. ([php-wasm.seanmorr.is](https://php-wasm.seanmorr.is/getting-started/cgi-service-worker.html?utm_source=chatgpt.com))
+
+Si on conserve ce runtime, **réutiliser son protocole existant est plus logique que lui ajouter immédiatement une seconde bibliothèque de communication**.
+
+Son exemple exécute PHP directement dans le Service Worker. Pour notre architecture, on reprendrait les fonctions CGI et le protocole, en adaptant leur emplacement pour garder les moteurs hors du Service Worker.
+
+**3. Comlink : pour notre API de coordination**
+
+Comlink transforme les échanges `postMessage` en appels asynchrones. Il possède aussi un exemple de connexion à un Service Worker par `MessageChannel`. Il facilite le transport, mais ne gère pas à notre place le routage des projets, les sessions ou le redémarrage des moteurs. ([github.com](https://github.com/GoogleChromeLabs/comlink?utm_source=chatgpt.com), [github.com](https://github.com/GoogleChromeLabs/comlink/blob/main/docs/examples/05-serviceworker-example/index.html?utm_source=chatgpt.com))
+
+Notre API pourrait ainsi exposer :
+
+```js
+await runtime.request(httpRequest);
+await runtime.files.write("/index.php", content);
+await runtime.database.query("SELECT * FROM joueurs");
+```
+
+Ces noms représentent **l’API à construire**, pas des fonctions déjà disponibles telles quelles.
+
+**Ce qu’il reste réellement à développer**
+
+| Réutilisable | Spécifique à notre application |
+|---|---|
+| Transport des messages et réponses | Registre des projets et moteurs actifs |
+| Traitement CGI PHP | Association fenêtre → projet → session |
+| Routage HTTP de référence | File d’exécution et nettoyage des requêtes |
+| Transfert de buffers | Notifications fichiers/données/schéma |
+| Gestion des erreurs du transport | Reconnexion après redémarrage du Service Worker |
+
+Les pages du projet continueraient à utiliser des liens, formulaires et `fetch()` ordinaires. La fenêtre de gestion SQL utiliserait directement l’API du moteur, **sans passer par une page PHP ni recréer une base**.
+
+**Je choisirais donc : architecture de routage inspirée de Playground, fonctions CGI de Sean Morris et son bus existant pour commencer.** On écrirait une petite couche de coordination adaptée au partage entre fenêtres. Comlink reste une bonne alternative si son API simplifie cette couche, mais empiler plusieurs bus ne nous apporterait pas de performance supplémentaire.
+
+---
+
+**Sources:**
+
+- [Browser tab orchestrates the execution – Playground Handbook](https://developer.wordpress.org/playground/developers/architecture/browser-tab-orchestrates-execution/?utm_source=chatgpt.com)
+- [Php-Wasm](https://php-wasm.seanmorr.is/getting-started/cgi-service-worker.html?utm_source=chatgpt.com)
+- [GitHub - GoogleChromeLabs/comlink: Comlink makes WebWorkers enjoyable.](https://github.com/GoogleChromeLabs/comlink?utm_source=chatgpt.com)
+
+## Prompt:
+30/10/2026 21:43:32
+
+Donc en fait le principe qu'il faut, il faut que le plus optimisé en mémoire, en optimisation de mémoire, tout en gardant le PHP le plus fonctionnel avec les éléments essentiels de PHP intégrés, une base de données qui n'ait pas non plus besoin d'être trop grande vu qu'on n'aura pas des ages trop grands, mais quand même une taille normale et assez optimisée niveau mémoire. Tout ça, peut-être qu'on peut optimiser dans un seul WASM pour avoir contrôle total et des messages rapides. Essaye de remettre au prof l'architecture et toutes les inspirations sur lesquelles on peut prendre des bouts de code. Et également dis-moi le projet Boogie, est-ce qu'on peut espérer faire tourner ? Qu'est-ce qu'on peut espérer faire tourner dessus, des jeux multi avec une DB ? Est-ce qu'on peut faire du fast polling de manière efficace ou est-ce que ça va saturer vite ? Est-ce qu'on pourrait carrément faire tourner un site WordPress ?
+
+## Response:
+30/10/2026 21:43:33 · gpt-6.1-sol-wm
+
+Je vais remettre l’architecture au propre en privilégiant la mémoire, puis vérifier les limites pour le polling et WordPress. Je vais aussi chercher « Boogie » ; sans son dépôt exact, je distinguerai ce qu’on peut conclure de ce qui dépend de son code.
+
+> **Refining the WASM target**
+>
+> Refining the WASM target
+>
+> **Affiné la cible WASM**
+>
+> 
+>
+> **44 sites web consultés**
+>
+> 
+>
+> Réfléchi pendant 1m
+
+**L’objectif est cohérent : un environnement PHP/MariaDB local, partagé entre les fenêtres, avec une vraie compatibilité PDO/MySQLi et une consommation mémoire maîtrisée.** Les petits jeux multijoueurs et les projets scolaires sont des cibles réalistes. WordPress est également envisageable, mais plus exigeant.
+
+Voici l’architecture remise au propre. **C’est une proposition technique ; les budgets mémoire et performances devront être validés par un prototype.**
+
+**L’architecture cible**
+
+| Élément | Choix proposé |
+|---|---|
+| **PHP** | Une instance réutilisée, extensions essentielles compilées |
+| **SQL** | MariaDB embarqué issu de `lite4mariadb`, profil réduit |
+| **PDO et MySQLi** | Extensions natives utilisant un backend SQL commun |
+| **Fichiers** | OPFS persistant, avec cache RAM plafonné |
+| **Navigation** | Service Worker qui intercepte et route les requêtes |
+| **Plusieurs fenêtres** | Un coordinateur les relie au même environnement |
+| **Gestion de la base** | Interface JavaScript : console, données, schéma relationnel |
+
+**Une seule instance par projet actif**, même si tu ouvres deux joueurs, l’éditeur et la console SQL. C’est probablement le gain mémoire le plus important.
+
+Le routage navigateur → Service Worker → Worker PHP existe déjà dans WordPress Playground. On peut reprendre cette architecture sans embarquer WordPress lui-même. ([developer.wordpress.org](https://developer.wordpress.org/playground/developers/architecture/browser-concepts/?utm_source=chatgpt.com))
+
+**Un seul WASM : une bonne cible, avec une réserve**
+
+Pour ton objectif, **la fusion PHP + MariaDB mérite un prototype sérieux** :
+
+- les extensions SQL peuvent appeler directement MariaDB en C/C++ ;
+- on évite de sérialiser chaque requête et résultat en JSON/base64 ;
+- les paramètres et résultats peuvent être parcourus directement ;
+- la console JavaScript utilise des fonctions exportées du même moteur.
+
+Mais **fusionner ne rend pas automatiquement l’ensemble léger** : MariaDB conserve ses caches, PHP ses allocations et les résultats SQL leurs objets. Le code PHP/MySQLi doit toujours être adapté ; compiler les projets ensemble ne suffit pas.
+
+Je prévoirais donc **le même backend SQL natif avec deux modes de compilation** :
+
+| Mode | Utilité |
+|---|---|
+| PHP et MariaDB séparés | Référence fonctionnelle, diagnostic et récupération plus simples |
+| **PHP + MariaDB fusionnés** | Variante visant les échanges SQL les plus directs |
+
+On choisit ensuite sur les mesures. Un script PHP qui bloque est aussi plus difficile à arrêter proprement lorsqu’il partage son Worker et son moteur avec la base.
+
+**Le profil mémoire à rechercher**
+
+Il faut surtout éviter que **la taille du projet et de la base se transforme en autant de RAM occupée**.
+
+| Poste | Stratégie |
+|---|---|
+| Sources et médias | OPFS ; seuls les fichiers nécessaires sont lus |
+| Cache de fichiers | Petit cache plafonné et invalidé après modification |
+| Base MariaDB | Fichiers sur OPFS, cache InnoDB dimensionné pour les petites bases |
+| Résultats SQL | Lecture par blocs ; pas de copie globale systématique |
+| Interface de données | Pagination, jamais toute une grosse table affichée |
+| Threads | Réduire le pool après vérification des besoins internes |
+| Projets inactifs | Sauvegarder puis décharger leurs moteurs |
+
+Une base de **100 ou 500 Mo sur disque ne nécessite pas forcément autant de cache RAM**. Elle peut fonctionner avec un cache plus petit, au prix de davantage de lectures. MariaDB distingue précisément caches globaux et allocations par connexion. ([mariadb.com](https://mariadb.com/docs/server/ha-and-performance/mariadb-memory-allocation?utm_source=chatgpt.com))
+
+Comme **paramètres d’essai**, je commencerais par un buffer pool InnoDB de **16-32 Mio** et un cache de sources de **4-8 Mio**. Ce ne sont ni une estimation de la mémoire totale ni une garantie de fonctionnement du port WASM.
+
+Je ne promettrais donc pas aujourd’hui « tout sous 100 Mo ». **Le MariaDB actuel doit être allégé et son stockage adapté avant de donner un chiffre crédible.**
+
+**PHP : garder un socle fonctionnel**
+
+Je compilerais un profil principal avec :
+
+- PDO, MySQLi et le backend SQL adapté ;
+- sessions, JSON, filter, ctype, tokenizer, fileinfo ;
+- mbstring, iconv, DOM/XML/SimpleXML ;
+- ZIP, zlib, Phar ;
+- OpenSSL et GD.
+
+`intl` peut être un module facultatif, notamment pour ne pas imposer toutes les données ICU aux petits projets. L’accès HTTP externe doit aussi être intégré au navigateur : **compiler cURL ne suffit pas à fournir un réseau identique à celui d’un serveur**.
+
+**Les projets dont reprendre les briques**
+
+| Projet | Partie utile |
+|---|---|
+| **[seanmorris/php-wasm](https://github.com/seanmorris/php-wasm)** | Build PHP, CGI, extensions et échanges avec JavaScript |
+| **[WordPress Playground](https://github.com/WordPress/wordpress-playground)** | Routage HTTP, scopes, orchestration des Workers |
+| **[lite4mariadb](https://github.com/shyim/lite4mariadb)** | MariaDB embarqué et adaptations WASM |
+| **[JoomEngine bridge](https://github.com/joomengine/mariadb-wasm-bridge)** | Pilote PDO natif, sessions SQL et nettoyage des requêtes |
+| **[Emscripten WasmFS](https://github.com/emscripten-core/emscripten/tree/main/system/lib/wasmfs)** | Accès fichiers internes et backend OPFS |
+| **[opfs-worker](https://github.com/kachurun/opfs-worker)** | Streaming, opérations fichiers et notifications |
+| **[Comlink](https://github.com/GoogleChromeLabs/comlink)** | API de communication entre composants |
+| **[xyflow](https://github.com/xyflow/xyflow)** | Tables déplaçables et relations graphiques |
+| **[drawDB](https://github.com/drawdb-io/drawdb), [ChartDB](https://github.com/chartdb/chartdb), [Outerbase](https://github.com/outerbase/studio)** | Références pour l’éditeur SQL, les données et le diagramme |
+
+Les fonctionnalités peuvent inspirer notre interface ; reprendre directement du code demande de respecter les licences correspondantes.
+
+**Ce qu’on peut raisonnablement faire tourner**
+
+| Application | Perspective |
+|---|---|
+| Exercices PHP, formulaires, connexion utilisateur | **Cible principale** |
+| CRUD, petit blog, réservation, gestion scolaire | **Très adapté** |
+| Morpion, bataille navale, quiz, jeu au tour par tour | **Très adapté** |
+| Petit jeu avec positions mises à jour plusieurs fois par seconde | Possible, à mesurer |
+| Jeu d’action à 60 mises à jour PHP/SQL par seconde et par joueur | Mauvaise cible pour cette architecture |
+| WordPress simple | Objectif réaliste après validation de MySQLi et du routage |
+| WordPress avec nombreux plugins et traitements lourds | Plus incertain et plus gourmand |
+
+Pour **Boogie**, je n’ai pas identifié avec certitude le projet concerné. Il me faut son lien GitHub ou ses fichiers pour juger ses dépendances et sa charge.
+
+**Fast polling : possible, mais le coût de la requête décide**
+
+Avec deux joueurs :
+
+| Fréquence par joueur | Total |
+|---|---:|
+| Toutes les 500 ms | 4 requêtes/s |
+| Toutes les 200 ms | 10 requêtes/s |
+| Toutes les 100 ms | 20 requêtes/s |
+| Toutes les 50 ms | 40 requêtes/s |
+
+Pour un moteur PHP exécutant les requêtes successivement :
+
+$$
+\text{occupation} \approx \text{requêtes par seconde} \times \text{durée moyenne d’une requête}
+$$
+
+**Exemples de calcul, pas benchmarks du futur moteur :**
+
+| Total | Requête de 5 ms | Requête de 15 ms | Requête de 30 ms |
+|---|---:|---:|---:|
+| 20 requêtes/s | 10 % | 30 % | 60 % |
+| 40 requêtes/s | 20 % | 60 % | **120 % : file qui s’accumule** |
+
+La durée doit inclure tout le traitement : démarrage de la requête PHP, sessions, SQL, communication et réponse.
+
+Pour du polling efficace :
+
+- endpoint court, sans charger toute l’application ;
+- index sur l’identifiant de partie ;
+- réponse réduite aux changements depuis une version donnée ;
+- une seule requête en vol par joueur ;
+- ralentissement quand l’onglet est masqué ;
+- aucune réécriture de fichier ou sauvegarde globale inutile ;
+- libération rapide de la session PHP si elle n’est plus utilisée.
+
+Les sessions PHP sur fichiers sont verrouillées jusqu’à leur fermeture ; cela peut bloquer d’autres appels AJAX du même joueur. ([php.net](https://www.php.net/manual/en/session.examples.basic.php?utm_source=chatgpt.com))
+
+**Je viserais d’abord 5-10 actualisations/s par joueur pour un petit jeu**, comme objectif de validation. Pour deux fenêtres locales, on peut ensuite ajouter une notification JavaScript après une modification SQL et déclencher une lecture uniquement lorsqu’elle est utile. Cela réduit les consultations à vide.
+
+Deux appareils différents nécessiteront toujours une liaison réseau vers le navigateur hôte.
+
+**WordPress : oui, mais il faut distinguer preuve et compatibilité**
+
+**WordPress tourne déjà dans le navigateur avec Playground.** Cependant, son intégration habituelle utilise SQLite ; cela ne valide pas automatiquement notre variante MariaDB/MySQLi. ([developer.wordpress.org](https://developer.wordpress.org/playground/developers/architecture/browser-concepts/?utm_source=chatgpt.com))
+
+Avec notre moteur, je testerais successivement :
+
+1. installation WordPress ;
+2. connexion à l’administration ;
+3. création d’articles et téléversement d’images ;
+4. permaliens et API REST ;
+5. installation d’un thème et de quelques plugins ;
+6. sauvegarde puis restauration complète.
+
+Un blog, un portfolio et l’administration courante sont des objectifs raisonnables. Les plugins utilisant des exécutables système, des services externes ou de gros traitements demanderont des adaptations.
+
+**Je retiendrais donc trois critères de réussite : un projet scolaire inchangé utilisant PDO/MySQLi, deux joueurs à 10 requêtes/s chacun sans accumulation, puis un WordPress simple.** Ils permettront de choisir entre WASM séparés et fusionnés sur des résultats concrets.
+
+---
+
+**Sources:**
+
+- [Running PHP apps in the browser with ServiceWorkers and Worker Threads – Playground Handbook](https://developer.wordpress.org/playground/developers/architecture/browser-concepts/?utm_source=chatgpt.com)
+- [MariaDB Memory Allocation | Server](https://mariadb.com/docs/server/ha-and-performance/mariadb-memory-allocation?utm_source=chatgpt.com)
+- [PHP: Basic usage](https://www.php.net/manual/en/session.examples.basic.php?utm_source=chatgpt.com)
+
+## Prompt:
+30/10/2026 21:56:51
+
+Tu estime que consommation de ram ?
+
+## Response:
+30/10/2026 21:56:52 · gpt-6.1-sol-wm
+
+**Je viserais environ 200–350 Mo de RAM pour un petit projet PHP + MariaDB**, avec deux joueurs et une interface légère. C’est une **estimation de conception**, pas une mesure : elle suppose qu’on optimise le moteur MariaDB et le stockage.
+
+| Utilisation | RAM totale estimée pour l’environnement |
+|---|---:|
+| Petit projet scolaire, quelques pages et tables | **150–300 Mo** |
+| Deux joueurs + polling + éditeur ouvert | **200–350 Mo** |
+| Éditeur SQL et diagramme ouverts dans une autre fenêtre | **250–450 Mo** |
+| WordPress simple | **300–600 Mo** |
+| WordPress avec plugins lourds | **600 Mo–1 Go ou plus** |
+
+Ces fourchettes comprennent les moteurs, leurs Workers et l’interface, **hors consommation générale du navigateur**.
+
+**Avec les builds actuels peu modifiés, je prévoirais plutôt 350–600 Mo même pour un petit projet** : `lite4mariadb` configure déjà **256 Mio de mémoire WASM initiale**, auxquels s’ajoutent PHP, JavaScript, les Workers et les fichiers en mémoire. Allocation WASM et RAM physique effectivement occupée ne correspondent toutefois pas exactement.
+
+Pour atteindre la fourchette basse, les leviers principaux sont :
+
+- **une seule instance PHP/MariaDB partagée entre les fenêtres** ;
+- OPFS pour éviter de garder toute la base et tous les fichiers en RAM ;
+- caches, résultats SQL et nombre de threads plafonnés ;
+- interface chargée seulement quand elle est utilisée.
+
+**Un seul WASM pourrait économiser une partie des copies et allocations, mais je ne compterais pas sur une division par deux.** Mon objectif initial serait **moins de 300 Mo sur un petit projet représentatif**, puis une mesure réelle pour vérifier ce qui est atteignable.
+
+## Prompt:
+30/10/2026 21:58:12
+
+Certains sites comme VS Code, ils permettent d'utiliser un dossier du PC, et ça modifie les fichiers directement du PC, et ça charge directement les événements du PC. Est-ce qu'on peut faire ça ? Est-ce qu'on peut, en option, de certains dossiers courants, et dans ce cas-là, c'est combien à faire ? Est-ce que c'est assez puissant pour qu'on tourne directement dessus, ou est-ce qu'on miroire dans notre propre système de fichiers ce qui se passe, et juste on écrit des modifications, écriture en parallèle sur le disque ? Et quelles autorisations le navigateur ça ?
+
+## Response:
+30/10/2026 21:58:13 · gpt-6.1-sol-wm
+
+Je vais vérifier les API d’accès aux dossiers locaux, leurs permissions et la détection des changements externes, puis comparer l’accès direct à un miroir pour notre moteur PHP.
+
+> **27 sites web consultés**
+>
+> 
+>
+> **Vérification de compatibilité des API navigateur**
+>
+>
+> **Vérifié la compatibilité des API navigateur**
+>
+> 
+>
+> Réfléchi pendant 39s
+
+**Oui, on peut proposer “Ouvrir un dossier du PC” et modifier directement ses fichiers, comme VS Code Web.** Pour notre environnement, je choisirais **le dossier local comme source de vérité, avec un petit cache pour PHP**, plutôt qu’un miroir complet.
+
+VS Code Web utilise bien les API fichiers du navigateur pour accéder aux dossiers autorisés. ([code.visualstudio.com](https://code.visualstudio.com/docs/remote/vscode-web?utm_source=chatgpt.com))
+
+**Les autorisations nécessaires**
+
+L’utilisateur clique sur « Ouvrir un dossier », puis choisit celui auquel donner accès :
+
+```js
+const directory = await window.showDirectoryPicker({
+  mode: "readwrite"
+});
+```
+
+| Autorisation | Ce que cela permet |
+|---|---|
+| Lecture | Parcourir les fichiers et sous-dossiers autorisés |
+| Lecture/écriture | Modifier, créer et supprimer dans ce périmètre |
+| Plusieurs dossiers | Sélectionner et autoriser chaque dossier séparément |
+| Réouverture ultérieure | Conserver les références des dossiers, puis vérifier les permissions |
+
+Il faut un contexte sécurisé, généralement **HTTPS ou localhost**, et une action utilisateur pour ouvrir le sélecteur. Le site ne peut pas choisir silencieusement n’importe quel chemin du PC. ([developer.chrome.com](https://developer.chrome.com/docs/capabilities/web-apis/file-system-access?utm_source=chatgpt.com), [developer.mozilla.org](https://developer.mozilla.org/en-US/docs/Web/API/Window/showDirectoryPicker?utm_source=chatgpt.com))
+
+Chrome permet également d’accorder un accès persistant, révocable dans les paramètres du site. **Mémoriser le dossier ne signifie toutefois pas que l’autorisation restera toujours accordée.** ([developer.chrome.com](https://developer.chrome.com/blog/persistent-permissions-for-the-file-system-access-api?utm_source=chatgpt.com))
+
+Sur ton PC Arch, **Chrome/Chromium ou Edge constituent la cible adaptée**. Pour Firefox et Safari, il faut prévoir une solution d’import/export : le sélecteur de dossier avec écriture directe n’y est pas disponible comme sur Chromium. Cela concerne aussi Safari sur iPhone.
+
+**Accès direct ou miroir : mon choix**
+
+| Approche | Mémoire | Rapidité | Difficulté |
+|---|---|---|---|
+| Tout charger dans la RAM | Mauvaise si le dossier grossit | Très rapide après chargement | Simple, mais contraire à notre objectif |
+| Miroir complet dans OPFS | Peu de RAM si correctement réalisé, mais stockage dupliqué | Bon après synchronisation | Gestion des divergences complexe |
+| Lecture directe du PC à chaque accès | Faible | Peut coûter cher avec beaucoup de petits accès PHP | Adaptation asynchrone nécessaire |
+| **Dossier local + cache limité** | **Faible et contrôlable** | **Bon compromis** | **Choix recommandé** |
+
+**Le disque est assez puissant. La contrainte vient surtout des API du navigateur.** L’accès à un dossier utilisateur est asynchrone ; il n’offre pas le même accès synchrone par blocs que l’OPFS dans un Dedicated Worker.
+
+Pour PHP, il faut donc un adaptateur de fichiers capable de suspendre l’exécution pendant une lecture, ou de préparer les fichiers nécessaires en cache. **Ce n’est pas un simple montage de dossier POSIX dans le WASM.**
+
+Je fonctionnerais ainsi :
+
+1. Indexer les noms et métadonnées, sans lire tout le contenu.
+2. Charger un fichier lorsqu’il est utilisé.
+3. Garder les sources fréquemment utilisées dans un cache plafonné.
+4. Invalider ce cache lorsque le fichier change.
+5. Écrire les modifications dans le dossier local et attendre leur confirmation.
+
+Les images et gros fichiers peuvent être lus en flux. Les milliers de petits fichiers d’un framework demandent davantage de cache et de mesures.
+
+**Écrire “en parallèle”, oui - mais avec une confirmation claire**
+
+L’éditeur peut rester réactif pendant une sauvegarde asynchrone. En revanche, **il ne doit afficher “enregistré” qu’après la réussite de l’écriture et de la fermeture du flux**.
+
+Il faut également :
+
+- ordonner les écritures sur un même fichier ;
+- détecter une modification externe avant d’écraser un fichier ;
+- signaler un conflit si le navigateur et VS Code ont modifié le même document ;
+- attendre les écritures nécessaires avant d’exécuter une nouvelle requête PHP.
+
+Je garderais **une seule file d’écriture**, plutôt que deux copies modifiées indépendamment puis synchronisées.
+
+**Les événements venant du PC**
+
+Oui, `FileSystemObserver` peut notifier les changements dans un dossier autorisé sur les navigateurs qui le proposent. Mais cette API reste expérimentale et les notifications locales sont fournies au mieux : elles ne garantissent pas de rapporter chaque changement. ([github.com](https://github.com/whatwg/fs/blob/main/proposals/FileSystemObserver.md?utm_source=chatgpt.com))
+
+Notre stratégie serait :
+
+| Situation | Comportement |
+|---|---|
+| Modification depuis notre éditeur | Invalidation et notification immédiates |
+| Modification depuis VS Code | Observer, puis relecture du fichier concerné |
+| Observer indisponible | Vérification périodique ciblée |
+| Retour dans la fenêtre | Vérification des fichiers actifs |
+| Doute ou événement perdu | Resynchronisation des métadonnées |
+
+**Le Service Worker n’observe pas lui-même le disque.** Il route les requêtes ; le composant fichiers lui fournit les contenus à jour.
+
+**Et les fichiers MariaDB ?**
+
+Je séparerais les usages :
+
+| Données | Emplacement conseillé |
+|---|---|
+| PHP, HTML, CSS, JS, images | Dossier du PC autorisé |
+| Fichiers internes MariaDB | **OPFS** |
+| Import/export de la base | Fichier `.sql` dans le dossier local |
+| Temporaires | Stockage interne plafonné |
+
+Les fichiers internes d’une base font beaucoup d’écritures partielles et de synchronisations. **Je ne placerais pas le datadir MariaDB dans un dossier utilisateur via cette API pour la première version.**
+
+**Quel travail cela représente ?**
+
+Ordres de grandeur de développement, **si notre moteur et son interface fichiers existent déjà** :
+
+| Niveau | Estimation |
+|---|---:|
+| Sélection du dossier, lecture et sauvegarde depuis l’éditeur | **1-3 jours** |
+| Intégration PHP, cache borné et cohérence avec les requêtes | **1-2 semaines** |
+| Version robuste : changements externes, conflits, reconnexion, plusieurs fenêtres et tests | **2-4 semaines au total** |
+
+On peut s’appuyer sur le [fournisseur fichiers navigateur de VS Code](https://github.com/microsoft/vscode/blob/main/src/vs/platform/files/browser/htmlFileSystemProvider.ts) et les adaptateurs de [ZenFS](https://github.com/zen-fs/dom).
+
+**Je prévoirais donc deux modes : “projet dans le navigateur” et “dossier local connecté”.** Ils utiliseraient la même interface fichiers côté PHP, avec un backend différent et aucun miroir complet obligatoire.
+
+---
+
+**Sources:**
+
+- [Visual Studio Code for the Web](https://code.visualstudio.com/docs/remote/vscode-web?utm_source=chatgpt.com)
+- [The File System Access API: simplifying access to local files  |  Capabilities  |  Chrome for Developers](https://developer.chrome.com/docs/capabilities/web-apis/file-system-access?utm_source=chatgpt.com)
+- [Window: showDirectoryPicker() method - Web APIs](https://developer.mozilla.org/en-US/docs/Web/API/Window/showDirectoryPicker?utm_source=chatgpt.com)
+- [fs/proposals/FileSystemObserver.md at main · whatwg/fs](https://github.com/whatwg/fs/blob/main/proposals/FileSystemObserver.md?utm_source=chatgpt.com)
+
+## Prompt:
+30/10/2026 22:01:52
+
+Ça c’est pour une prochaine version, pour l’instant prépare le projet en mettant tout au propre et en regroupant les référence GitHub et ce qui nous intéresse dedans
+
+## Response:
+30/10/2026 22:04:58 · gpt-6.1-sol-wm
+
+Le cadrage est rédigé : architecture, décisions, plan d’implémentation et critères de validation. Je termine le guide GitHub, en indiquant pour chaque dépôt ce qui nous intéresse et les limites à vérifier avant de reprendre du code.
+
+> **Inventorier les références GitHub PHP navigateur**
+>
+>
+> **Inventorié les références GitHub PHP navigateur et appliqué un correctif**
+>
+> 
+>
+> **Appliquer une mise à jour de code**
+>
+>
+> **Appliqué une mise à jour et archivé le projet PHP**
+>
+> 
+>
+> **Créé le rapport de cadrage PHP Browser Lab**
+>
+> 
+>
+> **Application des attributs étendus au fichier**
+>
+>
+> **Appliqué les attributs étendus au fichier**
+>
+> 
+>
+> Réfléchi pendant 4m 31s
+
+## Prompt:
+30/10/2026 22:10:59
+
+Alors ?
+
+## Response:
+30/10/2026 22:11:00 · gpt-6.1-sol-wm
+
+**Le dossier est prêt** : [Télécharger le projet de cadrage](https://chatgpt.com/library?file_id=libfile_f7f28dce95f88191bf3d19ff163fe4f1&account_id=5d1ac638-c0e1-4806-a4b6-a00403228306).
+
+Il regroupe l’architecture, les références GitHub et les éléments à reprendre, le plan de développement et les tests prévus.
+
+**C’est la préparation du projet ; le moteur n’est pas encore implémenté.** L’accès aux dossiers du PC est bien reporté.
+
+## Prompt:
+30/10/2026 22:13:29
+
+Télécharge les projet GitHub en local et map les bout de code que l’on souhaite récupéré adapter copier (ignore les licence on gérera que si tout marche avant diffusion ainsi on bosse en privée)
+
+Quand tu a mape commence à structurer le projet et les étapes basé sur c’est inspiration et recherche toutes les difficultés et solution pour le code custom et optimisation de la ram
+
+## Response:
+30/10/2026 22:13:30 · gpt-6.1-sol-wm
+
+Je vais télécharger les dépôts utiles, repérer les fichiers et fonctions à reprendre, puis structurer le projet et les étapes d’implémentation à partir du code réel. Je documenterai aussi les difficultés et les pistes d’optimisation mémoire. Je laisse l’audit des licences hors de cette étape et conserve les notices présentes dans les dépôts.
+
+Le pilote PDO téléchargé confirme un coût à cibler : une requête passe par du JSON, et les cellules des résultats sont ensuite encodées en base64 avant d’être décodées côté PHP. Je vais mapper précisément cette chaîne pour conserver ses tests de compatibilité tout en préparant un transport natif plus direct.
+
+Le nettoyage des connexions ferme aussi toutes les sessions du bridge : il faudra l’adapter pour qu’une requête PHP terminée ne ferme pas la connexion de la console SQL.
+
+J’ai trouvé des essais OPFS déjà présents dans le dépôt de Sean Morris. Sur plusieurs frameworks, leur variante OPFS est plus lente que leur référence IDBFS ; ils ont aussi développé une synchronisation IDBFS incrémentale. Cela mérite de comparer les deux approches avant de retenir OPFS pour les sources PHP. Ce sont des résultats amont, pas des mesures de notre moteur.
+
+Je commence la structure locale avec un cache borné et une file de requêtes limitée, ainsi que les contrats de l’API SQL native. L’environnement ne dispose pas encore de la chaîne de compilation WASM : je pourrai vérifier ces modules JavaScript, mais pas prétendre avoir compilé PHP/MariaDB.
+
+Les 15 dépôts sont téléchargés, et la cartographie relie 57 points de code à leurs fichiers, lignes et commits. Les sept tests du cache et de la file de requêtes passent.
+
+L’inspection a aussi clarifié le budget MariaDB : le moteur d’origine règle déjà son buffer pool à 16 Mio, mais le patch JoomEngine le relève à 64 Mio. Je prépare une petite archive du projet et une archive séparée des sources amont, qui sont beaucoup plus volumineuses.
+
+La structure locale est en place : cache de fichiers borné, file de requêtes avec refus de surcharge, contrat SQL natif et fixtures scolaires PDO/MySQLi. Les huit tests locaux passent.
+
+Le guide de reprise décrit notamment comment remplacer le transport JSON/base64, isoler les connexions de la console, éviter les miroirs RAM complets et comparer les variantes séparée et fusionnée. Les sources amont occupent environ 1,45 Go décompressées ; leur archivage est en cours.
+
+> **Inspecting le projet PHP navigateur**
+>
+>
+> **Preparing repository download**
+>
+> Preparing repository download
+>
+> **Préparé le téléchargement du dépôt**
+>
+> 
+>
+> **Téléchargement de snapshots source reproductibles**
+>
+>
+> **Inspecté le projet PHP, téléchargé les snapshots et vérifié les outils installés**
+>
+> 
+>
+> **33 sites web consultés**
+>
+> 
+>
+> **Vérification des instantanés et volumes**
+>
+>
+> **Vérifié les instantanés et inspecté l’intégration MariaDB PHP-WASM**
+>
+> 
+>
+> **Lecture des fichiers sources du protocole**
+>
+>
+> **Analysé les sources, symboles WASM et backends de stockage**
+>
+> 
+>
+> **Création de l’architecture du laboratoire PHP navigateur**
+>
+>
+> **Créé l’architecture du laboratoire PHP navigateur**
+>
+> 
+>
+> **Vérification automatique interrompue**
+>
+> 
+>
+> **Implementing source map**
+>
+> Implementing source map
+>
+> **Implémenté la prise en charge des source maps**
+>
+> 
+>
+> **Générant une cartographie amont épinglée**
+>
+>
+> **Fetching required submodule SHAs**
+>
+> Fetching required submodule SHAs
+>
+> **Récupéré les hachages des sous-modules requis**
+>
+> 
+>
+> **Recherche des options de synchronisation WASM**
+>
+>
+> **Saving source archive**
+>
+> Saving source archive
+>
+> **Enregistré l’archive source**
+>
+> 
+>
+> **Validation du projet et intégrité des sources**
+>
+>
+> **Cartographié et validé les sources upstream MariaDB WASM**
+>
+> 
+>
+> **Création des archives du projet PHP**
+>
+>
+> **Checking combined source zip**
+>
+> Checking combined source zip
+>
+> **Vérifié l’archive source combinée**
+>
+> 
+>
+> **Corriger les rejets indéfinis de la file**
+>
+>
+> **Preparing archive extraction**
+>
+> Preparing archive extraction
+>
+> **Préparé l’extraction de l’archive**
+>
+> 
+>
+> **Validant et archivant le projet PHP navigateur**
+>
+>
+> **Créé les archives PHP, corrigé la file et récupéré les preuves GitHub**
+>
+> 
+>
+> **Évaluer les processus en cours**
+>
+>
+> **Investigating archive size**
+>
+> Investigating archive size
+>
+> **Inspecté la taille de l’archive**
+>
+> 
+>
+> **Vérification des métadonnées de l’archive ZIP**
+>
+>
+> **Listing hidden files**
+>
+> Listing hidden files
+>
+> **Listé les fichiers cachés**
+>
+> 
+>
+> **Création de l’archive des sources nettoyées**
+>
+>
+> **Évalué les processus et empaqueté le projet PHP nettoyé**
+>
+> 
+>
+> Réfléchi pendant 9m 24s
+
+
+
+---
+Powered by [ChatGPT Exporter](https://www.chatgptexporter.com)

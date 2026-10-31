@@ -1,0 +1,14 @@
+{
+  "status": "EXPERIMENTAL_TARGETS_NOT_APPLIED_TO_UPSTREAM_BUILDS",
+  "unit": "bytes unless explicitly suffixed",
+  "school": {
+    "sourceCacheBytes": 4194304, "httpQueueMaxPending": 32,
+    "httpQueueAdmittedBytes": 8388608, "sqlBatchBytes": 262144,
+    "sqlBatchRows": 256, "sqlConsolePageRows": 100,
+    "innodbBufferPoolMiBCandidates": [16, 32],
+    "initialWasmMemoryMiBCandidates": [64, 96, 128, 256],
+    "pthreadPoolCandidates": [4, 8, 16],
+    "targetProcessMemoryMiB": 300,
+    "note": "All native settings require rebuild and startup/recovery validation. No measured RAM claim."
+  }
+}

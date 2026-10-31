@@ -1,0 +1,10 @@
+/sources/*
+!/sources/README.md
+/upstream/
+/build-work/
+/deliverables/
+/node_modules/
+__pycache__/
+*.pyc
+/sources.zip
+/SHA256SUMS

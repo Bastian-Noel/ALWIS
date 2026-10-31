@@ -1,0 +1,113 @@
+{
+  "sha": "c8813394795bcb26a0030ea94697114c59ec5b7e",
+  "node_id": "C_kwDOPWvAS9oAKGM4ODEzMzk0Nzk1YmNiMjZhMDAzMGVhOTQ2OTcxMTRjNTllYzViN2U",
+  "commit": {
+    "author": {
+      "name": "Maksim Kachurin",
+      "email": "kachurun@gmail.com",
+      "date": "2026-07-26T22:59:03Z"
+    },
+    "committer": {
+      "name": "Maksim Kachurin",
+      "email": "kachurun@gmail.com",
+      "date": "2026-07-26T22:59:03Z"
+    },
+    "message": "Update project description and messaging\n\nRevise README and package.json description to better reflect the full-featured nature of opfs-worker, emphasizing the Node.js-style API, multiple runtime options (Worker/async/SharedWorker), and the convenience features it provides. Bump patch version to 2.2.1.",
+    "tree": {
+      "sha": "c532f71269e04429c05a9cc2dafa8783a8616c45",
+      "url": "https://api.github.com/repos/kachurun/opfs-worker/git/trees/c532f71269e04429c05a9cc2dafa8783a8616c45"
+    },
+    "url": "https://api.github.com/repos/kachurun/opfs-worker/git/commits/c8813394795bcb26a0030ea94697114c59ec5b7e",
+    "comment_count": 0,
+    "verification": {
+      "verified": false,
+      "reason": "unsigned",
+      "signature": null,
+      "payload": null,
+      "verified_at": null
+    }
+  },
+  "url": "https://api.github.com/repos/kachurun/opfs-worker/commits/c8813394795bcb26a0030ea94697114c59ec5b7e",
+  "html_url": "https://github.com/kachurun/opfs-worker/commit/c8813394795bcb26a0030ea94697114c59ec5b7e",
+  "comments_url": "https://api.github.com/repos/kachurun/opfs-worker/commits/c8813394795bcb26a0030ea94697114c59ec5b7e/comments",
+  "author": {
+    "login": "kachurun",
+    "id": 12369041,
+    "node_id": "MDQ6VXNlcjEyMzY5MDQx",
+    "avatar_url": "https://avatars.githubusercontent.com/u/12369041?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/kachurun",
+    "html_url": "https://github.com/kachurun",
+    "followers_url": "https://api.github.com/users/kachurun/followers",
+    "following_url": "https://api.github.com/users/kachurun/following{/other_user}",
+    "gists_url": "https://api.github.com/users/kachurun/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/kachurun/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/kachurun/subscriptions",
+    "organizations_url": "https://api.github.com/users/kachurun/orgs",
+    "repos_url": "https://api.github.com/users/kachurun/repos",
+    "events_url": "https://api.github.com/users/kachurun/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/kachurun/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+  },
+  "committer": {
+    "login": "kachurun",
+    "id": 12369041,
+    "node_id": "MDQ6VXNlcjEyMzY5MDQx",
+    "avatar_url": "https://avatars.githubusercontent.com/u/12369041?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/kachurun",
+    "html_url": "https://github.com/kachurun",
+    "followers_url": "https://api.github.com/users/kachurun/followers",
+    "following_url": "https://api.github.com/users/kachurun/following{/other_user}",
+    "gists_url": "https://api.github.com/users/kachurun/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/kachurun/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/kachurun/subscriptions",
+    "organizations_url": "https://api.github.com/users/kachurun/orgs",
+    "repos_url": "https://api.github.com/users/kachurun/repos",
+    "events_url": "https://api.github.com/users/kachurun/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/kachurun/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+  },
+  "parents": [
+    {
+      "sha": "7a580414db59bcc9014c86a5e56ccae714dc34f5",
+      "url": "https://api.github.com/repos/kachurun/opfs-worker/commits/7a580414db59bcc9014c86a5e56ccae714dc34f5",
+      "html_url": "https://github.com/kachurun/opfs-worker/commit/7a580414db59bcc9014c86a5e56ccae714dc34f5"
+    }
+  ],
+  "stats": {
+    "total": 12,
+    "additions": 6,
+    "deletions": 6
+  },
+  "files": [
+    {
+      "sha": "dc98eff67bd0a5a58b0d107b831ba8b7125b2703",
+      "filename": "README.md",
+      "status": "modified",
+      "additions": 4,
+      "deletions": 4,
+      "changes": 8,
+      "blob_url": "https://github.com/kachurun/opfs-worker/blob/c8813394795bcb26a0030ea94697114c59ec5b7e/README.md",
+      "raw_url": "https://github.com/kachurun/opfs-worker/raw/c8813394795bcb26a0030ea94697114c59ec5b7e/README.md",
+      "contents_url": "https://api.github.com/repos/kachurun/opfs-worker/contents/README.md?ref=c8813394795bcb26a0030ea94697114c59ec5b7e",
+      "patch": "@@ -4,13 +4,13 @@\n \n # OPFS Worker\n \n-A small, practical wrapper around the browser’s [Origin Private File System](https://developer.mozilla.org/en-US/docs/Web/API/File_System_API/Origin_private_file_system), with a familiar Node.js-style API.\n+A full-featured filesystem layer for the browser, built on the [Origin Private File System](https://developer.mozilla.org/en-US/docs/Web/API/File_System_API/Origin_private_file_system).\n \n-OPFS gives your web app its own private filesystem. It requires no file picker or permission prompt, supports fast local file access, and is isolated to the current origin.\n+`opfs-worker` gives your app a familiar Node.js-style API for working with files and directories while handling the awkward browser parts for you: Worker setup, concurrent access, encodings, large-file streaming, change events, and cross-tab coordination.\n \n-`opfs-worker` hides the browser-specific complexity behind a simple API for reading, writing, moving, and managing files.\n+Choose the runtime that fits your app: use a dedicated Worker for the fastest and widest-compatible path, run the async backend directly on the current thread, or share one filesystem process across every tab with SharedWorker.\n \n-Files are stored within the browser’s site quota and are removed when the user clears the site’s data.\n+No permission prompt or file picker is required. Files stay private to the current origin and live within the browser’s site storage, so clearing site data removes them.\n \n **[Try the demo →](https://kachurun.github.io/opfs-worker/)**\n "
+    },
+    {
+      "sha": "be6301bd32bc8ce37af67ee92f1e7524e304f4ce",
+      "filename": "package.json",
+      "status": "modified",
+      "additions": 2,
+      "deletions": 2,
+      "changes": 4,
+      "blob_url": "https://github.com/kachurun/opfs-worker/blob/c8813394795bcb26a0030ea94697114c59ec5b7e/package.json",
+      "raw_url": "https://github.com/kachurun/opfs-worker/raw/c8813394795bcb26a0030ea94697114c59ec5b7e/package.json",
+      "contents_url": "https://api.github.com/repos/kachurun/opfs-worker/contents/package.json?ref=c8813394795bcb26a0030ea94697114c59ec5b7e",
+      "patch": "@@ -1,7 +1,7 @@\n {\n     \"name\": \"opfs-worker\",\n-    \"version\": \"2.2.0\",\n-    \"description\": \"A robust TypeScript library for working with Origin Private File System (OPFS) through Web Workers\",\n+    \"version\": \"2.2.1\",\n+    \"description\": \"Node.js-style filesystem API for OPFS — auto-creates a Worker for you, with optional async and SharedWorker modes\",\n     \"type\": \"module\",\n     \"main\": \"dist/index.js\",\n     \"types\": \"dist/index.d.ts\","
+    }
+  ]
+}

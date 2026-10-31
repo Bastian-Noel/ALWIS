@@ -1,0 +1,49 @@
+{
+  "sha": "24be9371a2f6c71250a2356631ad6feab2280b02",
+  "truncated": false,
+  "tree": [
+    {
+      "path": "extra/wolfssl/wolfssl",
+      "mode": "160000",
+      "type": "commit",
+      "sha": "1d363f3adceba9d1478230ede476a37b0dcdef24"
+    },
+    {
+      "path": "libmariadb",
+      "mode": "160000",
+      "type": "commit",
+      "sha": "5a6fe6016fc908518e7d2a8c128a5c108b511c17"
+    },
+    {
+      "path": "storage/columnstore/columnstore",
+      "mode": "160000",
+      "type": "commit",
+      "sha": "962e861c6a11e375cd95c78a517ab2b5d50e0076"
+    },
+    {
+      "path": "storage/duckdb/third_parties/duckdb",
+      "mode": "160000",
+      "type": "commit",
+      "sha": "8a5851971fae891f292c2714d86046ee018e9737"
+    },
+    {
+      "path": "storage/maria/libmarias3",
+      "mode": "160000",
+      "type": "commit",
+      "sha": "23873f4acb8038d8cccc5f0bc61c45ac07727f73"
+    },
+    {
+      "path": "storage/rocksdb/rocksdb",
+      "mode": "160000",
+      "type": "commit",
+      "sha": "79f08d7ffa6d34d9ca3357777bcb335884a56cfb"
+    },
+    {
+      "path": "wsrep-lib",
+      "mode": "160000",
+      "type": "commit",
+      "sha": "5eeef4009d52455c44b607e852cb23fbb6e84c99"
+    }
+  ],
+  "url": "https://api.github.com/repos/shyim/lite4mariadb/git/trees/24be9371a2f6c71250a2356631ad6feab2280b02?recursive=1"
+}

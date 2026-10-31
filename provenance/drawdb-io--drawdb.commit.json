@@ -1,0 +1,113 @@
+{
+  "sha": "dc32c8bde614c931ec8bf3b3c346500d7626ab72",
+  "node_id": "C_kwDOJ8NLw9oAKGRjMzJjOGJkZTYxNGM5MzFlYzhiZjNiM2MzNDY1MDBkNzYyNmFiNzI",
+  "commit": {
+    "author": {
+      "name": "1ilit",
+      "email": "1ilit@proton.me",
+      "date": "2026-10-30T21:31:19Z"
+    },
+    "committer": {
+      "name": "GitHub",
+      "email": "noreply@github.com",
+      "date": "2026-10-30T21:31:19Z"
+    },
+    "message": "Add reordering areas (#1185)",
+    "tree": {
+      "sha": "25097fcb42ad98bc0fd68b512237f358e39f80f0",
+      "url": "https://api.github.com/repos/drawdb-io/drawdb/git/trees/25097fcb42ad98bc0fd68b512237f358e39f80f0"
+    },
+    "url": "https://api.github.com/repos/drawdb-io/drawdb/git/commits/dc32c8bde614c931ec8bf3b3c346500d7626ab72",
+    "comment_count": 0,
+    "verification": {
+      "verified": true,
+      "reason": "valid",
+      "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsFcBAABCAAQBQJq5QynCRC1aQ7uu5UhlAAA99cQABF7/h1Yh4OJX265CegcFiuG\n35v4+wV8ZCSDA6qSW1AzB7TFPwCiuOC+wvXjtaI9Nbl09POOzwTjv8+j1XRnajyI\n6VQiLKxrkbtBcqZJ0NWrhnItXKmXn6hTGBWCqPpMuz6BmuGFW0xZIzTFjd30XBYr\n1FO5f9YKIAxrBWu9uohdXSC0N4FSlUi+NwLssqjbN4l846bs718Pp1Fen61eBCKK\nFtivKRm8hM5XLyglgjEjpPgEBUF5YemPhlE/hlFkWqdTUX4h8aSVCBfbUq5EuJSM\n1dGAeBt47IaTtk1OzBMxJDSzhZzzmgNPUy2f8KLnD8oO6DE87kcExY/GY7rKWvU5\n/I1hgLRIMCm5c1aiuvdpIy5ZoaGd4KC6rPOgCZMEJG8YF9ByK92Y/fODFAF0hHq7\nA156VOGIZqJhkb7lNmjGGNGcbKTA4rZTcyndxOw7S/2MH6iE+farnROMlZHAzUC5\n6yXgv50Yw6S/70/rJ14e7Ssj/Ql2Mo5cF4ZDkxQUUldfX6lhLCtITmiHmWSe1/V0\n53DFNOKyF6ohnpXIzVEgy5pRreohNH5C5M2vamlEamP2CGyC/Zp9t/WQiLKgvBqy\nylsnSziRpvggO3qikw0KRQySAoPleL7zSnK7gbJvD9NpO3uifD6uLeNNiwdPg0iz\nL9eocGaELf9UP+ROe7tp\n=v3Td\n-----END PGP SIGNATURE-----\n",
+      "payload": "tree 25097fcb42ad98bc0fd68b512237f358e39f80f0\nparent f47a5b2500c4448cfc34b5ce7023caf215dbcf94\nauthor 1ilit <1ilit@proton.me> 1793395879 +0400\ncommitter GitHub <noreply@github.com> 1793395879 +0400\n\nAdd reordering areas (#1185)",
+      "verified_at": "2026-10-30T21:31:20Z"
+    }
+  },
+  "url": "https://api.github.com/repos/drawdb-io/drawdb/commits/dc32c8bde614c931ec8bf3b3c346500d7626ab72",
+  "html_url": "https://github.com/drawdb-io/drawdb/commit/dc32c8bde614c931ec8bf3b3c346500d7626ab72",
+  "comments_url": "https://api.github.com/repos/drawdb-io/drawdb/commits/dc32c8bde614c931ec8bf3b3c346500d7626ab72/comments",
+  "author": {
+    "login": "1ilit",
+    "id": 96800776,
+    "node_id": "U_kgDOBcUQCA",
+    "avatar_url": "https://avatars.githubusercontent.com/u/96800776?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/1ilit",
+    "html_url": "https://github.com/1ilit",
+    "followers_url": "https://api.github.com/users/1ilit/followers",
+    "following_url": "https://api.github.com/users/1ilit/following{/other_user}",
+    "gists_url": "https://api.github.com/users/1ilit/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/1ilit/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/1ilit/subscriptions",
+    "organizations_url": "https://api.github.com/users/1ilit/orgs",
+    "repos_url": "https://api.github.com/users/1ilit/repos",
+    "events_url": "https://api.github.com/users/1ilit/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/1ilit/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+  },
+  "committer": {
+    "login": "web-flow",
+    "id": 19864447,
+    "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
+    "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/web-flow",
+    "html_url": "https://github.com/web-flow",
+    "followers_url": "https://api.github.com/users/web-flow/followers",
+    "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+    "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+    "organizations_url": "https://api.github.com/users/web-flow/orgs",
+    "repos_url": "https://api.github.com/users/web-flow/repos",
+    "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/web-flow/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+  },
+  "parents": [
+    {
+      "sha": "f47a5b2500c4448cfc34b5ce7023caf215dbcf94",
+      "url": "https://api.github.com/repos/drawdb-io/drawdb/commits/f47a5b2500c4448cfc34b5ce7023caf215dbcf94",
+      "html_url": "https://github.com/drawdb-io/drawdb/commit/f47a5b2500c4448cfc34b5ce7023caf215dbcf94"
+    }
+  ],
+  "stats": {
+    "total": 21,
+    "additions": 16,
+    "deletions": 5
+  },
+  "files": [
+    {
+      "sha": "f109a037169654fe18c499cd08fe3a2ea2c1d834",
+      "filename": "src/components/EditorSidePanel/AreasTab/AreaDetails.jsx",
+      "status": "modified",
+      "additions": 2,
+      "deletions": 0,
+      "changes": 2,
+      "blob_url": "https://github.com/drawdb-io/drawdb/blob/dc32c8bde614c931ec8bf3b3c346500d7626ab72/src%2Fcomponents%2FEditorSidePanel%2FAreasTab%2FAreaDetails.jsx",
+      "raw_url": "https://github.com/drawdb-io/drawdb/raw/dc32c8bde614c931ec8bf3b3c346500d7626ab72/src%2Fcomponents%2FEditorSidePanel%2FAreasTab%2FAreaDetails.jsx",
+      "contents_url": "https://api.github.com/repos/drawdb-io/drawdb/contents/src%2Fcomponents%2FEditorSidePanel%2FAreasTab%2FAreaDetails.jsx?ref=dc32c8bde614c931ec8bf3b3c346500d7626ab72",
+      "patch": "@@ -14,6 +14,7 @@ import {\n } from \"../../../hooks\";\n import { Action, ObjectType } from \"../../../data/constants\";\n import { useTranslation } from \"react-i18next\";\n+import { DragHandle } from \"../../SortableList/DragHandle\";\n \n export default function AreaInfo({ data }) {\n   const { t } = useTranslation();\n@@ -61,6 +62,7 @@ export default function AreaInfo({ data }) {\n \n   return (\n     <div id={`scroll_area_${data.id}`} className=\"my-3 flex gap-2 items-center\">\n+      <DragHandle readOnly={layout.readOnly} id={data.id} />\n       <Input\n         value={data.name}\n         placeholder={t(\"name\")}"
+    },
+    {
+      "sha": "b8452f635b6b92740d4a167f9a4f56dc32ea75fc",
+      "filename": "src/components/EditorSidePanel/AreasTab/AreasTab.jsx",
+      "status": "modified",
+      "additions": 14,
+      "deletions": 5,
+      "changes": 19,
+      "blob_url": "https://github.com/drawdb-io/drawdb/blob/dc32c8bde614c931ec8bf3b3c346500d7626ab72/src%2Fcomponents%2FEditorSidePanel%2FAreasTab%2FAreasTab.jsx",
+      "raw_url": "https://github.com/drawdb-io/drawdb/raw/dc32c8bde614c931ec8bf3b3c346500d7626ab72/src%2Fcomponents%2FEditorSidePanel%2FAreasTab%2FAreasTab.jsx",
+      "contents_url": "https://api.github.com/repos/drawdb-io/drawdb/contents/src%2Fcomponents%2FEditorSidePanel%2FAreasTab%2FAreasTab.jsx?ref=dc32c8bde614c931ec8bf3b3c346500d7626ab72",
+      "patch": "@@ -1,14 +1,17 @@\n import { Button } from \"@douyinfe/semi-ui\";\n import { IconPlus } from \"@douyinfe/semi-icons\";\n import Empty from \"../Empty\";\n-import { useAreas, useLayout } from \"../../../hooks\";\n+import { useAreas, useLayout, useSaveState } from \"../../../hooks\";\n+import { State } from \"../../../data/constants\";\n+import { SortableList } from \"../../SortableList/SortableList\";\n import SearchBar from \"./SearchBar\";\n import AreaInfo from \"./AreaDetails\";\n import { useTranslation } from \"react-i18next\";\n \n export default function AreasTab() {\n-  const { areas, addArea } = useAreas();\n+  const { areas, addArea, setAreas } = useAreas();\n   const { layout } = useLayout();\n+  const { setSaveState } = useSaveState();\n   const { t } = useTranslation();\n \n   return (\n@@ -33,11 +36,17 @@ export default function AreasTab() {\n         />\n       ) : (\n         <div className=\"p-2\">\n-          {areas.map((a) => (\n-            <AreaInfo data={a} key={a.id} />\n-          ))}\n+          <SortableList\n+            keyPrefix=\"areas-tab\"\n+            items={areas}\n+            onChange={(newAreas) => setAreas(newAreas)}\n+            afterChange={() => setSaveState(State.SAVING)}\n+            renderItem={renderAreaListItem}\n+          />\n         </div>\n       )}\n     </div>\n   );\n }\n+\n+const renderAreaListItem = (area) => <AreaInfo data={area} />;"
+    }
+  ]
+}

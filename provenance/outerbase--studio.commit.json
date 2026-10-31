@@ -1,0 +1,106 @@
+{
+  "sha": "70c9d8e9745c161fb84746d3372bdab838c9bb36",
+  "node_id": "C_kwDOLF0SItoAKDcwYzlkOGU5NzQ1YzE2MWZiODQ3NDZkMzM3MmJkYWI4MzhjOWJiMzY",
+  "commit": {
+    "author": {
+      "name": "Visal .In",
+      "email": "invisal@gmail.com",
+      "date": "2026-03-08T12:01:03Z"
+    },
+    "committer": {
+      "name": "GitHub",
+      "email": "noreply@github.com",
+      "date": "2026-03-08T12:01:03Z"
+    },
+    "message": "Merge pull request #494 from outerbase/develop\n\nRelease: merge develop into master",
+    "tree": {
+      "sha": "1731222d941ff03d651f17c67b766bfb12270a48",
+      "url": "https://api.github.com/repos/outerbase/studio/git/trees/1731222d941ff03d651f17c67b766bfb12270a48"
+    },
+    "url": "https://api.github.com/repos/outerbase/studio/git/commits/70c9d8e9745c161fb84746d3372bdab838c9bb36",
+    "comment_count": 0,
+    "verification": {
+      "verified": true,
+      "reason": "valid",
+      "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsFcBAABCAAQBQJprWT/CRC1aQ7uu5UhlAAAHkgQAIxxIx9nM8RNBPSiMAbGm/Q4\niMuM0tcSDhqIVdCiw4CXsjEc5fkGYpwPpAv5yQyKSvR9ime+ISx06pOn0i9d3rEo\nIZoqDgODVZquFue5T9fMHyqdnmx3L8LPPqUmSQ7ZHjQmTI7xqr+LW+ARvho6uh+z\nShqECppsAr+jAb/Rcr7uKTXGOyQtiVH/PqRcIY6gFKcd8EX8/blRZjJq6V5ro2L0\nu1jSGgGovSexYTlbSF5ug2InPlRPqHWi0pT+mj1TQ3jkcBXyaB6qD9jmLp/kKqf+\nX7oLHCuFujziDVclpzV5zAhkkqKfMzXoyFSLCwmFSXuYrnmHhJ0fbp1JZuXniXbn\nsiYy1MerF0lcFSoVXUbCSNq54p+DBvgbCWAbeeRKxoDAH+QizP2Urhas0JhSjghE\nxX9iDuHU3I2Nizr9w5QgquA1/hqO8nls8XJ+reTx+xQqKyXSDPpmuDVd2N7vKyBt\nPWmQ44ZoVkhqltUuur/67fdsavfG0YxQvf3N4INMcBEPfKY+JyJNHFV1hkZsLcsC\nHNl1eCsMbkkU2vvnUII8Kb4pOAJ7BSgQjNbCdrnrFh5Pzk43UCIkw5ff8RLh1/vv\ny8M060bVJUkiu2Yje3MfHxW5+YEF8ita9UsSSrBKgvLFhu8SHjqr5W1qBuMK17VW\nQ8lsG+o0sa3gdNGQkgcD\n=PhK+\n-----END PGP SIGNATURE-----\n",
+      "payload": "tree 1731222d941ff03d651f17c67b766bfb12270a48\nparent 951bcb5c0969e54256535bb5a71a4366e8956ee0\nparent b06fb85e5967440278d5a815721b360920566ab9\nauthor Visal .In <invisal@gmail.com> 1772971263 +0000\ncommitter GitHub <noreply@github.com> 1772971263 +0000\n\nMerge pull request #494 from outerbase/develop\n\nRelease: merge develop into master",
+      "verified_at": "2026-03-08T12:01:03Z"
+    }
+  },
+  "url": "https://api.github.com/repos/outerbase/studio/commits/70c9d8e9745c161fb84746d3372bdab838c9bb36",
+  "html_url": "https://github.com/outerbase/studio/commit/70c9d8e9745c161fb84746d3372bdab838c9bb36",
+  "comments_url": "https://api.github.com/repos/outerbase/studio/commits/70c9d8e9745c161fb84746d3372bdab838c9bb36/comments",
+  "author": {
+    "login": "invisal",
+    "id": 4539653,
+    "node_id": "MDQ6VXNlcjQ1Mzk2NTM=",
+    "avatar_url": "https://avatars.githubusercontent.com/u/4539653?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/invisal",
+    "html_url": "https://github.com/invisal",
+    "followers_url": "https://api.github.com/users/invisal/followers",
+    "following_url": "https://api.github.com/users/invisal/following{/other_user}",
+    "gists_url": "https://api.github.com/users/invisal/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/invisal/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/invisal/subscriptions",
+    "organizations_url": "https://api.github.com/users/invisal/orgs",
+    "repos_url": "https://api.github.com/users/invisal/repos",
+    "events_url": "https://api.github.com/users/invisal/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/invisal/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+  },
+  "committer": {
+    "login": "web-flow",
+    "id": 19864447,
+    "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
+    "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/web-flow",
+    "html_url": "https://github.com/web-flow",
+    "followers_url": "https://api.github.com/users/web-flow/followers",
+    "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+    "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+    "organizations_url": "https://api.github.com/users/web-flow/orgs",
+    "repos_url": "https://api.github.com/users/web-flow/repos",
+    "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/web-flow/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+  },
+  "parents": [
+    {
+      "sha": "951bcb5c0969e54256535bb5a71a4366e8956ee0",
+      "url": "https://api.github.com/repos/outerbase/studio/commits/951bcb5c0969e54256535bb5a71a4366e8956ee0",
+      "html_url": "https://github.com/outerbase/studio/commit/951bcb5c0969e54256535bb5a71a4366e8956ee0"
+    },
+    {
+      "sha": "b06fb85e5967440278d5a815721b360920566ab9",
+      "url": "https://api.github.com/repos/outerbase/studio/commits/b06fb85e5967440278d5a815721b360920566ab9",
+      "html_url": "https://github.com/outerbase/studio/commit/b06fb85e5967440278d5a815721b360920566ab9"
+    }
+  ],
+  "stats": {
+    "total": 21,
+    "additions": 2,
+    "deletions": 19
+  },
+  "files": [
+    {
+      "sha": "70e6acf690f424a37c96767683e0ebd91a4834f4",
+      "filename": "src/components/chart/index.tsx",
+      "status": "modified",
+      "additions": 2,
+      "deletions": 19,
+      "changes": 21,
+      "blob_url": "https://github.com/outerbase/studio/blob/70c9d8e9745c161fb84746d3372bdab838c9bb36/src%2Fcomponents%2Fchart%2Findex.tsx",
+      "raw_url": "https://github.com/outerbase/studio/raw/70c9d8e9745c161fb84746d3372bdab838c9bb36/src%2Fcomponents%2Fchart%2Findex.tsx",
+      "contents_url": "https://api.github.com/repos/outerbase/studio/contents/src%2Fcomponents%2Fchart%2Findex.tsx?ref=70c9d8e9745c161fb84746d3372bdab838c9bb36",
+      "patch": "@@ -15,21 +15,8 @@ interface OuterbaseChartProps {\n }\n \n const TextComponent = ({ value }: OuterbaseChartProps) => {\n-  let markdown = value.params.options?.text ?? \"\";\n+  const markdown = value.params.options?.text ?? \"\";\n \n-  // Bold (**text** or __text__)\n-  markdown = markdown.replace(/\\*\\*(.*?)\\*\\*/g, \"<b>$1</b>\");\n-  markdown = markdown.replace(/__(.*?)__/g, \"<b>$1</b>\");\n-\n-  // Italic (*text* or _text_)\n-  markdown = markdown.replace(/\\*(.*?)\\*/g, \"<i>$1</i>\");\n-  markdown = markdown.replace(/_(.*?)_/g, \"<i>$1</i>\");\n-\n-  // Underline (__text__)\n-  markdown = markdown.replace(/~~(.*?)~~/g, \"<u>$1</u>\");\n-\n-  // Line break (double space followed by a newline)\n-  markdown = markdown.replace(/ {2}\\n/g, \"<br>\");\n   return (\n     <div className=\"h-full w-full\">\n       <p\n@@ -41,11 +28,7 @@ const TextComponent = ({ value }: OuterbaseChartProps) => {\n         }}\n         className=\"flex-1 self-start text-neutral-900 dark:text-neutral-100\"\n       >\n-        <span\n-          dangerouslySetInnerHTML={{\n-            __html: markdown,\n-          }}\n-        ></span>\n+        <span>{markdown}</span>\n       </p>\n     </div>\n   );"
+    }
+  ]
+}

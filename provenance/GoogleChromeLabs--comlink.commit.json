@@ -1,0 +1,130 @@
+{
+  "sha": "114a4a6448a855a613f1cb9a7c89290606c003cf",
+  "node_id": "C_kwDOBh2UFdoAKDExNGE0YTY0NDhhODU1YTYxM2YxY2I5YTdjODkyOTA2MDZjMDAzY2Y",
+  "commit": {
+    "author": {
+      "name": "Ben Delarre",
+      "email": "delarre@adobe.com",
+      "date": "2025-06-18T00:01:59Z"
+    },
+    "committer": {
+      "name": "GitHub",
+      "email": "noreply@github.com",
+      "date": "2025-06-18T00:01:59Z"
+    },
+    "message": "Merge pull request #678 from foxglove/achim/fix-messageport-close\n\nFix message ports not being closed when proxy is relased",
+    "tree": {
+      "sha": "55fa6978e78c46b4f52f281a935196e38e6cf1ea",
+      "url": "https://api.github.com/repos/GoogleChromeLabs/comlink/git/trees/55fa6978e78c46b4f52f281a935196e38e6cf1ea"
+    },
+    "url": "https://api.github.com/repos/GoogleChromeLabs/comlink/git/commits/114a4a6448a855a613f1cb9a7c89290606c003cf",
+    "comment_count": 0,
+    "verification": {
+      "verified": true,
+      "reason": "valid",
+      "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsFcBAABCAAQBQJoUgH4CRC1aQ7uu5UhlAAA0BQQAII025BHibgtdE0PL3GtB9nX\nL99Oz4pXmS9tCbeZhieBsdUZ28Csc0WcyBA/Z5ux3EA5KeDCprpxN9w7gdPdq1hF\nO4IFP9cBjC3qlVpNdEvpsS9uekProbdLanKfS2J1oaiGv0w9a3qhKIWDc+fnLwGQ\n91aq8LUgNny4F3kWSaebvGghc+nOTS7nMf9AQ2iaN+q3hF3GCdHYZ5dCRp7HXxjZ\njmKEarCHqicokwYVixbx7n9N4U/v1jbBiePy604UQV6UgGu1KQl1/59B13+YHsBW\nctwkS11cXng5CNltOGybzYFsgDBZuRP1tlZs0kWyNzGtYNYYi26N5hDFqY1ipBHD\nR2CFgLmahscHe8kkNSqufs8MmqAr0N7p1anNa/OJIqibWOGnHi6+iqFwJ0XBLzzT\nXSPY8IIGSXNFArOboIvQzhRA0sVCIHWiJkG2GbxxePy2+J1XgxiXQGUiu8obTU8C\nNUBgBt+bS14gRVregK6xcvMVLDJbbPTliJvWuyMeIIH+faOBVk2mPeCNmD9ND6Ji\nrBA99G6i7FIGKFFCMLfhD4oiC6xJfRm2vj0uYQOsRaDSSwtOPSOmLVkEUPa1Jocg\nKOiz8LgX94z9y4sCmQ1D11KMUG5jygbkPSaOEu+NACuAzFbPwqSIM+wjE32dQhEE\n++j6KMIYi1B/SLaEElme\n=mG11\n-----END PGP SIGNATURE-----\n",
+      "payload": "tree 55fa6978e78c46b4f52f281a935196e38e6cf1ea\nparent fd4b52666b1ec62784f8b45cb1108c7e40bc481d\nparent 359584cc621212dcf6cb292843fc7d08cd15143d\nauthor Ben Delarre <delarre@adobe.com> 1750204919 -0700\ncommitter GitHub <noreply@github.com> 1750204919 -0700\n\nMerge pull request #678 from foxglove/achim/fix-messageport-close\n\nFix message ports not being closed when proxy is relased",
+      "verified_at": "2025-06-18T00:02:00Z"
+    }
+  },
+  "url": "https://api.github.com/repos/GoogleChromeLabs/comlink/commits/114a4a6448a855a613f1cb9a7c89290606c003cf",
+  "html_url": "https://github.com/GoogleChromeLabs/comlink/commit/114a4a6448a855a613f1cb9a7c89290606c003cf",
+  "comments_url": "https://api.github.com/repos/GoogleChromeLabs/comlink/commits/114a4a6448a855a613f1cb9a7c89290606c003cf/comments",
+  "author": {
+    "login": "benjamind",
+    "id": 332843,
+    "node_id": "MDQ6VXNlcjMzMjg0Mw==",
+    "avatar_url": "https://avatars.githubusercontent.com/u/332843?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/benjamind",
+    "html_url": "https://github.com/benjamind",
+    "followers_url": "https://api.github.com/users/benjamind/followers",
+    "following_url": "https://api.github.com/users/benjamind/following{/other_user}",
+    "gists_url": "https://api.github.com/users/benjamind/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/benjamind/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/benjamind/subscriptions",
+    "organizations_url": "https://api.github.com/users/benjamind/orgs",
+    "repos_url": "https://api.github.com/users/benjamind/repos",
+    "events_url": "https://api.github.com/users/benjamind/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/benjamind/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+  },
+  "committer": {
+    "login": "web-flow",
+    "id": 19864447,
+    "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
+    "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/web-flow",
+    "html_url": "https://github.com/web-flow",
+    "followers_url": "https://api.github.com/users/web-flow/followers",
+    "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+    "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+    "organizations_url": "https://api.github.com/users/web-flow/orgs",
+    "repos_url": "https://api.github.com/users/web-flow/repos",
+    "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/web-flow/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+  },
+  "parents": [
+    {
+      "sha": "fd4b52666b1ec62784f8b45cb1108c7e40bc481d",
+      "url": "https://api.github.com/repos/GoogleChromeLabs/comlink/commits/fd4b52666b1ec62784f8b45cb1108c7e40bc481d",
+      "html_url": "https://github.com/GoogleChromeLabs/comlink/commit/fd4b52666b1ec62784f8b45cb1108c7e40bc481d"
+    },
+    {
+      "sha": "359584cc621212dcf6cb292843fc7d08cd15143d",
+      "url": "https://api.github.com/repos/GoogleChromeLabs/comlink/commits/359584cc621212dcf6cb292843fc7d08cd15143d",
+      "html_url": "https://github.com/GoogleChromeLabs/comlink/commit/359584cc621212dcf6cb292843fc7d08cd15143d"
+    }
+  ],
+  "stats": {
+    "total": 99,
+    "additions": 66,
+    "deletions": 33
+  },
+  "files": [
+    {
+      "sha": "27c13694f5831ff4393d0a56e37f2b836b0f1510",
+      "filename": "src/comlink.ts",
+      "status": "modified",
+      "additions": 42,
+      "deletions": 33,
+      "changes": 75,
+      "blob_url": "https://github.com/GoogleChromeLabs/comlink/blob/114a4a6448a855a613f1cb9a7c89290606c003cf/src%2Fcomlink.ts",
+      "raw_url": "https://github.com/GoogleChromeLabs/comlink/raw/114a4a6448a855a613f1cb9a7c89290606c003cf/src%2Fcomlink.ts",
+      "contents_url": "https://api.github.com/repos/GoogleChromeLabs/comlink/contents/src%2Fcomlink.ts?ref=114a4a6448a855a613f1cb9a7c89290606c003cf",
+      "patch": "@@ -231,6 +231,10 @@ type PendingListenersMap = Map<\n   string,\n   (value: WireValue | PromiseLike<WireValue>) => void\n >;\n+type EndpointWithPendingListeners = {\n+  endpoint: Endpoint;\n+  pendingListeners: PendingListenersMap;\n+};\n \n /**\n  * Internal transfer handler to handle thrown exceptions.\n@@ -415,7 +419,7 @@ export function wrap<T>(ep: Endpoint, target?: any): Remote<T> {\n     }\n   });\n \n-  return createProxy<T>(ep, pendingListeners, [], target) as any;\n+  return createProxy<T>({ endpoint: ep, pendingListeners }, [], target) as any;\n }\n \n function throwIfProxyReleased(isReleased: boolean) {\n@@ -424,11 +428,11 @@ function throwIfProxyReleased(isReleased: boolean) {\n   }\n }\n \n-function releaseEndpoint(ep: Endpoint) {\n-  return requestResponseMessage(ep, new Map(), {\n+function releaseEndpoint(epWithPendingListeners: EndpointWithPendingListeners) {\n+  return requestResponseMessage(epWithPendingListeners, {\n     type: MessageType.RELEASE,\n   }).then(() => {\n-    closeEndPoint(ep);\n+    closeEndPoint(epWithPendingListeners.endpoint);\n   });\n }\n \n@@ -441,24 +445,31 @@ interface FinalizationRegistry<T> {\n   ): void;\n   unregister(unregisterToken: object): void;\n }\n-declare var FinalizationRegistry: FinalizationRegistry<Endpoint>;\n+declare var FinalizationRegistry: FinalizationRegistry<EndpointWithPendingListeners>;\n \n-const proxyCounter = new WeakMap<Endpoint, number>();\n+const proxyCounter = new WeakMap<EndpointWithPendingListeners, number>();\n const proxyFinalizers =\n   \"FinalizationRegistry\" in globalThis &&\n-  new FinalizationRegistry((ep: Endpoint) => {\n-    const newCount = (proxyCounter.get(ep) || 0) - 1;\n-    proxyCounter.set(ep, newCount);\n-    if (newCount === 0) {\n-      releaseEndpoint(ep);\n+  new FinalizationRegistry(\n+    (epWithPendingListeners: EndpointWithPendingListeners) => {\n+      const newCount = (proxyCounter.get(epWithPendingListeners) || 0) - 1;\n+      proxyCounter.set(epWithPendingListeners, newCount);\n+      if (newCount === 0) {\n+        releaseEndpoint(epWithPendingListeners).finally(() => {\n+          epWithPendingListeners.pendingListeners.clear();\n+        });\n+      }\n     }\n-  });\n+  );\n \n-function registerProxy(proxy: object, ep: Endpoint) {\n-  const newCount = (proxyCounter.get(ep) || 0) + 1;\n-  proxyCounter.set(ep, newCount);\n+function registerProxy(\n+  proxy: object,\n+  epWithPendingListeners: EndpointWithPendingListeners\n+) {\n+  const newCount = (proxyCounter.get(epWithPendingListeners) || 0) + 1;\n+  proxyCounter.set(epWithPendingListeners, newCount);\n   if (proxyFinalizers) {\n-    proxyFinalizers.register(proxy, ep, proxy);\n+    proxyFinalizers.register(proxy, epWithPendingListeners, proxy);\n   }\n }\n \n@@ -469,8 +480,7 @@ function unregisterProxy(proxy: object) {\n }\n \n function createProxy<T>(\n-  ep: Endpoint,\n-  pendingListeners: PendingListenersMap,\n+  epWithPendingListeners: EndpointWithPendingListeners,\n   path: (string | number | symbol)[] = [],\n   target: object = function () {}\n ): Remote<T> {\n@@ -481,31 +491,31 @@ function createProxy<T>(\n       if (prop === releaseProxy) {\n         return () => {\n           unregisterProxy(proxy);\n-          releaseEndpoint(ep);\n-          pendingListeners.clear();\n+          releaseEndpoint(epWithPendingListeners).finally(() => {\n+            epWithPendingListeners.pendingListeners.clear();\n+          });\n           isProxyReleased = true;\n         };\n       }\n       if (prop === \"then\") {\n         if (path.length === 0) {\n           return { then: () => proxy };\n         }\n-        const r = requestResponseMessage(ep, pendingListeners, {\n+        const r = requestResponseMessage(epWithPendingListeners, {\n           type: MessageType.GET,\n           path: path.map((p) => p.toString()),\n         }).then(fromWireValue);\n         return r.then.bind(r);\n       }\n-      return createProxy(ep, pendingListeners, [...path, prop]);\n+      return createProxy(epWithPendingListeners, [...path, prop]);\n     },\n     set(_target, prop, rawValue) {\n       throwIfProxyReleased(isProxyReleased);\n       // FIXME: ES6 Proxy Handler `set` methods are supposed to return a\n       // boolean. To show good will, we return true asynchronously ¯\\_(ツ)_/¯\n       const [value, transferables] = toWireValue(rawValue);\n       return requestResponseMessage(\n-        ep,\n-        pendingListeners,\n+        epWithPendingListeners,\n         {\n           type: MessageType.SET,\n           path: [...path, prop].map((p) => p.toString()),\n@@ -518,18 +528,17 @@ function createProxy<T>(\n       throwIfProxyReleased(isProxyReleased);\n       const last = path[path.length - 1];\n       if ((last as any) === createEndpoint) {\n-        return requestResponseMessage(ep, pendingListeners, {\n+        return requestResponseMessage(epWithPendingListeners, {\n           type: MessageType.ENDPOINT,\n         }).then(fromWireValue);\n       }\n       // We just pretend that `bind()` didn’t happen.\n       if (last === \"bind\") {\n-        return createProxy(ep, pendingListeners, path.slice(0, -1));\n+        return createProxy(epWithPendingListeners, path.slice(0, -1));\n       }\n       const [argumentList, transferables] = processArguments(rawArgumentList);\n       return requestResponseMessage(\n-        ep,\n-        pendingListeners,\n+        epWithPendingListeners,\n         {\n           type: MessageType.APPLY,\n           path: path.map((p) => p.toString()),\n@@ -542,8 +551,7 @@ function createProxy<T>(\n       throwIfProxyReleased(isProxyReleased);\n       const [argumentList, transferables] = processArguments(rawArgumentList);\n       return requestResponseMessage(\n-        ep,\n-        pendingListeners,\n+        epWithPendingListeners,\n         {\n           type: MessageType.CONSTRUCT,\n           path: path.map((p) => p.toString()),\n@@ -553,7 +561,7 @@ function createProxy<T>(\n       ).then(fromWireValue);\n     },\n   });\n-  registerProxy(proxy, ep);\n+  registerProxy(proxy, epWithPendingListeners);\n   return proxy as any;\n }\n \n@@ -622,11 +630,12 @@ function fromWireValue(value: WireValue): any {\n }\n \n function requestResponseMessage(\n-  ep: Endpoint,\n-  pendingListeners: PendingListenersMap,\n+  epWithPendingListeners: EndpointWithPendingListeners,\n   msg: Message,\n   transfers?: Transferable[]\n ): Promise<WireValue> {\n+  const ep = epWithPendingListeners.endpoint;\n+  const pendingListeners = epWithPendingListeners.pendingListeners;\n   return new Promise((resolve) => {\n     const id = generateUUID();\n     pendingListeners.set(id, resolve);"
+    },
+    {
+      "sha": "e1f317308e1d71095410b04a9e7499d7b0128ce9",
+      "filename": "tests/node/main.mjs",
+      "status": "modified",
+      "additions": 12,
+      "deletions": 0,
+      "changes": 12,
+      "blob_url": "https://github.com/GoogleChromeLabs/comlink/blob/114a4a6448a855a613f1cb9a7c89290606c003cf/tests%2Fnode%2Fmain.mjs",
+      "raw_url": "https://github.com/GoogleChromeLabs/comlink/raw/114a4a6448a855a613f1cb9a7c89290606c003cf/tests%2Fnode%2Fmain.mjs",
+      "contents_url": "https://api.github.com/repos/GoogleChromeLabs/comlink/contents/tests%2Fnode%2Fmain.mjs?ref=114a4a6448a855a613f1cb9a7c89290606c003cf",
+      "patch": "@@ -24,5 +24,17 @@ describe(\"node\", () => {\n       const otherProxy = Comlink.wrap(otherEp);\n       expect(await otherProxy(20, 1)).to.equal(21);\n     });\n+\n+    it(\"releaseProxy closes MessagePort created by createEndpoint\", async function () {\n+      const proxy = Comlink.wrap(nodeEndpoint(this.worker));\n+      const otherEp = await proxy[Comlink.createEndpoint]();\n+      const otherProxy = Comlink.wrap(otherEp);\n+      expect(await otherProxy(20, 1)).to.equal(21);\n+\n+      await new Promise((resolve) => {\n+        otherEp.close = resolve; // Resolve the promise when the MessagePort is closed.\n+        otherProxy[Comlink.releaseProxy](); // Release the proxy, which should close the MessagePort.\n+      });\n+    });\n   });\n });"
+    },
+    {
+      "sha": "4c445706efd8a0efbb030aab7d3196c58525ee47",
+      "filename": "tests/worker.comlink.test.js",
+      "status": "modified",
+      "additions": 12,
+      "deletions": 0,
+      "changes": 12,
+      "blob_url": "https://github.com/GoogleChromeLabs/comlink/blob/114a4a6448a855a613f1cb9a7c89290606c003cf/tests%2Fworker.comlink.test.js",
+      "raw_url": "https://github.com/GoogleChromeLabs/comlink/raw/114a4a6448a855a613f1cb9a7c89290606c003cf/tests%2Fworker.comlink.test.js",
+      "contents_url": "https://api.github.com/repos/GoogleChromeLabs/comlink/contents/tests%2Fworker.comlink.test.js?ref=114a4a6448a855a613f1cb9a7c89290606c003cf",
+      "patch": "@@ -33,4 +33,16 @@ describe(\"Comlink across workers\", function () {\n     const otherProxy = Comlink.wrap(otherEp);\n     expect(await otherProxy(20, 1)).to.equal(21);\n   });\n+\n+  it(\"releaseProxy closes MessagePort created by createEndpoint\", async function () {\n+    const proxy = Comlink.wrap(this.worker);\n+    const otherEp = await proxy[Comlink.createEndpoint]();\n+    const otherProxy = Comlink.wrap(otherEp);\n+    expect(await otherProxy(20, 1)).to.equal(21);\n+\n+    await new Promise((resolve) => {\n+      otherEp.close = resolve; // Resolve the promise when the MessagePort is closed.\n+      otherProxy[Comlink.releaseProxy](); // Release the proxy, which should close the MessagePort.\n+    });\n+  });\n });"
+    }
+  ]
+}

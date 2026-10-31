@@ -1,0 +1,25 @@
+{
+  "platform": "Linux-6.18.57-x86_64-with-glibc2.39",
+  "tools": {
+    "node": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "npm": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/npm",
+    "python3": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "git": "/usr/local/bin/git",
+    "curl": "/usr/bin/curl",
+    "make": "/usr/bin/make",
+    "cmake": null,
+    "ninja": null,
+    "cc": "/usr/bin/cc",
+    "clang": null,
+    "emcc": null,
+    "emcmake": null,
+    "php": null,
+    "bison": null,
+    "re2c": null,
+    "autoconf": null,
+    "pkg-config": null
+  },
+  "status": "PREPARATION_ONLY_NO_WASM_BUILD",
+  "required_emscripten": "6.0.6 per bridge native/upstream-versions.json",
+  "note": "Node tests need no npm install; native build still needs compiler, SDK and dependencies."
+}

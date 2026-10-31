@@ -1,0 +1,426 @@
+{
+  "imported_on": "2026-10-31",
+  "inputs": [
+    {
+      "file": "preparation.zip",
+      "bytes": 192685,
+      "sha256": "979a03b9dd64f5bcd90be1690da89451bbf3a86dce4dbaf3265257c80659dd3b",
+      "entries": [
+        {
+          "path": "php-browser-lab/README.md",
+          "bytes": 4794,
+          "sha256": "5d119e86e42d21d4fe0d4253367b2ca2bf1d7c502eb93ff9c14d4f5fb591792f"
+        },
+        {
+          "path": "php-browser-lab/config/memory-profiles.json",
+          "bytes": 598,
+          "sha256": "5384571a6be2e9aad707f64e6fbae730120168d35d7e971e3332dcb5f3a2598a"
+        },
+        {
+          "path": "php-browser-lab/docs/ARCHITECTURE.md",
+          "bytes": 7368,
+          "sha256": "fe03a8c47c7c6e14315fb0d886d7f4461aa76df7932252bb212d5856ec21afe9"
+        },
+        {
+          "path": "php-browser-lab/docs/BUILD.md",
+          "bytes": 5913,
+          "sha256": "548bb03c9e4b5a8f5123d32ae98d999f08a15023929adb46086bfa4c84bc30b9"
+        },
+        {
+          "path": "php-browser-lab/docs/CODE-MAP.md",
+          "bytes": 26444,
+          "sha256": "c3aa2f3c704ebaa952778be0c0ff5d61b1dc3b43ce4a4db649320f1bd0041c8f"
+        },
+        {
+          "path": "php-browser-lab/docs/DIFFICULTES.md",
+          "bytes": 7473,
+          "sha256": "5f862a976bd45f6c0d33b1c0343a05c45498105204aea69448b4eb9472c58814"
+        },
+        {
+          "path": "php-browser-lab/docs/MEMOIRE-BENCHMARKS.md",
+          "bytes": 6188,
+          "sha256": "8618e0715128711bfbbd7e5f3a9fb65b08d2dd3212e7363707fc5b13cd690919"
+        },
+        {
+          "path": "php-browser-lab/docs/REFERENCES.md",
+          "bytes": 7636,
+          "sha256": "01a4152e9f25f2f57dd2799d00b30e14c7171546063ca8df0c1bdcb42b51c01a"
+        },
+        {
+          "path": "php-browser-lab/docs/REPRISE.md",
+          "bytes": 3453,
+          "sha256": "84f60f3080c8f425ab27c95618c418431d1bdf21c9d399f4a409ce4b02345fb2"
+        },
+        {
+          "path": "php-browser-lab/docs/ROADMAP.md",
+          "bytes": 3928,
+          "sha256": "39bd797e5e124ac4641e4f5c4079dec4e9474e33939c21ef1d7897f3d4269129"
+        },
+        {
+          "path": "php-browser-lab/fixtures/README.md",
+          "bytes": 1331,
+          "sha256": "5f208ba63359b1657b05690ecf81d47c946c3cec8cbf6bc515fef9e0fd28a5d6"
+        },
+        {
+          "path": "php-browser-lab/fixtures/multiplayer/schema.sql",
+          "bytes": 223,
+          "sha256": "460c6201e80ebac3ba82fdbeadb3df23525b4f317abe66e3c98c2006b200f0de"
+        },
+        {
+          "path": "php-browser-lab/fixtures/multiplayer/state.php",
+          "bytes": 1237,
+          "sha256": "c3e1d1ca85680a1bec584b71e17c98a8f28fa34e57da90e10eadd6e4361b60c3"
+        },
+        {
+          "path": "php-browser-lab/fixtures/school/mysqli.php",
+          "bytes": 1690,
+          "sha256": "f56b934891c7f7eb657feed17edc847f5c5aa6c975d13719b6de727f87959afc"
+        },
+        {
+          "path": "php-browser-lab/fixtures/school/pdo.php",
+          "bytes": 1210,
+          "sha256": "62bfc4f4880d813fb932fad8a2bbf233bc3fd3385a9e05c49aded7dbb1426f4f"
+        },
+        {
+          "path": "php-browser-lab/fixtures/school/schema.sql",
+          "bytes": 379,
+          "sha256": "71a9d77bcbdb8140defc501088c932f5ffd9f7e7cfd84101d2291fb70ecb4099"
+        },
+        {
+          "path": "php-browser-lab/package.json",
+          "bytes": 415,
+          "sha256": "e33145ea69ce8e4b1c65126abfa2840d726d4519db78fb953a212fd5cb083e41"
+        },
+        {
+          "path": "php-browser-lab/packages/files/src/byte-lru.mjs",
+          "bytes": 1559,
+          "sha256": "d49f41f3ad5f7db367bbef6ebf6d158a64b45eba498e0add2b57b45a8588cf12"
+        },
+        {
+          "path": "php-browser-lab/packages/runtime/src/request-queue.mjs",
+          "bytes": 2981,
+          "sha256": "d8e27add9c2df5d387c84a505560d2439f51717c06b6b723ad48c5e53bbf0e2e"
+        },
+        {
+          "path": "php-browser-lab/packages/sql-native/README.md",
+          "bytes": 1014,
+          "sha256": "a5aea892fa6dcb37118720df8195bd3d216b4b4f3a3df954b47de63ae8d5a7c8"
+        },
+        {
+          "path": "php-browser-lab/packages/sql-native/include/pbl_sql.h",
+          "bytes": 3393,
+          "sha256": "5307f6f76143a699494c3467ef864d866dd955938a264c05b670da4b3bad69e1"
+        },
+        {
+          "path": "php-browser-lab/provenance/GoogleChromeLabs--comlink.commit.json",
+          "bytes": 15584,
+          "sha256": "24ee726b28cc9180177b745923e14e704a1953024fa5b56fc5dc2754022d73b4"
+        },
+        {
+          "path": "php-browser-lab/provenance/WordPress--wordpress-playground.commit.json",
+          "bytes": 47108,
+          "sha256": "b669abc99b53c878e1da0dfcde43a6da5faf51ef21f2a6eb7c31ece16298dd77"
+        },
+        {
+          "path": "php-browser-lab/provenance/chartdb--chartdb.commit.json",
+          "bytes": 7788,
+          "sha256": "45251cdb2976b5fd270dd8a3c7e96fb029703c0a5b23e42597f81610c3cefb7b"
+        },
+        {
+          "path": "php-browser-lab/provenance/codemirror--lang-sql.commit.json",
+          "bytes": 4696,
+          "sha256": "873501f089190f0e670a36c210b5a43c2aaacea22335fcd252258bf89961e71b"
+        },
+        {
+          "path": "php-browser-lab/provenance/conversation-source.md",
+          "bytes": 83641,
+          "sha256": "ee3c9ce0084a8379f1f8bf0675066a79201eb9cde3d6edf86c73e4248397c1f3"
+        },
+        {
+          "path": "php-browser-lab/provenance/download.log",
+          "bytes": 603,
+          "sha256": "67634bec290034fac3c528a280c7068851d376703db45a8eea0c4cb1e0dbc6d9"
+        },
+        {
+          "path": "php-browser-lab/provenance/drawdb-io--drawdb.commit.json",
+          "bytes": 8396,
+          "sha256": "fd6dd1f11f0f055186f3f0401de6840b5303f886e94572ff3bfab47aa80fbad2"
+        },
+        {
+          "path": "php-browser-lab/provenance/emscripten-core--emscripten.commit.json",
+          "bytes": 9430,
+          "sha256": "7f3677eb086b0f14aebc0cc9fd7b8a64baec5f0e241127e1554e6a1e2b51d668"
+        },
+        {
+          "path": "php-browser-lab/provenance/environment.json",
+          "bytes": 866,
+          "sha256": "67ca248da9105e234f84cf543709d16c3d4330a3cfbfb54e6e6df117495965cb"
+        },
+        {
+          "path": "php-browser-lab/provenance/joomengine--mariadb-wasm-bridge.commit.json",
+          "bytes": 26048,
+          "sha256": "09279b01bc247290bf090002d8c50b4df09758dc13b4fc11d0275e23edbca6fa"
+        },
+        {
+          "path": "php-browser-lab/provenance/joomengine--php-wasm.commit.json",
+          "bytes": 120728,
+          "sha256": "ad02143dc2366235ac2a0184b00e1d6802c30b084d53e10fc8f6c492174fe19f"
+        },
+        {
+          "path": "php-browser-lab/provenance/kachurun--opfs-worker.commit.json",
+          "bytes": 7365,
+          "sha256": "3b42eab89ac7e17d2359b14c52acb742b0ea303fed108d180eb809e59a59f884"
+        },
+        {
+          "path": "php-browser-lab/provenance/lite4mariadb-gitlinks.json",
+          "bytes": 1315,
+          "sha256": "286c8feacfd833322f871bfc328aa586f5d4a7d800c42bba7c696db8638e6d9e"
+        },
+        {
+          "path": "php-browser-lab/provenance/native-deps-download.log",
+          "bytes": 165,
+          "sha256": "6de3e2f24a80b1e9447c7ce0db0dbbd0bc4aff2214356612397bd01f95739e8f"
+        },
+        {
+          "path": "php-browser-lab/provenance/node-tests.txt",
+          "bytes": 1053,
+          "sha256": "1ec88766a0aabdc5bad6e1977656f30b1e074053c107d91f4daaf5d66be2102b"
+        },
+        {
+          "path": "php-browser-lab/provenance/outerbase--studio.commit.json",
+          "bytes": 7170,
+          "sha256": "dd5aa24828788ca8300689632f57e35ca6ccf704d4b07a1b90b7c03916973828"
+        },
+        {
+          "path": "php-browser-lab/provenance/php--php-src.commit.json",
+          "bytes": 9238,
+          "sha256": "862412f90b78eb34e332ebe0dbdd9189a1fe407472568255fbc161b4a2e41e19"
+        },
+        {
+          "path": "php-browser-lab/provenance/seanmorris--php-wasm.commit.json",
+          "bytes": 6082,
+          "sha256": "57853b5c4d2f4b4c9828b4374229c795f425b5505b6dbef9b83bbd326a2ef260"
+        },
+        {
+          "path": "php-browser-lab/provenance/shyim--lite4mariadb.commit.json",
+          "bytes": 5783,
+          "sha256": "d3115af52246151f89640c699ce963c3944a78f3ae2746059e5232214071ffff"
+        },
+        {
+          "path": "php-browser-lab/provenance/source-map.csv",
+          "bytes": 35654,
+          "sha256": "cc346b7404b2e556e95bbcf0f7c772d3262d8bd2b7e5edaaf7f5eaaf66f171c7"
+        },
+        {
+          "path": "php-browser-lab/provenance/source-map.json",
+          "bytes": 50541,
+          "sha256": "3968625dae32e781de292e8792be04fb6c1b9a3f096b4de0d58ae92c40f9f5ee"
+        },
+        {
+          "path": "php-browser-lab/provenance/submodules-lock.json",
+          "bytes": 2614,
+          "sha256": "27a0454b9cd16f4e33619ac44fc00b9d377c631bcecee5ce30a7b64f1874ddac"
+        },
+        {
+          "path": "php-browser-lab/provenance/upstream-lock.json",
+          "bytes": 9607,
+          "sha256": "5f46f876f6903231db4d1eca09ff3a3a771c289d7a365f4009e5dc088fd3eeb6"
+        },
+        {
+          "path": "php-browser-lab/provenance/validation.json",
+          "bytes": 487,
+          "sha256": "495460020232bf6f637e7bbb90ec518469693db660cc6e6a17fcab71b3530ffc"
+        },
+        {
+          "path": "php-browser-lab/provenance/xyflow--xyflow.commit.json",
+          "bytes": 7676,
+          "sha256": "653e275da7314f9f4b58bff2c587f933274f7037275caed8441d0cb90dff4bf7"
+        },
+        {
+          "path": "php-browser-lab/provenance/zen-fs--core.commit.json",
+          "bytes": 6615,
+          "sha256": "0dfbfeb6c0ccb76a8425ebe55e84077ad88ab8b29b47896b8829dbf440718a9a"
+        },
+        {
+          "path": "php-browser-lab/provenance/zen-fs--dom.commit.json",
+          "bytes": 7157,
+          "sha256": "f44e2437e8ce238cd321c653813156450410f185bce28a9693d31b5c16fe1ee1"
+        },
+        {
+          "path": "php-browser-lab/provenance/zen-fs--emscripten.commit.json",
+          "bytes": 7208,
+          "sha256": "081a84a414bd98df536427b4eeb7fc4824ef057be5b35a8242a7a116a9f1069d"
+        },
+        {
+          "path": "php-browser-lab/scripts/doctor.py",
+          "bytes": 709,
+          "sha256": "e6ebf34f2374f3924998c0db2cdae4259f5cfac9558b10ccf3d312e1f4e2748d"
+        },
+        {
+          "path": "php-browser-lab/scripts/fetch-native-deps.py",
+          "bytes": 1865,
+          "sha256": "5a375e6a4be5042fe3c7078d588773a471476ecbc78b98545ddc77c9171c8de4"
+        },
+        {
+          "path": "php-browser-lab/scripts/fetch-upstream.py",
+          "bytes": 4276,
+          "sha256": "e88eca5a77a75815a837371112606ebb26d3822a357ded428b6621fc9d667717"
+        },
+        {
+          "path": "php-browser-lab/scripts/map-upstream.py",
+          "bytes": 13678,
+          "sha256": "8ad61b7fa8dd4c1542eff2b8c90fb43b62aa4651579a0becd7abc7771ac4d42e"
+        },
+        {
+          "path": "php-browser-lab/scripts/package-project.py",
+          "bytes": 2024,
+          "sha256": "fdff4f4faf8a1dbcfb6871966cc984f1ab45dc2fb0b0e52e9002ba0fbb95b775"
+        },
+        {
+          "path": "php-browser-lab/scripts/verify-project.py",
+          "bytes": 2231,
+          "sha256": "689d6f93715c97df097cc3c724301337c27599f3ed4c94c96898f7520b7c52c8"
+        },
+        {
+          "path": "php-browser-lab/tests/cache.test.mjs",
+          "bytes": 1646,
+          "sha256": "0bd3772083ebe243b35efb4551a138124df3e899e913258f7b9651d00a8e225b"
+        },
+        {
+          "path": "php-browser-lab/tests/queue.test.mjs",
+          "bytes": 3199,
+          "sha256": "e3af547727575a9768d278c447b522379bc8acd0b8b0eaa16f4a82da26fe9d40"
+        }
+      ]
+    },
+    {
+      "file": "sources.zip",
+      "bytes": 500578666,
+      "sha256": "fe5a3fc54130245cf3ca433dd5492a0d72f83224f7c2f82db5b2ad3febea4631",
+      "entries": [
+        {
+          "path": "php-browser-lab/sources/seanmorris--php-wasm-1e1fb6703730759181e84c62bce35ee9129febb9.tar.gz",
+          "bytes": 139152669,
+          "sha256": "dfe4d54bf3a66a0a7b564904d06cf49327b74b3545965c9e18bd0ea83fc67421"
+        },
+        {
+          "path": "php-browser-lab/sources/joomengine--php-wasm-3b8cef42c020fbcbb6b41fad86716b7c8664b55b.tar.gz",
+          "bytes": 98753,
+          "sha256": "d30679568282f94ede723c5313ba2664380ede421cfb27693dcc9bc9fe9a533c"
+        },
+        {
+          "path": "php-browser-lab/sources/joomengine--mariadb-wasm-bridge-56d47b4dc867af313592efa09e12df470a36e129.tar.gz",
+          "bytes": 80081,
+          "sha256": "fdb306d4264f9f33341b9b23f965543dc55b413a7f7e296ff9383268efe454ae"
+        },
+        {
+          "path": "php-browser-lab/sources/shyim--lite4mariadb-24be9371a2f6c71250a2356631ad6feab2280b02.tar.gz",
+          "bytes": 49317689,
+          "sha256": "dd29d50f26a6bb032d5807ba6fdadb9d0ab52eb81672d1405bfc0a60e7b1f2dd"
+        },
+        {
+          "path": "php-browser-lab/sources/WordPress--wordpress-playground-a4dbcd0bf65a82e10a5d3821f5023aeee81097e6.tar.gz",
+          "bytes": 166917365,
+          "sha256": "b4f5945a6b3cf13979635597dfe926edd16fa839171bc9a89c2d4dab14b97aef"
+        },
+        {
+          "path": "php-browser-lab/sources/php--php-src-7ba31bb1934ae22c2d007135e89a38af131ec52e.tar.gz",
+          "bytes": 24609543,
+          "sha256": "89074c8c25f07dcd1e4bb24c89fbb18d6567a45eb8bcedbe09668180a0ee460a"
+        },
+        {
+          "path": "php-browser-lab/sources/emscripten-core--emscripten-91d14a4c6729752ed146751416fe96598cac3dc7.tar.gz",
+          "bytes": 32955191,
+          "sha256": "4c6cbe55e08d9e81a353e963b5170a98d151ea4bb3be19f8c560bb807d7225cb"
+        },
+        {
+          "path": "php-browser-lab/sources/zen-fs--core-ecb25b1bfd81879ef79052156c0171f215117b59.tar.gz",
+          "bytes": 218431,
+          "sha256": "b99a6228e042ab2cfee6a1a5633aa9b8692eaf8e5d45aefa6cf4528bde660a5e"
+        },
+        {
+          "path": "php-browser-lab/sources/zen-fs--dom-d9d9288471c7825a5ead485440aa87dec3c38ee2.tar.gz",
+          "bytes": 42649,
+          "sha256": "c4a5ffc2f11a5a1861df16680e38131661dd133b576a2fecd8577be11eb79e17"
+        },
+        {
+          "path": "php-browser-lab/sources/zen-fs--emscripten-c9d5c47d0a420e0fa05d635d106457bf56c17dc0.tar.gz",
+          "bytes": 35195,
+          "sha256": "de039a32c3213a73546c623f6432f9ad4cac28e264197c907b33ba2c05776884"
+        },
+        {
+          "path": "php-browser-lab/sources/kachurun--opfs-worker-c8813394795bcb26a0030ea94697114c59ec5b7e.tar.gz",
+          "bytes": 180574,
+          "sha256": "738d9e4405e3bfe2fdd243446b440d6372de8de6c07db9b0b7e12cad1b331ce6"
+        },
+        {
+          "path": "php-browser-lab/sources/GoogleChromeLabs--comlink-114a4a6448a855a613f1cb9a7c89290606c003cf.tar.gz",
+          "bytes": 30568,
+          "sha256": "41a24e19240eacb129192e62ad26654f12282afca6c232f74509f4176443082f"
+        },
+        {
+          "path": "php-browser-lab/sources/drawdb-io--drawdb-dc32c8bde614c931ec8bf3b3c346500d7626ab72.tar.gz",
+          "bytes": 1613338,
+          "sha256": "70cf02fd11958311e6e188b26728a5d15c0ca0866bd17b627680780403fe47c5"
+        },
+        {
+          "path": "php-browser-lab/sources/chartdb--chartdb-57bca690cc180f7501c6aa0c163c3b1dd418efa7.tar.gz",
+          "bytes": 52341320,
+          "sha256": "54921d528e8c1ee373effbd56c21aaa6ddcb43c8634c67f056ba7ba551fa2eff"
+        },
+        {
+          "path": "php-browser-lab/sources/outerbase--studio-70c9d8e9745c161fb84746d3372bdab838c9bb36.tar.gz",
+          "bytes": 4223945,
+          "sha256": "ce4fbd2da0d2a81981cd49126a4cce135a7fcafd659c275973f94b9f37e751c9"
+        },
+        {
+          "path": "php-browser-lab/sources/xyflow--xyflow-d4bc936edad07aba995dbdb8e2c63af8cdd631c9.tar.gz",
+          "bytes": 589167,
+          "sha256": "733bb555b9e0d48a0d1cde252223ef2280bee02d54e97cbc6f319a662e0ede09"
+        },
+        {
+          "path": "php-browser-lab/sources/codemirror--lang-sql-f5b0b0ba1811f87db2d1733f005585bd43322980.tar.gz",
+          "bytes": 25889,
+          "sha256": "e596ebf08496d57138e8b9d476738344aed95a83eaa8c0f1d67278f0a1ac4067"
+        },
+        {
+          "path": "php-browser-lab/sources/MariaDB--mariadb-connector-c-5a6fe6016fc908518e7d2a8c128a5c108b511c17.tar.gz",
+          "bytes": 1396802,
+          "sha256": "54562818bf2c5d56a6238738aea53fd276d5cff1fdaf9b05fa62d0a2dbab059b"
+        },
+        {
+          "path": "php-browser-lab/sources/wolfSSL--wolfssl-1d363f3adceba9d1478230ede476a37b0dcdef24.tar.gz",
+          "bytes": 26729937,
+          "sha256": "2754bcd8a0a3fed5ae19574506d0bf003eee7264ec8bed4ebb15409494246fd3"
+        },
+        {
+          "path": "php-browser-lab/provenance/upstream-lock.json",
+          "bytes": 9607,
+          "sha256": "5f46f876f6903231db4d1eca09ff3a3a771c289d7a365f4009e5dc088fd3eeb6"
+        },
+        {
+          "path": "php-browser-lab/provenance/submodules-lock.json",
+          "bytes": 2614,
+          "sha256": "27a0454b9cd16f4e33619ac44fc00b9d377c631bcecee5ce30a7b64f1874ddac"
+        },
+        {
+          "path": "php-browser-lab/provenance/lite4mariadb-gitlinks.json",
+          "bytes": 1315,
+          "sha256": "286c8feacfd833322f871bfc328aa586f5d4a7d800c42bba7c696db8638e6d9e"
+        },
+        {
+          "path": "php-browser-lab/SOURCES-RESTORE.md",
+          "bytes": 410,
+          "sha256": "d339006289b586a1efa29c3b7aab9a8f24ccfd74064b666be1a107120e2f88c4"
+        }
+      ]
+    }
+  ],
+  "additional_context": {
+    "path": "provenance/conversation-complementaire.txt",
+    "bytes": 72613,
+    "sha256": "e5b828a5a007f8fd2d55ebb56e9db69cdcb5e138d6bcc882402649a606d0a20e"
+  },
+  "layout": "Original php-browser-lab/ prefix removed; project installed at repository root.",
+  "source_storage": "19 unchanged tar.gz snapshots in the sources-2026-10-31 GitHub release; pinned retrieval scripts available."
+}

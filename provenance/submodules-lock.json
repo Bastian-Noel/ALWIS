@@ -1,0 +1,71 @@
+{
+  "parent": "shyim/lite4mariadb",
+  "gitlinks": [
+    {
+      "path": "libmariadb",
+      "url": "https://github.com/MariaDB/mariadb-connector-c.git",
+      "sha": "5a6fe6016fc908518e7d2a8c128a5c108b511c17",
+      "downloaded": true
+    },
+    {
+      "path": "storage/rocksdb/rocksdb",
+      "url": "https://github.com/facebook/rocksdb.git",
+      "sha": "79f08d7ffa6d34d9ca3357777bcb335884a56cfb",
+      "downloaded": false
+    },
+    {
+      "path": "wsrep-lib",
+      "url": "https://github.com/mariadb-corporation/wsrep-lib.git",
+      "sha": "5eeef4009d52455c44b607e852cb23fbb6e84c99",
+      "downloaded": false
+    },
+    {
+      "path": "extra/wolfssl/wolfssl",
+      "url": "https://github.com/wolfSSL/wolfssl.git",
+      "sha": "1d363f3adceba9d1478230ede476a37b0dcdef24",
+      "downloaded": true
+    },
+    {
+      "path": "storage/maria/libmarias3",
+      "url": "https://github.com/mariadb-corporation/libmarias3.git",
+      "sha": "23873f4acb8038d8cccc5f0bc61c45ac07727f73",
+      "downloaded": false
+    },
+    {
+      "path": "storage/columnstore/columnstore",
+      "url": "https://github.com/mariadb-corporation/mariadb-columnstore-engine.git",
+      "sha": "962e861c6a11e375cd95c78a517ab2b5d50e0076",
+      "downloaded": false
+    },
+    {
+      "path": "storage/duckdb/third_parties/duckdb",
+      "url": "https://github.com/duckdb/duckdb.git",
+      "sha": "8a5851971fae891f292c2714d86046ee018e9737",
+      "downloaded": false
+    }
+  ],
+  "downloaded": [
+    {
+      "repo": "MariaDB/mariadb-connector-c",
+      "sha": "5a6fe6016fc908518e7d2a8c128a5c108b511c17",
+      "archive": "sources/MariaDB--mariadb-connector-c-5a6fe6016fc908518e7d2a8c128a5c108b511c17.tar.gz",
+      "archive_sha256": "54562818bf2c5d56a6238738aea53fd276d5cff1fdaf9b05fa62d0a2dbab059b",
+      "archive_bytes": 1396802,
+      "directory": "upstream/MariaDB--mariadb-connector-c",
+      "source_url": "https://github.com/MariaDB/mariadb-connector-c/tree/5a6fe6016fc908518e7d2a8c128a5c108b511c17",
+      "status": "downloaded",
+      "mount_path": "libmariadb"
+    },
+    {
+      "repo": "wolfSSL/wolfssl",
+      "sha": "1d363f3adceba9d1478230ede476a37b0dcdef24",
+      "archive": "sources/wolfSSL--wolfssl-1d363f3adceba9d1478230ede476a37b0dcdef24.tar.gz",
+      "archive_sha256": "2754bcd8a0a3fed5ae19574506d0bf003eee7264ec8bed4ebb15409494246fd3",
+      "archive_bytes": 26729937,
+      "directory": "upstream/wolfSSL--wolfssl",
+      "source_url": "https://github.com/wolfSSL/wolfssl/tree/1d363f3adceba9d1478230ede476a37b0dcdef24",
+      "status": "downloaded",
+      "mount_path": "extra/wolfssl/wolfssl"
+    }
+  ]
+}

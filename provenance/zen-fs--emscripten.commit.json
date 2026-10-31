@@ -1,0 +1,113 @@
+{
+  "sha": "c9d5c47d0a420e0fa05d635d106457bf56c17dc0",
+  "node_id": "C_kwDOLo8y2NoAKGM5ZDVjNDdkMGE0MjBlMGZhMDVkNjM1ZDEwNjQ1N2JmNTZjMTdkYzA",
+  "commit": {
+    "author": {
+      "name": "James Prevett",
+      "email": "git@jamespre.dev",
+      "date": "2026-10-28T20:20:17Z"
+    },
+    "committer": {
+      "name": "James Prevett",
+      "email": "git@jamespre.dev",
+      "date": "2026-10-28T20:20:17Z"
+    },
+    "message": "Updated core",
+    "tree": {
+      "sha": "96618c3f626115b6aec71c8fc37ff95219cdd599",
+      "url": "https://api.github.com/repos/zen-fs/emscripten/git/trees/96618c3f626115b6aec71c8fc37ff95219cdd599"
+    },
+    "url": "https://api.github.com/repos/zen-fs/emscripten/git/commits/c9d5c47d0a420e0fa05d635d106457bf56c17dc0",
+    "comment_count": 0,
+    "verification": {
+      "verified": true,
+      "reason": "valid",
+      "signature": "-----BEGIN PGP SIGNATURE-----\n\niQIzBAABCgAdFiEEpqXCCraMCDoLNQ2oCmuaC/3idigFAmriWQEACgkQCmuaC/3i\ndigu3w//e9NUIi5o8JYaoRCZJmZOOmeTcJUPKMkOlUPRVf2mk7NAfLhdM8gKDXea\niF7429IjP/Gi6ClGSr/PVKceUZx0GWHD12eipnWuVluHCk8WMl2f99vQzWpzezKl\nlsHbGJBoSuHOpdxGaKxLDfKF+SXyGV9ncKEJG7UAXxX/MkT510CnJDhEevB/cGbo\nDpD9SxrmnrEj8n0vcpFVhisFbYh63gyKGEd2szEMh9bKOIpblIYJ6jEhoj3vDjpd\n+LjBesElIPD+BZ0cdWMUB8KbqVVrtemnjtLc2ajvomibyldhpfnyTl8dTE6te4UB\nmwmp7LyPl6GnO1MuHU2KprR9fOjt6uezy/M0WltRqBIKkulvR6/rsIGfVm1sDQf8\n0rGwYK8E3H4rs6lfD/RLeSwoT8Uu6bt0HqiyZbJzCbwk3EA9VJZaJg4MDUi4h+si\nHtJ4iJunMNQI/AEUQS4TW+zRP1iHseliOYUk4kIJByqZl4gxZ7a+teVZ1wp1h86D\ni6hfaAGouVEvBR/5EcWWVJHaC8Do3seB/s5FkEkYMPdGMye8Krtf4xsbCg/5HPpA\nH+3tvfPT4dSf0LlM6K4+m1CtPdji8gngPxSojc7ZRHmLhj29Z6uDPvKgkLi9c4AY\nQqvEOSVCYvLDVXeuly4npHIWeVn3IpwthlCcNXGdjheKnZl2How=\n=5+ce\n-----END PGP SIGNATURE-----",
+      "payload": "tree 96618c3f626115b6aec71c8fc37ff95219cdd599\nparent 1cf5ff3191b632ea0facf5bd654498051b662843\nauthor James Prevett <git@jamespre.dev> 1793218817 -0500\ncommitter James Prevett <git@jamespre.dev> 1793218817 -0500\n\nUpdated core\n",
+      "verified_at": "2026-10-28T20:20:20Z"
+    }
+  },
+  "url": "https://api.github.com/repos/zen-fs/emscripten/commits/c9d5c47d0a420e0fa05d635d106457bf56c17dc0",
+  "html_url": "https://github.com/zen-fs/emscripten/commit/c9d5c47d0a420e0fa05d635d106457bf56c17dc0",
+  "comments_url": "https://api.github.com/repos/zen-fs/emscripten/commits/c9d5c47d0a420e0fa05d635d106457bf56c17dc0/comments",
+  "author": {
+    "login": "james-pre",
+    "id": 75621402,
+    "node_id": "MDQ6VXNlcjc1NjIxNDAy",
+    "avatar_url": "https://avatars.githubusercontent.com/u/75621402?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/james-pre",
+    "html_url": "https://github.com/james-pre",
+    "followers_url": "https://api.github.com/users/james-pre/followers",
+    "following_url": "https://api.github.com/users/james-pre/following{/other_user}",
+    "gists_url": "https://api.github.com/users/james-pre/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/james-pre/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/james-pre/subscriptions",
+    "organizations_url": "https://api.github.com/users/james-pre/orgs",
+    "repos_url": "https://api.github.com/users/james-pre/repos",
+    "events_url": "https://api.github.com/users/james-pre/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/james-pre/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+  },
+  "committer": {
+    "login": "james-pre",
+    "id": 75621402,
+    "node_id": "MDQ6VXNlcjc1NjIxNDAy",
+    "avatar_url": "https://avatars.githubusercontent.com/u/75621402?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/james-pre",
+    "html_url": "https://github.com/james-pre",
+    "followers_url": "https://api.github.com/users/james-pre/followers",
+    "following_url": "https://api.github.com/users/james-pre/following{/other_user}",
+    "gists_url": "https://api.github.com/users/james-pre/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/james-pre/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/james-pre/subscriptions",
+    "organizations_url": "https://api.github.com/users/james-pre/orgs",
+    "repos_url": "https://api.github.com/users/james-pre/repos",
+    "events_url": "https://api.github.com/users/james-pre/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/james-pre/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+  },
+  "parents": [
+    {
+      "sha": "1cf5ff3191b632ea0facf5bd654498051b662843",
+      "url": "https://api.github.com/repos/zen-fs/emscripten/commits/1cf5ff3191b632ea0facf5bd654498051b662843",
+      "html_url": "https://github.com/zen-fs/emscripten/commit/1cf5ff3191b632ea0facf5bd654498051b662843"
+    }
+  ],
+  "stats": {
+    "total": 10,
+    "additions": 5,
+    "deletions": 5
+  },
+  "files": [
+    {
+      "sha": "a3606f209bfb2435f565288c451b13c5bde7fb4d",
+      "filename": "package-lock.json",
+      "status": "modified",
+      "additions": 4,
+      "deletions": 4,
+      "changes": 8,
+      "blob_url": "https://github.com/zen-fs/emscripten/blob/c9d5c47d0a420e0fa05d635d106457bf56c17dc0/package-lock.json",
+      "raw_url": "https://github.com/zen-fs/emscripten/raw/c9d5c47d0a420e0fa05d635d106457bf56c17dc0/package-lock.json",
+      "contents_url": "https://api.github.com/repos/zen-fs/emscripten/contents/package-lock.json?ref=c9d5c47d0a420e0fa05d635d106457bf56c17dc0",
+      "patch": "@@ -25,7 +25,7 @@\n \t\t\t\t\"url\": \"https://github.com/sponsors/james-pre\"\n \t\t\t},\n \t\t\t\"peerDependencies\": {\n-\t\t\t\t\"@zenfs/core\": \"^2.4.2\",\n+\t\t\t\t\"@zenfs/core\": \"^2.8.3\",\n \t\t\t\t\"kerium\": \"^1.4.4\"\n \t\t\t}\n \t\t},\n@@ -947,9 +947,9 @@\n \t\t\t}\n \t\t},\n \t\t\"node_modules/@zenfs/core\": {\n-\t\t\t\"version\": \"2.8.1\",\n-\t\t\t\"resolved\": \"https://registry.npmjs.org/@zenfs/core/-/core-2.8.1.tgz\",\n-\t\t\t\"integrity\": \"sha512-0NsSozvbI+uov0+Nm93tPncV6hE3zXiLcufMEi9k3LEw9zI8f2oINBs/OulI72ehSVLYsJcazAnrfU9CjYKqpg==\",\n+\t\t\t\"version\": \"2.8.3\",\n+\t\t\t\"resolved\": \"https://registry.npmjs.org/@zenfs/core/-/core-2.8.3.tgz\",\n+\t\t\t\"integrity\": \"sha512-7QD/vnjV/Oat7g5XmTTfk9gTAQ3p4JVbRtLHbPaVhS6o0yhUwHnhI+VDBxFQuMAgAfhy9Zc5nmekDbcaseA9LQ==\",\n \t\t\t\"license\": \"LGPL-3.0-or-later\",\n \t\t\t\"peer\": true,\n \t\t\t\"dependencies\": {"
+    },
+    {
+      "sha": "bd749b9ad083329e2cd97549e9787993a23095e3",
+      "filename": "package.json",
+      "status": "modified",
+      "additions": 1,
+      "deletions": 1,
+      "changes": 2,
+      "blob_url": "https://github.com/zen-fs/emscripten/blob/c9d5c47d0a420e0fa05d635d106457bf56c17dc0/package.json",
+      "raw_url": "https://github.com/zen-fs/emscripten/raw/c9d5c47d0a420e0fa05d635d106457bf56c17dc0/package.json",
+      "contents_url": "https://api.github.com/repos/zen-fs/emscripten/contents/package.json?ref=c9d5c47d0a420e0fa05d635d106457bf56c17dc0",
+      "patch": "@@ -58,7 +58,7 @@\n \t\t\"utilium\": \"^3.0.0\"\n \t},\n \t\"peerDependencies\": {\n-\t\t\"@zenfs/core\": \"^2.4.2\",\n+\t\t\"@zenfs/core\": \"^2.8.3\",\n \t\t\"kerium\": \"^1.4.4\"\n \t},\n \t\"prettier\": {"
+    }
+  ]
+}

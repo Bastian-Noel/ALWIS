@@ -1,0 +1,101 @@
+{
+  "sha": "f5b0b0ba1811f87db2d1733f005585bd43322980",
+  "node_id": "C_kwDOE2QiFNoAKGY1YjBiMGJhMTgxMWY4N2RiMmQxNzMzZjAwNTU4NWJkNDMzMjI5ODA",
+  "commit": {
+    "author": {
+      "name": "Marijn Haverbeke",
+      "email": "marijn@haverbeke.berlin",
+      "date": "2026-04-15T10:20:20Z"
+    },
+    "committer": {
+      "name": "Marijn Haverbeke",
+      "email": "marijn@haverbeke.berlin",
+      "date": "2026-04-15T10:20:20Z"
+    },
+    "message": "Add forwarding link",
+    "tree": {
+      "sha": "1db63165921793f50e98058cb7677dbf1afaf836",
+      "url": "https://api.github.com/repos/codemirror/lang-sql/git/trees/1db63165921793f50e98058cb7677dbf1afaf836"
+    },
+    "url": "https://api.github.com/repos/codemirror/lang-sql/git/commits/f5b0b0ba1811f87db2d1733f005585bd43322980",
+    "comment_count": 0,
+    "verification": {
+      "verified": false,
+      "reason": "unsigned",
+      "signature": null,
+      "payload": null,
+      "verified_at": null
+    }
+  },
+  "url": "https://api.github.com/repos/codemirror/lang-sql/commits/f5b0b0ba1811f87db2d1733f005585bd43322980",
+  "html_url": "https://github.com/codemirror/lang-sql/commit/f5b0b0ba1811f87db2d1733f005585bd43322980",
+  "comments_url": "https://api.github.com/repos/codemirror/lang-sql/commits/f5b0b0ba1811f87db2d1733f005585bd43322980/comments",
+  "author": {
+    "login": "marijnh",
+    "id": 144427,
+    "node_id": "MDQ6VXNlcjE0NDQyNw==",
+    "avatar_url": "https://avatars.githubusercontent.com/u/144427?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/marijnh",
+    "html_url": "https://github.com/marijnh",
+    "followers_url": "https://api.github.com/users/marijnh/followers",
+    "following_url": "https://api.github.com/users/marijnh/following{/other_user}",
+    "gists_url": "https://api.github.com/users/marijnh/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/marijnh/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/marijnh/subscriptions",
+    "organizations_url": "https://api.github.com/users/marijnh/orgs",
+    "repos_url": "https://api.github.com/users/marijnh/repos",
+    "events_url": "https://api.github.com/users/marijnh/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/marijnh/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+  },
+  "committer": {
+    "login": "marijnh",
+    "id": 144427,
+    "node_id": "MDQ6VXNlcjE0NDQyNw==",
+    "avatar_url": "https://avatars.githubusercontent.com/u/144427?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/marijnh",
+    "html_url": "https://github.com/marijnh",
+    "followers_url": "https://api.github.com/users/marijnh/followers",
+    "following_url": "https://api.github.com/users/marijnh/following{/other_user}",
+    "gists_url": "https://api.github.com/users/marijnh/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/marijnh/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/marijnh/subscriptions",
+    "organizations_url": "https://api.github.com/users/marijnh/orgs",
+    "repos_url": "https://api.github.com/users/marijnh/repos",
+    "events_url": "https://api.github.com/users/marijnh/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/marijnh/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+  },
+  "parents": [
+    {
+      "sha": "8b1ad59c35d7ccee9447f0e657645005df52638d",
+      "url": "https://api.github.com/repos/codemirror/lang-sql/commits/8b1ad59c35d7ccee9447f0e657645005df52638d",
+      "html_url": "https://github.com/codemirror/lang-sql/commit/8b1ad59c35d7ccee9447f0e657645005df52638d"
+    }
+  ],
+  "stats": {
+    "total": 2,
+    "additions": 2,
+    "deletions": 0
+  },
+  "files": [
+    {
+      "sha": "ded1299ead0c7ed715732c35eb0198e0c38f6f54",
+      "filename": "README.md",
+      "status": "modified",
+      "additions": 2,
+      "deletions": 0,
+      "changes": 2,
+      "blob_url": "https://github.com/codemirror/lang-sql/blob/f5b0b0ba1811f87db2d1733f005585bd43322980/README.md",
+      "raw_url": "https://github.com/codemirror/lang-sql/raw/f5b0b0ba1811f87db2d1733f005585bd43322980/README.md",
+      "contents_url": "https://api.github.com/repos/codemirror/lang-sql/contents/README.md?ref=f5b0b0ba1811f87db2d1733f005585bd43322980",
+      "patch": "@@ -1,3 +1,5 @@\n+**This repository has moved to https://code.haverbeke.berlin/codemirror/lang-sql**\n+\n <!-- NOTE: README.md is generated from src/README.md -->\n \n # @codemirror/lang-sql [![NPM version](https://img.shields.io/npm/v/@codemirror/lang-sql.svg)](https://www.npmjs.org/package/@codemirror/lang-sql)"
+    }
+  ]
+}

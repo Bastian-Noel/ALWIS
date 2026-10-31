@@ -1,0 +1,185 @@
+{
+  "sha": "56d47b4dc867af313592efa09e12df470a36e129",
+  "node_id": "C_kwDOVYCTpdoAKDU2ZDQ3YjRkYzg2N2FmMzEzNTkyZWZhMDllMTJkZjQ3MGEzNmUxMjk",
+  "commit": {
+    "author": {
+      "name": "eWɘyn",
+      "email": "5607939+Llewellynvdm@users.noreply.github.com",
+      "date": "2026-10-29T20:11:47Z"
+    },
+    "committer": {
+      "name": "eWɘyn",
+      "email": "5607939+Llewellynvdm@users.noreply.github.com",
+      "date": "2026-10-29T20:19:03Z"
+    },
+    "message": "Checkpoint InnoDB before saving browser storage",
+    "tree": {
+      "sha": "2c97676b8d67213aed994867cc855fc3b0a8205a",
+      "url": "https://api.github.com/repos/joomengine/mariadb-wasm-bridge/git/trees/2c97676b8d67213aed994867cc855fc3b0a8205a"
+    },
+    "url": "https://api.github.com/repos/joomengine/mariadb-wasm-bridge/git/commits/56d47b4dc867af313592efa09e12df470a36e129",
+    "comment_count": 0,
+    "verification": {
+      "verified": false,
+      "reason": "unsigned",
+      "signature": null,
+      "payload": null,
+      "verified_at": null
+    }
+  },
+  "url": "https://api.github.com/repos/joomengine/mariadb-wasm-bridge/commits/56d47b4dc867af313592efa09e12df470a36e129",
+  "html_url": "https://github.com/joomengine/mariadb-wasm-bridge/commit/56d47b4dc867af313592efa09e12df470a36e129",
+  "comments_url": "https://api.github.com/repos/joomengine/mariadb-wasm-bridge/commits/56d47b4dc867af313592efa09e12df470a36e129/comments",
+  "author": {
+    "login": "Llewellynvdm",
+    "id": 5607939,
+    "node_id": "MDQ6VXNlcjU2MDc5Mzk=",
+    "avatar_url": "https://avatars.githubusercontent.com/u/5607939?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/Llewellynvdm",
+    "html_url": "https://github.com/Llewellynvdm",
+    "followers_url": "https://api.github.com/users/Llewellynvdm/followers",
+    "following_url": "https://api.github.com/users/Llewellynvdm/following{/other_user}",
+    "gists_url": "https://api.github.com/users/Llewellynvdm/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/Llewellynvdm/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/Llewellynvdm/subscriptions",
+    "organizations_url": "https://api.github.com/users/Llewellynvdm/orgs",
+    "repos_url": "https://api.github.com/users/Llewellynvdm/repos",
+    "events_url": "https://api.github.com/users/Llewellynvdm/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/Llewellynvdm/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+  },
+  "committer": {
+    "login": "Llewellynvdm",
+    "id": 5607939,
+    "node_id": "MDQ6VXNlcjU2MDc5Mzk=",
+    "avatar_url": "https://avatars.githubusercontent.com/u/5607939?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/Llewellynvdm",
+    "html_url": "https://github.com/Llewellynvdm",
+    "followers_url": "https://api.github.com/users/Llewellynvdm/followers",
+    "following_url": "https://api.github.com/users/Llewellynvdm/following{/other_user}",
+    "gists_url": "https://api.github.com/users/Llewellynvdm/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/Llewellynvdm/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/Llewellynvdm/subscriptions",
+    "organizations_url": "https://api.github.com/users/Llewellynvdm/orgs",
+    "repos_url": "https://api.github.com/users/Llewellynvdm/repos",
+    "events_url": "https://api.github.com/users/Llewellynvdm/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/Llewellynvdm/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+  },
+  "parents": [
+    {
+      "sha": "3c1a04b297f1043de7104ad527220db31db5b881",
+      "url": "https://api.github.com/repos/joomengine/mariadb-wasm-bridge/commits/3c1a04b297f1043de7104ad527220db31db5b881",
+      "html_url": "https://github.com/joomengine/mariadb-wasm-bridge/commit/3c1a04b297f1043de7104ad527220db31db5b881"
+    }
+  ],
+  "stats": {
+    "total": 214,
+    "additions": 201,
+    "deletions": 13
+  },
+  "files": [
+    {
+      "sha": "c31c01910aa827dc2c9b8357313e964c46ca1367",
+      "filename": "README.md",
+      "status": "modified",
+      "additions": 8,
+      "deletions": 2,
+      "changes": 10,
+      "blob_url": "https://github.com/joomengine/mariadb-wasm-bridge/blob/56d47b4dc867af313592efa09e12df470a36e129/README.md",
+      "raw_url": "https://github.com/joomengine/mariadb-wasm-bridge/raw/56d47b4dc867af313592efa09e12df470a36e129/README.md",
+      "contents_url": "https://api.github.com/repos/joomengine/mariadb-wasm-bridge/contents/README.md?ref=56d47b4dc867af313592efa09e12df470a36e129",
+      "patch": "@@ -82,9 +82,15 @@ execution. See [docs/integration.md](docs/integration.md).\n \n Use `persistence: { key: 'site-unique-key' }` for IndexedDB. Each key has an\n exclusive Web Lock; another tab cannot open it concurrently. Use a separate key\n-for each playground site/version. Call `flush()` at checkpoints and `close()`\n+for each playground site/version. `flush()` checkpoints dirty InnoDB pages before\n+copying the filesystem into IndexedDB, and keeps the database queue held until\n+both operations finish. Await it before reporting a save as successful: a\n+completed save can reopen after a whole-page reload without calling `close()`.\n+Checkpoint and storage errors reject the save. Use `close()` for orderly shutdown\n while the page is active. Browser storage is not a backup; unload handlers cannot\n-guarantee a completed flush.\n+guarantee a completed flush. Database startup failures retain bounded native\n+diagnostics alongside the original error so damaged or unavailable storage can\n+be investigated without deleting saved data.\n \n MariaDB uses pthreads and requires a secure context, `SharedArrayBuffer` and\n cross-origin isolation. A conventional static host needs these response headers:"
+    },
+    {
+      "sha": "35c17d278b2a502d167e545f9e503157a6a6e418",
+      "filename": "docs/integration.md",
+      "status": "modified",
+      "additions": 6,
+      "deletions": 0,
+      "changes": 6,
+      "blob_url": "https://github.com/joomengine/mariadb-wasm-bridge/blob/56d47b4dc867af313592efa09e12df470a36e129/docs%2Fintegration.md",
+      "raw_url": "https://github.com/joomengine/mariadb-wasm-bridge/raw/56d47b4dc867af313592efa09e12df470a36e129/docs%2Fintegration.md",
+      "contents_url": "https://api.github.com/repos/joomengine/mariadb-wasm-bridge/contents/docs%2Fintegration.md?ref=56d47b4dc867af313592efa09e12df470a36e129",
+      "patch": "@@ -121,6 +121,12 @@ and close its database sessions before flushing the stores. These checkpoints ar\n not an atomic transaction across both stores. Record completed installation or\n recipe steps only after their required data and files are saved.\n \n+The bridge's `flush()` waits for an InnoDB checkpoint before synchronizing IDBFS.\n+Keep application requests paused until that promise resolves; propagate rejection\n+without advancing saved-state metadata. An IndexedDB copy alone does not flush\n+dirty database buffer-pool pages. A successful live save must survive page reload\n+or worker termination without requiring a later graceful `close()`.\n+\n MariaDB uses threads and requires cross-origin isolation. A static deployment\n must supply the required headers or a tested isolation service worker. PHP request\n routing and isolation must coexist under the same service-worker scope on GitHub"
+    },
+    {
+      "sha": "26f6fc116f5f1b745e15fa81ba766576d3e3ae81",
+      "filename": "package-lock.json",
+      "status": "modified",
+      "additions": 2,
+      "deletions": 2,
+      "changes": 4,
+      "blob_url": "https://github.com/joomengine/mariadb-wasm-bridge/blob/56d47b4dc867af313592efa09e12df470a36e129/package-lock.json",
+      "raw_url": "https://github.com/joomengine/mariadb-wasm-bridge/raw/56d47b4dc867af313592efa09e12df470a36e129/package-lock.json",
+      "contents_url": "https://api.github.com/repos/joomengine/mariadb-wasm-bridge/contents/package-lock.json?ref=56d47b4dc867af313592efa09e12df470a36e129",
+      "patch": "@@ -1,12 +1,12 @@\n {\n   \"name\": \"@joomengine/mariadb-wasm-bridge\",\n-  \"version\": \"0.1.7\",\n+  \"version\": \"0.1.8\",\n   \"lockfileVersion\": 3,\n   \"requires\": true,\n   \"packages\": {\n     \"\": {\n       \"name\": \"@joomengine/mariadb-wasm-bridge\",\n-      \"version\": \"0.1.7\",\n+      \"version\": \"0.1.8\",\n       \"license\": \"Apache-2.0\",\n       \"devDependencies\": {\n         \"lite4mariadb\": \"0.1.2\","
+    },
+    {
+      "sha": "be1673bac00fca2d2b252ed37ca9946afe57285f",
+      "filename": "package.json",
+      "status": "modified",
+      "additions": 1,
+      "deletions": 1,
+      "changes": 2,
+      "blob_url": "https://github.com/joomengine/mariadb-wasm-bridge/blob/56d47b4dc867af313592efa09e12df470a36e129/package.json",
+      "raw_url": "https://github.com/joomengine/mariadb-wasm-bridge/raw/56d47b4dc867af313592efa09e12df470a36e129/package.json",
+      "contents_url": "https://api.github.com/repos/joomengine/mariadb-wasm-bridge/contents/package.json?ref=56d47b4dc867af313592efa09e12df470a36e129",
+      "patch": "@@ -1,6 +1,6 @@\n {\n   \"name\": \"@joomengine/mariadb-wasm-bridge\",\n-  \"version\": \"0.1.7\",\n+  \"version\": \"0.1.8\",\n   \"description\": \"MariaDB WebAssembly engine and native PDO extension for upstream PHP WASM\",\n   \"type\": \"module\",\n   \"license\": \"Apache-2.0\","
+    },
+    {
+      "sha": "3928652a1cbef00fd1fb530a3e820a32f56a2cee",
+      "filename": "src/engine.mjs",
+      "status": "modified",
+      "additions": 26,
+      "deletions": 3,
+      "changes": 29,
+      "blob_url": "https://github.com/joomengine/mariadb-wasm-bridge/blob/56d47b4dc867af313592efa09e12df470a36e129/src%2Fengine.mjs",
+      "raw_url": "https://github.com/joomengine/mariadb-wasm-bridge/raw/56d47b4dc867af313592efa09e12df470a36e129/src%2Fengine.mjs",
+      "contents_url": "https://api.github.com/repos/joomengine/mariadb-wasm-bridge/contents/src%2Fengine.mjs?ref=56d47b4dc867af313592efa09e12df470a36e129",
+      "patch": "@@ -11,12 +11,28 @@ export async function createEngine({ dataDir = 'memory://', engineModuleUrl, was\n   }\n   const moduleUrl = engineModuleUrl ?? new URL('../vendor/lite4mariadb/index.mjs', import.meta.url).href;\n   const { Lite4MariaDB } = await import(moduleUrl);\n-  const options = { dataDir };\n+  const startupDiagnostics = [];\n+  let starting = true;\n+  const options = { dataDir, printErr: (...args) => {\n+    const message = args.map(String).join(' ');\n+    if (starting) {\n+      startupDiagnostics.push(message.slice(-2048));\n+      while (startupDiagnostics.length > 32 || startupDiagnostics.join('\\n').length > 8192) startupDiagnostics.shift();\n+    }\n+    console.error(...args);\n+  } };\n   if (wasmUrl !== undefined) {\n     const resolved = new URL(wasmUrl, import.meta.url).href;\n     options.locateFile = (path, prefix) => path.endsWith('.wasm') ? resolved : `${prefix}${path}`;\n   }\n-  const database = await Lite4MariaDB.create(options);\n+  let database;\n+  try { database = await Lite4MariaDB.create(options); }\n+  catch (cause) {\n+    if (!startupDiagnostics.length) throw cause;\n+    const error = new Error(`${cause?.message || String(cause)}\\nMariaDB startup diagnostics:\\n${startupDiagnostics.join('\\n')}`, { cause });\n+    for (const key of ['code', 'sqlstate', 'errno']) if (cause?.[key] !== undefined) error[key] = cause[key];\n+    throw error;\n+  } finally { starting = false; }\n   let closed = false;\n \n   function requireOpen() {\n@@ -77,7 +93,14 @@ export async function createEngine({ dataDir = 'memory://', engineModuleUrl, was\n       return session;\n     },\n     closeSession(session) { requireOpen(); database.mod._l4m_session_close(session); },\n-    async flush() { requireOpen(); await database.persist(); },\n+    async flush() {\n+      requireOpen();\n+      // IDBFS can only copy filesystem bytes. Write dirty InnoDB pages out of\n+      // its buffer pool first, while the bridge's operation queue is held.\n+      // The pinned server waits until this checkpoint has completed.\n+      query('SET GLOBAL innodb_log_checkpoint_now=ON');\n+      await database.persist();\n+    },\n     async close() {\n       if (closed) return;\n       closed = true;"
+    },
+    {
+      "sha": "d16802f14232743b695aef8d5a3c8e5a0b1906b0",
+      "filename": "test/browser.test.mjs",
+      "status": "modified",
+      "additions": 48,
+      "deletions": 0,
+      "changes": 48,
+      "blob_url": "https://github.com/joomengine/mariadb-wasm-bridge/blob/56d47b4dc867af313592efa09e12df470a36e129/test%2Fbrowser.test.mjs",
+      "raw_url": "https://github.com/joomengine/mariadb-wasm-bridge/raw/56d47b4dc867af313592efa09e12df470a36e129/test%2Fbrowser.test.mjs",
+      "contents_url": "https://api.github.com/repos/joomengine/mariadb-wasm-bridge/contents/test%2Fbrowser.test.mjs?ref=56d47b4dc867af313592efa09e12df470a36e129",
+      "patch": "@@ -101,6 +101,54 @@ for (const browserName of browsers) {\n       assert.equal(text(result.reconnected.rows[0][0]), '1', 'Closing a PDO lease must roll back its uncommitted transaction');\n     });\n \n+    await t.test('completed saves survive hard reloads without closing the database', async () => {\n+      // A reload destroys the dedicated worker. Do not disconnect or close it\n+      // before navigation: clean shutdown checkpoints InnoDB and masks an\n+      // incomplete live snapshot that Save may otherwise report as durable.\n+      for (let site = 0; site < 2; site++) {\n+        const persistent = { ...options, persistence: { key: `hard-reload-${randomUUID()}` } };\n+        const id = site + 7;\n+        try {\n+          await page.evaluate(async ({ options, id }) => {\n+            const api = window.bridgeTest;\n+            await api.open(options);\n+            await api.query('CREATE TABLE saved (id INT PRIMARY KEY, payload BLOB) ENGINE=InnoDB');\n+            await api.query(`INSERT INTO saved VALUES (${id}, X'00ff4142')`);\n+            await api.db.flush();\n+          }, { options: persistent, id });\n+\n+          await page.reload();\n+          const firstSaved = await page.evaluate(async options => {\n+            const api = window.bridgeTest;\n+            await api.open(options);\n+            const saved = await api.query('SELECT id, payload FROM saved');\n+            await api.query(\"UPDATE saved SET payload = X'ff0080'\");\n+            await api.db.flush();\n+            await api.query(\"UPDATE saved SET payload = X'ff0000428000'\");\n+            await api.db.flush();\n+            return saved;\n+          }, persistent);\n+          assert.equal(firstSaved.rows.length, 1);\n+          assert.equal(text(firstSaved.rows[0][0]), String(id), 'Independent site keys retain their own records');\n+          assert.deepEqual([...Buffer.from(firstSaved.rows[0][1], 'base64')], [0, 255, 65, 66]);\n+\n+          await page.reload();\n+          const updated = await page.evaluate(async options => {\n+            const api = window.bridgeTest;\n+            await api.open(options);\n+            return api.query('SELECT id, payload FROM saved');\n+          }, persistent);\n+          assert.equal(updated.rows.length, 1);\n+          assert.equal(text(updated.rows[0][0]), String(id));\n+          assert.deepEqual([...Buffer.from(updated.rows[0][1], 'base64')], [255, 0, 0, 66, 128, 0],\n+            'The last completed save survives worker termination with exact binary bytes');\n+        } finally {\n+          // Cleanup happens only after both ungraceful reloads have been checked.\n+          await page.evaluate(() => window.bridgeTest.close());\n+        }\n+      }\n+    });\n+\n     await t.test('IndexedDB restores committed data after close and a page reload', async () => {\n       const persistent = { ...options, persistence: { key: `reload-${randomUUID()}` } };\n       await page.evaluate(async options => {"
+    },
+    {
+      "sha": "c1050d0be515f6d6968e27eb6f6aa4d7be92c863",
+      "filename": "test/engine.test.mjs",
+      "status": "modified",
+      "additions": 109,
+      "deletions": 4,
+      "changes": 113,
+      "blob_url": "https://github.com/joomengine/mariadb-wasm-bridge/blob/56d47b4dc867af313592efa09e12df470a36e129/test%2Fengine.test.mjs",
+      "raw_url": "https://github.com/joomengine/mariadb-wasm-bridge/raw/56d47b4dc867af313592efa09e12df470a36e129/test%2Fengine.test.mjs",
+      "contents_url": "https://api.github.com/repos/joomengine/mariadb-wasm-bridge/contents/test%2Fengine.test.mjs?ref=56d47b4dc867af313592efa09e12df470a36e129",
+      "patch": "@@ -1,6 +1,6 @@\n import test from 'node:test';\n import assert from 'node:assert/strict';\n-import { mkdtemp, rm } from 'node:fs/promises';\n+import { mkdtemp, open, rm } from 'node:fs/promises';\n import { tmpdir } from 'node:os';\n import { join } from 'node:path';\n import { Worker } from 'node:worker_threads';\n@@ -10,7 +10,7 @@ import { createEngine } from '../src/engine.mjs';\n \n // Each engine belongs to a worker: the upstream server retains pthread workers\n // after shutdown, and separate workers also isolate its global connection.\n-async function runEngine(code, dataDir = 'memory://', deadlineMs = 60_000) {\n+async function runEngine(code, dataDir = 'memory://', deadlineMs = 60_000, close = true) {\n   const engineUrl = new URL('../src/engine.mjs', import.meta.url).href;\n   const worker = new Worker(`\n     const { parentPort, workerData } = require('node:worker_threads');\n@@ -20,14 +20,14 @@ async function runEngine(code, dataDir = 'memory://', deadlineMs = 60_000) {\n       try {\n         engine = await createEngine({ dataDir: workerData.dataDir });\n         const result = await (async () => { ${code} })();\n-        await engine.close();\n+        if (workerData.close) await engine.close();\n         parentPort.postMessage({ result });\n       } catch (error) {\n         try { await engine?.close(); } catch {}\n         parentPort.postMessage({ error: { message: error.message, stack: error.stack } });\n       }\n     })().catch(error => { throw error; });\n-  `, { eval: true, workerData: { engineUrl, dataDir } });\n+  `, { eval: true, workerData: { engineUrl, dataDir, close } });\n   let deadline;\n   try {\n     return await new Promise((resolve, reject) => {\n@@ -121,6 +121,68 @@ test('heap SQL transport releases allocated input on encoding and native failure\n   }\n });\n \n+test('flush checkpoints before persistence and propagates either failure', async () => {\n+  for (const failure of ['none', 'checkpoint', 'persistence']) {\n+    const engineModuleUrl = 'data:text/javascript,' + encodeURIComponent(`\n+      export const calls = [];\n+      const mod = {\n+        lengthBytesUTF8: value => value.length, _malloc: () => 1024, _free: () => {}, _l4m_free: () => {},\n+        stringToUTF8: sql => calls.push(sql),\n+        _l4m_query: () => { ${failure === 'checkpoint' ? 'throw new Error(\"Checkpoint failed\");' : 'return 2048;'} },\n+        UTF8ToString: () => JSON.stringify({ok:true, rows:[]}),\n+      };\n+      export const Lite4MariaDB = {create: async () => ({mod,\n+        persist: async () => {calls.push('persist'); ${failure === 'persistence' ? 'throw new Error(\"IndexedDB sync failed\");' : ''}},\n+        close: async () => {},\n+      })};\n+    `);\n+    const { calls } = await import(engineModuleUrl);\n+    const engine = await createEngine({ engineModuleUrl });\n+    try {\n+      if (failure === 'none') await engine.flush();\n+      else await assert.rejects(engine.flush(), failure === 'checkpoint' ? /Checkpoint failed/ : /IndexedDB sync failed/);\n+      assert.deepEqual(calls, failure === 'checkpoint'\n+        ? ['SET GLOBAL innodb_log_checkpoint_now=ON']\n+        : ['SET GLOBAL innodb_log_checkpoint_now=ON', 'persist']);\n+    } finally { await engine.close(); }\n+  }\n+});\n+\n+test('startup failure retains bounded native diagnostics and its original cause', async (t) => {\n+  const reported = [];\n+  t.mock.method(console, 'error', (...args) => reported.push(args.join(' ')));\n+  const engineModuleUrl = 'data:text/javascript,' + encodeURIComponent(`\n+    export const failure = Object.assign(new Error('lite4mariadb: l4m_open failed (1)'), {code:'OPEN_FAILED', errno:2000, sqlstate:'HY000'});\n+    export const Lite4MariaDB = {create: async options => {\n+      for (let i=0;i<50;i++) options.printErr('Old initialization output ' + i + 'x'.repeat(1000));\n+      options.printErr('InnoDB: Plugin initialization aborted with error Data structure corruption');\n+      throw failure;\n+    }};\n+  `);\n+  const { failure } = await import(engineModuleUrl);\n+  await assert.rejects(createEngine({ engineModuleUrl }), error => {\n+    assert.equal(error.cause, failure);\n+    assert.equal(error.code, 'OPEN_FAILED');\n+    assert.equal(error.errno, 2000);\n+    assert.equal(error.sqlstate, 'HY000');\n+    assert.match(error.message, /^lite4mariadb: l4m_open failed \\(1\\)/);\n+    assert.match(error.message, /InnoDB: Plugin initialization aborted with error Data structure corruption/);\n+    assert.doesNotMatch(error.message, /Old initialization output 0x/);\n+    assert.ok(error.message.length < 8300, 'A startup error must not carry an unbounded native log.');\n+    return true;\n+  });\n+  assert.equal(reported.length, 51, 'Capture must retain the usual native stderr output.');\n+});\n+\n+test('startup failure without native output preserves the original error', async () => {\n+  const engineModuleUrl = 'data:text/javascript,' + encodeURIComponent(`\n+    export const failure = new Error('Asset loading failed');\n+    export const Lite4MariaDB = {create: async () => {throw failure;}};\n+  `);\n+  const { failure } = await import(engineModuleUrl);\n+  await assert.rejects(createEngine({ engineModuleUrl }), error => error === failure);\n+});\n+\n test('embedded NUL and use after close fail explicitly', { timeout: 60_000 }, async () => {\n   const errors = await runEngine(`\n     const errors = [];\n@@ -180,6 +242,49 @@ test('real MariaDB files reopen with committed data', { timeout: 60_000 }, async\n   }\n });\n \n+test('a completed flush survives worker termination without native shutdown', { timeout: 120_000 }, async () => {\n+  const directory = await mkdtemp(join(tmpdir(), 'mariadb-live-save-'));\n+  try {\n+    // Deliberately terminate each worker without close(): shutdown would flush\n+    // dirty InnoDB pages and conceal an incomplete live-save implementation.\n+    await runEngine(`\n+      engine.query('CREATE TABLE live_save (id INT PRIMARY KEY, payload BLOB) ENGINE=InnoDB');\n+      engine.query(\"INSERT INTO live_save VALUES (1, X'00ff4142')\");\n+      await engine.flush();\n+      return true;\n+    `, directory, 60_000, false);\n+    const initial = await runEngine(`\n+      const initial = engine.query('SELECT payload FROM live_save WHERE id = 1').rows;\n+      engine.query(\"UPDATE live_save SET payload=X'80ff004243' WHERE id=1\");\n+      await engine.flush();\n+      engine.query(\"INSERT INTO live_save VALUES (2, X'00ff')\");\n+      await engine.flush();\n+      return initial;\n+    `, directory, 60_000, false);\n+    assert.deepEqual(initial, [{ payload: { $h: '00ff4142' } }]);\n+    const reopened = await runEngine('return engine.query(\\'SELECT id, payload FROM live_save ORDER BY id\\').rows;', directory);\n+    assert.deepEqual(reopened, [\n+      { id: '1', payload: { $h: '80ff004243' } },\n+      { id: '2', payload: { $h: '00ff' } },\n+    ]);\n+  } finally { await rm(directory, { recursive: true, force: true }); }\n+});\n+\n+test('a damaged saved datadir reports the native InnoDB startup diagnostic', { timeout: 60_000 }, async () => {\n+  const directory = await mkdtemp(join(tmpdir(), 'mariadb-startup-diagnostic-'));\n+  try {\n+    await runEngine('engine.query(\\'CREATE TABLE diagnostic_fixture (id INT) ENGINE=InnoDB\\'); return true;', directory);\n+    const systemTablespace = await open(join(directory, 'ibdata1'), 'r+');\n+    try { await systemTablespace.write(new Uint8Array(16 * 1024), 0, 16 * 1024, 0); }\n+    finally { await systemTablespace.close(); }\n+    await assert.rejects(runEngine('return true;', directory), error => {\n+      assert.match(error.message, /lite4mariadb: l4m_open failed \\(1\\)/);\n+      assert.match(error.message, /MariaDB startup diagnostics:[\\s\\S]*InnoDB:[\\s\\S]*Data structure corruption/);\n+      return true;\n+    });\n+  } finally { await rm(directory, { recursive: true, force: true }); }\n+});\n+\n test('binary types omitted by the upstream serializer require explicit SQL casts', { timeout: 60_000 }, async () => {\n   const result = await runEngine(`\n     engine.query('CREATE TABLE unsupported_binary (bits BIT(8))');"
+    },
+    {
+      "sha": "ee3e728014df6a9cbc47468dab87587895195236",
+      "filename": "types/index.d.ts",
+      "status": "modified",
+      "additions": 1,
+      "deletions": 1,
+      "changes": 2,
+      "blob_url": "https://github.com/joomengine/mariadb-wasm-bridge/blob/56d47b4dc867af313592efa09e12df470a36e129/types%2Findex.d.ts",
+      "raw_url": "https://github.com/joomengine/mariadb-wasm-bridge/raw/56d47b4dc867af313592efa09e12df470a36e129/types%2Findex.d.ts",
+      "contents_url": "https://api.github.com/repos/joomengine/mariadb-wasm-bridge/contents/types%2Findex.d.ts?ref=56d47b4dc867af313592efa09e12df470a36e129",
+      "patch": "@@ -33,7 +33,7 @@ export interface MariaDBBridge {\n   readonly serverVersion: string;\n   /** Pass to createPhpWasmAdapter(), or forward through a PHP worker RPC channel. */\n   readonly hostCalls: Readonly<{ 'mariadb.v1': (payloadJSON: string) => Promise<string> }>;\n-  /** Explicit durability boundary for browser persistence. */\n+  /** Checkpoint InnoDB and persist browser storage; rejects if either stage fails. */\n   flush(): Promise<void>;\n   /** Roll back and close all sessions after every completed CGI request or abandoned execution. */\n   reset(): Promise<void>;"
+    }
+  ]
+}

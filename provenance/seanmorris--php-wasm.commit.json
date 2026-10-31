@@ -1,0 +1,101 @@
+{
+  "sha": "1e1fb6703730759181e84c62bce35ee9129febb9",
+  "node_id": "C_kwDOEMiyI9oAKDFlMWZiNjcwMzczMDc1OTE4MWU4NGM2MmJjZTM1ZWU5MTI5ZmViYjk",
+  "commit": {
+    "author": {
+      "name": "Sean Morris",
+      "email": "640101+seanmorris@users.noreply.github.com",
+      "date": "2026-10-01T03:43:02Z"
+    },
+    "committer": {
+      "name": "Sean Morris",
+      "email": "640101+seanmorris@users.noreply.github.com",
+      "date": "2026-10-01T03:43:02Z"
+    },
+    "message": "Skip already-published versions when resuming a publish\n\nRegistry metadata can be cached for minutes after a publish, so a resumed\nrun diffed phar against 0.1.0 and tried to republish 0.2.0 (E403). Check\nname@version with --prefer-online first, and diff with fresh metadata.",
+    "tree": {
+      "sha": "2dc85b7e08f01b1226490d07efe483dbbfbb12a9",
+      "url": "https://api.github.com/repos/seanmorris/php-wasm/git/trees/2dc85b7e08f01b1226490d07efe483dbbfbb12a9"
+    },
+    "url": "https://api.github.com/repos/seanmorris/php-wasm/git/commits/1e1fb6703730759181e84c62bce35ee9129febb9",
+    "comment_count": 0,
+    "verification": {
+      "verified": false,
+      "reason": "unsigned",
+      "signature": null,
+      "payload": null,
+      "verified_at": null
+    }
+  },
+  "url": "https://api.github.com/repos/seanmorris/php-wasm/commits/1e1fb6703730759181e84c62bce35ee9129febb9",
+  "html_url": "https://github.com/seanmorris/php-wasm/commit/1e1fb6703730759181e84c62bce35ee9129febb9",
+  "comments_url": "https://api.github.com/repos/seanmorris/php-wasm/commits/1e1fb6703730759181e84c62bce35ee9129febb9/comments",
+  "author": {
+    "login": "seanmorris",
+    "id": 640101,
+    "node_id": "MDQ6VXNlcjY0MDEwMQ==",
+    "avatar_url": "https://avatars.githubusercontent.com/u/640101?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/seanmorris",
+    "html_url": "https://github.com/seanmorris",
+    "followers_url": "https://api.github.com/users/seanmorris/followers",
+    "following_url": "https://api.github.com/users/seanmorris/following{/other_user}",
+    "gists_url": "https://api.github.com/users/seanmorris/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/seanmorris/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/seanmorris/subscriptions",
+    "organizations_url": "https://api.github.com/users/seanmorris/orgs",
+    "repos_url": "https://api.github.com/users/seanmorris/repos",
+    "events_url": "https://api.github.com/users/seanmorris/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/seanmorris/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+  },
+  "committer": {
+    "login": "seanmorris",
+    "id": 640101,
+    "node_id": "MDQ6VXNlcjY0MDEwMQ==",
+    "avatar_url": "https://avatars.githubusercontent.com/u/640101?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/seanmorris",
+    "html_url": "https://github.com/seanmorris",
+    "followers_url": "https://api.github.com/users/seanmorris/followers",
+    "following_url": "https://api.github.com/users/seanmorris/following{/other_user}",
+    "gists_url": "https://api.github.com/users/seanmorris/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/seanmorris/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/seanmorris/subscriptions",
+    "organizations_url": "https://api.github.com/users/seanmorris/orgs",
+    "repos_url": "https://api.github.com/users/seanmorris/repos",
+    "events_url": "https://api.github.com/users/seanmorris/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/seanmorris/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+  },
+  "parents": [
+    {
+      "sha": "43bdfc30ce40d26b63d0c9395ec8623afc15325e",
+      "url": "https://api.github.com/repos/seanmorris/php-wasm/commits/43bdfc30ce40d26b63d0c9395ec8623afc15325e",
+      "html_url": "https://github.com/seanmorris/php-wasm/commit/43bdfc30ce40d26b63d0c9395ec8623afc15325e"
+    }
+  ],
+  "stats": {
+    "total": 18,
+    "additions": 17,
+    "deletions": 1
+  },
+  "files": [
+    {
+      "sha": "19828ae4e4a8511d3bb3bb1662b8174b9a61736e",
+      "filename": "publish-packages.sh",
+      "status": "modified",
+      "additions": 17,
+      "deletions": 1,
+      "changes": 18,
+      "blob_url": "https://github.com/seanmorris/php-wasm/blob/1e1fb6703730759181e84c62bce35ee9129febb9/publish-packages.sh",
+      "raw_url": "https://github.com/seanmorris/php-wasm/raw/1e1fb6703730759181e84c62bce35ee9129febb9/publish-packages.sh",
+      "contents_url": "https://api.github.com/repos/seanmorris/php-wasm/contents/publish-packages.sh?ref=1e1fb6703730759181e84c62bce35ee9129febb9",
+      "patch": "@@ -154,7 +154,23 @@ PACKAGES_TO_PUBLISH=()\n SKIPPED_PACKAGES=()\n \n for PACKAGE in php-wasm-builder \"${PACKAGES[@]}\"; do\n-\tDIFF_ARGS=(diff --tag \"${NPM_TAG}\" --diff-name-only)\n+\tif [[ \"${PACKAGE}\" == \"php-wasm-builder\" ]]; then\n+\t\tPACKAGE_NAME=\"$(jq -r '.name' \"${BUILDER_RELEASE_DIR}/builder.manifest.json\")\"\n+\t\tPACKAGE_VERSION=\"$(jq -r '.version' \"${BUILDER_RELEASE_DIR}/builder.manifest.json\")\"\n+\telse\n+\t\tPACKAGE_NAME=\"$(jq -r '.name' \"packages/${PACKAGE}/package.json\")\"\n+\t\tPACKAGE_VERSION=\"$(jq -r '.version' \"packages/${PACKAGE}/package.json\")\"\n+\tfi\n+\n+\t# Registry metadata may be cached for minutes after a publish, so a resumed run\n+\t# can diff against the previous version. Published versions are immutable.\n+\tif npm view \"${PACKAGE_NAME}@${PACKAGE_VERSION}\" version --prefer-online 2>/dev/null | grep -qxF \"${PACKAGE_VERSION}\"; then\n+\t\tSKIPPED_PACKAGES+=(\"${PACKAGE}\")\n+\t\techo -e \"\\033[33m${PACKAGE_NAME}@${PACKAGE_VERSION}\\033[0m is already published; skipping\"\n+\t\tcontinue\n+\tfi\n+\n+\tDIFF_ARGS=(diff --tag \"${NPM_TAG}\" --diff-name-only --prefer-online)\n \tif [[ \"${PACKAGE}\" == \"php-wasm-builder\" ]]; then\n \t\tDIFF_ARGS+=(--diff \"php-wasm-builder@${NPM_TAG}\" --diff \"${BUILDER_TARBALL}\")\n \telse"
+    }
+  ]
+}

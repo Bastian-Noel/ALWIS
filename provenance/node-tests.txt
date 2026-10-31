@@ -1,0 +1,22 @@
+✔ LRU eviction follows reads and respects byte cap (5.213715ms)
+✔ replacement and deletion maintain accounting (0.887822ms)
+✔ oversized updated file invalidates stale cache entry (0.270248ms)
+✔ input and output mutations cannot corrupt cached source (0.215473ms)
+✔ small views do not retain large original buffers (0.232469ms)
+✔ entry cap bounds empty-file metadata; disabled cache stores nothing (0.375875ms)
+✔ requests execute sequentially and preserve FIFO (6.504081ms)
+✔ count overload rejects without executing (1.467474ms)
+✔ body byte budget includes active request (1.394527ms)
+✔ abort queued request releases capacity (1.903109ms)
+✔ queued deadline expires and releases capacity (20.95803ms)
+✔ running abort cannot cause concurrent PHP execution (0.337982ms)
+✔ sync and async failures do not block following requests (0.517104ms)
+✔ invalid budgets and expired requests never enter queue (0.264553ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 166.440368

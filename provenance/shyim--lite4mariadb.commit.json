@@ -1,0 +1,101 @@
+{
+  "sha": "24be9371a2f6c71250a2356631ad6feab2280b02",
+  "node_id": "C_kwDOUMJ1Q9oAKDI0YmU5MzcxYTJmNmM3MTI1MGEyMzU2NjMxYWQ2ZmVhYjIyODBiMDI",
+  "commit": {
+    "author": {
+      "name": "Soner",
+      "email": "github@shyim.de",
+      "date": "2026-09-03T11:09:53Z"
+    },
+    "committer": {
+      "name": "GitHub",
+      "email": "noreply@github.com",
+      "date": "2026-09-03T11:09:53Z"
+    },
+    "message": "Bump version from 0.1.1 to 0.1.2",
+    "tree": {
+      "sha": "97503993de71ce5791567a24057df80ad7b55956",
+      "url": "https://api.github.com/repos/shyim/lite4mariadb/git/trees/97503993de71ce5791567a24057df80ad7b55956"
+    },
+    "url": "https://api.github.com/repos/shyim/lite4mariadb/git/commits/24be9371a2f6c71250a2356631ad6feab2280b02",
+    "comment_count": 0,
+    "verification": {
+      "verified": true,
+      "reason": "valid",
+      "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsFcBAABCAAQBQJqmVWBCRC1aQ7uu5UhlAAAx3UQADGx2xq7b9rQfkdM4uEvKDzV\n7vTJZoW29dnKDK7xXwL6Qzz0KNPCksEphvalVAuuOiwLHzLWuMIuwthB64uMya4V\nV9FJ7n6eOTEK9R2eEsNtyMBLztS4EI1o/7wQz06Bx014UpQ+3cA9D6Mwp4GP7y8K\ntSPf/VDRSy2K6KEe0uX5NjlqVmUdYVLTmhVOAJf/A4nLXWVcO6qaKVPROGGxQSHk\nLqxse1kWxixYe6h8pjkZtkfu2LKPnB2Mt/tGIlrZYVR8agGADyUVUyV257nJ6pe6\nxg06g5fTTkpIJ+puG3MvoHwJutluK3pJsylqpT2CwVmhYdzeh7BPVXKfvOec4pTW\nG4RwkKihf5DRhQtBD8nKlizSbKgLQMXK99x27o8swMeJcuFg4kJCuDFfyxUddtRK\nAWmh+yKBF7SE7BOwu9C3jwVeU4Wxa46JbjgnNBkM8afrWB9nzRCa01QL2FIdBnn7\nN0e12Kja+aOjsLtJzTvIfhpYkmVlgoXaKgi5DJvmZaHUeFDNEHWsK1QJbzTOrkGo\nmrC1TTeu9ytHJDEhVKyHpv0+7lRcpokJ4idWEb6HOrYI9+zrIMRShxZe9kZFbxaF\n6TVg3C5RtumMqs2GFNe/3KVz/vrvZrjBF478+WYQ1HTDBn+AbQqToR2wxJ/JYubO\n6lbx+B3HvZ3+wZMvqbZq\n=6kVh\n-----END PGP SIGNATURE-----\n",
+      "payload": "tree 97503993de71ce5791567a24057df80ad7b55956\nparent 122c1801ab4264fcb3f2df1b6bb11c1b495b93ac\nauthor Soner <github@shyim.de> 1788433793 +0200\ncommitter GitHub <noreply@github.com> 1788433793 +0200\n\nBump version from 0.1.1 to 0.1.2",
+      "verified_at": "2026-09-03T11:09:53Z"
+    }
+  },
+  "url": "https://api.github.com/repos/shyim/lite4mariadb/commits/24be9371a2f6c71250a2356631ad6feab2280b02",
+  "html_url": "https://github.com/shyim/lite4mariadb/commit/24be9371a2f6c71250a2356631ad6feab2280b02",
+  "comments_url": "https://api.github.com/repos/shyim/lite4mariadb/commits/24be9371a2f6c71250a2356631ad6feab2280b02/comments",
+  "author": {
+    "login": "shyim",
+    "id": 6224096,
+    "node_id": "MDQ6VXNlcjYyMjQwOTY=",
+    "avatar_url": "https://avatars.githubusercontent.com/u/6224096?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/shyim",
+    "html_url": "https://github.com/shyim",
+    "followers_url": "https://api.github.com/users/shyim/followers",
+    "following_url": "https://api.github.com/users/shyim/following{/other_user}",
+    "gists_url": "https://api.github.com/users/shyim/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/shyim/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/shyim/subscriptions",
+    "organizations_url": "https://api.github.com/users/shyim/orgs",
+    "repos_url": "https://api.github.com/users/shyim/repos",
+    "events_url": "https://api.github.com/users/shyim/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/shyim/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+  },
+  "committer": {
+    "login": "web-flow",
+    "id": 19864447,
+    "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
+    "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/web-flow",
+    "html_url": "https://github.com/web-flow",
+    "followers_url": "https://api.github.com/users/web-flow/followers",
+    "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+    "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+    "organizations_url": "https://api.github.com/users/web-flow/orgs",
+    "repos_url": "https://api.github.com/users/web-flow/repos",
+    "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/web-flow/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+  },
+  "parents": [
+    {
+      "sha": "122c1801ab4264fcb3f2df1b6bb11c1b495b93ac",
+      "url": "https://api.github.com/repos/shyim/lite4mariadb/commits/122c1801ab4264fcb3f2df1b6bb11c1b495b93ac",
+      "html_url": "https://github.com/shyim/lite4mariadb/commit/122c1801ab4264fcb3f2df1b6bb11c1b495b93ac"
+    }
+  ],
+  "stats": {
+    "total": 2,
+    "additions": 1,
+    "deletions": 1
+  },
+  "files": [
+    {
+      "sha": "fa7e12443fe4f0b9432f9d0d930a0610f5a20b6d",
+      "filename": "wasm/package.json",
+      "status": "modified",
+      "additions": 1,
+      "deletions": 1,
+      "changes": 2,
+      "blob_url": "https://github.com/shyim/lite4mariadb/blob/24be9371a2f6c71250a2356631ad6feab2280b02/wasm%2Fpackage.json",
+      "raw_url": "https://github.com/shyim/lite4mariadb/raw/24be9371a2f6c71250a2356631ad6feab2280b02/wasm%2Fpackage.json",
+      "contents_url": "https://api.github.com/repos/shyim/lite4mariadb/contents/wasm%2Fpackage.json?ref=24be9371a2f6c71250a2356631ad6feab2280b02",
+      "patch": "@@ -1,6 +1,6 @@\n {\n   \"name\": \"lite4mariadb\",\n-  \"version\": \"0.1.1\",\n+  \"version\": \"0.1.2\",\n   \"description\": \"MariaDB embedded server (with InnoDB) compiled to WebAssembly — run real MariaDB in the browser and Node.js. A PGlite-style API for MariaDB.\",\n   \"type\": \"module\",\n   \"main\": \"./dist/index.mjs\","
+    }
+  ]
+}

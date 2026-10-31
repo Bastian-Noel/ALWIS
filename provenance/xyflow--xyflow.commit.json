@@ -1,0 +1,118 @@
+{
+  "sha": "d4bc936edad07aba995dbdb8e2c63af8cdd631c9",
+  "node_id": "C_kwDOC75CTdoAKGQ0YmM5MzZlZGFkMDdhYmE5OTVkYmRiOGUyYzYzYWY4Y2RkNjMxYzk",
+  "commit": {
+    "author": {
+      "name": "Moritz Klack",
+      "email": "info@moritzklack.com",
+      "date": "2026-10-29T11:43:09Z"
+    },
+    "committer": {
+      "name": "GitHub",
+      "email": "noreply@github.com",
+      "date": "2026-10-29T11:43:09Z"
+    },
+    "message": "Merge pull request #5650 from keepmhwn/fix/path-options-type\n\nDefine strict type for EdgeProps.pathOptions",
+    "tree": {
+      "sha": "8e65700047cfcccd51643b2717def1bd2f25d161",
+      "url": "https://api.github.com/repos/xyflow/xyflow/git/trees/8e65700047cfcccd51643b2717def1bd2f25d161"
+    },
+    "url": "https://api.github.com/repos/xyflow/xyflow/git/commits/d4bc936edad07aba995dbdb8e2c63af8cdd631c9",
+    "comment_count": 0,
+    "verification": {
+      "verified": true,
+      "reason": "valid",
+      "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsFcBAABCAAQBQJq4zFNCRC1aQ7uu5UhlAAAlAoQALAxO+0FvjwmLBp027Saey3E\nIkfd9j4JDXNf/V0jqgCFro7IXdDvlqOuU4xi+jwGmttJoqdxLfQljMTm9aCVFeKZ\nLzJsZJDCO7t5wSkwA8awgTRhvyPEsCnwl7Uuq4GmUUU5y5SteHNbuxnJal6//TGX\noAD2LygLasjhdgDAhOX6VxxbSuFbRReQeHPNUyMzGkUdS5s8mSJhNL8EKECw+rTK\n8OVPmbGCtIfd5dyZ8WaKJBUGgTCRSGkcUJnxfjXIOBSeJRzvhKF28wolVLC38N1I\n+aI+jE9dUzZQX3u9DlR96wvUmTEYxF8ATrfUVizEc8nrtfCKckme0ZRtDpIcBr+u\nZHUpen7sgbu4YZINkYIueviIUc+lFnYdKQ+9Y77RYs6e31avloEy0to9p7P3F9CH\ntjkHzmS8uZylDYM2NduJaB3ht2mTI1s3jeZfT6EZvgCMS/ZeNZFNSQ0peyNVbEiH\nQgvKd0AxyOoaAZHgUaWSDmCqYLWXvUsH8YOhpVC94SLxfY7bXKGmUS8ulY+haVMT\nDxLn1hDrvKN9w5AY6lJlC+asZZ6nPFhsYMtSvjDUd48zMsc8WTp+FrOYikqR5gmk\nZyQZZJMOw1GxLNvvUrOXiXQvcwTRLlAXrSxpY9dNBZWZSLMQJEGcaIhm9OC1augW\nnemVNB+PzJBoBqbjPvkX\n=LuUJ\n-----END PGP SIGNATURE-----\n",
+      "payload": "tree 8e65700047cfcccd51643b2717def1bd2f25d161\nparent c4fdcb1150e247b715545fc1b045a213daed37ce\nparent f7cddb9552be66bdd03d82f8387fba2e3ee7b6f9\nauthor Moritz Klack <info@moritzklack.com> 1793274189 +0100\ncommitter GitHub <noreply@github.com> 1793274189 +0100\n\nMerge pull request #5650 from keepmhwn/fix/path-options-type\n\nDefine strict type for EdgeProps.pathOptions",
+      "verified_at": "2026-10-29T11:43:09Z"
+    }
+  },
+  "url": "https://api.github.com/repos/xyflow/xyflow/commits/d4bc936edad07aba995dbdb8e2c63af8cdd631c9",
+  "html_url": "https://github.com/xyflow/xyflow/commit/d4bc936edad07aba995dbdb8e2c63af8cdd631c9",
+  "comments_url": "https://api.github.com/repos/xyflow/xyflow/commits/d4bc936edad07aba995dbdb8e2c63af8cdd631c9/comments",
+  "author": {
+    "login": "moklick",
+    "id": 2857535,
+    "node_id": "MDQ6VXNlcjI4NTc1MzU=",
+    "avatar_url": "https://avatars.githubusercontent.com/u/2857535?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/moklick",
+    "html_url": "https://github.com/moklick",
+    "followers_url": "https://api.github.com/users/moklick/followers",
+    "following_url": "https://api.github.com/users/moklick/following{/other_user}",
+    "gists_url": "https://api.github.com/users/moklick/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/moklick/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/moklick/subscriptions",
+    "organizations_url": "https://api.github.com/users/moklick/orgs",
+    "repos_url": "https://api.github.com/users/moklick/repos",
+    "events_url": "https://api.github.com/users/moklick/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/moklick/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+  },
+  "committer": {
+    "login": "web-flow",
+    "id": 19864447,
+    "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
+    "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/web-flow",
+    "html_url": "https://github.com/web-flow",
+    "followers_url": "https://api.github.com/users/web-flow/followers",
+    "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+    "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+    "organizations_url": "https://api.github.com/users/web-flow/orgs",
+    "repos_url": "https://api.github.com/users/web-flow/repos",
+    "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/web-flow/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+  },
+  "parents": [
+    {
+      "sha": "c4fdcb1150e247b715545fc1b045a213daed37ce",
+      "url": "https://api.github.com/repos/xyflow/xyflow/commits/c4fdcb1150e247b715545fc1b045a213daed37ce",
+      "html_url": "https://github.com/xyflow/xyflow/commit/c4fdcb1150e247b715545fc1b045a213daed37ce"
+    },
+    {
+      "sha": "f7cddb9552be66bdd03d82f8387fba2e3ee7b6f9",
+      "url": "https://api.github.com/repos/xyflow/xyflow/commits/f7cddb9552be66bdd03d82f8387fba2e3ee7b6f9",
+      "html_url": "https://github.com/xyflow/xyflow/commit/f7cddb9552be66bdd03d82f8387fba2e3ee7b6f9"
+    }
+  ],
+  "stats": {
+    "total": 10,
+    "additions": 8,
+    "deletions": 2
+  },
+  "files": [
+    {
+      "sha": "58c39186c628f3d9c1153fbecd5d56f4681d4997",
+      "filename": ".changeset/grumpy-birds-refuse.md",
+      "status": "added",
+      "additions": 5,
+      "deletions": 0,
+      "changes": 5,
+      "blob_url": "https://github.com/xyflow/xyflow/blob/d4bc936edad07aba995dbdb8e2c63af8cdd631c9/.changeset%2Fgrumpy-birds-refuse.md",
+      "raw_url": "https://github.com/xyflow/xyflow/raw/d4bc936edad07aba995dbdb8e2c63af8cdd631c9/.changeset%2Fgrumpy-birds-refuse.md",
+      "contents_url": "https://api.github.com/repos/xyflow/xyflow/contents/.changeset%2Fgrumpy-birds-refuse.md?ref=d4bc936edad07aba995dbdb8e2c63af8cdd631c9",
+      "patch": "@@ -0,0 +1,5 @@\n+---\n+'@xyflow/react': patch\n+---\n+\n+Infer the type of `pathOptions` in `EdgeProps` from the edge type instead of using `any`."
+    },
+    {
+      "sha": "b45f207c4d51859e94dc4fa470b70a5a77466031",
+      "filename": "packages/react/src/types/edges.ts",
+      "status": "modified",
+      "additions": 3,
+      "deletions": 2,
+      "changes": 5,
+      "blob_url": "https://github.com/xyflow/xyflow/blob/d4bc936edad07aba995dbdb8e2c63af8cdd631c9/packages%2Freact%2Fsrc%2Ftypes%2Fedges.ts",
+      "raw_url": "https://github.com/xyflow/xyflow/raw/d4bc936edad07aba995dbdb8e2c63af8cdd631c9/packages%2Freact%2Fsrc%2Ftypes%2Fedges.ts",
+      "contents_url": "https://api.github.com/repos/xyflow/xyflow/contents/packages%2Freact%2Fsrc%2Ftypes%2Fedges.ts?ref=d4bc936edad07aba995dbdb8e2c63af8cdd631c9",
+      "patch": "@@ -96,6 +96,8 @@ type StepEdge<EdgeData extends Record<string, unknown> = Record<string, unknown>\n \n type StraightEdge<EdgeData extends Record<string, unknown> = Record<string, unknown>> = Edge<EdgeData, 'straight'>;\n \n+type InferPathOptions<E extends Edge> = E extends { pathOptions?: infer P } ? P : any;\n+\n export type BuiltInEdge = SmoothStepEdge | BezierEdge | StepEdge | StraightEdge;\n \n export type EdgeMouseHandler<EdgeType extends Edge = Edge> = (event: ReactMouseEvent, edge: EdgeType) => void;\n@@ -158,8 +160,7 @@ export type EdgeProps<EdgeType extends Edge = Edge> = Pick<\n     targetHandleId?: string | null;\n     markerStart?: string;\n     markerEnd?: string;\n-    // @TODO: how can we get better types for pathOptions?\n-    pathOptions?: any;\n+    pathOptions?: InferPathOptions<EdgeType>;\n     interactionWidth?: number;\n   };\n "
+    }
+  ]
+}

@@ -1,0 +1,118 @@
+{
+  "sha": "7ba31bb1934ae22c2d007135e89a38af131ec52e",
+  "node_id": "C_kwDOAB0LotoAKDdiYTMxYmIxOTM0YWUyMmMyZDAwNzEzNWU4OWEzOGFmMTMxZWM1MmU",
+  "commit": {
+    "author": {
+      "name": "David Carlier",
+      "email": "devnexen@gmail.com",
+      "date": "2026-10-31T06:30:33Z"
+    },
+    "committer": {
+      "name": "David Carlier",
+      "email": "devnexen@gmail.com",
+      "date": "2026-10-31T06:30:33Z"
+    },
+    "message": "Merge branch 'PHP-8.6'\n\n* PHP-8.6:\n  Fix GH-24534: inheritance cache records unlinked child dependencies",
+    "tree": {
+      "sha": "1773a8fbdcf5dde6c70d9b44e9e7ccf50c7c4f4d",
+      "url": "https://api.github.com/repos/php/php-src/git/trees/1773a8fbdcf5dde6c70d9b44e9e7ccf50c7c4f4d"
+    },
+    "url": "https://api.github.com/repos/php/php-src/git/commits/7ba31bb1934ae22c2d007135e89a38af131ec52e",
+    "comment_count": 0,
+    "verification": {
+      "verified": true,
+      "reason": "valid",
+      "signature": "-----BEGIN PGP SIGNATURE-----\n\niQGzBAABCgAdFiEE2uPA2CxuntXfTtGCHhkLTi6CjtcFAmrliwkACgkQHhkLTi6C\njtdn0wv/a3xguCT9U6e9zQE+jMcdPsc9DsxKBXs+NXaFS6HtwvPUUm8ZpMVLcI7K\nRtBBrkhTCQr/aKzItLW8pj9UbD7Fnn8PXYztgeeHQwYYvKcClnWSVQ3a1jeaMmwY\nVBGUSg5VGS8TEwhHWTby7uyb55kusDjVMett7+iFjnULcALkp4MpRpxDXZXdYRbV\nuFyuTT/Rz5pvWYC6oZEm16G+vtl4pJIPRLhL/27gquq+z1YGAOP22jHe62pN1Mv2\nejR78ktWgh68oeXfA/irK1omPUi7o3fciWuR2bJXoF1AMzes/Od1ZpOitkvBpPx9\nIvAoPn+g85R/Hnns/25VSDpBX/DbFxXb10dpvHceGB5H5dZIAYqrhzRXyEe8lDkt\nDIyCRIa4yISQCEOILLzsLby9vB3k5BqfTImt9DOKTONgBn+/VeeEdX74L3OiIosE\ne1i6U3annEvR2UrBl+RX1G6BBAA9EphukZdQJrEWIr04HpUCZ3kbJaUstSdHM3wE\nI5h+D9A9\n=/Oii\n-----END PGP SIGNATURE-----",
+      "payload": "tree 1773a8fbdcf5dde6c70d9b44e9e7ccf50c7c4f4d\nparent d4f79e2ee86a5dfd3b12f34d75af6d5bd0a0f9ab\nparent 8b7ab3787304f85e7886a87a876ba3a0e618ee7d\nauthor David Carlier <devnexen@gmail.com> 1793428233 +0000\ncommitter David Carlier <devnexen@gmail.com> 1793428233 +0000\n\nMerge branch 'PHP-8.6'\n\n* PHP-8.6:\n  Fix GH-24534: inheritance cache records unlinked child dependencies\n",
+      "verified_at": "2026-10-31T06:30:54Z"
+    }
+  },
+  "url": "https://api.github.com/repos/php/php-src/commits/7ba31bb1934ae22c2d007135e89a38af131ec52e",
+  "html_url": "https://github.com/php/php-src/commit/7ba31bb1934ae22c2d007135e89a38af131ec52e",
+  "comments_url": "https://api.github.com/repos/php/php-src/commits/7ba31bb1934ae22c2d007135e89a38af131ec52e/comments",
+  "author": {
+    "login": "devnexen",
+    "id": 4922778,
+    "node_id": "MDQ6VXNlcjQ5MjI3Nzg=",
+    "avatar_url": "https://avatars.githubusercontent.com/u/4922778?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/devnexen",
+    "html_url": "https://github.com/devnexen",
+    "followers_url": "https://api.github.com/users/devnexen/followers",
+    "following_url": "https://api.github.com/users/devnexen/following{/other_user}",
+    "gists_url": "https://api.github.com/users/devnexen/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/devnexen/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/devnexen/subscriptions",
+    "organizations_url": "https://api.github.com/users/devnexen/orgs",
+    "repos_url": "https://api.github.com/users/devnexen/repos",
+    "events_url": "https://api.github.com/users/devnexen/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/devnexen/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+  },
+  "committer": {
+    "login": "devnexen",
+    "id": 4922778,
+    "node_id": "MDQ6VXNlcjQ5MjI3Nzg=",
+    "avatar_url": "https://avatars.githubusercontent.com/u/4922778?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/devnexen",
+    "html_url": "https://github.com/devnexen",
+    "followers_url": "https://api.github.com/users/devnexen/followers",
+    "following_url": "https://api.github.com/users/devnexen/following{/other_user}",
+    "gists_url": "https://api.github.com/users/devnexen/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/devnexen/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/devnexen/subscriptions",
+    "organizations_url": "https://api.github.com/users/devnexen/orgs",
+    "repos_url": "https://api.github.com/users/devnexen/repos",
+    "events_url": "https://api.github.com/users/devnexen/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/devnexen/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+  },
+  "parents": [
+    {
+      "sha": "d4f79e2ee86a5dfd3b12f34d75af6d5bd0a0f9ab",
+      "url": "https://api.github.com/repos/php/php-src/commits/d4f79e2ee86a5dfd3b12f34d75af6d5bd0a0f9ab",
+      "html_url": "https://github.com/php/php-src/commit/d4f79e2ee86a5dfd3b12f34d75af6d5bd0a0f9ab"
+    },
+    {
+      "sha": "8b7ab3787304f85e7886a87a876ba3a0e618ee7d",
+      "url": "https://api.github.com/repos/php/php-src/commits/8b7ab3787304f85e7886a87a876ba3a0e618ee7d",
+      "html_url": "https://github.com/php/php-src/commit/8b7ab3787304f85e7886a87a876ba3a0e618ee7d"
+    }
+  ],
+  "stats": {
+    "total": 97,
+    "additions": 96,
+    "deletions": 1
+  },
+  "files": [
+    {
+      "sha": "b1c222de086f7b4a2037cab65a2764a4d169df13",
+      "filename": "Zend/zend_inheritance.c",
+      "status": "modified",
+      "additions": 1,
+      "deletions": 1,
+      "changes": 2,
+      "blob_url": "https://github.com/php/php-src/blob/7ba31bb1934ae22c2d007135e89a38af131ec52e/Zend%2Fzend_inheritance.c",
+      "raw_url": "https://github.com/php/php-src/raw/7ba31bb1934ae22c2d007135e89a38af131ec52e/Zend%2Fzend_inheritance.c",
+      "contents_url": "https://api.github.com/repos/php/php-src/contents/Zend%2Fzend_inheritance.c?ref=7ba31bb1934ae22c2d007135e89a38af131ec52e",
+      "patch": "@@ -400,7 +400,7 @@ static void track_class_dependency(zend_class_entry *ce, zend_string *class_name\n \n \tht = (HashTable*)CG(current_linking_class)->inheritance_cache;\n \n-\tif (!(ce->ce_flags & ZEND_ACC_IMMUTABLE)) {\n+\tif (!(ce->ce_flags & ZEND_ACC_IMMUTABLE) || !(ce->ce_flags & ZEND_ACC_LINKED)) {\n \t\t// TODO: dependency on not-immutable class ???\n \t\tif (ht) {\n \t\t\tzend_hash_destroy(ht);"
+    },
+    {
+      "sha": "99dad3386623e056c2d9cf553423acdea918dad1",
+      "filename": "ext/opcache/tests/gh24534.phpt",
+      "status": "added",
+      "additions": 95,
+      "deletions": 0,
+      "changes": 95,
+      "blob_url": "https://github.com/php/php-src/blob/7ba31bb1934ae22c2d007135e89a38af131ec52e/ext%2Fopcache%2Ftests%2Fgh24534.phpt",
+      "raw_url": "https://github.com/php/php-src/raw/7ba31bb1934ae22c2d007135e89a38af131ec52e/ext%2Fopcache%2Ftests%2Fgh24534.phpt",
+      "contents_url": "https://api.github.com/repos/php/php-src/contents/ext%2Fopcache%2Ftests%2Fgh24534.phpt?ref=7ba31bb1934ae22c2d007135e89a38af131ec52e",
+      "patch": "@@ -0,0 +1,95 @@\n+--TEST--\n+GH-24534: Inheritance cache must not record an unlinked child as a dependency\n+--CREDITS--\n+Wim Winterberg\n+--EXTENSIONS--\n+opcache\n+--CONFLICTS--\n+server\n+--FILE--\n+<?php\n+$dir = __DIR__ . '/gh24534';\n+@mkdir($dir . '/src', 0777, true);\n+\n+file_put_contents($dir . '/autoload.php', <<<'PHP'\n+<?php\n+spl_autoload_register(static function (string $class): void {\n+    $file = __DIR__ . '/src/' . $class . '.php';\n+    if (is_file($file)) {\n+        require $file;\n+    }\n+});\n+PHP);\n+\n+file_put_contents($dir . '/src/EntityInterface.php', <<<'PHP'\n+<?php\n+interface EntityInterface\n+{\n+    public static function getById(int $id): ?self;\n+}\n+PHP);\n+\n+file_put_contents($dir . '/src/Entity.php', <<<'PHP'\n+<?php\n+abstract class Entity implements EntityInterface\n+{\n+    protected array $data = [];\n+}\n+PHP);\n+\n+file_put_contents($dir . '/src/UserBase.php', <<<'PHP'\n+<?php\n+abstract class UserBase extends Entity\n+{\n+    public const TABLE = 'user';\n+\n+    protected ?int $userId = null;\n+\n+    public static function getById(int $id): ?User\n+    {\n+        return null;\n+    }\n+}\n+PHP);\n+\n+file_put_contents($dir . '/src/User.php', <<<'PHP'\n+<?php\n+class User extends UserBase\n+{\n+}\n+PHP);\n+\n+file_put_contents($dir . '/base-first.php', <<<'PHP'\n+<?php\n+require __DIR__ . '/autoload.php';\n+echo 'base-first: ', UserBase::TABLE, PHP_EOL;\n+PHP);\n+\n+file_put_contents($dir . '/child-first.php', <<<'PHP'\n+<?php\n+require __DIR__ . '/autoload.php';\n+echo 'child-first: ', User::TABLE, PHP_EOL;\n+PHP);\n+\n+include 'php_cli_server.inc';\n+$ini = trim((string) getenv('TEST_PHP_EXTRA_ARGS'));\n+$ini .= ($ini !== '' ? ' ' : '') . '-d opcache.enable=1 -d opcache.enable_cli=1 -d opcache.file_update_protection=0';\n+php_cli_server_start($ini);\n+\n+foreach (['base-first', 'child-first', 'base-first'] as $page) {\n+    echo file_get_contents('http://' . PHP_CLI_SERVER_ADDRESS . '/gh24534/' . $page . '.php');\n+}\n+?>\n+--CLEAN--\n+<?php\n+$dir = __DIR__ . '/gh24534';\n+foreach (['src/EntityInterface.php', 'src/Entity.php', 'src/UserBase.php', 'src/User.php', 'autoload.php', 'base-first.php', 'child-first.php'] as $file) {\n+    @unlink($dir . '/' . $file);\n+}\n+@rmdir($dir . '/src');\n+@rmdir($dir);\n+?>\n+--EXPECT--\n+base-first: user\n+child-first: user\n+base-first: user"
+    }
+  ]
+}

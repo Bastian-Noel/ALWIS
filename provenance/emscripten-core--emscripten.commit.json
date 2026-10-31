@@ -1,0 +1,113 @@
+{
+  "sha": "91d14a4c6729752ed146751416fe96598cac3dc7",
+  "node_id": "C_kwDOABS35NoAKDkxZDE0YTRjNjcyOTc1MmVkMTQ2NzUxNDE2ZmU5NjU5OGNhYzNkYzc",
+  "commit": {
+    "author": {
+      "name": "Sam Clegg",
+      "email": "sbc@chromium.org",
+      "date": "2026-10-31T00:29:03Z"
+    },
+    "committer": {
+      "name": "GitHub",
+      "email": "noreply@github.com",
+      "date": "2026-10-31T00:29:03Z"
+    },
+    "message": "Enable `NODE_COMPILE_CACHE` when running JS compiler tools (#28116)\n\nSet `NODE_COMPILE_CACHE` to `cache.get_path('node_compile_cache')` in\n`shared.run_js_tool` when `FROZEN_CACHE` is not set, and route\n`building.acorn_optimizer` through `shared.run_js_tool` so\n`tools/acorn-optimizer.mjs` also benefits from Node's V8 compile cache.\n\nOn a local `emcc -O2 hello_world.o` link (20 runs), this reduces total\nlink time by ~20 ms (~3.3%, from 602.3 ms to 582.3 ms median; and from\n787.8 ms to 768.3 ms when `compiler.mjs` also runs), with\n`acorn-optimizer.mjs` itself dropping from 174.4 ms to 161.3 ms (~7.5%).",
+    "tree": {
+      "sha": "86ea5597df12fee4c03001de2b6fc559535bdc5c",
+      "url": "https://api.github.com/repos/emscripten-core/emscripten/git/trees/86ea5597df12fee4c03001de2b6fc559535bdc5c"
+    },
+    "url": "https://api.github.com/repos/emscripten-core/emscripten/git/commits/91d14a4c6729752ed146751416fe96598cac3dc7",
+    "comment_count": 0,
+    "verification": {
+      "verified": true,
+      "reason": "valid",
+      "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsFcBAABCAAQBQJq5TZPCRC1aQ7uu5UhlAAAlRMQAH2pNH0MPQ+HHc3UX3irGpkf\nDn5quKXjqxOcdNpVdY2CzzikgWYo39JPn65fOR2NH/AdTrPCQY9j41gRvwOUSkrf\nR/BJXF20C17IWTjqLDvdXs3SUHEBAWrPEjUPaJC4NxwnLMfMBP7s79JqA01GJyjU\nX73/u4N9jpKtLPuK0XcO/O3Z+QvbsYN3UnyC9CbrTu3TQTcB2flAflXYqxy34y/V\nxRTnxR9CnhwQ+arw/uqnqXWFuY+9JOVPm/wdtYyLcq523+a/e4pOwoB9/eSDD74X\n/ObMnz4FGO/KzIHceVnDUBUSL1H6LOMmorYLb0kV7h+RGDAWn+bIPMLjqum2dZXa\noojRwDZb5YqTSjoYJbbiIckb9hEuXRK541XEO0JWWwvgZF54zD00Wa7okOV1x/es\nqGg/qTa8WdDkmN71RPXcW2BuaOuTIfGl9szAFlpXKwtpkJo4Z5KsgoMVNv2wu9Q6\nFe0YMX87UsF6iRvQvf0dLtk0rMa35C23N79GA4uYS0AEfRttHaJlfLOUfGKnk44n\nY4T0W9QI8BN+8rkDNwrTZypmuEfpFZTRCc/ZBn8fm8z03kUW6r1BeOZGpeWRV64i\nyP21Fu79OaDFtenWvsODKpArCzE0aFA4ptx1QWLZ+O1bbW0LR0HEd4Jtw1qVGF/1\ns2k1LFWCZ08EhmIHCxSw\n=JYGU\n-----END PGP SIGNATURE-----\n",
+      "payload": "tree 86ea5597df12fee4c03001de2b6fc559535bdc5c\nparent d489094eddfdc061d1634584561a3ce07a1f491c\nauthor Sam Clegg <sbc@chromium.org> 1793406543 -0700\ncommitter GitHub <noreply@github.com> 1793406543 -0700\n\nEnable `NODE_COMPILE_CACHE` when running JS compiler tools (#28116)\n\nSet `NODE_COMPILE_CACHE` to `cache.get_path('node_compile_cache')` in\n`shared.run_js_tool` when `FROZEN_CACHE` is not set, and route\n`building.acorn_optimizer` through `shared.run_js_tool` so\n`tools/acorn-optimizer.mjs` also benefits from Node's V8 compile cache.\n\nOn a local `emcc -O2 hello_world.o` link (20 runs), this reduces total\nlink time by ~20 ms (~3.3%, from 602.3 ms to 582.3 ms median; and from\n787.8 ms to 768.3 ms when `compiler.mjs` also runs), with\n`acorn-optimizer.mjs` itself dropping from 174.4 ms to 161.3 ms (~7.5%).",
+      "verified_at": "2026-10-31T00:29:03Z"
+    }
+  },
+  "url": "https://api.github.com/repos/emscripten-core/emscripten/commits/91d14a4c6729752ed146751416fe96598cac3dc7",
+  "html_url": "https://github.com/emscripten-core/emscripten/commit/91d14a4c6729752ed146751416fe96598cac3dc7",
+  "comments_url": "https://api.github.com/repos/emscripten-core/emscripten/commits/91d14a4c6729752ed146751416fe96598cac3dc7/comments",
+  "author": {
+    "login": "sbc100",
+    "id": 515813,
+    "node_id": "MDQ6VXNlcjUxNTgxMw==",
+    "avatar_url": "https://avatars.githubusercontent.com/u/515813?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/sbc100",
+    "html_url": "https://github.com/sbc100",
+    "followers_url": "https://api.github.com/users/sbc100/followers",
+    "following_url": "https://api.github.com/users/sbc100/following{/other_user}",
+    "gists_url": "https://api.github.com/users/sbc100/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/sbc100/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/sbc100/subscriptions",
+    "organizations_url": "https://api.github.com/users/sbc100/orgs",
+    "repos_url": "https://api.github.com/users/sbc100/repos",
+    "events_url": "https://api.github.com/users/sbc100/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/sbc100/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+  },
+  "committer": {
+    "login": "web-flow",
+    "id": 19864447,
+    "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
+    "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/web-flow",
+    "html_url": "https://github.com/web-flow",
+    "followers_url": "https://api.github.com/users/web-flow/followers",
+    "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+    "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+    "organizations_url": "https://api.github.com/users/web-flow/orgs",
+    "repos_url": "https://api.github.com/users/web-flow/repos",
+    "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/web-flow/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+  },
+  "parents": [
+    {
+      "sha": "d489094eddfdc061d1634584561a3ce07a1f491c",
+      "url": "https://api.github.com/repos/emscripten-core/emscripten/commits/d489094eddfdc061d1634584561a3ce07a1f491c",
+      "html_url": "https://github.com/emscripten-core/emscripten/commit/d489094eddfdc061d1634584561a3ce07a1f491c"
+    }
+  ],
+  "stats": {
+    "total": 25,
+    "additions": 11,
+    "deletions": 14
+  },
+  "files": [
+    {
+      "sha": "0b4b1d85a7804cb36756442a77705cb336b239a3",
+      "filename": "tools/building.py",
+      "status": "modified",
+      "additions": 9,
+      "deletions": 14,
+      "changes": 23,
+      "blob_url": "https://github.com/emscripten-core/emscripten/blob/91d14a4c6729752ed146751416fe96598cac3dc7/tools%2Fbuilding.py",
+      "raw_url": "https://github.com/emscripten-core/emscripten/raw/91d14a4c6729752ed146751416fe96598cac3dc7/tools%2Fbuilding.py",
+      "contents_url": "https://api.github.com/repos/emscripten-core/emscripten/contents/tools%2Fbuilding.py?ref=91d14a4c6729752ed146751416fe96598cac3dc7",
+      "patch": "@@ -423,34 +423,29 @@ def acorn_optimizer(filename, passes, extra_info=None, return_output=False, work\n     with open(temp, 'a', encoding='utf-8') as f:\n       f.write('// EXTRA_INFO: ' + json.dumps(extra_info))\n     filename = temp\n-  cmd = [*config.NODE_JS, optimizer, filename, *passes]\n+  args = [filename, *passes]\n   if not worker_js:\n     # Keep JS code comments intact through the acorn optimization pass so that\n     # JSDoc comments will be carried over to a later Closure run.\n     if settings.MAYBE_CLOSURE_COMPILER:\n-      cmd += ['--closure-friendly']\n+      args += ['--closure-friendly']\n     if settings.EXPORT_ES6:\n-      cmd += ['--export-es6']\n+      args += ['--export-es6']\n   if settings.VERBOSE:\n-    cmd += ['--verbose']\n+    args += ['--verbose']\n   if return_output:\n-    if shared.SKIP_SUBPROCS:\n-      shared.print_compiler_stage(cmd)\n-      return ''\n-    return check_call(cmd, stdout=PIPE).stdout\n+    return shared.run_js_tool(optimizer, args, stdout=PIPE)\n \n   acorn_optimizer.counter += 1\n   basename = utils.unsuffixed(original_filename)\n   if '.jso' in basename:\n     basename = utils.unsuffixed(basename)\n   output_file = basename + f'.jso{acorn_optimizer.counter}.js'\n   shared.get_temp_files().note(output_file)\n-  cmd += ['-o', output_file]\n-  if shared.SKIP_SUBPROCS:\n-    shared.print_compiler_stage(cmd)\n-    return output_file\n-  check_call(cmd)\n-  save_intermediate(output_file, f'{passes[0]}.js')\n+  args += ['-o', output_file]\n+  shared.run_js_tool(optimizer, args)\n+  if not shared.SKIP_SUBPROCS:\n+    save_intermediate(output_file, f'{passes[0]}.js')\n   return output_file\n \n "
+    },
+    {
+      "sha": "4c2ad5c969755719dcc536a377d0b515842b9633",
+      "filename": "tools/shared.py",
+      "status": "modified",
+      "additions": 2,
+      "deletions": 0,
+      "changes": 2,
+      "blob_url": "https://github.com/emscripten-core/emscripten/blob/91d14a4c6729752ed146751416fe96598cac3dc7/tools%2Fshared.py",
+      "raw_url": "https://github.com/emscripten-core/emscripten/raw/91d14a4c6729752ed146751416fe96598cac3dc7/tools%2Fshared.py",
+      "contents_url": "https://api.github.com/repos/emscripten-core/emscripten/contents/tools%2Fshared.py?ref=91d14a4c6729752ed146751416fe96598cac3dc7",
+      "patch": "@@ -215,6 +215,8 @@ def run_js_tool(filename, jsargs=[], node_args=[], **kw):  # ruff: ignore[mutabl\n   implemented in javascript.\n   \"\"\"\n   command = [*config.NODE_JS, *node_args, filename, *jsargs]\n+  if not config.FROZEN_CACHE and 'NODE_COMPILE_CACHE' not in os.environ:\n+    os.environ['NODE_COMPILE_CACHE'] = str(cache.get_path('node_compile_cache'))\n   return check_call(command, **kw).stdout\n \n "
+    }
+  ]
+}
