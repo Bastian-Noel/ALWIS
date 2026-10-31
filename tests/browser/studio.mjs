@@ -1,0 +1,84 @@
+/** Real N-window studio acceptance against the custom native runtime. */
+import assert from 'node:assert/strict';
+import { mkdir, writeFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { createStudioServer } from '../../scripts/serve-studio.mjs';
+const repo = resolve(new URL('../..', import.meta.url).pathname);
+const playwright = await import(pathToFileURL(resolve(repo, 'build-work/php/node_modules/playwright/index.mjs')).href);
+const server = createStudioServer(); await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+const origin = `http://127.0.0.1:${server.address().port}`;
+const output = resolve(repo, 'build-work/studio-receipts'); await mkdir(output, { recursive: true });
+try {
+  for (const name of (process.argv[2] ?? 'chromium,firefox').split(',')) {
+    const browser = await playwright[name].launch({ headless: true, ...(name === 'chromium' ? { args: ['--no-sandbox'] } : {}) });
+    try {
+      const page = await browser.newPage(); page.setDefaultTimeout(180000);
+      page.on('pageerror', error => console.error(name, 'pageerror', error.message));
+      page.on('console', message => { if (message.type() === 'error') console.error(name, message.text()); });
+      const project = 'studio-' + crypto.randomUUID();
+      await page.goto(origin + '/?project=' + project);
+      await page.waitForFunction(() => document.querySelector('#status').textContent === 'Prêt à ouvrir un projet.');
+      await page.locator('#open').click();
+      await page.waitForFunction(() => document.querySelector('#status').textContent.startsWith('Projet prêt.'));
+      console.log(name, 'studio opened');
+      await page.locator('#demo').click();
+      await page.waitForFunction(() => document.querySelector('#status').textContent.startsWith('Exemple chargé.'));
+      async function client(button) {
+        const popup = page.waitForEvent('popup'); await page.locator(button).click(); const client = await popup;
+        client.setDefaultTimeout(180000); await client.waitForSelector('#session'); return client;
+      }
+      const a1 = await client('#window'), a2 = await client('#window'), b = await client('#new-client'), c = await client('#new-client');
+      const ids = await Promise.all([a1,a2,b,c].map(client => client.locator('#session').textContent()));
+      assert.equal(ids[0],ids[1]); assert.equal(new Set([ids[0],ids[2],ids[3]]).size,3);
+      console.log(name, 'four clients, three identities verified');
+      await a1.evaluate(() => { localStorage.setItem('marker','A'); });
+      assert.equal(await a2.evaluate(() => localStorage.getItem('marker')),'A');
+      assert.equal(await b.evaluate(() => localStorage.getItem('marker')),null);
+      const cookie = await a2.evaluate(async () => { document.cookie='color=blue; Path=/'; return (await fetch('/session.php')).json(); });
+      assert.equal(cookie.cookie,'blue');
+      assert.equal((await b.evaluate(async () => (await fetch('/session.php')).json())).cookie,null);
+      await a1.waitForFunction(() => document.cookie.includes('color=blue'));
+      await a1.locator('input[name=label]').fill('shared-native-row');
+      await Promise.all([a1.waitForNavigation(),a1.getByRole('button',{name:'Ajouter à la base commune'}).click()]);
+      await b.reload(); await b.waitForSelector('#notes'); assert.match(await b.locator('#notes').textContent(),/shared-native-row/);
+      await Promise.all([a1.waitForNavigation(),a1.getByRole('link',{name:'Tester une redirection'}).click()]);
+      assert.match(a1.url(),/redirected=1/); assert.equal(await a1.locator('#session').textContent(),ids[0]);
+      await a1.locator('input[type=file]').setInputFiles({ name:'upload.txt',mimeType:'text/plain',buffer:Buffer.from('native-upload-bytes') });
+      await Promise.all([a1.waitForNavigation(),a1.getByRole('button',{name:'Envoyer un fichier'}).click()]);
+      assert.match(await a1.locator('body').textContent(),/uploaded:upload.txt/);
+      const upload = await b.evaluate(async () => (await fetch('/uploads/upload.txt')).text()); assert.equal(upload,'native-upload-bytes');
+      console.log(name,'shared SQL, forms, cookies, redirect and upload verified');
+      await page.locator('#sql-tool .tables').click(); await page.locator('#sql-tool .table option[value=studio_notes]').waitFor({state:'attached'});
+      await page.locator('#sql-tool .table').selectOption('studio_notes'); await page.locator('#sql-tool .browse').click();
+      const label = page.locator('#sql-tool td').filter({hasText:'shared-native-row'}); await label.waitFor(); await label.dblclick();
+      await page.locator('#sql-tool td input').fill('edited-native-row'); await page.locator('#sql-tool td input').press('Enter');
+      await page.locator('#sql-tool td').filter({hasText:'edited-native-row'}).waitFor({timeout:15000}); console.log(name,'SQL cell edit verified');
+      await page.locator('#schema-tool .refresh').click(); await page.locator('#schema-tool svg text').filter({hasText:'studio_notes'}).first().waitFor();
+      console.log(name,'schema verified');
+      await page.locator('#editor-tool .source').fill('<?php echo "draft-preserved";');
+      await page.locator('[data-tool=editor]').selectOption('unloaded'); await page.locator('#editor-tool .unloaded').waitFor();
+      await page.locator('[data-tool=editor]').selectOption('active'); await page.locator('#editor-tool .source').waitFor();
+      assert.equal(await page.locator('#editor-tool .source').inputValue(),'<?php echo "draft-preserved";');
+      // Restore the original working demo source from the file before project save.
+      await page.locator('#editor-tool .load').click();
+      await page.waitForFunction(() => document.querySelector('#editor-tool .source').value.includes('session_start'));
+      await page.locator('#sql-tool .query').fill('SELECT 123 AS preserved');
+      await page.locator('[data-tool=sql]').selectOption('unloaded'); await page.locator('#sql-tool .unloaded').waitFor();
+      await page.locator('[data-tool=sql]').selectOption('active'); await page.locator('#sql-tool .query').waitFor();
+      assert.equal(await page.locator('#sql-tool .query').inputValue(),'SELECT 123 AS preserved');
+      console.log(name,'tools restored');
+      await page.locator('#save').click(); await page.waitForFunction(() => document.querySelector('#status').textContent.startsWith('Fichiers et transactions'));
+      await page.reload(); await page.waitForFunction(() => document.querySelector('#status').textContent === 'Prêt à ouvrir un projet.');
+      await page.locator('#open').click(); await page.waitForFunction(() => document.querySelector('#status').textContent.startsWith('Projet prêt.'));
+      assert.ok((await page.locator('#editor-tool .source').inputValue()).includes('session_start'));
+      await b.goto(origin + new URL(b.url()).pathname); await b.waitForSelector('#notes');
+      assert.match(await b.locator('#notes').textContent(),/edited-native-row/);
+      assert.equal(await b.locator('#session').textContent(),ids[2]);
+      await page.screenshot({ path:resolve(output,name+'-studio.png'),fullPage:true });
+      await page.locator('#close').click(); await page.waitForFunction(() => document.querySelector('#status').textContent.startsWith('Projet fermé'));
+      const receipt = { browser:name,version:browser.version(),passed:true,project,windowCount:4,sessionCount:3,checks:['shared/independent PHP sessions','shared SQL','virtual cookies/storage','POST','redirect','multipart upload','SQL cell editing','schema introspection','tool unload/restore','project save/reopen'] };
+      await writeFile(resolve(output,name+'.json'),JSON.stringify(receipt,null,2)+'\n'); console.log(name,'studio acceptance passed');
+    } finally { await browser.close(); }
+  }
+} finally { server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); }

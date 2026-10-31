@@ -14,6 +14,11 @@ const server = createServer(async (request, response) => {
   response.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
   response.setHeader('Cache-Control', 'no-store');
   if (request.url === '/') { response.setHeader('Content-Type', 'text/html'); response.end('<!doctype html><title>Native runtime</title>'); return; }
+  if (request.url === '/network-post') {
+    let body = ''; for await (const chunk of request) body += chunk;
+    response.setHeader('Content-Type', 'application/json'); response.setHeader('X-Native-Reply', 'present');
+    response.writeHead(202); response.end(JSON.stringify([request.method, request.headers['x-native-request'], body])); return;
+  }
   if (request.url === '/network-check') { response.setHeader('Content-Type', 'text/plain'); response.end('network-ok'); return; }
   try {
     const pathname = new URL(request.url, 'http://localhost').pathname;
@@ -66,6 +71,13 @@ try {
           console.log('native: entering browser network');
           const network = await checked({ script: '/workspace/network.php', url: new URL('/network.php?url=' + encodeURIComponent(new URL('/network-check', location.href).href), location.href).href });
           if (network.body !== 'network-ok') throw Error('Native browser HTTP stream mismatch: ' + network.body + ' ' + network.stderr);
+          await runtime.write('/workspace/network-context.php', `<?php
+$ctx=stream_context_create(['http'=>['method'=>'POST','header'=>['Content-Type: text/plain','X-Native-Request: custom'],'content'=>'native-body','timeout'=>10]]);
+$body=file_get_contents($_GET['url'],false,$ctx);
+echo json_encode([json_decode($body,true),$http_response_header]);`);
+          const networkContext = await checked({ script:'/workspace/network-context.php', url:new URL('/network-context.php?url='+encodeURIComponent(new URL('/network-post',location.href).href),location.href).href });
+          const contextData=JSON.parse(networkContext.body);
+          if (JSON.stringify(contextData[0])!==JSON.stringify(['POST','custom','native-body']) || !contextData[1][0].includes('202') || !contextData[1].some(h=>h.toLowerCase()==='x-native-reply: present')) throw Error('Native HTTP context/headers mismatch: '+networkContext.body);
           await runtime.write('/workspace/schema.sql', fixtures['schema.sql']);
           await runtime.write('/workspace/bootstrap.php', '<?php $db=new PDO("mysql:dbname=test;charset=utf8mb4","root",""); $db->exec(file_get_contents(__DIR__."/schema.sql")); echo "schema-ok";');
           console.log('native: bootstrapping PDO');
@@ -82,6 +94,19 @@ try {
           await runtime.write('/workspace/object.php', '<?php $db=new mysqli("localhost","root","","school"); $stmt=$db->prepare("SELECT ? AS value"); $value="before"; $stmt->bind_param("s",$value); $value="after"; $stmt->execute(); $row=$stmt->get_result()->fetch_assoc(); $stmt->close(); $db->close(); echo $row["value"];');
           const object = await checked({ script: '/workspace/object.php' });
           if (object.body !== 'after') throw Error('OO MySQLi binding mismatch');
+          await runtime.write('/workspace/bound.php', `<?php
+$db=new mysqli('localhost','root','','school');
+$stmt=$db->prepare("SELECT 42 AS i, 1.5e0 AS f, CAST('123.45' AS DECIMAL(6,2)) AS d, NULL AS n, UNHEX('4100FF') AS b");
+$stmt->execute(); $stmt->bind_result($i,$f,$d,$n,$b); $stmt->store_result();
+if(!$stmt->fetch() || $i!==42 || $f!==1.5 || $d!=='123.45' || $n!==NULL || bin2hex($b)!=='4100ff' || $stmt->fetch()!==NULL) throw new Exception('bind_result types');
+$stmt->execute(); $r=$stmt->get_result(); $r->free();
+try { $stmt->fetch(); throw new Exception('closed result accepted'); } catch (Error $e) {}
+$r=$db->query('SELECT 1 AS x UNION ALL SELECT 2');
+if($r->fetch_all(MYSQLI_ASSOC)!==[['x'=>'1'],['x'=>'2']]) throw new Exception('fetch_all');
+$r->data_seek(0); $a=$r->fetch_array(); if($a[0]!=='1'||$a['x']!=='1') throw new Exception('fetch_array');
+$stmt->close(); $db->close(); gc_collect_cycles(); echo 'bound-results-ok';`);
+          const bound=await checked({script:'/workspace/bound.php'});
+          if(bound.body!=='bound-results-ok') throw Error('Native MySQLi results mismatch: '+bound.body);
           const consoleSet = await runtime.sql('SET @pbl_console_marker = 42', 'school');
           const duringConsole = await checked({ script: '/workspace/object.php' });
           const consoleMarker = await runtime.sql('SELECT @pbl_console_marker AS value');
@@ -96,7 +121,7 @@ try {
           if (stopped.sqlStarted) throw Error('SQL did not stop');
           const phpAfterStop = await checked({ script: '/workspace/http.php' });
           if (phpAfterStop.sqlStarted || phpAfterStop.status !== 201) throw Error('PHP is not usable independently after SQL stop');
-          return { initial, file, http, afterPurePhp, network, schema, driverResults, object, consoleMarker, consoleTypes, phpAfterStop, final, stopped };
+          return { initial, file, http, afterPurePhp, network, networkContext, bound, schema, driverResults, object, consoleMarker, consoleTypes, phpAfterStop, final, stopped };
         } finally { runtime.close(); }
       }, fixtures);
       const persistence = await page.evaluate(async () => {

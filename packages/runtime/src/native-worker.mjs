@@ -126,6 +126,7 @@ async function dispatch(message) {
       if (module.FS.stat(filename).size > 16 * 1024 * 1024) throw Error('File exceeds read limit');
       return module.FS.readFile(filename).slice();
     }
+    case 'stat': { const info = module.FS.stat(message.path === '/workspace' ? '/workspace' : path(message.path)); return { directory: module.FS.isDir(info.mode), size: info.size }; }
     case 'list': return module.FS.readdir(message.path === '/workspace' ? '/workspace' : path(message.path));
     case 'remove': case 'rename': {
       const status = message.operation === 'remove'

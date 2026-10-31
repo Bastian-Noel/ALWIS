@@ -10,10 +10,10 @@ The generated driver copies are traceable through `driver-adapter.json`. Upstrea
 
 - Procedural and object connections, queries, prepared statements, close, charset and transactions.
 - By-reference `bind_param` with i/d/s/b parameters read at execute time; NULL and binary string lengths stay native.
-- `get_result`, `fetch_assoc`, `fetch_row`, result free and insert ID.
+- `get_result`, `bind_result`/`fetch`, `store_result`, `fetch_assoc`, `fetch_row`, `fetch_array`, `fetch_all`, `data_seek`, result free and insert ID.
 - SQL exceptions and the common report flags.
 
-This is a subset, not a claim of complete MySQLi compatibility. `bind_result`, long-data streaming, multi-query, async mysqli, `fetch_all`, metadata methods and execute(array) are not implemented yet. Prepared result values are currently lossless strings/NULL rather than full mysqlnd native numeric typing. The standard school fixtures are the first integration acceptance gate; both unchanged fixtures and the object path pass on Chromium/Firefox; their results are recorded separately.
+This is a subset, not a claim of complete MySQLi compatibility. Long-data streaming, multi-query, async mysqli, metadata methods and execute(array) are not implemented yet. Prepared results convert integers fitting zend_long and floating point types; DECIMAL, larger integers, binary and NULL remain lossless. This is not full mysqlnd parity. The standard school fixtures are the first integration acceptance gate; both unchanged fixtures and the object path pass on Chromium/Firefox; their results are recorded separately.
 
 The result copy is limited to 16 MiB and 10,000 rows. MariaDB's internal buffered result is obtained before that check, so this does NOT yet bound peak native result allocation. Persistent connections and the full public `pbl_sql.h` cursor/batch contract still require dedicated implementation/validation.
 
@@ -21,9 +21,9 @@ The result copy is limited to 16 MiB and 10,000 rows. MariaDB's internal buffere
 
 `packages/files-native/src/files.c` provides project-root path checks and POSIX write/fsync/rename, remove and rename operations. The JS worker facade uses them; PHP uses the same filesystem through normal file functions. The facade defaults to MEMFS and accepts a persistent projectKey to mount separate IDBFS file/SQL stores. save() closes the console, stops SQL and synchronizes the VFS; shutdown() then releases the project lock. Worker recreation/restoration is verified on both browsers. fsync alone does not claim browser durability.
 
-`packages/network-native/src/http-stream.c` registers HTTP/HTTPS read streams using Emscripten's synchronous fetch API inside the project worker. PHP `file_get_contents` therefore uses real browser HTTP instead of pretending browser WASM has ordinary TCP sockets. Browser CORS, redirects and credentials apply. The initial implementation handles the method/content/ignore_errors context options; custom headers, response-header variables, timeout context options and complete HTTP wrapper parity remain to be added. The response copy limit does not prevent the browser from first receiving a larger response.
+`packages/network-native/src/http-stream.c` registers HTTP/HTTPS read streams using Emscripten's synchronous fetch API inside the project worker. PHP `file_get_contents` therefore uses real browser HTTP instead of pretending browser WASM has ordinary TCP sockets. Browser CORS, redirects and credentials apply. The implementation handles method/content/ignore_errors, custom header string/arrays, timeout, wrapper response headers and `$http_response_header`. Complete HTTP wrapper parity remains open (XHR hides intermediate redirects and the wire protocol version). The response copy limit does not prevent the browser from first receiving a larger response.
 
-Incoming HTTP/CGI semantics reuse the pinned native runtime with custom drivers installed at startup and targeted owner cleanup afterwards. `packages/runtime/src/native-runtime.mjs` exposes file operations, CGI requests, runtime state and SQL stop through a bounded queue in one project-owner worker. Clients must share that owner instead of creating a database per window. A Service Worker router, virtual client sessions and cross-window transport are still separate work.
+Incoming HTTP/CGI semantics reuse the pinned native runtime with custom drivers installed at startup and targeted owner cleanup afterwards. `packages/runtime/src/native-runtime.mjs` exposes file operations, CGI requests, runtime state and SQL stop through a bounded queue in one project-owner worker. Clients must share that owner instead of creating a database per window. `apps/studio` now implements the Service Worker router, virtual client sessions and cross-window transport over this shared owner; its limits and verification command are documented there.
 
 ## Build and first end-to-end check
 

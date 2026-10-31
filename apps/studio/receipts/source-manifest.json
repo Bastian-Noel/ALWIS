@@ -1,0 +1,53 @@
+{
+  "nativeRuntimeManifest": "../../../engine/fusion/receipts/native-runtime/source-manifest.json",
+  "files": [
+    {
+      "path": "apps/studio/client-bootstrap.js",
+      "sha256": "affc933baaa6bd7c596d9d0215ec7833db20345d33d8df2aa7b2b789550f61de"
+    },
+    {
+      "path": "apps/studio/index.html",
+      "sha256": "c0d724637cdca3cb9ae10182339091cf6724dae9866eb976427760e8981683a7"
+    },
+    {
+      "path": "apps/studio/project-hub.mjs",
+      "sha256": "4bfb20efd9f0294d21fdea21b861a717d5138842917dabd7b58b471887310e48"
+    },
+    {
+      "path": "apps/studio/school-demo.mjs",
+      "sha256": "de0afe162ba363b5dddbbc75deb17d69d5c242279890f33217cda45c2dcca674"
+    },
+    {
+      "path": "apps/studio/service-worker.mjs",
+      "sha256": "97b072573e3723d50c314e5aa08c26f53e77ecdc2e8a659daa1f6d3274d43340"
+    },
+    {
+      "path": "apps/studio/state.mjs",
+      "sha256": "f33e3dd49633ebb1a95cdcb8484fcaeb247b4d9c67aa144c5d13ebbac2ffe837"
+    },
+    {
+      "path": "apps/studio/studio.css",
+      "sha256": "edaa3202057a32e256f697659eabab93add174bceee113df94a768e457bd30ff"
+    },
+    {
+      "path": "apps/studio/studio.mjs",
+      "sha256": "8c2767c24b578aaa32754708fd3b89e52f1a0cc172a3e0d55d6c5a7618103c48"
+    },
+    {
+      "path": "apps/studio/zip.mjs",
+      "sha256": "85da798b1fb9962f4dfddddfcb0f60ff85b312983a4f13183d7e1b54df241c72"
+    },
+    {
+      "path": "packages/runtime/src/client-sessions.mjs",
+      "sha256": "da39357436caf41f3619edc22652a08356a68daf41519413e1bba72d9d133fc5"
+    },
+    {
+      "path": "scripts/serve-studio.mjs",
+      "sha256": "991374bd2cb21b01a476568bd3d26b4268b32b91a233b1cd29f98beb9d1816b1"
+    },
+    {
+      "path": "tests/browser/studio.mjs",
+      "sha256": "0506d9fca322925de751d884ba896526ae9e1a7b89fe9dfad444feb286c6969e"
+    }
+  ]
+}

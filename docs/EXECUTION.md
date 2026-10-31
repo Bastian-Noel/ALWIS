@@ -9,9 +9,9 @@ Ce cadrage remplace les anciennes formulations limitant le produit à deux joueu
 | 1 Structure/cadrage | Répertoires, responsabilités, identifiants et critères | Structure initiale créée |
 | 2 Sources | Matrice épinglée et cartographie du cycle moteur | Cartographie prioritaire consolidée dans `engine/baseline/SOURCE-ANALYSIS.md` ; versions A/B non interchangeables |
 | 3 Témoins amont | Compilation PHP et MariaDB, PDO, exécution navigateur, persistance et mesures | Trois builds natifs verts (run 41204266390) ; benchmark Chromium/Firefox 3/3 et persistance (run 41212313878) ; PSS globale rapportée et capacités linéaires maintenant instrumentées via copie diagnostique ; reprise après interruption post-flush testée ; limites dans le receipt de reprise |
-| 4 Fusion | Un binaire, pont C, PDO, démarrage SQL à la demande, comparaison | Analyse de l'ABI des trois binaires commencée ; premier SELECT natif commun et runtime PDO/MySQLi/fichiers/HTTP validés sur Chromium/Firefox ; studio final et optimisation restent ouverts |
-| 5 MySQLi/optimisation | Compatibilité, limites, mesures et décisions | Non commencé |
-| 6 Environnement web | N fenêtres/sessions, HTTP, fichiers, outils et reprise | Non commencé |
+| 4 Fusion | Un binaire, pont C, PDO, démarrage SQL à la demande, comparaison | Un module principal commun et runtime PDO/MySQLi/fichiers/HTTP validés sur Chromium/Firefox ; comparaison mémoire/performance à compléter |
+| 5 MySQLi/optimisation | Compatibilité, limites, mesures et décisions | En cours : extension MySQLi C, préparations et résultats liés exécutés ; compatibilité complète et profils mémoire ouverts |
+| 6 Environnement web | N fenêtres/sessions, HTTP, fichiers, outils et reprise | Prototype fonctionnel : quatre fenêtres/trois sessions, base commune, fichiers, console/grille, schéma, déchargement et sauvegarde/reprise exécutés sur les deux navigateurs |
 
 Les archives et 14 tests JavaScript importés prouvent uniquement la préparation. Les documents historiques et leurs rapports restent des preuves datées. Le premier benchmark navigateur chiffré a réussi (6 échantillons et scénarios SQL/PDO) ; la mémoire physique demeure non instrumentée dans ce banc. La CI amont a cependant déjà exécuté PHP et MariaDB réels dans Chromium/Firefox ; voir `engine/baseline/CI-RECEIPT.md` pour les preuves et l'échec du témoin original.
 
@@ -25,8 +25,8 @@ Hors premier prototype : dossiers PC, réseau entre appareils et compatibilité 
 
 ## Reprise locale : état distinct des preuves historiques
 
-Le [receipt du 31 octobre](../benchmarks/REPRISE-2026-10-31.md) décrit les corrections d'isolation du banc, ses 23 tests de socle et la levée des blocages réseau puis la validation réelle des témoins séparés. Les rapports de PSS fournis sont des mesures globales du navigateur ; mémoire linéaire, reprise après crash SQL et moteur fusionné restent à vérifier. Aucun statut CI en direct n'est déduit des tests locaux.
+Le [receipt du 31 octobre](../benchmarks/REPRISE-2026-10-31.md) décrit les corrections d'isolation du banc, ses 23 tests de socle et la levée des blocages réseau puis la validation réelle des témoins séparés. Les rapports de PSS fournis sont des mesures globales du navigateur ; le moteur fusionné a depuis sa preuve séparée ci-dessous ; la reprise pendant une panne et les mesures résidentes du produit restent ouvertes. Aucun statut CI en direct n'est déduit des tests locaux.
 
 ## Tranche fonctionnelle custom C
 
-Le [receipt du runtime C](../engine/fusion/NATIVE-RUNTIME-RECEIPT.md) atteste les fixtures PDO/MySQLi inchangées, fichiers, CGI, HTTP navigateur, console indépendante et reprise après sauvegarde/nouveau propriétaire sur les deux navigateurs. Les jalons UI/sessions et la compatibilité complète restent ouverts. Ne pas relancer les témoins amont pour une simple modification du runtime custom.
+Le [receipt du runtime C](../engine/fusion/NATIVE-RUNTIME-RECEIPT.md) atteste les fixtures PDO/MySQLi inchangées, fichiers, CGI, HTTP navigateur, console indépendante et reprise après sauvegarde/nouveau propriétaire sur les deux navigateurs. Le [studio](../apps/studio/README.md) apporte maintenant les fenêtres/sessions et outils ; les reçus sont dans `apps/studio/receipts/`. La compatibilité complète, l’isolation par véritables origines et les gains mémoire mesurés restent ouverts. Ne pas relancer les témoins amont pour une simple modification du runtime custom.

@@ -1,12 +1,12 @@
 # WASMWebServer
 
-> **Runtime custom C disponible et testé sur Chromium/Firefox** : PHP/MariaDB communs, PDO/MySQLi natifs, fichiers, CGI/HTTP et sauvegarde/restauration. Voir [le receipt actuel](engine/fusion/NATIVE-RUNTIME-RECEIPT.md) pour les preuves et les limites ; les sections historiques ci-dessous décrivent la préparation initiale.
+> **Runtime custom C disponible et testé sur Chromium/Firefox** : PHP/MariaDB communs, PDO/MySQLi natifs, fichiers, CGI/HTTP et sauvegarde/restauration. Le [studio](apps/studio/README.md) relie maintenant ce moteur à N fenêtres, aux sessions et aux outils fichiers/SQL/schéma. Voir [le receipt actuel](engine/fusion/NATIVE-RUNTIME-RECEIPT.md) pour les preuves et les limites.
 
 > Cadrage actualisé : voir [l’objectif actif](docs/EXECUTION.md). N fenêtres avec sessions indépendantes ou partagées ; WASM unique PHP/MariaDB comme cible principale ; SQL à la demande et déchargement évalué sur mesures. Les scénarios à deux joueurs ci-dessous sont des tests, pas une limite produit.
 
 Environnement PHP + MariaDB entièrement dans le navigateur, destiné aux petits projets scolaires, avec PDO/MySQLi natifs, N fenêtres rattachées à des sessions indépendantes ou partagées et une console SQL utilisant la même base. Nom du socle importé : **PHP Browser Lab**.
 
-**État : structure et cartographie réalisées ; PHP 8.4 et les témoins MariaDB/PDO ont passé des tests navigateur amont en CI. Le build MariaDB original et les mesures restent à finaliser. Aucun serveur PHP/MariaDB WASM fusionné n'est encore livré.**
+**État : prototype natif et studio exécutés sur Chromium/Firefox. La compatibilité exhaustive, la mémoire résidente, la tenue en charge et la reprise pendant une panne restent à travailler. Les binaires de développement sont générés sous `build-work/`, pas suivis dans Git.**
 
 ## Commencer
 
@@ -19,6 +19,8 @@ npm test
 python3 scripts/doctor.py
 ```
 
+Après le build natif, lancer `node scripts/serve-studio.mjs`, ouvrir un projet vide puis charger l’exemple scolaire. Le [guide du studio](apps/studio/README.md) précise sauvegarde et limites.
+
 Le premier build moteur est décrit dans [BUILD](docs/BUILD.md) ; il requiert ses propres outils et dépendances, dont le SDK épinglé. Les snapshots d'étude ne constituent pas un SDK hors ligne.
 
 ## Ce qui existe
@@ -27,11 +29,11 @@ Le premier build moteur est décrit dans [BUILD](docs/BUILD.md) ; il requiert se
 |---|---|
 | Cache LRU borné en octets et entrées | Implémenté, tests Node |
 | File PHP séquentielle avec limites et refus de surcharge | Implémentée, tests Node |
-| Contrat SQL C | Déclarations uniquement, pas de backend |
-| Fixtures scolaires PDO/MySQLi et jeu | Préparées, pas exécutées dans WASM |
+| SQL natif | Registre de connexions commun PDO/MySQLi et console binaire ; contrat curseur/batch plus large encore incomplet |
+| Fixtures scolaires PDO/MySQLi | Exécutées inchangées dans le runtime fusionné sur les deux navigateurs ; jeu étendu à poursuivre |
 | 17 dépôts + 2 sous-modules | Sources épinglées avec SHA-256 |
 | 81 repères de code | Cartographie et empreintes dans `provenance/` |
-| Runtime, adaptation MySQLi, VFS, Service Worker et interface | À développer |
+| Runtime, MySQLi C, VFS, Service Worker et studio | Implémentés ; quatre fenêtres/trois sessions, outils et sauvegarde testés ; limites documentées |
 | Compilations et tests navigateur amont | PHP et bridge réussis ; MariaDB originale échouée sur un en-tête C ; [preuves](engine/baseline/CI-RECEIPT.md) |
 | Benchmarks mémoire et performance du produit | Non réalisés ; banc navigateur préparé |
 

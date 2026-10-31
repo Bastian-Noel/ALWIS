@@ -1,0 +1,20 @@
+{
+  "browser": "firefox",
+  "version": "157.0",
+  "passed": true,
+  "project": "studio-50355cc0-0cf1-462d-a20d-ecb9cace4c80",
+  "windowCount": 4,
+  "sessionCount": 3,
+  "checks": [
+    "shared/independent PHP sessions",
+    "shared SQL",
+    "virtual cookies/storage",
+    "POST",
+    "redirect",
+    "multipart upload",
+    "SQL cell editing",
+    "schema introspection",
+    "tool unload/restore",
+    "project save/reopen"
+  ]
+}

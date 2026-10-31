@@ -37,7 +37,7 @@
     },
     {
       "path": "engine/fusion/spike/test-native-runtime.mjs",
-      "sha256": "7386529e25a711bb37bf42cdf89a494948a88e08223741864d41469dc714d86d"
+      "sha256": "a035933295411e07fe173c0f5c01979221fd0928a45b9ea73622ef9d3652c612"
     },
     {
       "path": "engine/fusion/spike/worker.mjs",
@@ -49,11 +49,11 @@
     },
     {
       "path": "packages/network-native/src/http-stream.c",
-      "sha256": "0bff8dcc839c8397cab2faa0f23eb523bc04907a552873b5731dbce70d8606ae"
+      "sha256": "fbafc2ec99daa423b71bdf41404d292c49ebb67185e9602af46222e3e42016c0"
     },
     {
       "path": "packages/php-native/README.md",
-      "sha256": "c3b7a31021d72654259b9f826f0c86f57f6b865d98b42f2f30135648e489a0f2"
+      "sha256": "f9bdfbcc5f2dd2ffcbd888dcf8b8d419aa75812cad14176dc89dcb7f01686f63"
     },
     {
       "path": "packages/php-native/src/module.c",
@@ -61,7 +61,7 @@
     },
     {
       "path": "packages/php-native/src/mysqli.c",
-      "sha256": "bf95d939e54448b9ea5cdf892defbf43be7f0adf78803f57a1ad3896ddb3e5e0"
+      "sha256": "05a6c627d43f451bdd643e529517a5923523303bd23c7fb13be91b43d572706c"
     },
     {
       "path": "packages/php-native/src/pdo-adapter.h",
@@ -73,7 +73,7 @@
     },
     {
       "path": "packages/runtime/src/native-worker.mjs",
-      "sha256": "ee16ddaffbc37de9cf9b42a1efe62ac45a87ac394830bb409919ef21f7690382"
+      "sha256": "df2d50dd7c988560afaa43e19751ec0b85406be9a086b286415e56d7baeb86a8"
     },
     {
       "path": "packages/runtime/src/request-queue.mjs",
@@ -111,13 +111,13 @@
   "artifacts": [
     {
       "path": "build-work/bridge/.native-build/engine/wasm/runtime-dist/pbl-runtime.mjs",
-      "sha256": "3e40d565052a682a0c01c146d960e59cb1693962ffa808204090d1e31eee251f",
-      "bytes": 485293
+      "sha256": "7538a33581014d7776d65187c9f9c3ec5cd3f568c7426e3e7a0a353b4b23c0f2",
+      "bytes": 485850
     },
     {
       "path": "build-work/bridge/.native-build/engine/wasm/runtime-dist/pbl-runtime.wasm",
-      "sha256": "9fb2f61d67a260eacb465b48eaeacb2b3305136409a2c482a64b228c74cc400c",
-      "bytes": 33183806
+      "sha256": "ba67fda3a943253293fb4d107847a4987948a19ae62c50934c9061b678c7886b",
+      "bytes": 33200870
     }
   ],
   "nativeLibraries": [

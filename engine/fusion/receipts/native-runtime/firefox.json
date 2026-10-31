@@ -65,6 +65,44 @@
         "bytes": 0
       }
     },
+    "networkContext": {
+      "status": 200,
+      "headers": [
+        "X-Powered-By: PHP/8.4.27",
+        "Content-type: text/html; charset=UTF-8"
+      ],
+      "body": "[[\"POST\",\"custom\",\"native-body\"],[\"HTTP\\/1.1 202 Accepted\",\"cache-control: no-store\",\"connection: keep-alive\",\"content-type: application\\/json\",\"cross-origin-embedder-policy: require-corp\",\"cross-origin-opener-policy: same-origin\",\"date: Sat, 31 Oct 2026 22:02:42 GMT\",\"keep-alive: timeout=5\",\"transfer-encoding: chunked\",\"x-native-reply: present\"]]",
+      "stderr": "",
+      "exitCode": 0,
+      "sqlStarted": false,
+      "sqlConnections": 0,
+      "linearMemoryBytes": 268435456,
+      "hardwareConcurrency": 5,
+      "queue": {
+        "pending": 0,
+        "running": true,
+        "bytes": 0
+      }
+    },
+    "bound": {
+      "status": 200,
+      "headers": [
+        "X-Powered-By: PHP/8.4.27",
+        "Content-type: text/html; charset=UTF-8"
+      ],
+      "body": "bound-results-ok",
+      "stderr": "",
+      "exitCode": 0,
+      "sqlStarted": true,
+      "sqlConnections": 0,
+      "linearMemoryBytes": 775684096,
+      "hardwareConcurrency": 5,
+      "queue": {
+        "pending": 0,
+        "running": true,
+        "bytes": 0
+      }
+    },
     "schema": {
       "status": 200,
       "headers": [
@@ -229,7 +267,7 @@
   },
   "persistence": {
     "passed": true,
-    "projectKey": "test-348e7f19-0aaf-48b9-b62a-2151a0c4de39",
+    "projectKey": "test-d5b01cac-f03d-4a6a-a9b5-a215b3b47225",
     "output": "saved-native-project",
     "sql": {
       "columns": [
