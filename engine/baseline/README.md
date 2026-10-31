@@ -25,3 +25,9 @@ Les deux chaînes PHP sont distinctes. Le bridge compile un **module PDO**, pas 
 - Sean Morris `Makefile` et `.github/workflows/build-step.yaml` : profils PHP et wrappers Node/Web/CGI construits dans son image Docker Emscripten patchée. Son patch SDK appartient à cette chaîne, pas automatiquement au build MariaDB.
 
 Les repères détaillés historiques restent dans `docs/CODE-MAP.md`. Prochaine analyse pour la fusion : contraintes pthread/Asyncify, symboles d'initialisation et d'arrêt, allocateurs, API SQL embarquée et propriétaires des résultats. Aucun patch de fusion avant la preuve du témoin.
+
+## Correction de compatibilité isolée (suite du run 41197139983)
+
+La chaîne **originale sans patch** reste représentée par le job d'échec du 31 octobre 2026, documenté dans `CI-RECEIPT.md`. Le nouveau job `original-compat` restaure le commit strict `24be9371a2f6c71250a2356631ad6feab2280b02`, puis applique **seulement** `compat/0001-get-password-ctype.patch` à la copie jetable de build. Ce patch ajoute `<ctype.h>` dans `mysys/get_password.c` pour satisfaire le compilateur C99+ utilisé par Emscripten 6.0.6. Aucun patch fonctionnel (SQL, mémoire, threading, ABI) n'est appliqué à cette variante.
+
+Le CI exécute `git apply --check`, `git diff --check`, enregistre le SHA-256 du patch et le diff effectif, puis lance `wasm/build.sh` et `npm test`. Un succès de compilation **ne sera pas** compté comme un test navigateur MariaDB original : les tests navigateur MariaDB du bridge sont distincts. En cas d'un nouvel échec, garder les logs et corriger seulement la nouvelle cause démontrée.

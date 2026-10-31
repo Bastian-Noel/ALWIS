@@ -105,10 +105,13 @@ for (const browserName of (process.env.PHP_WASM_BROWSERS ?? 'chromium,firefox').
             if (row.rows?.[0]?.[0] !== 'MQ==') throw new Error('Invalid SQL-only result');
             sqlTimes.push(now() - start);
           }
-          result.sqlOnlyMilliseconds = sqlTimes;
+          const sortedSql = [...sqlTimes].sort((a, b) => a - b);
+          result.sqlOnly = { milliseconds: sqlTimes, p50: sortedSql[Math.ceil(sortedSql.length * .5) - 1], p95: sortedSql[Math.ceil(sortedSql.length * .95) - 1] };
+          result.memorySqlOnly = await memory();
           started = now();
           php = await createPHP({ ...options, hostCalls: db.hostCalls });
           result.phpWithSqlStartupMs = now() - started;
+          result.memoryPhpWithSqlStarted = await memory();
           result.phpSql = {};
           for (const count of [1, 10, 100]) {
             result.phpSql[count] = await measureRuns(php, `<?php $db = new PDO('mysql:dbname=joomla;charset=utf8mb4', 'root', ''); for ($i=0; $i<${count}; $i++) { if ((string)$db->query('SELECT 42')->fetchColumn() !== '42') throw new RuntimeException('Bad SQL result'); } echo 'ok';`, 20);

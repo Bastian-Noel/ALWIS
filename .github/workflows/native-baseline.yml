@@ -18,7 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        variant: [original, bridge]
+        variant: [original-compat, bridge]
     env:
       JOBS: '2'
     steps:
@@ -42,8 +42,8 @@ jobs:
           sudo apt-get install --no-install-recommends -y build-essential cmake bison libssl-dev libpcre2-dev libncurses-dev autoconf automake re2c libtool pkg-config
           build-work/emsdk/emsdk install 6.0.6
           build-work/emsdk/emsdk activate 6.0.6
-      - name: Compile unmodified original MariaDB
-        if: matrix.variant == 'original'
+      - name: Compile MariaDB original with isolated compiler-compatibility patch
+        if: matrix.variant == 'original-compat'
         run: |
           set -o pipefail
           source build-work/emsdk/emsdk_env.sh
@@ -51,6 +51,13 @@ jobs:
           git -C build-work/mariadb checkout --detach 24be9371a2f6c71250a2356631ad6feab2280b02
           git -C build-work/mariadb submodule update --init --depth 1 libmariadb extra/wolfssl/wolfssl
           mkdir -p build-work/logs
+          # Pure original failed on 2026-10-31, run 41197139983; keep that immutable receipt.
+          # This compatibility-only include is applied to a disposable checkout, never the source snapshots.
+          sha256sum engine/baseline/compat/0001-get-password-ctype.patch | tee build-work/logs/mariadb-original-patch.sha256
+          git -C build-work/mariadb apply --check "$GITHUB_WORKSPACE/engine/baseline/compat/0001-get-password-ctype.patch"
+          git -C build-work/mariadb apply "$GITHUB_WORKSPACE/engine/baseline/compat/0001-get-password-ctype.patch"
+          git -C build-work/mariadb diff --check
+          git -C build-work/mariadb diff -- mysys/get_password.c > build-work/logs/mariadb-original-applied.diff
           (cd build-work/mariadb && /usr/bin/time -v bash wasm/build.sh) 2>&1 | tee build-work/logs/mariadb-original-build.log
           (cd build-work/mariadb/wasm && npm test) 2>&1 | tee build-work/logs/mariadb-original-tests.log
       - name: Compile bridge engine using only its upstream patch
@@ -78,7 +85,7 @@ jobs:
         with:
           name: baseline-mariadb-${{ matrix.variant }}
           include-hidden-files: true
-          retention-days: 14
+          retention-days: 90
           path: |
             build-work/logs/
             build-work/mariadb/wasm/dist/
