@@ -39,6 +39,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+          cache: npm
+          cache-dependency-path: build-work/php/package-lock.json
       - name: Reuse latest successful native build without recompiling
         if: github.event_name == 'push'
         env:
@@ -55,6 +57,11 @@ jobs:
           path: build-work
           run-id: ${{ env.BASELINE_RUN_ID }}
           github-token: ${{ github.token }}
+      - name: Cache pinned Playwright browser binaries
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-v1-${{ hashFiles('build-work/php/package-lock.json') }}
       - name: Prepare pinned browser and database dependencies
         run: |
           cd build-work/php

@@ -7,6 +7,7 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import os from 'node:os';
+import { readBrowserProcessMemory } from './browser-process-memory.mjs';
 import { createHash } from 'node:crypto';
 
 const root = process.cwd();
@@ -25,7 +26,7 @@ const metadata = {
   engineSha256: await hash(join(root, 'dist/php/8.4/php.wasm')),
   harnessSha256: await hash(new URL(import.meta.url)),
   host: { platform: os.platform(), release: os.release(), cpu: os.cpus()[0]?.model, logicalCpus: os.cpus().length, totalMemoryBytes: os.totalmem(), freeMemoryBytes: os.freemem(), node: process.version },
-  limitations: ['Headless CI environment; not a target-device performance guarantee.', 'Startup includes worker creation, fetch and instantiation; server disables HTTP cache.', 'Browser aggregate memory is not the linear WASM size or physical process RAM.'],
+  limitations: ['Headless CI environment; not a target-device performance guarantee.', 'Startup includes worker creation, fetch and instantiation; server disables HTTP cache.', 'Browser API memory is not linear WASM size; Linux PSS is aggregate browser process memory (not WASM heap) and may be unavailable.'],
 };
 for (const browserName of (process.env.PHP_WASM_BROWSERS ?? 'chromium,firefox').split(',')) {
   assert.ok(['chromium', 'firefox'].includes(browserName));
@@ -37,6 +38,9 @@ for (const browserName of (process.env.PHP_WASM_BROWSERS ?? 'chromium,firefox').
     report.browserVersion = browser.version();
     const context = await browser.newContext();
     const page = await context.newPage();
+    // Browser workers are Node child processes on this Linux runner.
+    // The binding persists across per-sample page navigations.
+    await page.exposeFunction('__browserProcessMemory', () => readBrowserProcessMemory(process.pid));
     page.setDefaultTimeout(180_000);
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
@@ -48,7 +52,7 @@ for (const browserName of (process.env.PHP_WASM_BROWSERS ?? 'chromium,firefox').
         const { createMariaDB } = await import('/mariadb/src/index.mjs');
         const now = () => performance.now();
         const decode = bytes => new TextDecoder().decode(bytes);
-        const memory = async () => {
+        const browserApiMemory = async () => {
           if (typeof performance.measureUserAgentSpecificMemory !== 'function') return { available: false, reason: 'API unavailable' };
           let timer;
           try {
@@ -59,6 +63,10 @@ for (const browserName of (process.env.PHP_WASM_BROWSERS ?? 'chromium,firefox').
           } catch (error) { return { available: false, reason: error.message }; }
           finally { clearTimeout(timer); }
         };
+        const memory = async () => ({
+          ...await browserApiMemory(),
+          linuxProcessTree: await window.__browserProcessMemory(),
+        });
         const measureRuns = async (php, code, count) => {
           await php.fs.writeFile('/workspace/bench.php', code);
           const request = () => php.request({ script: '/workspace/bench.php', url: new URL('/bench.php', location.href).href });
