@@ -83,6 +83,6 @@ Geste structurel → SQL proposé → exécution sur la connexion console → r�
 
 ## Variantes à comparer
 
-La référence séparée est prioritaire pour vérifier la compatibilité. Deux modules dans le même Worker peuvent réduire les messages, mais conservent deux mémoires et leurs copies. La variante fusionnée requiert une chaîne Emscripten commune, des réglages pthread/Asyncify/JSPI compatibles et une convention d'allocateurs claire. Elle sera conservée si le coût total mesuré, y compris reprise sur erreur et RAM, le justifie.
+La référence séparée est le témoin de conformité du jalon 3, non la cible produit. Deux modules dans le même Worker conserveraient deux mémoires WASM et leurs copies. La **cible du jalon 4 est un WASM unique** : elle requiert une chaîne Emscripten commune, des réglages pthread/Asyncify/JSPI compatibles et une convention d'allocateurs claire. Les mesures servent à corriger le coût total, les erreurs et la RAM ; un éventuel abandon technique de cette cible devrait être explicitement justifié plutôt que déduit d'un seul microbenchmark.
 
 Le système de dossiers PC reste hors V1. Le multijoueur entre appareils nécessitera un transport vers l'hôte (par exemple WebRTC, signalisation et parfois TURN), sans réplication implicite d'IndexedDB.

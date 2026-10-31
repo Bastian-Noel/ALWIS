@@ -1,23 +1,24 @@
 # Étapes d'implémentation
 
-> Cadrage actualisé : voir [l’objectif actif](EXECUTION.md). N fenêtres avec sessions indépendantes ou partagées ; WASM unique PHP/MariaDB comme cible principale ; SQL à la demande et déchargement évalué sur mesures. Les scénarios à deux joueurs ci-dessous sont des tests, pas une limite produit.
+> Ordre impératif : [objectif actif](EXECUTION.md). N fenêtres peuvent partager ou non une session ; la fusion PHP/MariaDB est la **cible principale**, pas un lot reporté après l'UI. La mesure précède chaque optimisation.
 
-Chaque étape produit un résultat observable avant de commencer l'optimisation suivante. Les modules listés comme futurs ne sont pas créés artificiellement avec de faux retours.
+Une étape n'est close qu'avec des tests réels, des commandes reproductibles, des résultats bruts et les limitations consignées. Les anciens lots 0–11 étaient un inventaire technique, non l'ordre d'exécution actuel.
 
-| Lot | Travail | Références | Critère de sortie |
+| Jalon | Travail | Preuve de sortie | État au 31 octobre 2026 |
 |---|---|---|---|
-| 0 — Reconstitution | Sources, lock, cartographie, cache, file, contrat et fixtures | Livré ici | Tests Node et contrôles d'intégrité verts |
-| 1 — Build témoin | SDK 6.0.6, dépendances, PHP Sean Morris et PDO du bridge, MariaDB patchée | SRC-026 à 029, docs BUILD | Test natif amont reproduit, version+hash de chaque asset archivés |
-| 2 — Petit projet HTTP | Adapter CGI, document root, GET/POST, cookies, sessions, fichiers, import SQL | SRC-001 à 010, 047 à 052 | Fixture PDO servie en HTTP, rechargement cohérent |
-| 3 — Sessions SQL par propriétaire | Owner registry, cleanup ciblé et rollback en fin de requête | SRC-022/023 | Console inchangée après 1000 requêtes PHP et erreurs/abandons |
-| 4 — MySQLi natif | Spike mysqlnd vs extension directe, cœur SQL commun, types et prepared | SRC-039 à 046 | PDO/MySQLi fixtures identiques, références bind et fermeture correctes |
-| 5 — Transport borné | Curseurs, batches typés, suppression JSON/base64, limites mode bufferisé | SRC-014 à 021, 033/035 | Binaire/types exacts, gros résultat borné ou refus propre |
-| 6 — Stockage | Témoin IDBFS incrémental et prototype WasmFS OPFS PHP/DB | SRC-008 à 012, 036/037, 056 à 066 | Persistance et crash recovery ; absence de miroir complet démontrée |
-| 7 — Plusieurs fenêtres | Verrou projet, génération, SW routeur, sessions joueurs, reconnexion | SRC-047 à 052, 067/068 | 2 joueurs + console, même DB, fermeture studio et redémarrage SW gérés |
-| 8 — Gestion SQL JS | Console, grille paginée, introspection, diagramme et DDL vérifié | SRC-069 à 081 | FK réelle créée depuis diagramme ; erreur DDL reflétée correctement |
-| 9 — Profil mémoire | Pools/threads/init heap/caches, imports et historique bornés | docs MEMOIRE | Mesures comparables et rapport des limites par navigateur |
-| 10 — Fusion | Lier PHP+MariaDB via API C commune, même jeu de tests | Contrat `pbl_sql.h` | Gain total démontré ou abandon documenté en faveur de la référence |
-| 11 — Compatibilité élargie | WordPress simple, médias, REST/permalinks, quelques extensions | Projet réel | Install/admin/article/upload/persistance réussis sur notre MariaDB |
+| **1 — Cadrage/structure** | Responsabilités natives, runtime, UI, fixtures, CI, provenance et snapshots préservés | Arborescence, sources/verrous, objectif corrigé | Fait pour le socle |
+| **2 — Analyse des sources** | Sean Morris PHP, JoomEngine PHP, bridge MariaDB, lite4mariadb ; ABI, compilation et cycles de vie | [Analyse épinglée](../engine/baseline/SOURCE-ANALYSIS.md) et cartographie 81 repères | Analyse initiale complète ; vérifications de fusion à poursuivre au besoin |
+| **3 — Témoins amont mesurés** | PHP seul, MariaDB seule, PHP/PDO→MariaDB avec versions amont ; navigateur et persistance | Compile, requêtes et transactions réelles, logs, hashes, temps et RAM documentée | [CI partielle vérifiée](../engine/baseline/CI-RECEIPT.md) ; MariaDB originale et benchmarks à finaliser |
+| **4 — WASM unique + PDO** | Rebuild ABI commune, runtime unique PHP/MariaDB, pont C direct, owners, SQL à la demande | Même fixtures + comparer mémoire, CPU et persistance au témoin 3 | Non commencé ; **ne pas anticiper** |
+| **5 — MySQLi natif + mémoire** | Spike mysqlnd/extension native, types/résultats, profils MariaDB et cycles stop/restart expérimentaux | Conformité PDO/MySQLi, trace allocateurs/pics navigateur ; décisions fondées sur les chiffres | Non commencé |
+| **6 — Environnement navigateur** | Routage HTTP, N fenêtres, sessions virtuelles partagées/indépendantes, persistance fichiers, éditeur et SQL UI déchargeables | GET/POST/cookies/uploads/redirections, même DB, sessions correctes, sauvegarde/reprise et UI démontée | Non commencé |
+
+### Sous-lots à traiter au jalon correspondant
+
+- **4 :** modèle de propriétaire par requête/console, rollback et nettoyage ciblés, file bornée, résultats typés, contrôles des buffers, pont C sans JSON/base64.
+- **5 :** MySQLi procédural/objet et prepared, taille de résultat, `mysql_store_result`, profil 16/32/64 Mio, pthreads, stop SQL à chaud seulement si gain navigateur mesuré.
+- **6 :** HTTP CGI réel et Service Worker, isolation de cookie jar virtuel / origine / sous-domaines à comparer, options de stockage IDBFS/OPFS avec crash recovery, grille SQL paginée et diagramme introspecté.
+- **Après prototype :** accès direct aux dossiers PC, réseau entre appareils, WordPress étendu. Pas de compatibilité affirmée sans test.
 
 ## Backlog de tests natifs
 

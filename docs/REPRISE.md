@@ -16,16 +16,18 @@ Le texte fourni décrit un précédent résultat avec quinze dépôts, cinquante
 
 Les sources PHP et Emscripten HEAD servent à l'étude des interfaces, pas automatiquement à compiler la pile du bridge. La compatibilité de départ est celle documentée par le bridge : Sean Morris au commit indiqué dans `native/upstream-versions.json`, Emscripten 6.0.6 et version PHP correspondante. Le runtime JoomEngine est une alternative et épingle un bridge différent : l'assembler à HEAD sans vérification serait une nouvelle hypothèse.
 
-## Première tranche après cette préparation
+## Reprise effective au 31 octobre 2026
 
-1. Sur un poste possédant la chaîne native, conserver les snapshots d'origine et travailler dans des copies.
-2. Reproduire le test amont PDO PHP+MariaDB du bridge avec son patch de sessions indépendantes. Ne pas commencer par modifier sa mémoire ou son ABI.
-3. Mesurer mémoire, démarrage et requête PHP scolaire ; sauvegarder le résultat brut avec navigateur, OS, CPU et commits.
-4. Séparer le nettoyage de fin de requête PHP des connexions console. Tester rollback et fermeture des curseurs du seul propriétaire concerné.
-5. Décider entre adaptation mysqlnd et adaptation de MySQLi au backend commun sur la base d'un microprototype C ; ne pas implémenter les deux intégralement.
-6. Ajouter MySQLi natif, puis comparer les sorties des fixtures PDO et MySQLi.
+Les deux chaînes amont PHP/PDO/MariaDB ont été compilées et testées en navigateur sur le [run 41197139983](https://github.com/Bastian-Noel/WASMWebServer/actions/runs/41197139983). Les résultats exacts et le build original MariaDB non résolu sont détaillés dans [CI-RECEIPT](../engine/baseline/CI-RECEIPT.md). La [cartographie des quatre sources](../engine/baseline/SOURCE-ANALYSIS.md) ferme l'analyse prioritaire du jalon 2, pas les inconnues ABI du jalon 4.
 
-La file et le cache livrés se branchent à cette intégration ; ils ne remplacent ni l'API HTTP CGI du runtime, ni un backend fichiers POSIX.
+1. Reproduire et vérifier l'original lite4mariadb ; conserver l'échec sans patch et tracer séparément l'inclusion de compatibilité `<ctype.h>` sur un checkout jetable.
+2. Exécuter le benchmark navigateur sur l'artifact PHP épinglé ; consigner les temps individuels, la disponibilité des API mémoire, les versions et empreintes.
+3. Valider transactions, deux connexions indépendantes, fermeture de requête et console, persistence après reload/arrêt forcé, avant de clôturer le jalon 3.
+4. **Passer ensuite au jalon 4 : un seul WASM** avec PHP et MariaDB, PDO branché sur API C commune et SQL initialisé à la demande. Mesurer contre le témoin.
+5. Seulement après cette validation, développer MySQLi natif et tester les optimisations mémoire (jalon 5).
+6. Enfin construire HTTP, N fenêtres, sessions indépendantes ou partagées, outils JS déchargeables et VFS (jalon 6).
+
+La file et le cache livrés se branchent à cette intégration ; ils ne remplacent ni une API HTTP CGI ni un backend fichiers POSIX.
 
 ## Critères de réussite inchangés
 

@@ -6,7 +6,7 @@
 
 Importer de petits projets scolaires PHP/HTML/CSS/JS et un dump SQL, conserver leurs appels PDO et MySQLi usuels, puis servir leurs pages dans le navigateur. La cible est une vraie MariaDB embarquée avec transactions, pas une VM x86 : cette voie a déjà été essayée et rejetée pour son coût.
 
-Deux joueurs locaux doivent disposer de sessions distinctes, mais partager un unique environnement PHP/SQL. Une fenêtre indépendante permet de lancer du SQL, éditer les données et manipuler un schéma relationnel dynamique. L'interface de gestion doit être en JavaScript et légère. La priorité reste la mémoire, sans sacrifier les extensions PHP essentielles ni les comportements usuels.
+N fenêtres clientes doivent pouvoir choisir des sessions distinctes ou partagées, toutes reliées au même environnement PHP/SQL. Deux joueurs ne sont qu'une fixture. Des fenêtres outils indépendantes doivent permettre de lancer du SQL, éditer les données et manipuler un schéma relationnel dynamique. L'interface de gestion doit être en JavaScript et légère. La priorité reste la mémoire, sans sacrifier les extensions PHP essentielles ni les comportements usuels.
 
 ## Sources et chronologie
 
@@ -34,13 +34,13 @@ La première réponse proposait une compatibilité MySQLi écrite en PHP. La dem
 
 Le Service Worker route le HTTP. Le studio possède les Dedicated Workers et reste ouvert. Il ne faut pas faire dépendre la durée de vie de la base de celle du Service Worker. Un seul propriétaire par projet, cookies virtuels distincts par joueur et connexions SQL distinctes pour PHP et la console.
 
-OPFS sans miroir intégral reste une cible à prototyper et à comparer à IDBFS incrémental. L'historique mentionne des essais OPFS amont plus lents : « OPFS » ne vaut pas preuve d'accélération. La fusion PHP/MariaDB reste une expérience après un témoin séparé reproductible.
+OPFS sans miroir intégral reste une cible à prototyper et à comparer à IDBFS incrémental. L'historique mentionne des essais OPFS amont plus lents : « OPFS » ne vaut pas preuve d'accélération. La fusion PHP/MariaDB est la cible principale, immédiatement après le témoin séparé reproductible et mesuré, avant MySQLi et les interfaces.
 
 Le premier build suit les versions compatibles du bridge, pas les HEAD PHP/Emscripten collectés pour l'étude. La mémoire et les ABI se changent après avoir reproduit le test amont.
 
 ## Cible fonctionnelle et limites
 
-- V1 : petits CRUD, formulaires, sessions, uploads, pages et endpoints PHP ; deux joueurs locaux et console sur la même base.
+- V1 : petits CRUD, formulaires, sessions, uploads, pages et endpoints PHP ; N fenêtres et sessions indépendantes/partagées sur la même base.
 - Console : SQL, historique borné, résultats paginés, erreurs, durée ; édition de lignes par clé primaire.
 - Diagramme : tables/colonnes/index/relations depuis `information_schema` et `SHOW CREATE TABLE`. Déplacer une table change une position ; relier des colonnes propose un DDL réel, puis réintrospecte après exécution.
 - Deux appareils : transport vers un navigateur hôte à étudier ultérieurement ; aucune réplication implicite d'IndexedDB.
@@ -58,4 +58,4 @@ Les comptes historiques 15 dépôts/57 repères/7 puis 8 tests concernent les fi
 
 ## Prochaine action de développement
 
-Reproduire le témoin PDO PHP+MariaDB du bridge, conserver versions/commandes/logs, puis mesurer une fixture. Ensuite isoler le nettoyage des connexions par propriétaire et comparer les deux stratégies MySQLi natives. Les critères et lots détaillés figurent dans [ROADMAP](ROADMAP.md) et [REPRISE](REPRISE.md).
+Achever et mesurer le témoin PDO PHP+MariaDB du bridge, conserver versions/commandes/logs, puis construire un WASM unique avec un pont C natif et nettoyage par propriétaire. Comparer ensuite les deux stratégies MySQLi natives. Les critères et lots détaillés figurent dans [ROADMAP](ROADMAP.md) et [REPRISE](REPRISE.md).
