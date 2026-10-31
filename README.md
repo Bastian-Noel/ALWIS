@@ -1,6 +1,8 @@
 # WASMWebServer
 
-Environnement PHP + MariaDB entièrement dans le navigateur, destiné aux petits projets scolaires, avec PDO/MySQLi natifs, deux sessions de joueurs et une console SQL partageant la même base. Nom du socle importé : **PHP Browser Lab**.
+> Cadrage actualisé : voir [l’objectif actif](docs/EXECUTION.md). N fenêtres avec sessions indépendantes ou partagées ; WASM unique PHP/MariaDB comme cible principale ; SQL à la demande et déchargement évalué sur mesures. Les scénarios à deux joueurs ci-dessous sont des tests, pas une limite produit.
+
+Environnement PHP + MariaDB entièrement dans le navigateur, destiné aux petits projets scolaires, avec PDO/MySQLi natifs, N fenêtres rattachées à des sessions indépendantes ou partagées et une console SQL utilisant la même base. Nom du socle importé : **PHP Browser Lab**.
 
 **État : préparation technique et deux modules JavaScript testés. Aucun serveur PHP/MariaDB WASM intégré n'est encore livré.**
 

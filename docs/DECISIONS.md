@@ -1,5 +1,7 @@
 # Décisions et expériences à mener
 
+> Cadrage actualisé : voir [l’objectif actif](EXECUTION.md). N fenêtres avec sessions indépendantes ou partagées ; WASM unique PHP/MariaDB comme cible principale ; SQL à la demande et déchargement évalué sur mesures. Les scénarios à deux joueurs ci-dessous sont des tests, pas une limite produit.
+
 Les décisions de périmètre viennent des demandes utilisateur ; les choix d'implémentation restent à valider par le témoin natif. Voir [le contexte](CONTEXTE.md) pour la chronologie.
 
 | Sujet | Décision ou statut | Validation nécessaire |

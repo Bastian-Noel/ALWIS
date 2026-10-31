@@ -1,5 +1,7 @@
 # Guide de reprise
 
+> Cadrage actualisé : voir [l’objectif actif](EXECUTION.md). N fenêtres avec sessions indépendantes ou partagées ; WASM unique PHP/MariaDB comme cible principale ; SQL à la demande et déchargement évalué sur mesures. Les scénarios à deux joueurs ci-dessous sont des tests, pas une limite produit.
+
 Commencer par [CONTEXTE](CONTEXTE.md) et [DECISIONS](DECISIONS.md), consolidés à partir des deux traces de conversation. Les scripts se lancent à la racine du dépôt WASMWebServer.
 
 ## Ce que demandait la fin de la conversation

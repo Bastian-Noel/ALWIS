@@ -1,5 +1,7 @@
 # Contexte consolidé — 31 octobre 2026
 
+> Cadrage actualisé : voir [l’objectif actif](EXECUTION.md). N fenêtres avec sessions indépendantes ou partagées ; WASM unique PHP/MariaDB comme cible principale ; SQL à la demande et déchargement évalué sur mesures. Les scénarios à deux joueurs ci-dessous sont des tests, pas une limite produit.
+
 ## Besoin utilisateur
 
 Importer de petits projets scolaires PHP/HTML/CSS/JS et un dump SQL, conserver leurs appels PDO et MySQLi usuels, puis servir leurs pages dans le navigateur. La cible est une vraie MariaDB embarquée avec transactions, pas une VM x86 : cette voie a déjà été essayée et rejetée pour son coût.

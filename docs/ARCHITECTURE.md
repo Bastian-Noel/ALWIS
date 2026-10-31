@@ -1,5 +1,7 @@
 # Architecture cible
 
+> Cadrage actualisé : voir [l’objectif actif](EXECUTION.md). N fenêtres avec sessions indépendantes ou partagées ; WASM unique PHP/MariaDB comme cible principale ; SQL à la demande et déchargement évalué sur mesures. Les scénarios à deux joueurs ci-dessous sont des tests, pas une limite produit.
+
 ## Propriétaire des moteurs et parcours HTTP
 
 Le studio détient le verrou exclusif du projet (`navigator.locks`) et démarre les Dedicated Workers PHP et MariaDB. Les fenêtres de prévisualisation et de gestion ne démarrent aucun autre moteur pour ce projet.
