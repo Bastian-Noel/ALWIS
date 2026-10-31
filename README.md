@@ -4,7 +4,7 @@
 
 Environnement PHP + MariaDB entièrement dans le navigateur, destiné aux petits projets scolaires, avec PDO/MySQLi natifs, N fenêtres rattachées à des sessions indépendantes ou partagées et une console SQL utilisant la même base. Nom du socle importé : **PHP Browser Lab**.
 
-**État : préparation technique et deux modules JavaScript testés. Aucun serveur PHP/MariaDB WASM intégré n'est encore livré.**
+**État : structure et cartographie réalisées ; PHP 8.4 et les témoins MariaDB/PDO ont passé des tests navigateur amont en CI. Le build MariaDB original et les mesures restent à finaliser. Aucun serveur PHP/MariaDB WASM fusionné n'est encore livré.**
 
 ## Commencer
 
@@ -30,7 +30,8 @@ Le premier build moteur est décrit dans [BUILD](docs/BUILD.md) ; il requiert se
 | 17 dépôts + 2 sous-modules | Sources épinglées avec SHA-256 |
 | 81 repères de code | Cartographie et empreintes dans `provenance/` |
 | Runtime, adaptation MySQLi, VFS, Service Worker et interface | À développer |
-| Compilation et performances navigateur | Non réalisées |
+| Compilations et tests navigateur amont | PHP et bridge réussis ; MariaDB originale échouée sur un en-tête C ; [preuves](engine/baseline/CI-RECEIPT.md) |
+| Benchmarks mémoire et performance du produit | Non réalisés ; banc navigateur préparé |
 
 ## Sources amont volumineuses
 
@@ -56,6 +57,7 @@ Sans release locale, les deux scripts `fetch-*` téléchargent les mêmes snapsh
 - [Difficultés](docs/DIFFICULTES.md) : risques techniques et solutions à éprouver.
 - [Mémoire et benchmarks](docs/MEMOIRE-BENCHMARKS.md) : budgets et protocole de mesure.
 - [Build](docs/BUILD.md), [roadmap](docs/ROADMAP.md), [reprise](docs/REPRISE.md).
+- [Analyse détaillée des quatre sources prioritaires](engine/baseline/SOURCE-ANALYSIS.md) et [preuves CI réelles](engine/baseline/CI-RECEIPT.md).
 
 `packages/` contient le socle et le contrat, `fixtures/` les projets de validation, `tests/` les tests Node, `config/` les budgets proposés, `scripts/` les outils de restauration. `provenance/` garde les conversations, verrous et preuves historiques. `sources/`, `upstream/` et `build-work/` sont locaux et ignorés par Git.
 
