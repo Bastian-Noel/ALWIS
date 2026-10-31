@@ -1,0 +1,14 @@
+{
+  "browser": "firefox",
+  "status": "passed",
+  "scenario": "Flush committed row, begin an uncommitted transaction, destroy page without db.close, reopen in same browser context",
+  "limitation": "Flushed snapshot restoration only; not unflushed commit durability, interruption during syncfs or physical power loss.",
+  "browserVersion": "157.0",
+  "flushAcknowledged": true,
+  "rows": [
+    [
+      "MQ==",
+      "Y29tbWl0dGVk"
+    ]
+  ]
+}

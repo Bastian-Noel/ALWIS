@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "commit": "3b8cef42c020fbcbb6b41fad86716b7c8664b55b",
+  "runtimeVersion": "0.1.2",
+  "phpMinor": "8.4",
+  "engine": {
+    "phpVersion": "8.4.27",
+    "module": {
+      "url": "php/8.4/php.mjs",
+      "sha256": "ed6e87e9f48fa92481bf7ae20973f779f8f89e5cd902f505bad6c578602697f4"
+    },
+    "wasm": {
+      "url": "php/8.4/php.wasm",
+      "sha256": "09b58da09878913f67e6a8d6489270c8b22743fd419104c3c495857f008b4317"
+    },
+    "extensions": {
+      "pdo_mariadb_wasm": {
+        "version": "0.1.1",
+        "protocolVersion": 1,
+        "pdoDriver": "mysql",
+        "hostCall": "mariadb.v1",
+        "source": {
+          "repository": "https://github.com/joomengine/mariadb-wasm-bridge.git",
+          "commit": "c1878dbb23c8e98d67983251ba7eb26a28b8edaa"
+        }
+      }
+    }
+  },
+  "environment": "node",
+  "bridge": {
+    "version": "0.1.1",
+    "protocolVersion": 1,
+    "sourceCommit": "c1878dbb23c8e98d67983251ba7eb26a28b8edaa",
+    "runtimeArchive": {
+      "url": "https://github.com/joomengine/mariadb-wasm-bridge/releases/download/v0.1.1/mariadb-wasm-bridge-0.1.1.tar.gz",
+      "sha256": "99f4c568ee6d52b70600e9fba75e3aa4d3d94c031157d4910409c57e71bf79eb"
+    }
+  }
+}

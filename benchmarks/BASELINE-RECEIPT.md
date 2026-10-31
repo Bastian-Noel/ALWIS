@@ -4,7 +4,7 @@
 
 - **Run de compilation** : [41204266390](https://github.com/Bastian-Noel/WASMWebServer/actions/runs/41204266390), commit `1ed52d9ba21cab8c9a131b1ac0ac04521c850376`, trois jobs passés.
 - **Run de benchmark** : [41212313878](https://github.com/Bastian-Noel/WASMWebServer/actions/runs/41212313878), commit harness `6126674c9d462f5e14dcba6a139c1c99de1c2c9f`, artefact `baseline-browser-measurements` **13046478972** avec JSON bruts complets et les séries de latences de chaque requête.
-- PHP **8.4.27** et bridge JoomEngine **v0.1.1**, navigateur Chromium **156.0.8078.4**, Firefox **157.0**, runner Linux Azure Xeon Platinum 8573C, **2 processeurs logiques**, ~**8,3 Go** mémoire hôte. Chaque navigateur : **3 échantillons**.
+- PHP **8.4.27** et bridge JoomEngine **v0.1.1**, navigateur Chromium **156.0.8078.4**, Firefox **157.0**, runner Linux Azure AMD EPYC 7763 (corrigé à partir des JSON bruts du run), **2 processeurs logiques**, ~**8,3 Go** mémoire hôte. Chaque navigateur : **3 échantillons**.
 - Les valeurs reflètent les workers, chargements et instanciations sous CI ; ni moteur WASM unique ni performance garantie d'un PC personnel. Les échantillons bruts sont dans l'artefact GitHub (rétention 90 jours), pas réinventés ci-dessous.
 
 ## Résultats (min–max des trois mesures)
@@ -29,3 +29,7 @@
 ## Étape suivante
 
 La fusion n'est pas accomplie ; le premier audit des *vrais binaires* issus des trois artifacts est dans [engine/fusion/ABI-BINARY-RECEIPT.md](../engine/fusion/ABI-BINARY-RECEIPT.md), reproductible avec `node scripts/inspect-wasm-abi.mjs`. Il confirme la nécessité de reconstruire PHP et MariaDB avec un contrat mémoire et threading commun plutôt que de juxtaposer ces `.wasm`.
+
+## Vérification ultérieure des preuves
+
+Les JSON originaux des runs de latence et de PSS sont préservés dans [receipts/2026-10-31](receipts/2026-10-31), avec leurs références et SHA-256. L’absence de RAM ci-dessus concerne l’API du premier run ; le run 41213242075 contient ensuite la PSS globale, pas la RAM exclusive du moteur. Le run cache 41212524552 est maintenant confirmé vert pour ses trois jobs ; les statistiques conservées ne prouvent pas encore un gain de temps entre deux builds comparables.

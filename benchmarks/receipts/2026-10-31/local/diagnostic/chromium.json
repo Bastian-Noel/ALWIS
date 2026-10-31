@@ -1,0 +1,965 @@
+{
+  "sampleIsolation": "cold",
+  "diagnosticAdapter": {
+    "sourceCommit": "3b8cef42c020fbcbb6b41fad86716b7c8664b55b",
+    "purpose": "Current worker-local linear memory size, not resident RAM or allocation usage/peak",
+    "patches": [
+      {
+        "file": "src/index.mjs",
+        "originalSha256": "55d450ce6c30a0d05dc2ad1adf9a3129fe3a4f8fa7b0a0cf2565c58de59dfb2a",
+        "diagnosticSha256": "3568d49be191ef3a7cd240d42ee60cae4febc61b2c1a824a865b040822d412d5"
+      },
+      {
+        "file": "src/worker.mjs",
+        "originalSha256": "96a157a767bb2d13a58295862a695a57462227a0c5a2579f88293f91fad601fc",
+        "diagnosticSha256": "a88a6347fcbd630bd04dbb9e2f7314488ac0b22be18e915ecb793a9a99b02668"
+      },
+      {
+        "file": ".build/mariadb-bridge/src/index.mjs",
+        "originalSha256": "f476bc6e75ffa9a3ef27e97d29c0381ab8ddb7e8091c88bfbf26e475f32c9605",
+        "diagnosticSha256": "e76e9280ab39891470bed0c222b3e02c937f537b486b809113f1b8f905662f80"
+      },
+      {
+        "file": ".build/mariadb-bridge/src/worker.mjs",
+        "originalSha256": "0ebb4a9213a8278aeacb16841b725e79cdd7bee4655f9551a3626eb0382448a2",
+        "diagnosticSha256": "ea5f20705d2b3758035bd6c3191c5d789ffbc39e343c8a60bfee3aa276b88a97"
+      },
+      {
+        "file": ".build/mariadb-bridge/src/engine.mjs",
+        "originalSha256": "6c0c0b883d0365a55848d693aeea0e4e69aad7df003bc6cdf27900f18a74b2fe",
+        "diagnosticSha256": "e0c96b55e747cbd4a0a3722f89b89b7e8dc7bbfcc28584a37cccde09ee9dc2be"
+      },
+      {
+        "file": ".build/mariadb-bridge/vendor/lite4mariadb/lite4mariadb.js",
+        "originalSha256": "12bc9f943c497f834bdd189fa8ca0a2bc1fc6f24c6ac3e3bb99b3156d9981308",
+        "diagnosticSha256": "8608f3b0ec15ffe943a48445e93b01186154752993162a6a4dee9b4aa4879fec"
+      }
+    ],
+    "wasm": [
+      {
+        "file": "dist/php/8.4/php.wasm",
+        "sha256": "09b58da09878913f67e6a8d6489270c8b22743fd419104c3c495857f008b4317"
+      },
+      {
+        "file": ".build/mariadb-bridge/vendor/lite4mariadb/lite4mariadb.wasm",
+        "sha256": "1dcd5bf92685ebe37b4fc49e2fb5f57f05cef26c7e884c6ead98b2892dd59fde"
+      }
+    ]
+  },
+  "sampleIsolationScope": "Browser process restart for cold; same process for warm. OS/filesystem caches are not flushed.",
+  "linearWasmMemory": {
+    "available": false,
+    "reason": "Pinned public runtime does not expose worker-local memory; requires separate diagnostic instrumentation."
+  },
+  "persistenceScenario": "Explicit flush and clean engine close, then reopen; does not test crash recovery.",
+  "simultaneousConsoleAndPDO": {
+    "verified": false,
+    "reason": "Pinned v0.1.1 bridge requires releasing the console lease before PDO."
+  },
+  "schemaVersion": 2,
+  "measuredAt": "2026-10-31T16:03:00.710Z",
+  "sourceCommit": "3b8cef42c020fbcbb6b41fad86716b7c8664b55b",
+  "php": {
+    "version": "8.4.27",
+    "url": "https://www.php.net/distributions/php-8.4.27.tar.xz",
+    "sha256": "dcf93923b0e38e0d5252b25b796520b5a47761a08b3488b6d0b5d1115764d3f0"
+  },
+  "bridge": {
+    "version": "0.1.1",
+    "protocolVersion": 1,
+    "repository": "https://github.com/joomengine/mariadb-wasm-bridge.git",
+    "commit": "c1878dbb23c8e98d67983251ba7eb26a28b8edaa",
+    "runtimeArchive": {
+      "url": "https://github.com/joomengine/mariadb-wasm-bridge/releases/download/v0.1.1/mariadb-wasm-bridge-0.1.1.tar.gz",
+      "sha256": "99f4c568ee6d52b70600e9fba75e3aa4d3d94c031157d4910409c57e71bf79eb"
+    }
+  },
+  "engineSha256": "09b58da09878913f67e6a8d6489270c8b22743fd419104c3c495857f008b4317",
+  "harnessSha256": "c1db9d54f14df09a047e315448771d66876c5ac18e892345315ab18ce3753bd6",
+  "host": {
+    "platform": "linux",
+    "release": "6.18.57",
+    "cpu": "AMD EPYC 9V74 80-Core Processor",
+    "logicalCpus": 5,
+    "totalMemoryBytes": 35743748096,
+    "freeMemoryBytes": 33158594560,
+    "node": "v24.19.0"
+  },
+  "limitations": [
+    "Headless CI environment; not a target-device performance guarantee.",
+    "Startup includes worker creation, fetch and instantiation; server disables HTTP cache.",
+    "Browser API memory is not linear WASM size; Linux PSS is aggregate browser process memory (not WASM heap) and may be unavailable."
+  ],
+  "browser": "chromium",
+  "status": "passed",
+  "samples": [
+    {
+      "sample": 0,
+      "isolated": true,
+      "memoryBefore": {
+        "available": false,
+        "reason": "Failed to execute 'measureUserAgentSpecificMemory' on 'Performance': performance.measureUserAgentSpecificMemory is not available.",
+        "linuxProcessTree": {
+          "available": true,
+          "processCount": 6,
+          "rssSumBytes": 397041664,
+          "pssBytes": 121415680,
+          "source": "Linux /proc/<pid>/smaps_rollup of Node Playwright descendants",
+          "limitation": "PSS includes browser, JS, workers and WASM; not WASM heap or physical system-wide RAM"
+        },
+        "linearWasmMemory": {
+          "available": true,
+          "unit": "bytes",
+          "php": null,
+          "sql": null,
+          "limitation": "Current linear capacity only; not resident RAM, live allocations or a continuous peak measurement."
+        }
+      },
+      "phpOnlyStartupMs": 575,
+      "phpOnly": {
+        "milliseconds": [
+          31.115000000107102,
+          16.349999999976717,
+          16.364999999990687,
+          9.98499999998603,
+          12.415000000037253,
+          17.90500000002794,
+          45.77000000001863,
+          17.820000000065193,
+          20.910000000032596,
+          10.84499999997206,
+          47.18500000005588,
+          23.81000000005588,
+          28.994999999995343,
+          34.75500000000466,
+          22.34499999997206,
+          17.145000000018626,
+          16.044999999925494,
+          36.70999999996275,
+          14.285000000032596,
+          5.939999999944121,
+          23.369999999995343,
+          10.180000000051223,
+          12.134999999892898,
+          5.190000000060536,
+          4.434999999939464,
+          4.114999999990687,
+          4.244999999995343,
+          21.64000000001397,
+          17.15500000002794,
+          26.139999999897555
+        ],
+        "p50": 17.145000000018626,
+        "p95": 45.77000000001863
+      },
+      "memoryPhpOnly": {
+        "available": false,
+        "reason": "Failed to execute 'measureUserAgentSpecificMemory' on 'Performance': performance.measureUserAgentSpecificMemory is not available.",
+        "linuxProcessTree": {
+          "available": true,
+          "processCount": 6,
+          "rssSumBytes": 783921152,
+          "pssBytes": 500847616,
+          "source": "Linux /proc/<pid>/smaps_rollup of Node Playwright descendants",
+          "limitation": "PSS includes browser, JS, workers and WASM; not WASM heap or physical system-wide RAM"
+        },
+        "linearWasmMemory": {
+          "available": true,
+          "unit": "bytes",
+          "php": {
+            "linearMemoryBytes": 134217728
+          },
+          "sql": null,
+          "limitation": "Current linear capacity only; not resident RAM, live allocations or a continuous peak measurement."
+        }
+      },
+      "sqlStartupMs": 2298.3349999999627,
+      "sqlOnly": {
+        "milliseconds": [
+          5.71999999997206,
+          3.76500000001397,
+          1.790000000037253,
+          1.209999999962747,
+          0.9549999999580905,
+          0.31000000005587935,
+          0.6149999999906868,
+          0.5150000000139698,
+          1.0749999999534339,
+          0.3300000000745058,
+          2.3649999999906868,
+          0.8649999999906868,
+          0.6799999999348074,
+          1.9600000000791624,
+          0.6549999999115244,
+          1.2800000000279397,
+          3.3649999999906868,
+          0.5450000000419095,
+          1.5899999999674037,
+          0.5850000000791624,
+          1.2199999999720603,
+          0.8850000000093132,
+          2.8049999999348074,
+          1.7299999999813735,
+          1.8250000000698492,
+          0.5949999999720603,
+          0.8599999999860302,
+          16.165000000037253,
+          1.2999999999301508,
+          2.5850000000791624
+        ],
+        "p50": 1.209999999962747,
+        "p95": 5.71999999997206
+      },
+      "memorySqlOnly": {
+        "available": false,
+        "reason": "Failed to execute 'measureUserAgentSpecificMemory' on 'Performance': performance.measureUserAgentSpecificMemory is not available.",
+        "linuxProcessTree": {
+          "available": true,
+          "processCount": 6,
+          "rssSumBytes": 1025839104,
+          "pssBytes": 737920000,
+          "source": "Linux /proc/<pid>/smaps_rollup of Node Playwright descendants",
+          "limitation": "PSS includes browser, JS, workers and WASM; not WASM heap or physical system-wide RAM"
+        },
+        "linearWasmMemory": {
+          "available": true,
+          "unit": "bytes",
+          "php": null,
+          "sql": {
+            "linearMemoryBytes": 403570688
+          },
+          "limitation": "Current linear capacity only; not resident RAM, live allocations or a continuous peak measurement."
+        }
+      },
+      "phpWithSqlStartupMs": 704.6450000000186,
+      "memoryPhpWithSqlStarted": {
+        "available": false,
+        "reason": "Failed to execute 'measureUserAgentSpecificMemory' on 'Performance': performance.measureUserAgentSpecificMemory is not available.",
+        "linuxProcessTree": {
+          "available": true,
+          "processCount": 6,
+          "rssSumBytes": 1055748096,
+          "pssBytes": 767666176,
+          "source": "Linux /proc/<pid>/smaps_rollup of Node Playwright descendants",
+          "limitation": "PSS includes browser, JS, workers and WASM; not WASM heap or physical system-wide RAM"
+        },
+        "linearWasmMemory": {
+          "available": true,
+          "unit": "bytes",
+          "php": {
+            "linearMemoryBytes": 134217728
+          },
+          "sql": {
+            "linearMemoryBytes": 403570688
+          },
+          "limitation": "Current linear capacity only; not resident RAM, live allocations or a continuous peak measurement."
+        }
+      },
+      "phpSql": {
+        "1": {
+          "milliseconds": [
+            28.71500000008382,
+            38.705000000074506,
+            14.389999999897555,
+            25.51500000001397,
+            19.244999999995343,
+            21.03000000002794,
+            33.11999999999534,
+            22.875,
+            18.49500000011176,
+            11,
+            21.73499999998603,
+            21.285000000032596,
+            10.175000000046566,
+            6.14000000001397,
+            9.989999999990687,
+            9.005000000004657,
+            8.035000000032596,
+            5.424999999930151,
+            10.095000000088476,
+            6.164999999920838
+          ],
+          "p50": 14.389999999897555,
+          "p95": 33.11999999999534
+        },
+        "10": {
+          "milliseconds": [
+            17.849999999976717,
+            15.17000000004191,
+            14.699999999953434,
+            18.70499999995809,
+            58.95999999996275,
+            12.095000000088476,
+            24.009999999892898,
+            17.445000000065193,
+            21.04999999993015,
+            31.520000000018626,
+            17.39000000001397,
+            10.755000000004657,
+            16.074999999953434,
+            10.46999999997206,
+            14.084999999962747,
+            15.730000000097789,
+            9.32500000006985,
+            9.520000000018626,
+            19.71999999997206,
+            13.57999999995809
+          ],
+          "p50": 15.730000000097789,
+          "p95": 31.520000000018626
+        },
+        "100": {
+          "milliseconds": [
+            111.01000000000931,
+            76.80999999993946,
+            88.11999999999534,
+            53.04500000004191,
+            68.55499999993481,
+            63.59999999997672,
+            35.79500000004191,
+            29.59499999997206,
+            29.989999999990687,
+            31.82999999995809,
+            27.64000000001397,
+            38.46999999997206,
+            33.59499999997206,
+            30.70000000006985,
+            42.17999999993481,
+            38.86999999999534,
+            40.43000000005122,
+            38.40500000002794,
+            38.21999999997206,
+            27.125
+          ],
+          "p50": 38.40500000002794,
+          "p95": 88.11999999999534
+        }
+      },
+      "memoryCombined": {
+        "available": false,
+        "reason": "Failed to execute 'measureUserAgentSpecificMemory' on 'Performance': performance.measureUserAgentSpecificMemory is not available.",
+        "linuxProcessTree": {
+          "available": true,
+          "processCount": 6,
+          "rssSumBytes": 1203187712,
+          "pssBytes": 978601984,
+          "source": "Linux /proc/<pid>/smaps_rollup of Node Playwright descendants",
+          "limitation": "PSS includes browser, JS, workers and WASM; not WASM heap or physical system-wide RAM"
+        },
+        "linearWasmMemory": {
+          "available": true,
+          "unit": "bytes",
+          "php": {
+            "linearMemoryBytes": 134217728
+          },
+          "sql": {
+            "linearMemoryBytes": 403570688
+          },
+          "limitation": "Current linear capacity only; not resident RAM, live allocations or a continuous peak measurement."
+        }
+      },
+      "flushMs": 284.9350000000559,
+      "sqlCloseMs": 293.0550000000512,
+      "memoryAfterClose": {
+        "available": false,
+        "reason": "Failed to execute 'measureUserAgentSpecificMemory' on 'Performance': performance.measureUserAgentSpecificMemory is not available.",
+        "linuxProcessTree": {
+          "available": true,
+          "processCount": 6,
+          "rssSumBytes": 1039433728,
+          "pssBytes": 795460608,
+          "source": "Linux /proc/<pid>/smaps_rollup of Node Playwright descendants",
+          "limitation": "PSS includes browser, JS, workers and WASM; not WASM heap or physical system-wide RAM"
+        },
+        "linearWasmMemory": {
+          "available": true,
+          "unit": "bytes",
+          "php": null,
+          "sql": null,
+          "limitation": "Current linear capacity only; not resident RAM, live allocations or a continuous peak measurement."
+        }
+      },
+      "sqlRestoreMs": 1574.4500000000698,
+      "persistenceVerified": true
+    },
+    {
+      "sample": 1,
+      "isolated": true,
+      "memoryBefore": {
+        "available": false,
+        "reason": "Failed to execute 'measureUserAgentSpecificMemory' on 'Performance': performance.measureUserAgentSpecificMemory is not available.",
+        "linuxProcessTree": {
+          "available": true,
+          "processCount": 6,
+          "rssSumBytes": 398893056,
+          "pssBytes": 179693568,
+          "source": "Linux /proc/<pid>/smaps_rollup of Node Playwright descendants",
+          "limitation": "PSS includes browser, JS, workers and WASM; not WASM heap or physical system-wide RAM"
+        },
+        "linearWasmMemory": {
+          "available": true,
+          "unit": "bytes",
+          "php": null,
+          "sql": null,
+          "limitation": "Current linear capacity only; not resident RAM, live allocations or a continuous peak measurement."
+        }
+      },
+      "phpOnlyStartupMs": 310.82499999995343,
+      "phpOnly": {
+        "milliseconds": [
+          9.119999999995343,
+          9.68999999994412,
+          6.834999999962747,
+          10.715000000083819,
+          6.774999999906868,
+          8.830000000074506,
+          7.585000000079162,
+          8.209999999962747,
+          6.184999999939464,
+          7.460000000079162,
+          8.479999999981374,
+          5.709999999962747,
+          6.319999999948777,
+          8,
+          5.815000000060536,
+          7.075000000069849,
+          7.26500000001397,
+          7.179999999934807,
+          9.04500000004191,
+          6.774999999906868,
+          6.380000000004657,
+          6.9200000000419095,
+          6.334999999962747,
+          7.444999999948777,
+          11.970000000088476,
+          10.43500000005588,
+          4.28000000002794,
+          5.214999999967404,
+          4.679999999934807,
+          3.650000000023283
+        ],
+        "p50": 7.075000000069849,
+        "p95": 10.715000000083819
+      },
+      "memoryPhpOnly": {
+        "available": false,
+        "reason": "Failed to execute 'measureUserAgentSpecificMemory' on 'Performance': performance.measureUserAgentSpecificMemory is not available.",
+        "linuxProcessTree": {
+          "available": true,
+          "processCount": 6,
+          "rssSumBytes": 757202944,
+          "pssBytes": 560382976,
+          "source": "Linux /proc/<pid>/smaps_rollup of Node Playwright descendants",
+          "limitation": "PSS includes browser, JS, workers and WASM; not WASM heap or physical system-wide RAM"
+        },
+        "linearWasmMemory": {
+          "available": true,
+          "unit": "bytes",
+          "php": {
+            "linearMemoryBytes": 134217728
+          },
+          "sql": null,
+          "limitation": "Current linear capacity only; not resident RAM, live allocations or a continuous peak measurement."
+        }
+      },
+      "sqlStartupMs": 1240.640000000014,
+      "sqlOnly": {
+        "milliseconds": [
+          1.5799999999580905,
+          0.5649999999441206,
+          0.6199999999953434,
+          0.3699999999953434,
+          0.30500000005122274,
+          0.27500000002328306,
+          0.6949999999487773,
+          0.4699999999720603,
+          1.6600000000325963,
+          0.5899999999674037,
+          0.3699999999953434,
+          3.1550000000279397,
+          0.4100000000325963,
+          0.6650000000372529,
+          0.5149999998975545,
+          0.23500000010244548,
+          0.2600000000093132,
+          0.26999999990221113,
+          0.35999999998603016,
+          0.5800000000745058,
+          0.40000000002328306,
+          0.6749999999301508,
+          0.27000000001862645,
+          0.23499999998603016,
+          0.23999999999068677,
+          0.2550000000046566,
+          0.8599999999860302,
+          0.6700000000419095,
+          0.375,
+          0.2800000000279397
+        ],
+        "p50": 0.40000000002328306,
+        "p95": 1.6600000000325963
+      },
+      "memorySqlOnly": {
+        "available": false,
+        "reason": "Failed to execute 'measureUserAgentSpecificMemory' on 'Performance': performance.measureUserAgentSpecificMemory is not available.",
+        "linuxProcessTree": {
+          "available": true,
+          "processCount": 6,
+          "rssSumBytes": 1064402944,
+          "pssBytes": 839600128,
+          "source": "Linux /proc/<pid>/smaps_rollup of Node Playwright descendants",
+          "limitation": "PSS includes browser, JS, workers and WASM; not WASM heap or physical system-wide RAM"
+        },
+        "linearWasmMemory": {
+          "available": true,
+          "unit": "bytes",
+          "php": null,
+          "sql": {
+            "linearMemoryBytes": 403570688
+          },
+          "limitation": "Current linear capacity only; not resident RAM, live allocations or a continuous peak measurement."
+        }
+      },
+      "phpWithSqlStartupMs": 326.41500000003725,
+      "memoryPhpWithSqlStarted": {
+        "available": false,
+        "reason": "Failed to execute 'measureUserAgentSpecificMemory' on 'Performance': performance.measureUserAgentSpecificMemory is not available.",
+        "linuxProcessTree": {
+          "available": true,
+          "processCount": 6,
+          "rssSumBytes": 1217728512,
+          "pssBytes": 991275008,
+          "source": "Linux /proc/<pid>/smaps_rollup of Node Playwright descendants",
+          "limitation": "PSS includes browser, JS, workers and WASM; not WASM heap or physical system-wide RAM"
+        },
+        "linearWasmMemory": {
+          "available": true,
+          "unit": "bytes",
+          "php": {
+            "linearMemoryBytes": 134217728
+          },
+          "sql": {
+            "linearMemoryBytes": 403570688
+          },
+          "limitation": "Current linear capacity only; not resident RAM, live allocations or a continuous peak measurement."
+        }
+      },
+      "phpSql": {
+        "1": {
+          "milliseconds": [
+            14.78000000002794,
+            8.729999999981374,
+            8.854999999981374,
+            9.53000000002794,
+            16.979999999981374,
+            9.04999999993015,
+            10.165000000037253,
+            8.910000000032596,
+            13.229999999981374,
+            9.319999999948777,
+            7.959999999962747,
+            18.610000000102445,
+            10.869999999995343,
+            8.470000000088476,
+            14.114999999990687,
+            26.01999999990221,
+            26.729999999981374,
+            9.160000000032596,
+            7.4799999999813735,
+            8.869999999995343
+          ],
+          "p50": 9.319999999948777,
+          "p95": 26.01999999990221
+        },
+        "10": {
+          "milliseconds": [
+            13.630000000004657,
+            14.18500000005588,
+            12.179999999934807,
+            23.945000000065193,
+            14,
+            22.90500000002794,
+            17.349999999976717,
+            18.56000000005588,
+            19.514999999897555,
+            12.550000000046566,
+            13.744999999995343,
+            12.25,
+            13.479999999981374,
+            11.989999999990687,
+            14.95499999995809,
+            11.32999999995809,
+            11.550000000046566,
+            9.79500000004191,
+            14.270000000018626,
+            16.209999999962747
+          ],
+          "p50": 13.744999999995343,
+          "p95": 22.90500000002794
+        },
+        "100": {
+          "milliseconds": [
+            77.67000000004191,
+            50.16499999992084,
+            67.21000000007916,
+            44.684999999939464,
+            36.53000000002794,
+            37.17499999993015,
+            36.98499999998603,
+            33.88500000000931,
+            38.42499999993015,
+            45.19500000006519,
+            32.05499999993481,
+            34.56000000005588,
+            38.42999999993481,
+            39.705000000074506,
+            34.14000000001397,
+            35.43000000005122,
+            37.76500000001397,
+            35.11999999999534,
+            48.75,
+            35.76000000000931
+          ],
+          "p50": 37.17499999993015,
+          "p95": 67.21000000007916
+        }
+      },
+      "memoryCombined": {
+        "available": false,
+        "reason": "Failed to execute 'measureUserAgentSpecificMemory' on 'Performance': performance.measureUserAgentSpecificMemory is not available.",
+        "linuxProcessTree": {
+          "available": true,
+          "processCount": 6,
+          "rssSumBytes": 1201352704,
+          "pssBytes": 974899200,
+          "source": "Linux /proc/<pid>/smaps_rollup of Node Playwright descendants",
+          "limitation": "PSS includes browser, JS, workers and WASM; not WASM heap or physical system-wide RAM"
+        },
+        "linearWasmMemory": {
+          "available": true,
+          "unit": "bytes",
+          "php": {
+            "linearMemoryBytes": 134217728
+          },
+          "sql": {
+            "linearMemoryBytes": 403570688
+          },
+          "limitation": "Current linear capacity only; not resident RAM, live allocations or a continuous peak measurement."
+        }
+      },
+      "flushMs": 313.58499999996275,
+      "sqlCloseMs": 291.45999999996275,
+      "memoryAfterClose": {
+        "available": false,
+        "reason": "Failed to execute 'measureUserAgentSpecificMemory' on 'Performance': performance.measureUserAgentSpecificMemory is not available.",
+        "linuxProcessTree": {
+          "available": true,
+          "processCount": 6,
+          "rssSumBytes": 1183285248,
+          "pssBytes": 940939264,
+          "source": "Linux /proc/<pid>/smaps_rollup of Node Playwright descendants",
+          "limitation": "PSS includes browser, JS, workers and WASM; not WASM heap or physical system-wide RAM"
+        },
+        "linearWasmMemory": {
+          "available": true,
+          "unit": "bytes",
+          "php": null,
+          "sql": null,
+          "limitation": "Current linear capacity only; not resident RAM, live allocations or a continuous peak measurement."
+        }
+      },
+      "sqlRestoreMs": 1327.5999999999767,
+      "persistenceVerified": true
+    },
+    {
+      "sample": 2,
+      "isolated": true,
+      "memoryBefore": {
+        "available": false,
+        "reason": "Failed to execute 'measureUserAgentSpecificMemory' on 'Performance': performance.measureUserAgentSpecificMemory is not available.",
+        "linuxProcessTree": {
+          "available": true,
+          "processCount": 6,
+          "rssSumBytes": 397135872,
+          "pssBytes": 178643968,
+          "source": "Linux /proc/<pid>/smaps_rollup of Node Playwright descendants",
+          "limitation": "PSS includes browser, JS, workers and WASM; not WASM heap or physical system-wide RAM"
+        },
+        "linearWasmMemory": {
+          "available": true,
+          "unit": "bytes",
+          "php": null,
+          "sql": null,
+          "limitation": "Current linear capacity only; not resident RAM, live allocations or a continuous peak measurement."
+        }
+      },
+      "phpOnlyStartupMs": 356.8049999999348,
+      "phpOnly": {
+        "milliseconds": [
+          9.25,
+          7.1700000000419095,
+          9.64000000001397,
+          8.915000000037253,
+          6.349999999976717,
+          4.505000000004657,
+          6.3549999999813735,
+          4.619999999995343,
+          5.3549999999813735,
+          4.724999999976717,
+          6.10999999998603,
+          8.380000000004657,
+          6.314999999944121,
+          6.9200000000419095,
+          6.419999999925494,
+          8.79500000004191,
+          5.785000000032596,
+          5.034999999916181,
+          7.660000000032596,
+          6.814999999944121,
+          6.76500000001397,
+          5.23499999998603,
+          7.60999999998603,
+          6.334999999962747,
+          4.599999999976717,
+          5.815000000060536,
+          6.1450000000186265,
+          19.220000000088476,
+          7.649999999906868,
+          4.385000000009313
+        ],
+        "p50": 6.349999999976717,
+        "p95": 9.64000000001397
+      },
+      "memoryPhpOnly": {
+        "available": false,
+        "reason": "Failed to execute 'measureUserAgentSpecificMemory' on 'Performance': performance.measureUserAgentSpecificMemory is not available.",
+        "linuxProcessTree": {
+          "available": true,
+          "processCount": 6,
+          "rssSumBytes": 721952768,
+          "pssBytes": 502374400,
+          "source": "Linux /proc/<pid>/smaps_rollup of Node Playwright descendants",
+          "limitation": "PSS includes browser, JS, workers and WASM; not WASM heap or physical system-wide RAM"
+        },
+        "linearWasmMemory": {
+          "available": true,
+          "unit": "bytes",
+          "php": {
+            "linearMemoryBytes": 134217728
+          },
+          "sql": null,
+          "limitation": "Current linear capacity only; not resident RAM, live allocations or a continuous peak measurement."
+        }
+      },
+      "sqlStartupMs": 982.9800000000978,
+      "sqlOnly": {
+        "milliseconds": [
+          3.709999999962747,
+          4.069999999948777,
+          0.6850000000558794,
+          0.5150000000139698,
+          0.8900000000139698,
+          0.27500000002328306,
+          7.400000000023283,
+          1.3850000000093132,
+          0.8549999999813735,
+          0.35999999998603016,
+          0.4200000000419095,
+          0.7600000000093132,
+          1.3399999999674037,
+          0.9499999999534339,
+          2.6700000000419095,
+          0.5,
+          0.5050000000046566,
+          0.4150000000372529,
+          0.4599999999627471,
+          0.35499999998137355,
+          0.375,
+          0.35999999998603016,
+          0.3649999999906868,
+          0.4150000000372529,
+          0.35999999998603016,
+          0.8950000000186265,
+          0.6550000000279397,
+          1.0100000000093132,
+          0.4599999999627471,
+          0.4150000000372529
+        ],
+        "p50": 0.5050000000046566,
+        "p95": 4.069999999948777
+      },
+      "memorySqlOnly": {
+        "available": false,
+        "reason": "Failed to execute 'measureUserAgentSpecificMemory' on 'Performance': performance.measureUserAgentSpecificMemory is not available.",
+        "linuxProcessTree": {
+          "available": true,
+          "processCount": 6,
+          "rssSumBytes": 1058803712,
+          "pssBytes": 835204096,
+          "source": "Linux /proc/<pid>/smaps_rollup of Node Playwright descendants",
+          "limitation": "PSS includes browser, JS, workers and WASM; not WASM heap or physical system-wide RAM"
+        },
+        "linearWasmMemory": {
+          "available": true,
+          "unit": "bytes",
+          "php": null,
+          "sql": {
+            "linearMemoryBytes": 403570688
+          },
+          "limitation": "Current linear capacity only; not resident RAM, live allocations or a continuous peak measurement."
+        }
+      },
+      "phpWithSqlStartupMs": 364.89999999990687,
+      "memoryPhpWithSqlStarted": {
+        "available": false,
+        "reason": "Failed to execute 'measureUserAgentSpecificMemory' on 'Performance': performance.measureUserAgentSpecificMemory is not available.",
+        "linuxProcessTree": {
+          "available": true,
+          "processCount": 6,
+          "rssSumBytes": 1216110592,
+          "pssBytes": 991245312,
+          "source": "Linux /proc/<pid>/smaps_rollup of Node Playwright descendants",
+          "limitation": "PSS includes browser, JS, workers and WASM; not WASM heap or physical system-wide RAM"
+        },
+        "linearWasmMemory": {
+          "available": true,
+          "unit": "bytes",
+          "php": {
+            "linearMemoryBytes": 134217728
+          },
+          "sql": {
+            "linearMemoryBytes": 403570688
+          },
+          "limitation": "Current linear capacity only; not resident RAM, live allocations or a continuous peak measurement."
+        }
+      },
+      "phpSql": {
+        "1": {
+          "milliseconds": [
+            27.190000000060536,
+            11.42000000004191,
+            11.85999999998603,
+            13.04500000004191,
+            10.849999999976717,
+            17.089999999967404,
+            9.364999999990687,
+            9.354999999981374,
+            27.60999999998603,
+            13.849999999976717,
+            11.385000000009313,
+            15.614999999990687,
+            11.28000000002794,
+            10.229999999981374,
+            11.349999999976717,
+            27.839999999967404,
+            15.739999999990687,
+            15.364999999990687,
+            12.43500000005588,
+            11.179999999934807
+          ],
+          "p50": 11.85999999998603,
+          "p95": 27.60999999998603
+        },
+        "10": {
+          "milliseconds": [
+            17.09000000008382,
+            16.339999999967404,
+            10.92499999993015,
+            14,
+            15.785000000032596,
+            13.25,
+            37.11499999999069,
+            12.974999999976717,
+            16.32999999995809,
+            11.494999999995343,
+            16.48499999998603,
+            17.665000000037253,
+            17.809999999939464,
+            18.690000000060536,
+            15.119999999995343,
+            17.679999999934807,
+            11.489999999990687,
+            11.430000000051223,
+            30.26500000001397,
+            18.815000000060536
+          ],
+          "p50": 16.32999999995809,
+          "p95": 30.26500000001397
+        },
+        "100": {
+          "milliseconds": [
+            75.33499999996275,
+            47.36999999999534,
+            77.63000000000466,
+            65.53000000002794,
+            63.09999999997672,
+            47.90000000002328,
+            51.60499999998137,
+            42.70499999995809,
+            43.43999999994412,
+            42.48000000009779,
+            39.86999999999534,
+            37.99499999999534,
+            38.14000000001397,
+            37.19500000006519,
+            38.10999999998603,
+            38.88500000000931,
+            38.22500000009313,
+            37.89499999990221,
+            38.29500000004191,
+            54.74499999999534
+          ],
+          "p50": 42.48000000009779,
+          "p95": 75.33499999996275
+        }
+      },
+      "memoryCombined": {
+        "available": false,
+        "reason": "Failed to execute 'measureUserAgentSpecificMemory' on 'Performance': performance.measureUserAgentSpecificMemory is not available.",
+        "linuxProcessTree": {
+          "available": true,
+          "processCount": 6,
+          "rssSumBytes": 1202024448,
+          "pssBytes": 977037312,
+          "source": "Linux /proc/<pid>/smaps_rollup of Node Playwright descendants",
+          "limitation": "PSS includes browser, JS, workers and WASM; not WASM heap or physical system-wide RAM"
+        },
+        "linearWasmMemory": {
+          "available": true,
+          "unit": "bytes",
+          "php": {
+            "linearMemoryBytes": 134217728
+          },
+          "sql": {
+            "linearMemoryBytes": 403570688
+          },
+          "limitation": "Current linear capacity only; not resident RAM, live allocations or a continuous peak measurement."
+        }
+      },
+      "flushMs": 341.6500000000233,
+      "sqlCloseMs": 318.28000000002794,
+      "memoryAfterClose": {
+        "available": false,
+        "reason": "Failed to execute 'measureUserAgentSpecificMemory' on 'Performance': performance.measureUserAgentSpecificMemory is not available.",
+        "linuxProcessTree": {
+          "available": true,
+          "processCount": 6,
+          "rssSumBytes": 1212379136,
+          "pssBytes": 971918336,
+          "source": "Linux /proc/<pid>/smaps_rollup of Node Playwright descendants",
+          "limitation": "PSS includes browser, JS, workers and WASM; not WASM heap or physical system-wide RAM"
+        },
+        "linearWasmMemory": {
+          "available": true,
+          "unit": "bytes",
+          "php": null,
+          "sql": null,
+          "limitation": "Current linear capacity only; not resident RAM, live allocations or a continuous peak measurement."
+        }
+      },
+      "sqlRestoreMs": 1329.375,
+      "persistenceVerified": true
+    }
+  ],
+  "browserVersion": "156.0.8078.4"
+}

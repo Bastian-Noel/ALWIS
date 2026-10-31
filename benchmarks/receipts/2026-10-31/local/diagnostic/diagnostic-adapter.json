@@ -1,0 +1,46 @@
+{
+  "sourceCommit": "3b8cef42c020fbcbb6b41fad86716b7c8664b55b",
+  "purpose": "Current worker-local linear memory size, not resident RAM or allocation usage/peak",
+  "patches": [
+    {
+      "file": "src/index.mjs",
+      "originalSha256": "55d450ce6c30a0d05dc2ad1adf9a3129fe3a4f8fa7b0a0cf2565c58de59dfb2a",
+      "diagnosticSha256": "3568d49be191ef3a7cd240d42ee60cae4febc61b2c1a824a865b040822d412d5"
+    },
+    {
+      "file": "src/worker.mjs",
+      "originalSha256": "96a157a767bb2d13a58295862a695a57462227a0c5a2579f88293f91fad601fc",
+      "diagnosticSha256": "a88a6347fcbd630bd04dbb9e2f7314488ac0b22be18e915ecb793a9a99b02668"
+    },
+    {
+      "file": ".build/mariadb-bridge/src/index.mjs",
+      "originalSha256": "f476bc6e75ffa9a3ef27e97d29c0381ab8ddb7e8091c88bfbf26e475f32c9605",
+      "diagnosticSha256": "e76e9280ab39891470bed0c222b3e02c937f537b486b809113f1b8f905662f80"
+    },
+    {
+      "file": ".build/mariadb-bridge/src/worker.mjs",
+      "originalSha256": "0ebb4a9213a8278aeacb16841b725e79cdd7bee4655f9551a3626eb0382448a2",
+      "diagnosticSha256": "ea5f20705d2b3758035bd6c3191c5d789ffbc39e343c8a60bfee3aa276b88a97"
+    },
+    {
+      "file": ".build/mariadb-bridge/src/engine.mjs",
+      "originalSha256": "6c0c0b883d0365a55848d693aeea0e4e69aad7df003bc6cdf27900f18a74b2fe",
+      "diagnosticSha256": "e0c96b55e747cbd4a0a3722f89b89b7e8dc7bbfcc28584a37cccde09ee9dc2be"
+    },
+    {
+      "file": ".build/mariadb-bridge/vendor/lite4mariadb/lite4mariadb.js",
+      "originalSha256": "12bc9f943c497f834bdd189fa8ca0a2bc1fc6f24c6ac3e3bb99b3156d9981308",
+      "diagnosticSha256": "8608f3b0ec15ffe943a48445e93b01186154752993162a6a4dee9b4aa4879fec"
+    }
+  ],
+  "wasm": [
+    {
+      "file": "dist/php/8.4/php.wasm",
+      "sha256": "09b58da09878913f67e6a8d6489270c8b22743fd419104c3c495857f008b4317"
+    },
+    {
+      "file": ".build/mariadb-bridge/vendor/lite4mariadb/lite4mariadb.wasm",
+      "sha256": "1dcd5bf92685ebe37b4fc49e2fb5f57f05cef26c7e884c6ead98b2892dd59fde"
+    }
+  ]
+}

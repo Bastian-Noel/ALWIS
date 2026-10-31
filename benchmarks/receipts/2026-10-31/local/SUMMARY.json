@@ -1,0 +1,48 @@
+{
+  "nativeArtifactRun": "41212524552",
+  "sourceCommit": "380077439a496892c018decaf4872f654ce81173",
+  "validation": "Local execution of real upstream engines; no fused engine claimed",
+  "limits": [
+    "Some runs overlapped native build preparation: do not infer a cold/warm performance gain.",
+    "Firefox runs require the outer process context; sandbox profile startup fails.",
+    "Warm Firefox has not been run.",
+    "Linear snapshots are capacities, not allocation usage or RSS. Configured maxima are in abi.json."
+  ],
+  "results": [
+    {
+      "file": "crash/firefox.json",
+      "status": "passed",
+      "samples": 0
+    },
+    {
+      "file": "crash/chromium.json",
+      "status": "passed",
+      "samples": 0
+    },
+    {
+      "file": "diagnostic/firefox.json",
+      "status": "passed",
+      "samples": 3
+    },
+    {
+      "file": "diagnostic/chromium.json",
+      "status": "passed",
+      "samples": 3
+    },
+    {
+      "file": "cold/firefox.json",
+      "status": "passed",
+      "samples": 3
+    },
+    {
+      "file": "cold/chromium.json",
+      "status": "passed",
+      "samples": 3
+    },
+    {
+      "file": "warm/chromium.json",
+      "status": "passed",
+      "samples": 3
+    }
+  ]
+}
