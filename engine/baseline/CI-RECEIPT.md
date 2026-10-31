@@ -27,3 +27,11 @@ Les commandes et les paramètres précis sont dans `.github/workflows/native-bas
 - Résultats PHP/PDO/MariaDB du bridge et JoomEngine conservés séparément, sans mélanger leurs versions.
 - Benchmark navigateur du même build : démarrage, latence (échantillons bruts, p50/p95), mémoire disponible avec ses limites, accès PHP, SQL seul, PHP/PDO SQL, connexions et persistance.
 - Mesures archivées et interprétées ; aucune optimisation et aucune fusion avant acceptation.
+
+## Nouvelle tentative : run 41202949547, 31 octobre 2026
+
+Le job `MariaDB original-compat` (`124542227020`) a échoué à `git apply --check` **avant la compilation**, avec `patch failed: mysys/get_password.c:24`. Le patch avait déclaré un hunk `@@ -24,3 +24,4 @@` alors que `#include "mysql.h"` est ligne **23** de la révision `24be937...`. L'échec ne prouve rien sur le lien MariaDB ni sur le runtime navigateur.
+
+Le correctif suivant fixe le hunk `@@ -23,5 +23,6 @@` avec les lignes vides et `#ifdef HAVE_GETPASS` en contexte. Un essai de `git apply --check` et `git apply` sur le contexte reproduit du fichier amont a réussi hors CI ; le test réel du checkout GitHub reste la preuve à obtenir. La validation du patch passe désormais **avant** le téléchargement des deux sous-modules massifs. Le workflow natif annule les instances plus anciennes par `concurrency.cancel-in-progress: true` ; ses artefacts PHP, MariaDB et benchmarks conservent 90 jours dans GitHub Actions, pas une archive permanente.
+
+Les jobs bridge et PHP du run 41202949547 étaient encore en cours au moment de cette consignation. **Leur réussite, leur arrêt éventuel et les futures mesures ne sont pas présumés**.
