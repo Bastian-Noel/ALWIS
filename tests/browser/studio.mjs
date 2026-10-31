@@ -1,6 +1,6 @@
 /** Real N-window studio acceptance against the custom native runtime. */
 import assert from 'node:assert/strict';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, writeFile, readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createStudioServer } from '../../scripts/serve-studio.mjs';
@@ -13,9 +13,10 @@ try {
   for (const name of (process.argv[2] ?? 'chromium,firefox').split(',')) {
     const browser = await playwright[name].launch({ headless: true, ...(name === 'chromium' ? { args: ['--no-sandbox'] } : {}) });
     try {
-      const page = await browser.newPage(); page.setDefaultTimeout(180000);
+      const page = await browser.newPage(); page.setDefaultTimeout(45000);
       page.on('pageerror', error => console.error(name, 'pageerror', error.message));
       page.on('console', message => { if (message.type() === 'error') console.error(name, message.text()); });
+      await page.addInitScript(()=>{let last;new MutationObserver(()=>{const status=document.querySelector('#status');if(status?.hasAttribute('data-error')&&status.textContent!==last){last=status.textContent;console.error('Studio error:',last);}}).observe(document,{subtree:true,childList:true,attributes:true,attributeFilter:['data-error']});});
       const project = 'studio-' + crypto.randomUUID();
       await page.goto(origin + '/?project=' + project);
       await page.waitForFunction(() => document.querySelector('#status').textContent === 'Prêt à ouvrir un projet.');
@@ -56,9 +57,15 @@ try {
       await page.locator('#sql-tool td').filter({hasText:'edited-native-row'}).waitFor({timeout:15000}); console.log(name,'SQL cell edit verified');
       await page.locator('#sql-tool .structure').click();
       await page.locator('#sql-tool .structure-output').filter({hasText:'CREATE TABLE'}).waitFor();
-      const sql=`CREATE TABLE grid_types (id INT PRIMARY KEY, label VARCHAR(100) NULL, payload VARBINARY(100), exact_value BIGINT UNSIGNED, amount DECIMAL(20,6)) ENGINE=InnoDB;
-INSERT INTO grid_types SELECT seq, CONCAT('row-',seq), UNHEX('4100FF'), 18446744073709551615, 12345678901234.123456 FROM seq_1_to_250;
-CREATE TABLE grid_children (id INT PRIMARY KEY, parent_id INT, CONSTRAINT fk_grid_parent FOREIGN KEY(parent_id) REFERENCES grid_types(id)) ENGINE=InnoDB;`;
+      const sql=`CREATE TABLE grid_types (id INT PRIMARY KEY, label VARCHAR(100) NULL, payload VARBINARY(100), exact_value BIGINT UNSIGNED, amount DECIMAL(20,6),shape GEOMETRY NULL,flags BIT(8)) ENGINE=InnoDB;
+INSERT INTO grid_types SELECT seq, CONCAT('row-',seq), UNHEX('4100FF'), 18446744073709551615, 12345678901234.123456,ST_GeomFromText('POINT (1 2)'),b'10101010' FROM seq_1_to_250;
+CREATE TABLE grid_children (id INT PRIMARY KEY, parent_id INT, alternate_id INT, CONSTRAINT fk_grid_parent FOREIGN KEY(parent_id) REFERENCES grid_types(id)) ENGINE=InnoDB;
+CREATE TABLE grid_audit (id INT AUTO_INCREMENT PRIMARY KEY,parent_id INT);
+CREATE VIEW grid_notes_view AS SELECT * FROM grid_types;
+CREATE VIEW a_dependent_view AS SELECT id FROM grid_notes_view;
+CREATE FUNCTION grid_echo(v INT) RETURNS INT DETERMINISTIC RETURN v+1;
+CREATE PROCEDURE grid_proc(IN p INT) BEGIN SELECT p; SELECT p+1; END;
+CREATE TRIGGER grid_audit_insert AFTER INSERT ON grid_types FOR EACH ROW INSERT INTO grid_audit(parent_id) VALUES(NEW.id);`;
       await page.locator('#sql-tool .sql-file').setInputFiles({name:'grid.sql',mimeType:'text/plain',buffer:Buffer.from(sql)});
       await page.locator('#sql-tool .message').filter({hasText:'Import SQL terminé.'}).waitFor();
       await page.locator('#sql-tool .tables').click();await page.locator('#sql-tool .table option[value=grid_types]').waitFor({state:'attached'});
@@ -74,6 +81,17 @@ CREATE TABLE grid_children (id INT PRIMARY KEY, parent_id INT, CONSTRAINT fk_gri
       await first.locator('td').nth(1).filter({hasText:'NULL'}).waitFor();
       await first.locator('td').nth(2).dblclick();await page.locator('#sql-tool td input').fill('FF0042');await page.locator('#sql-tool td input').press('Enter');
       await first.locator('td').nth(2).filter({hasText:"X'ff0042'"}).waitFor();
+      await page.locator('#sql-tool .insert').click();await page.locator('#sql-tool .row-dialog').waitFor({state:'visible'});
+      await page.getByLabel('id mode',{exact:true}).selectOption('text');await page.getByLabel('id valeur',{exact:true}).fill('251');
+      await page.getByLabel('label mode',{exact:true}).selectOption('text');await page.getByLabel('label valeur',{exact:true}).fill('inserted-grid-row');
+      await page.getByLabel('payload mode',{exact:true}).selectOption('hex');await page.getByLabel('payload valeur',{exact:true}).fill('FF00');
+      await page.locator('#sql-tool .insert-confirm').click();await page.locator('#sql-tool .row-dialog').waitFor({state:'hidden'});
+      await page.locator('#sql-tool .next').click();await page.locator('#sql-tool .page').filter({hasText:'2 / 3'}).waitFor();
+      await page.locator('#sql-tool .next').click();await page.locator('#sql-tool .page').filter({hasText:'3 / 3'}).waitFor();
+      const inserted=page.locator('#sql-tool tbody tr').filter({hasText:'inserted-grid-row'});await inserted.waitFor();assert.match(await inserted.textContent(),/X'ff00'/);
+      page.once('dialog',dialog=>dialog.accept());await inserted.getByRole('button',{name:'Supprimer'}).click();await inserted.waitFor({state:'detached'});
+      await page.locator('#sql-tool .previous').click();await page.locator('#sql-tool .page').filter({hasText:'2 / 3'}).waitFor();
+      await page.locator('#sql-tool .previous').click();await page.locator('#sql-tool .page').filter({hasText:'1 / 3'}).waitFor();
       await page.locator('#import-files').setInputFiles({name:'grid-concurrent.php',mimeType:'text/plain',buffer:Buffer.from(`<?php $db=new PDO('mysql:dbname=test;charset=utf8mb4','root','');$db->exec("UPDATE grid_types SET label='concurrent' WHERE id=1");echo 'ok';`)});
       await page.locator('#status').filter({hasText:'Fichiers importés.'}).waitFor();
       assert.equal(await a2.evaluate(async()=> (await fetch('/grid-concurrent.php')).text()),'ok');
@@ -83,7 +101,12 @@ CREATE TABLE grid_children (id INT PRIMARY KEY, parent_id INT, CONSTRAINT fk_gri
       console.log(name,'server pagination, NULL, binary, exact numeric and conflict checks verified');
       await page.locator('#schema-tool .refresh').click(); await page.locator('#schema-tool svg text').filter({hasText:'studio_notes'}).first().waitFor();
       await page.locator('#schema-tool svg text').filter({hasText:'fk_grid_parent: parent_id → id'}).waitFor();
-      console.log(name,'schema and foreign-key columns verified');
+      await page.locator('#schema-tool .relation-form summary').click();
+      await page.locator('#schema-tool .fk-from').selectOption('grid_children');await page.locator('#schema-tool .fk-column').selectOption('alternate_id');
+      await page.locator('#schema-tool .fk-to').selectOption('grid_types');await page.locator('#schema-tool .fk-reference').selectOption('id');
+      await page.locator('#schema-tool .fk-delete').selectOption('CASCADE');await page.locator('#schema-tool .fk-add').click();
+      await page.waitForFunction(()=>document.querySelectorAll('#schema-tool .relation-label').length===2);
+      console.log(name,'insert/delete and creation of a real foreign key verified');
       await page.locator('#editor-tool .source').fill('<?php echo "draft-preserved";');
       await page.locator('[data-tool=editor]').selectOption('unloaded'); await page.locator('#editor-tool .unloaded').waitFor();
       await page.locator('[data-tool=editor]').selectOption('active'); await page.locator('#editor-tool .source').waitFor();
@@ -103,9 +126,28 @@ CREATE TABLE grid_children (id INT PRIMARY KEY, parent_id INT, CONSTRAINT fk_gri
       await b.goto(origin + new URL(b.url()).pathname); await b.waitForSelector('#notes');
       assert.match(await b.locator('#notes').textContent(),/edited-native-row/);
       assert.equal(await b.locator('#session').textContent(),ids[2]);
+      await page.locator('#sql-tool .query').fill('CREATE DATABASE alternate_import');await page.locator('#sql-tool .run').click();await page.locator('#sql-tool .message').filter({hasText:'1 lignes affectées'}).waitFor();
+      await page.locator('#sql-tool .database').fill('alternate_import');
+      await page.locator('#sql-tool .sql-file').setInputFiles({name:'alternate.sql',mimeType:'text/plain',buffer:Buffer.from('CREATE TABLE alternate_marker(id INT PRIMARY KEY); INSERT INTO alternate_marker VALUES(55);')});
+      await page.locator('#sql-tool .message').filter({hasText:'Import SQL terminé.'}).waitFor();
+      await page.locator('#sql-tool .query').fill('SELECT id FROM alternate_marker');await page.locator('#sql-tool .run').click();await page.locator('#sql-tool tbody td').filter({hasText:/^55$/}).waitFor();
+      await page.locator('#sql-tool .database').fill('test');
+      const downloading=page.waitForEvent('download');await page.locator('#sql-tool .export-sql').click();const downloaded=await downloading;
+      const dump=await readFile(await downloaded.path());assert.match(dump.toString(),/CREATE.*PROCEDURE/s);assert.match(dump.toString(),/TRIGGER/);
+      const restoredProject='restore-'+crypto.randomUUID();await page.locator('#project').fill(restoredProject);await page.locator('#open').click();
+      await page.waitForFunction(()=>document.querySelector('#status').textContent.startsWith('Projet prêt.'));
+      await page.locator('#sql-tool .sql-file').setInputFiles({name:'restore.sql',mimeType:'text/plain',buffer:dump});
+      await page.locator('#sql-tool .message').filter({hasText:'Import SQL terminé.'}).waitFor();
+      const verification=`SELECT (SELECT COUNT(*) FROM grid_types) AS rows_count,HEX(payload) AS payload,CAST(exact_value AS CHAR) AS exact_value,amount,(SELECT COUNT(*) FROM grid_audit) AS audit,(SELECT COUNT(*) FROM a_dependent_view) AS view_count,grid_echo(4) AS fn,(SELECT COUNT(*) FROM information_schema.ROUTINES WHERE ROUTINE_SCHEMA='test' AND ROUTINE_NAME IN ('grid_echo','grid_proc')) AS routines,ST_AsText(shape) AS shape,HEX(flags) AS flags FROM grid_types WHERE id=1`;
+      await page.locator('#sql-tool .query').fill(verification);await page.locator('#sql-tool .run').click();await page.locator('#sql-tool tbody tr').waitFor();
+      const restored=await page.locator('#sql-tool tbody tr').first().locator('td').allTextContents();
+      assert.deepEqual(restored,['250','FF0042','18446744073709551615','12345678901234.123456','1','250','5','2','POINT(1 2)','AA']);
+      await page.locator('#sql-tool .query').fill("INSERT INTO grid_types(id,label) VALUES(999,'restored-trigger')");await page.locator('#sql-tool .run').click();await page.locator('#sql-tool .message').filter({hasText:'1 lignes affectées'}).waitFor();
+      await page.locator('#sql-tool .query').fill('SELECT COUNT(*) AS audit_count FROM grid_audit');await page.locator('#sql-tool .run').click();await page.locator('#sql-tool tbody td').filter({hasText:/^2$/}).waitFor();
+      console.log(name,'SQL dump restored in a distinct project: binary/exact values/views/function/procedure/trigger verified');
       await page.screenshot({ path:resolve(output,name+'-studio.png'),fullPage:true });
       await page.locator('#close').click(); await page.waitForFunction(() => document.querySelector('#status').textContent.startsWith('Projet fermé'));
-      const receipt = { browser:name,version:browser.version(),passed:true,project,windowCount:4,sessionCount:3,checks:['shared/independent PHP sessions','shared SQL','virtual cookies/storage','POST','redirect','multipart upload','SQL cell editing','server pagination','NULL/binary editing','BIGINT/DECIMAL grid fidelity','concurrent edit refusal','structure and indexes','schema and FK column introspection','tool unload/restore','project save/reopen'] };
+      const receipt = { browser:name,version:browser.version(),passed:true,project,windowCount:4,sessionCount:3,checks:['shared/independent PHP sessions','shared SQL','virtual cookies/storage','POST','redirect','multipart upload','SQL cell editing','server pagination','NULL/binary editing','BIGINT/DECIMAL grid fidelity','concurrent edit refusal','structure and indexes','insert/delete row form','schema and FK column introspection','create foreign key from catalog','tool unload/restore','project save/reopen','logical SQL export/restore in a distinct project','dependent views','function/procedure/trigger preservation','geometry/BIT preservation'] };
       await writeFile(resolve(output,name+'.json'),JSON.stringify(receipt,null,2)+'\n'); console.log(name,'studio acceptance passed');
     } finally { await browser.close(); }
   }

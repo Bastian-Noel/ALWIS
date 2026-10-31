@@ -131,6 +131,12 @@ $stmt->close(); $db->close(); echo 'metadata-array-ok';`);
             if(!refused)throw Error('Console result budget was not enforced');
             const check=await runtime.sql('SELECT 42');if(check.rows[0][0]!=='42')throw Error('Console did not recover after result refusal');
           }
+          await runtime.sql('DELETE FROM compatibility_tx WHERE id=2','school');
+          await runtime.write('/workspace/abandon.php',"<?php $db=new PDO('mysql:dbname=school','root','');$db->beginTransaction();$db->exec('INSERT INTO compatibility_tx VALUES(2,99)');throw new RuntimeException('intentional-abandon');");
+          const abandoned=await runtime.request({script:'/workspace/abandon.php'});
+          if(abandoned.exitCode===0||!decode(abandoned.stderr).includes('intentional-abandon'))throw Error('Expected PHP abandonment was not reported');
+          const rollbackCheck=await runtime.sql('SELECT COUNT(*) FROM compatibility_tx WHERE id=2','school');
+          if(rollbackCheck.rows[0][0]!=='0'||(await runtime.state()).sqlConnections!==1)throw Error('Abandoned request transaction/connection leaked');
           const consoleSet = await runtime.sql('SET @pbl_console_marker = 42', 'school');
           const duringConsole = await checked({ script: '/workspace/object.php' });
           const consoleMarker = await runtime.sql('SELECT @pbl_console_marker AS value');
@@ -145,7 +151,7 @@ $stmt->close(); $db->close(); echo 'metadata-array-ok';`);
           if (stopped.sqlStarted) throw Error('SQL did not stop');
           const phpAfterStop = await checked({ script: '/workspace/http.php' });
           if (phpAfterStop.sqlStarted || phpAfterStop.status !== 201) throw Error('PHP is not usable independently after SQL stop');
-          return { initial, file, http, afterPurePhp, network, networkContext, bound, metadata, coverage, schema, driverResults, object, consoleMarker, consoleTypes, phpAfterStop, final, stopped };
+          return { initial, file, http, afterPurePhp, network, networkContext, bound, metadata, coverage, rollbackCheck, schema, driverResults, object, consoleMarker, consoleTypes, phpAfterStop, final, stopped };
         } finally { runtime.close(); }
       }, fixtures);
       const persistence = await page.evaluate(async () => {

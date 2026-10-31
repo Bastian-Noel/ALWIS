@@ -1,7 +1,7 @@
 {
-  "file": "build-work/bridge/.native-build/engine/wasm/runtime-dist/pbl-runtime.wasm",
-  "sha256": "ee2ab384077f6fa9b53498afc102496655097c4ca2d3fd6bf6fefcb04066916c",
-  "bytes": 33232827,
+  "file": "/workspace/WASMWebServer/build-work/bridge/.native-build/engine/wasm/runtime-dist/pbl-runtime.wasm",
+  "sha256": "942de161679b7b10283f70a8ae25a75d514b9957707f2aa0ee5d464433930faa",
+  "bytes": 33289256,
   "memoryImports": [
     {
       "module": "env",
@@ -23,7 +23,6 @@
     "php_wasm_add_server_variable",
     "php_wasm_setenv",
     "php_wasm_run",
-    "l4m_open",
     "l4m_close",
     "l4m_free",
     "l4m_escape",

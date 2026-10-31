@@ -47,5 +47,16 @@ foreach (["SELECT REPEAT('x',65536) FROM seq_1_to_1000",'SELECT seq FROM seq_1_t
         verify($db->query('SELECT 42 AS n')->fetch_assoc()['n']==='42','mysqli recovery after budget refusal');
     }
 }
+$r=$db->query("SELECT 'a' AS value UNION ALL SELECT 'b'");
+verify($r instanceof IteratorAggregate && iterator_to_array($r)===[['value'=>'a'],['value'=>'b']], 'mysqli foreach/getIterator');
+$r->data_seek(0);verify(mysqli_fetch_column($r)==='a' && mysqli_num_fields($r)===1,'fetch_column/num_fields');
+verify(mysqli_fetch_lengths($r)===[1], 'fetch_lengths');
+$r->field_seek(0);verify(mysqli_field_tell($r)===0 && $r->fetch_field()->name==='value','field cursor');$r->free_result();
+$s=$db->prepare('SELECT ? AS n UNION ALL SELECT 99');$value=42;$s->bind_param('i',$value);$s->execute();$s->store_result();
+verify(mysqli_stmt_num_rows($s)===2 && mysqli_stmt_param_count($s)===1 && mysqli_stmt_field_count($s)===1,'statement counters');
+$s->bind_result($out);$s->data_seek(1);verify($s->fetch() && $out===99,'statement seek');
+$s->free_result();verify($s->reset(),'statement reset');$value=43;$s->execute();verify($s->get_result()->fetch_column()===43,'statement reexecution after reset');
+verify(mysqli_stmt_errno($s)===0 && mysqli_stmt_error($s)==='' && mysqli_stmt_sqlstate($s)==='00000','statement diagnostics');
+$s->close();$checks[]='MySQLi foreach, scalar fetch, lengths, field cursor, statement seek/free/reset/reexecute';
 $db->close();$checks[]='MySQLi extension/init/connect/escape/diagnostics/autocommit/rollback/text+binary result budgets/recovery';
 echo json_encode(['ok'=>true,'checks'=>$checks],JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE);

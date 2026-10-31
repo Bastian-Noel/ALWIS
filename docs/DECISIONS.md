@@ -8,7 +8,7 @@ Les décisions de périmètre viennent des demandes utilisateur ; les choix d'im
 |---|---|---|
 | Exécution | PHP et MariaDB WASM dans le navigateur, pas de VM x86 | Premier build témoin |
 | Compatibilité | PDO + MySQLi compilés, backend SQL commun | Types, erreurs, prepared, transactions, références PHP |
-| MySQLi | Comparer adaptation mysqlnd et extension directe ; choix ouvert | Microprototype C, pas deux portages complets |
+| MySQLi | Extension Zend C directe sur l’API embarquée commune, implémentée ; compléter sa compatibilité par inventaire | Fixtures natives et matrice de conformité ; ne pas annoncer la compatibilité complète |
 | Moteurs | Une instance PHP et une MariaDB par projet actif | Verrou, génération, arrêt/reprise |
 | HTTP | Service Worker routeur, studio propriétaire des Workers | Headers, formulaires, redirections, cookies et sessions |
 | Fenêtres clientes | N fenêtres, sessions virtuelles indépendantes ou partagées, même base | Deux joueurs + console sont un scénario, pas une limite ; valider rattachement et déconnexion arbitraires |

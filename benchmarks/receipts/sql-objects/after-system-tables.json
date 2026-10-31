@@ -1,0 +1,47 @@
+[
+  {
+    "sql": "CREATE TABLE probe (id INT)",
+    "result": {
+      "columns": [],
+      "rows": [],
+      "affectedRows": "0",
+      "insertId": "0"
+    }
+  },
+  {
+    "sql": "CREATE VIEW v_probe AS SELECT id FROM probe",
+    "result": {
+      "columns": [],
+      "rows": [],
+      "affectedRows": "0",
+      "insertId": "0"
+    }
+  },
+  {
+    "sql": "CREATE FUNCTION echo_probe(v INT) RETURNS INT DETERMINISTIC RETURN v+1",
+    "result": {
+      "columns": [],
+      "rows": [],
+      "affectedRows": "0",
+      "insertId": "0"
+    }
+  },
+  {
+    "sql": "CREATE PROCEDURE proc_probe(IN p INT) BEGIN SELECT p; SELECT p+1; END",
+    "result": {
+      "columns": [],
+      "rows": [],
+      "affectedRows": "0",
+      "insertId": "0"
+    }
+  },
+  {
+    "sql": "CREATE TRIGGER probe_trigger AFTER INSERT ON probe FOR EACH ROW SET @probe=NEW.id",
+    "result": {
+      "columns": [],
+      "rows": [],
+      "affectedRows": "0",
+      "insertId": "0"
+    }
+  }
+]

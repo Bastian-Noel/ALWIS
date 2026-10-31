@@ -7,7 +7,7 @@
     },
     {
       "path": "apps/studio/index.html",
-      "sha256": "376ca6652bdd7783356c0e6f80e718560a8646e90f95048fb6272a72e45d186a"
+      "sha256": "7c2e674951629e430e73c3e9bb8d1c29850dc35e8265172a893f75722590942e"
     },
     {
       "path": "apps/studio/project-hub.mjs",
@@ -27,11 +27,11 @@
     },
     {
       "path": "apps/studio/studio.css",
-      "sha256": "3b422ff8ad9a62a0428f4e4156d2b93b9909b07ef9260da749894c19dc9251df"
+      "sha256": "203b8796339236291d7247561c7de1c6f2f49318578562e6415b81f450b1ef44"
     },
     {
       "path": "apps/studio/studio.mjs",
-      "sha256": "db8edd8daa86ae0536728bb410da2183efd56722296d6849925479f54259ffbd"
+      "sha256": "1bd6688335eaab593bcfbb07906ddda46f8ca388f368b85e239d754e29aeaae7"
     },
     {
       "path": "apps/studio/zip.mjs",
@@ -47,15 +47,19 @@
     },
     {
       "path": "tests/browser/studio.mjs",
-      "sha256": "fc06a4316655514e41cce5fe273a7d325e2f8d585cb217a6be924a8495834480"
+      "sha256": "f7c512624c71a94e02cac2fb6df9520f908d00698e4648843364dd0320132dc8"
     },
     {
       "path": "apps/studio/sql-values.mjs",
-      "sha256": "ac7cca71e8b07ccd7c3095e49d6aee1fec22b867d049302ea77f84573d905715"
+      "sha256": "34e61ee529e703c0e9c2eba9c2cf9456a6d5a38e26827907faab828b4934fabb"
     },
     {
       "path": "packages/runtime/src/rpc-budget.mjs",
       "sha256": "f6fbf8f7d4502d7bfc0454e732d9b21fe277e41f28937976a006946d21ee759e"
+    },
+    {
+      "path": "apps/studio/sql-export.php",
+      "sha256": "980a56bc7f53dac2e9e77b986d9a8a988cda8d7c75ccef142135e176a1f0ad1c"
     }
   ]
 }

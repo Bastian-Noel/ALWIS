@@ -1,8 +1,9 @@
 /** Lossless literals shared by tools. No JavaScript number coercion of SQL values. */
 export const identifier = value => '`' + String(value).replace(/`/g, '``') + '`';
-export function literal(value) {
+export function literal(value,column) {
   if (value === null) return 'NULL';
   const binary=value instanceof Uint8Array;
+  if(binary&&column?.nativeType===16)return `b'${[...value].map(byte=>byte.toString(2).padStart(8,'0')).join('')}'`;
   const hex=[...(binary?value:new TextEncoder().encode(String(value)))].map(byte=>byte.toString(16).padStart(2,'0')).join('');
   return binary?`X'${hex}'`:`CONVERT(X'${hex}' USING utf8mb4)`;
 }

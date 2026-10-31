@@ -30,11 +30,14 @@ write('mysql_statement.c',php_build/'ext/pdo_mysql/mysql_statement.c',[
 ])
 for filename in ['pdo_mysql.c','mysql_sql_parser.c','php_pdo_mysql.h','pdo_mysql_arginfo.h']:
  source=php_build/'ext/pdo_mysql'/filename
- if source.exists():(output/filename).write_bytes(source.read_bytes())
+ if source.exists():
+  target=output/filename
+  if not target.exists() or target.read_bytes()!=source.read_bytes():target.write_bytes(source.read_bytes())
 header=php_build/'ext/pdo_mysql/php_pdo_mysql_int.h'
 original=header.read_text()
 updated=original.replace('zend_ulong\t\t\t*in_length;', 'unsigned long\t\t\t*in_length;').replace('zend_ulong\t\t\t\t*out_length;', 'unsigned long\t\t\t\t*out_length;')
 if updated==original:raise SystemExit('PDO external length-type adapter anchor changed')
-(output/'php_pdo_mysql_int.h').write_text(updated)
+target=output/'php_pdo_mysql_int.h'
+if not target.exists() or target.read_text()!=updated:target.write_text(updated)
 manifest.append({'source':str(header),'generated':'php_pdo_mysql_int.h','originalSha256':hashlib.sha256(original.encode()).hexdigest(),'generatedSha256':hashlib.sha256(updated.encode()).hexdigest()})
 (output/'driver-adapter.json').write_text(json.dumps(manifest,indent=2)+'\n')

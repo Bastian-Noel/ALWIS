@@ -1,6 +1,8 @@
 # Préparer le premier build reproductible
 
-## État de l'environnement de reconstruction
+> Le runtime commun est maintenant compilé et testé. Pour sa recette actuelle, voir [le build natif](../engine/fusion/spike/README.md) et [le receipt du runtime](../engine/fusion/NATIVE-RUNTIME-RECEIPT.md). La section d’environnement ci-dessous décrit la préparation initiale, pas les outils présents aujourd’hui.
+
+## État initial de l'environnement de reconstruction (historique)
 
 `provenance/environment.json` a été créé par `scripts/doctor.py`. Node, Python, Git, curl, make et un compilateur C sont présents. Emscripten/emcmake, CMake, Ninja, bison, re2c, autoconf et pkg-config ne sont pas trouvés ici. Aucun moteur ni extension n'a été compilé. Le header de contrat peut être vérifié syntaxiquement avec le compilateur C disponible ; ce n'est pas un test du backend.
 
