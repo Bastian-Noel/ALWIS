@@ -1,13 +1,14 @@
+import { messageBytes } from './rpc-budget.mjs';
 /** Browser-facing facade; engine/files/HTTP share one project-owner worker. */
 export class NativeRuntime {
-  #worker; #nextId = 0; #pending = new Map(); #closed = false;
+  #worker; #nextId = 0; #pending = new Map(); #pendingBytes = 0; #closed = false;
   constructor(worker) {
     this.#worker = worker;
     worker.onmessage = ({ data }) => {
       const request = this.#pending.get(data?.id);
       if (!request) return;
-      this.#pending.delete(data.id); clearTimeout(request.timer);
-      if (data.ok) request.resolve(data.value); else request.reject(Object.assign(new Error(data.error), { code: data.code }));
+      this.#pending.delete(data.id); this.#pendingBytes -= request.bytes; clearTimeout(request.timer);
+      if (data.ok) request.resolve(data.value); else request.reject(Object.assign(new Error(data.error), { code: data.code, errno: data.errno, sqlstate: data.sqlstate }));
     };
     worker.onerror = event => this.close(new Error(event.message));
     worker.onmessageerror = () => this.close(new Error('Unreadable runtime message'));
@@ -20,12 +21,16 @@ export class NativeRuntime {
   call(operation, args = {}, timeoutMs = 180000) {
     if (this.#closed) return Promise.reject(new Error('Runtime is closed'));
     if (this.#pending.size >= 64) return Promise.reject(new Error('Too many pending runtime calls'));
+    let size;
+    try { size=messageBytes({ ...args, operation }); }
+    catch(error) { return Promise.reject(error); }
+    if(this.#pendingBytes+size>8*1024*1024) return Promise.reject(new Error('Pending runtime calls exceed byte budget'));
     const id = ++this.#nextId;
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => this.close(new Error(`Runtime ${operation} timed out; worker terminated`)), timeoutMs);
-      this.#pending.set(id, { resolve, reject, timer });
+      this.#pending.set(id, { resolve, reject, timer, bytes: size }); this.#pendingBytes += size;
       try { this.#worker.postMessage({ ...args, id, operation }); }
-      catch (error) { clearTimeout(timer); this.#pending.delete(id); reject(error); }
+      catch (error) { clearTimeout(timer); this.#pending.delete(id); this.#pendingBytes -= size; reject(error); }
     });
   }
   write(path, data) { return this.call('write', { path, data }); }
@@ -44,6 +49,6 @@ export class NativeRuntime {
     if (this.#closed) return;
     this.#closed = true; this.#worker.terminate();
     for (const request of this.#pending.values()) { clearTimeout(request.timer); request.reject(error); }
-    this.#pending.clear();
+    this.#pending.clear(); this.#pendingBytes=0;
   }
 }

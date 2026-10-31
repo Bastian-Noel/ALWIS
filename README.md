@@ -35,7 +35,7 @@ Le premier build moteur est décrit dans [BUILD](docs/BUILD.md) ; il requiert se
 | 81 repères de code | Cartographie et empreintes dans `provenance/` |
 | Runtime, MySQLi C, VFS, Service Worker et studio | Implémentés ; quatre fenêtres/trois sessions, outils et sauvegarde testés ; limites documentées |
 | Compilations et tests navigateur amont | PHP et bridge réussis ; MariaDB originale échouée sur un en-tête C ; [preuves](engine/baseline/CI-RECEIPT.md) |
-| Benchmarks mémoire et performance du produit | Non réalisés ; banc navigateur préparé |
+| Mémoire et charge du runtime natif | [Observations réelles](benchmarks/native/README.md) : capacité 256 Mio sur le scénario réduit, PSS distincte et charge courte 2 clients × 5/10 req/s ; endurance ouverte |
 
 ## Sources amont volumineuses
 

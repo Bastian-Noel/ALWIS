@@ -33,6 +33,7 @@ const server = createServer(async (request, response) => {
 await new Promise((resolve, reject) => { server.once('error', reject); server.listen(0, '127.0.0.1', resolve); });
 const fixtures = {};
 for (const name of ['schema.sql', 'pdo.php', 'mysqli.php']) fixtures[name] = await readFile(join(repo, 'fixtures/school', name), 'utf8');
+fixtures['coverage.php']=await readFile(join(repo,'fixtures/compatibility/native-coverage.php'),'utf8');
 await mkdir(join(dist, 'receipts'), { recursive: true });
 try {
   for (const browserName of (process.argv[2] ?? 'chromium,firefox').split(',')) {
@@ -107,6 +108,29 @@ $r->data_seek(0); $a=$r->fetch_array(); if($a[0]!=='1'||$a['x']!=='1') throw new
 $stmt->close(); $db->close(); gc_collect_cycles(); echo 'bound-results-ok';`);
           const bound=await checked({script:'/workspace/bound.php'});
           if(bound.body!=='bound-results-ok') throw Error('Native MySQLi results mismatch: '+bound.body);
+          await runtime.write('/workspace/metadata.php', `<?php
+$db=new mysqli('localhost','root','','school');
+$stmt=$db->prepare('SELECT ? AS label, ? AS nullable, ? AS binary_value');
+if($stmt->param_count!==3 || $stmt->field_count!==3) throw new Exception('statement counts');
+$stmt->execute(['école',NULL,"A\\0B"]); $r=$stmt->get_result(); $row=$r->fetch_assoc();
+if($row['label']!=='école' || $row['nullable']!==NULL || bin2hex($row['binary_value'])!=='410042') throw new Exception('execute array values');
+$fields=$r->fetch_fields(); if(count($fields)!==3 || $fields[0]->name!=='label' || !isset($fields[0]->type,$fields[0]->charsetnr,$fields[0]->flags)) throw new Exception('field metadata');
+if($r->fetch_field()->name!=='label' || $r->fetch_field_direct(2)->name!=='binary_value') throw new Exception('field iterator');
+$meta=$stmt->result_metadata(); if($meta->field_count!==3 || $meta->num_rows!==0) throw new Exception('statement metadata');
+$stmt->execute(['second',NULL,'']); if($stmt->get_result()->fetch_assoc()['label']!=='second') throw new Exception('array reexecution');
+try { $stmt->execute(['bad']); throw new Exception('wrong arity accepted'); } catch (ArgumentCountError $e) {}
+try { $stmt->execute(['named'=>'bad']); throw new Exception('named values accepted'); } catch (ValueError $e) {}
+$stmt->close(); $db->close(); echo 'metadata-array-ok';`);
+          const metadata=await checked({script:'/workspace/metadata.php'});
+          if(metadata.body!=='metadata-array-ok') throw Error('MySQLi metadata/array mismatch: '+metadata.body);
+          await runtime.write('/workspace/coverage.php',fixtures['coverage.php']);
+          const coverage=await checked({script:'/workspace/coverage.php'});
+          if(JSON.parse(coverage.body).ok!==true)throw Error('Native compatibility coverage failed');
+          for(const sql of ["SELECT REPEAT('x',65536) FROM seq_1_to_1000",'SELECT seq FROM seq_1_to_10001']) {
+            let refused=false;try{await runtime.sql(sql,'school');}catch(error){refused=error.message.includes('WASM result exceeds');}
+            if(!refused)throw Error('Console result budget was not enforced');
+            const check=await runtime.sql('SELECT 42');if(check.rows[0][0]!=='42')throw Error('Console did not recover after result refusal');
+          }
           const consoleSet = await runtime.sql('SET @pbl_console_marker = 42', 'school');
           const duringConsole = await checked({ script: '/workspace/object.php' });
           const consoleMarker = await runtime.sql('SELECT @pbl_console_marker AS value');
@@ -121,7 +145,7 @@ $stmt->close(); $db->close(); gc_collect_cycles(); echo 'bound-results-ok';`);
           if (stopped.sqlStarted) throw Error('SQL did not stop');
           const phpAfterStop = await checked({ script: '/workspace/http.php' });
           if (phpAfterStop.sqlStarted || phpAfterStop.status !== 201) throw Error('PHP is not usable independently after SQL stop');
-          return { initial, file, http, afterPurePhp, network, networkContext, bound, schema, driverResults, object, consoleMarker, consoleTypes, phpAfterStop, final, stopped };
+          return { initial, file, http, afterPurePhp, network, networkContext, bound, metadata, coverage, schema, driverResults, object, consoleMarker, consoleTypes, phpAfterStop, final, stopped };
         } finally { runtime.close(); }
       }, fixtures);
       const persistence = await page.evaluate(async () => {

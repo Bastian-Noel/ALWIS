@@ -2,7 +2,7 @@
   "browser": "firefox",
   "version": "157.0",
   "passed": true,
-  "project": "studio-50355cc0-0cf1-462d-a20d-ecb9cace4c80",
+  "project": "studio-f258b69d-778e-4d5f-a243-dc78cdf2e08a",
   "windowCount": 4,
   "sessionCount": 3,
   "checks": [
@@ -13,7 +13,12 @@
     "redirect",
     "multipart upload",
     "SQL cell editing",
-    "schema introspection",
+    "server pagination",
+    "NULL/binary editing",
+    "BIGINT/DECIMAL grid fidelity",
+    "concurrent edit refusal",
+    "structure and indexes",
+    "schema and FK column introspection",
     "tool unload/restore",
     "project save/reopen"
   ]

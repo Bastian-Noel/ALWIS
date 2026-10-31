@@ -47,7 +47,7 @@ export class ProjectHub {
       catch { return this.error(404, 'Fichier introuvable'); }
       headers.push(['Content-Type', mime[pathname.split('.').pop()?.toLowerCase()] ?? 'application/octet-stream']);
     }
-    if (headers.some(([name, value]) => name.toLowerCase() === 'content-type' && value.toLowerCase().includes('text/html'))) {
+    if (['document','iframe'].includes(input.destination) && headers.some(([name, value]) => name.toLowerCase() === 'content-type' && value.toLowerCase().includes('text/html'))) {
       const context = { project: this.key, session: sessionId, prefix: this.routeURL(sessionId, '/'), logicalURL: url.href, cookies: session.jar.publicEntries() };
       const config = JSON.stringify(context).replace(/</g, '\\u003c');
       const bootstrap = `<script>window.__PBL_CONTEXT=${config};</script><script src="/_pbl/client.js"></script>`;

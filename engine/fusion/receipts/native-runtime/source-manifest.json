@@ -25,7 +25,7 @@
     },
     {
       "path": "engine/fusion/spike/runtime-target.cmake",
-      "sha256": "fc6e4fa15f55d98767893caa8a148c311831b4f54d88d7d22523f7a2657f2c25"
+      "sha256": "0fc883ac89bb923a825fc1fffe1366c2f40f58d8463d464f1a490457e1532f91"
     },
     {
       "path": "engine/fusion/spike/select-one.c",
@@ -37,7 +37,7 @@
     },
     {
       "path": "engine/fusion/spike/test-native-runtime.mjs",
-      "sha256": "a035933295411e07fe173c0f5c01979221fd0928a45b9ea73622ef9d3652c612"
+      "sha256": "9175b4ee742f711278c164013a2e817bd39c765d8d4f0ff5dc294413f297ba22"
     },
     {
       "path": "engine/fusion/spike/worker.mjs",
@@ -53,15 +53,15 @@
     },
     {
       "path": "packages/php-native/README.md",
-      "sha256": "f9bdfbcc5f2dd2ffcbd888dcf8b8d419aa75812cad14176dc89dcb7f01686f63"
+      "sha256": "9df3870863ce6a3a217b63d9c36c679ad8494507bf35557e9a4c1d99f24a02ee"
     },
     {
       "path": "packages/php-native/src/module.c",
-      "sha256": "7812e8bbe748a3a9be37c1512bf08cdebfe7659f68d42f17f7f8df930d1fc0b8"
+      "sha256": "773ee0e28f1721a1e6e76727b1e246203a498c33142d4586001fb41b8994d75e"
     },
     {
       "path": "packages/php-native/src/mysqli.c",
-      "sha256": "05a6c627d43f451bdd643e529517a5923523303bd23c7fb13be91b43d572706c"
+      "sha256": "076769134b51cd7417f3f53e661ea6be6bd3bef76f4b566ffd007ef9727a4cd6"
     },
     {
       "path": "packages/php-native/src/pdo-adapter.h",
@@ -69,11 +69,11 @@
     },
     {
       "path": "packages/runtime/src/native-runtime.mjs",
-      "sha256": "89f5a2704ae68fd14c5895d7d4a49497a8c59a64832c36aebc256e3f075a2c40"
+      "sha256": "8f56e5419bc0e22b582a586ea54f76a03ff00e2d56323ea853333052d6d5f6d0"
     },
     {
       "path": "packages/runtime/src/native-worker.mjs",
-      "sha256": "df2d50dd7c988560afaa43e19751ec0b85406be9a086b286415e56d7baeb86a8"
+      "sha256": "d85713a3455c94ad76903b40c8a4deadc68c35618e1a210c24805bf4256048d8"
     },
     {
       "path": "packages/runtime/src/request-queue.mjs",
@@ -106,18 +106,34 @@
     {
       "path": "scripts/prepare-native-drivers.py",
       "sha256": "d7be169419c213cb6566403f98c9e1efcd787a87e18aec2c6e11e7a05980064d"
+    },
+    {
+      "path": "scripts/prepare-native-server.py",
+      "sha256": "9f6414fc00b44ec15bb7b2ebd80624fb92e89e136e7bb1b36f2ceaba3f9ba588"
+    },
+    {
+      "path": "scripts/prepare-native-result-budget.py",
+      "sha256": "c0da1fce13135dc17928f8688142766e983bf737a1e4a6c09bfe6b9e670979ba"
+    },
+    {
+      "path": "fixtures/compatibility/native-coverage.php",
+      "sha256": "4d9110a201c722c455c27e038dc9474f9251f0d46e423dffc4ea81b9070bbc53"
+    },
+    {
+      "path": "packages/runtime/src/rpc-budget.mjs",
+      "sha256": "f6fbf8f7d4502d7bfc0454e732d9b21fe277e41f28937976a006946d21ee759e"
     }
   ],
   "artifacts": [
     {
       "path": "build-work/bridge/.native-build/engine/wasm/runtime-dist/pbl-runtime.mjs",
-      "sha256": "7538a33581014d7776d65187c9f9c3ec5cd3f568c7426e3e7a0a353b4b23c0f2",
-      "bytes": 485850
+      "sha256": "67c5999b1f93c279d38327eecd643c9a0742010b921a88fa57af3899d6fe94de",
+      "bytes": 483662
     },
     {
       "path": "build-work/bridge/.native-build/engine/wasm/runtime-dist/pbl-runtime.wasm",
-      "sha256": "ba67fda3a943253293fb4d107847a4987948a19ae62c50934c9061b678c7886b",
-      "bytes": 33200870
+      "sha256": "ee2ab384077f6fa9b53498afc102496655097c4ca2d3fd6bf6fefcb04066916c",
+      "bytes": 33232827
     }
   ],
   "nativeLibraries": [
@@ -128,8 +144,15 @@
     },
     {
       "path": "build-work/bridge/.native-build/engine/wasm/libmysqld/libmariadbd.a",
-      "sha256": "90020c6f38b7b802d9149b1a44691ab5a4eadfa60524f343e1727511c4b16ba5",
-      "bytes": 82048566
+      "sha256": "e65db616b05a805729c4258fa123e54b3b2db6da01a5025b8e8fb4a7bcabb0de",
+      "bytes": 82049724
     }
-  ]
+  ],
+  "limits": {
+    "maximumLinearMemoryBytes": 536870912,
+    "initialLinearMemoryBytes": 268435456,
+    "pthreadDefaultStackBytes": 2097152,
+    "embeddedResultBlocksBytes": 16777216,
+    "resultRows": 10000
+  }
 }

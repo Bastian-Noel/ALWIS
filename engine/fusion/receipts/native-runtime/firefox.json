@@ -7,6 +7,8 @@
       "sqlStarted": false,
       "sqlConnections": 0,
       "linearMemoryBytes": 268435456,
+      "allocatorUsedBytes": 3176,
+      "allocatorFreeBytes": 3464,
       "hardwareConcurrency": 5,
       "queue": {
         "pending": 0,
@@ -28,6 +30,8 @@
       "sqlStarted": false,
       "sqlConnections": 0,
       "linearMemoryBytes": 268435456,
+      "allocatorUsedBytes": 3344,
+      "allocatorFreeBytes": 1703136,
       "hardwareConcurrency": 5,
       "queue": {
         "pending": 0,
@@ -39,6 +43,8 @@
       "sqlStarted": false,
       "sqlConnections": 0,
       "linearMemoryBytes": 268435456,
+      "allocatorUsedBytes": 3344,
+      "allocatorFreeBytes": 1703136,
       "hardwareConcurrency": 5,
       "queue": {
         "pending": 0,
@@ -58,6 +64,8 @@
       "sqlStarted": false,
       "sqlConnections": 0,
       "linearMemoryBytes": 268435456,
+      "allocatorUsedBytes": 3344,
+      "allocatorFreeBytes": 1703136,
       "hardwareConcurrency": 5,
       "queue": {
         "pending": 0,
@@ -71,12 +79,14 @@
         "X-Powered-By: PHP/8.4.27",
         "Content-type: text/html; charset=UTF-8"
       ],
-      "body": "[[\"POST\",\"custom\",\"native-body\"],[\"HTTP\\/1.1 202 Accepted\",\"cache-control: no-store\",\"connection: keep-alive\",\"content-type: application\\/json\",\"cross-origin-embedder-policy: require-corp\",\"cross-origin-opener-policy: same-origin\",\"date: Sat, 31 Oct 2026 22:02:42 GMT\",\"keep-alive: timeout=5\",\"transfer-encoding: chunked\",\"x-native-reply: present\"]]",
+      "body": "[[\"POST\",\"custom\",\"native-body\"],[\"HTTP\\/1.1 202 Accepted\",\"cache-control: no-store\",\"connection: keep-alive\",\"content-type: application\\/json\",\"cross-origin-embedder-policy: require-corp\",\"cross-origin-opener-policy: same-origin\",\"date: Sat, 31 Oct 2026 22:22:19 GMT\",\"keep-alive: timeout=5\",\"transfer-encoding: chunked\",\"x-native-reply: present\"]]",
       "stderr": "",
       "exitCode": 0,
       "sqlStarted": false,
       "sqlConnections": 0,
       "linearMemoryBytes": 268435456,
+      "allocatorUsedBytes": 3344,
+      "allocatorFreeBytes": 1703136,
       "hardwareConcurrency": 5,
       "queue": {
         "pending": 0,
@@ -95,7 +105,51 @@
       "exitCode": 0,
       "sqlStarted": true,
       "sqlConnections": 0,
-      "linearMemoryBytes": 775684096,
+      "linearMemoryBytes": 268435456,
+      "allocatorUsedBytes": 79173768,
+      "allocatorFreeBytes": 1859944,
+      "hardwareConcurrency": 5,
+      "queue": {
+        "pending": 0,
+        "running": true,
+        "bytes": 0
+      }
+    },
+    "metadata": {
+      "status": 200,
+      "headers": [
+        "X-Powered-By: PHP/8.4.27",
+        "Content-type: text/html; charset=UTF-8"
+      ],
+      "body": "metadata-array-ok",
+      "stderr": "",
+      "exitCode": 0,
+      "sqlStarted": true,
+      "sqlConnections": 0,
+      "linearMemoryBytes": 268435456,
+      "allocatorUsedBytes": 79173768,
+      "allocatorFreeBytes": 1859944,
+      "hardwareConcurrency": 5,
+      "queue": {
+        "pending": 0,
+        "running": true,
+        "bytes": 0
+      }
+    },
+    "coverage": {
+      "status": 200,
+      "headers": [
+        "X-Powered-By: PHP/8.4.27",
+        "Content-Type: application/json"
+      ],
+      "body": "{\"ok\":true,\"checks\":[\"PDO emulate=true: binds\\/fetch modes\\/metadata\\/buffered+unbuffered result limits\\/recovery\",\"PDO emulate=false: binds\\/fetch modes\\/metadata\\/buffered+unbuffered result limits\\/recovery\",\"MySQLi extension\\/init\\/connect\\/escape\\/diagnostics\\/autocommit\\/rollback\\/text+binary result budgets\\/recovery\"]}",
+      "stderr": "",
+      "exitCode": 0,
+      "sqlStarted": true,
+      "sqlConnections": 0,
+      "linearMemoryBytes": 268435456,
+      "allocatorUsedBytes": 181366736,
+      "allocatorFreeBytes": 1890848,
       "hardwareConcurrency": 5,
       "queue": {
         "pending": 0,
@@ -114,7 +168,9 @@
       "exitCode": 0,
       "sqlStarted": true,
       "sqlConnections": 0,
-      "linearMemoryBytes": 775684096,
+      "linearMemoryBytes": 268435456,
+      "allocatorUsedBytes": 62239080,
+      "allocatorFreeBytes": 16439432,
       "hardwareConcurrency": 5,
       "queue": {
         "pending": 0,
@@ -155,7 +211,9 @@
       "exitCode": 0,
       "sqlStarted": true,
       "sqlConnections": 0,
-      "linearMemoryBytes": 775684096,
+      "linearMemoryBytes": 268435456,
+      "allocatorUsedBytes": 79173768,
+      "allocatorFreeBytes": 1827176,
       "hardwareConcurrency": 5,
       "queue": {
         "pending": 0,
@@ -234,7 +292,9 @@
       "exitCode": 0,
       "sqlStarted": false,
       "sqlConnections": 0,
-      "linearMemoryBytes": 775684096,
+      "linearMemoryBytes": 268435456,
+      "allocatorUsedBytes": 119198968,
+      "allocatorFreeBytes": 81118456,
       "hardwareConcurrency": 5,
       "queue": {
         "pending": 0,
@@ -245,7 +305,9 @@
     "final": {
       "sqlStarted": true,
       "sqlConnections": 0,
-      "linearMemoryBytes": 775684096,
+      "linearMemoryBytes": 268435456,
+      "allocatorUsedBytes": 198464288,
+      "allocatorFreeBytes": 1853136,
       "hardwareConcurrency": 5,
       "queue": {
         "pending": 0,
@@ -256,7 +318,9 @@
     "stopped": {
       "sqlStarted": false,
       "sqlConnections": 0,
-      "linearMemoryBytes": 775684096,
+      "linearMemoryBytes": 268435456,
+      "allocatorUsedBytes": 144472984,
+      "allocatorFreeBytes": 55844440,
       "hardwareConcurrency": 5,
       "queue": {
         "pending": 0,
@@ -267,7 +331,7 @@
   },
   "persistence": {
     "passed": true,
-    "projectKey": "test-d5b01cac-f03d-4a6a-a9b5-a215b3b47225",
+    "projectKey": "test-7bb4676d-1585-45a6-8253-f24e3a8ba43c",
     "output": "saved-native-project",
     "sql": {
       "columns": [

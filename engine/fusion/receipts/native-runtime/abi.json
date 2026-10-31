@@ -1,20 +1,20 @@
 {
   "file": "build-work/bridge/.native-build/engine/wasm/runtime-dist/pbl-runtime.wasm",
-  "sha256": "ba67fda3a943253293fb4d107847a4987948a19ae62c50934c9061b678c7886b",
-  "bytes": 33200870,
+  "sha256": "ee2ab384077f6fa9b53498afc102496655097c4ca2d3fd6bf6fefcb04066916c",
+  "bytes": 33232827,
   "memoryImports": [
     {
       "module": "env",
       "name": "memory",
       "minPages": 4096,
-      "maxPages": 32768,
+      "maxPages": 8192,
       "shared": true,
       "minBytes": 268435456,
-      "maxBytes": 2147483648
+      "maxBytes": 536870912
     }
   ],
   "definedMemories": [],
-  "importedFunctions": 284,
+  "importedFunctions": 283,
   "exportedMemories": [],
   "interfaceExports": [
     "php_wasm_abi_version",

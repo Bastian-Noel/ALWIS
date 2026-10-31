@@ -54,8 +54,36 @@ try {
       const label = page.locator('#sql-tool td').filter({hasText:'shared-native-row'}); await label.waitFor(); await label.dblclick();
       await page.locator('#sql-tool td input').fill('edited-native-row'); await page.locator('#sql-tool td input').press('Enter');
       await page.locator('#sql-tool td').filter({hasText:'edited-native-row'}).waitFor({timeout:15000}); console.log(name,'SQL cell edit verified');
+      await page.locator('#sql-tool .structure').click();
+      await page.locator('#sql-tool .structure-output').filter({hasText:'CREATE TABLE'}).waitFor();
+      const sql=`CREATE TABLE grid_types (id INT PRIMARY KEY, label VARCHAR(100) NULL, payload VARBINARY(100), exact_value BIGINT UNSIGNED, amount DECIMAL(20,6)) ENGINE=InnoDB;
+INSERT INTO grid_types SELECT seq, CONCAT('row-',seq), UNHEX('4100FF'), 18446744073709551615, 12345678901234.123456 FROM seq_1_to_250;
+CREATE TABLE grid_children (id INT PRIMARY KEY, parent_id INT, CONSTRAINT fk_grid_parent FOREIGN KEY(parent_id) REFERENCES grid_types(id)) ENGINE=InnoDB;`;
+      await page.locator('#sql-tool .sql-file').setInputFiles({name:'grid.sql',mimeType:'text/plain',buffer:Buffer.from(sql)});
+      await page.locator('#sql-tool .message').filter({hasText:'Import SQL terminé.'}).waitFor();
+      await page.locator('#sql-tool .tables').click();await page.locator('#sql-tool .table option[value=grid_types]').waitFor({state:'attached'});
+      await page.locator('#sql-tool .table').selectOption('grid_types');await page.locator('#sql-tool .browse').click();
+      await page.locator('#sql-tool .page').filter({hasText:'1 / 3'}).waitFor();assert.equal(await page.locator('#sql-tool tbody tr').count(),100);
+      await page.locator('#sql-tool .next').click();await page.locator('#sql-tool .page').filter({hasText:'2 / 3'}).waitFor();
+      assert.equal(await page.locator('#sql-tool tbody tr').first().locator('td').first().textContent(),'101');
+      await page.locator('#sql-tool .previous').click();await page.locator('#sql-tool .page').filter({hasText:'1 / 3'}).waitFor();
+      const first=page.locator('#sql-tool tbody tr').first();
+      assert.equal(await first.locator('td').nth(3).textContent(),'18446744073709551615');
+      assert.equal(await first.locator('td').nth(4).textContent(),'12345678901234.123456');
+      await first.locator('td').nth(1).dblclick();await page.locator('#sql-tool td select').selectOption('null');await page.locator('#sql-tool td button').filter({hasText:'Valider'}).click();
+      await first.locator('td').nth(1).filter({hasText:'NULL'}).waitFor();
+      await first.locator('td').nth(2).dblclick();await page.locator('#sql-tool td input').fill('FF0042');await page.locator('#sql-tool td input').press('Enter');
+      await first.locator('td').nth(2).filter({hasText:"X'ff0042'"}).waitFor();
+      await page.locator('#import-files').setInputFiles({name:'grid-concurrent.php',mimeType:'text/plain',buffer:Buffer.from(`<?php $db=new PDO('mysql:dbname=test;charset=utf8mb4','root','');$db->exec("UPDATE grid_types SET label='concurrent' WHERE id=1");echo 'ok';`)});
+      await page.locator('#status').filter({hasText:'Fichiers importés.'}).waitFor();
+      assert.equal(await a2.evaluate(async()=> (await fetch('/grid-concurrent.php')).text()),'ok');
+      await first.locator('td').nth(1).dblclick();await page.locator('#sql-tool td select').selectOption('text');await page.locator('#sql-tool td input').fill('should-not-overwrite');await page.locator('#sql-tool td input').press('Enter');
+      await page.locator('#status').filter({hasText:'La ligne a changé'}).waitFor();
+      await page.locator('#sql-tool .browse').click();await first.locator('td').nth(1).filter({hasText:'concurrent'}).waitFor();
+      console.log(name,'server pagination, NULL, binary, exact numeric and conflict checks verified');
       await page.locator('#schema-tool .refresh').click(); await page.locator('#schema-tool svg text').filter({hasText:'studio_notes'}).first().waitFor();
-      console.log(name,'schema verified');
+      await page.locator('#schema-tool svg text').filter({hasText:'fk_grid_parent: parent_id → id'}).waitFor();
+      console.log(name,'schema and foreign-key columns verified');
       await page.locator('#editor-tool .source').fill('<?php echo "draft-preserved";');
       await page.locator('[data-tool=editor]').selectOption('unloaded'); await page.locator('#editor-tool .unloaded').waitFor();
       await page.locator('[data-tool=editor]').selectOption('active'); await page.locator('#editor-tool .source').waitFor();
@@ -77,7 +105,7 @@ try {
       assert.equal(await b.locator('#session').textContent(),ids[2]);
       await page.screenshot({ path:resolve(output,name+'-studio.png'),fullPage:true });
       await page.locator('#close').click(); await page.waitForFunction(() => document.querySelector('#status').textContent.startsWith('Projet fermé'));
-      const receipt = { browser:name,version:browser.version(),passed:true,project,windowCount:4,sessionCount:3,checks:['shared/independent PHP sessions','shared SQL','virtual cookies/storage','POST','redirect','multipart upload','SQL cell editing','schema introspection','tool unload/restore','project save/reopen'] };
+      const receipt = { browser:name,version:browser.version(),passed:true,project,windowCount:4,sessionCount:3,checks:['shared/independent PHP sessions','shared SQL','virtual cookies/storage','POST','redirect','multipart upload','SQL cell editing','server pagination','NULL/binary editing','BIGINT/DECIMAL grid fidelity','concurrent edit refusal','structure and indexes','schema and FK column introspection','tool unload/restore','project save/reopen'] };
       await writeFile(resolve(output,name+'.json'),JSON.stringify(receipt,null,2)+'\n'); console.log(name,'studio acceptance passed');
     } finally { await browser.close(); }
   }

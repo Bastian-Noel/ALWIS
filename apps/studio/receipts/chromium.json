@@ -2,7 +2,7 @@
   "browser": "chromium",
   "version": "156.0.8078.4",
   "passed": true,
-  "project": "studio-afc2b041-6d05-4c94-bd19-952e809acdac",
+  "project": "studio-e1fa25d6-152e-478d-be11-8941d732c133",
   "windowCount": 4,
   "sessionCount": 3,
   "checks": [
@@ -13,7 +13,12 @@
     "redirect",
     "multipart upload",
     "SQL cell editing",
-    "schema introspection",
+    "server pagination",
+    "NULL/binary editing",
+    "BIGINT/DECIMAL grid fidelity",
+    "concurrent edit refusal",
+    "structure and indexes",
+    "schema and FK column introspection",
     "tool unload/restore",
     "project save/reopen"
   ]

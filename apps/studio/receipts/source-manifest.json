@@ -7,11 +7,11 @@
     },
     {
       "path": "apps/studio/index.html",
-      "sha256": "c0d724637cdca3cb9ae10182339091cf6724dae9866eb976427760e8981683a7"
+      "sha256": "376ca6652bdd7783356c0e6f80e718560a8646e90f95048fb6272a72e45d186a"
     },
     {
       "path": "apps/studio/project-hub.mjs",
-      "sha256": "4bfb20efd9f0294d21fdea21b861a717d5138842917dabd7b58b471887310e48"
+      "sha256": "6de71b48a39ccf21719cd1eb8082871420a14ca2c7d121a3ae41677f84864aae"
     },
     {
       "path": "apps/studio/school-demo.mjs",
@@ -19,7 +19,7 @@
     },
     {
       "path": "apps/studio/service-worker.mjs",
-      "sha256": "97b072573e3723d50c314e5aa08c26f53e77ecdc2e8a659daa1f6d3274d43340"
+      "sha256": "c1729c6e8417cbf121ddafa3033409a870cd5a599d0d2177a30e7f4ee9679757"
     },
     {
       "path": "apps/studio/state.mjs",
@@ -27,11 +27,11 @@
     },
     {
       "path": "apps/studio/studio.css",
-      "sha256": "edaa3202057a32e256f697659eabab93add174bceee113df94a768e457bd30ff"
+      "sha256": "3b422ff8ad9a62a0428f4e4156d2b93b9909b07ef9260da749894c19dc9251df"
     },
     {
       "path": "apps/studio/studio.mjs",
-      "sha256": "8c2767c24b578aaa32754708fd3b89e52f1a0cc172a3e0d55d6c5a7618103c48"
+      "sha256": "db8edd8daa86ae0536728bb410da2183efd56722296d6849925479f54259ffbd"
     },
     {
       "path": "apps/studio/zip.mjs",
@@ -47,7 +47,15 @@
     },
     {
       "path": "tests/browser/studio.mjs",
-      "sha256": "0506d9fca322925de751d884ba896526ae9e1a7b89fe9dfad444feb286c6969e"
+      "sha256": "fc06a4316655514e41cce5fe273a7d325e2f8d585cb217a6be924a8495834480"
+    },
+    {
+      "path": "apps/studio/sql-values.mjs",
+      "sha256": "ac7cca71e8b07ccd7c3095e49d6aee1fec22b867d049302ea77f84573d905715"
+    },
+    {
+      "path": "packages/runtime/src/rpc-budget.mjs",
+      "sha256": "f6fbf8f7d4502d7bfc0454e732d9b21fe277e41f28937976a006946d21ee759e"
     }
   ]
 }

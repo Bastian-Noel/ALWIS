@@ -1,0 +1,116 @@
+{
+  "label": "original",
+  "browser": "chromium",
+  "version": "156.0.8078.4",
+  "scope": "One fresh browser; Linux aggregate process PSS/RSS separate from WASM linear capacity and allocator usage; observational sample, not a statistical benchmark",
+  "observations": [
+    {
+      "stage": "php-only",
+      "elapsedMs": 46.980000000447035,
+      "state": {
+        "sqlStarted": false,
+        "sqlConnections": 0,
+        "linearMemoryBytes": 268435456,
+        "hardwareConcurrency": 5,
+        "queue": {
+          "pending": 0,
+          "running": true,
+          "bytes": 0
+        }
+      },
+      "processMemory": {
+        "available": true,
+        "processCount": 6,
+        "rssSumBytes": 840470528,
+        "pssBytes": 603944960,
+        "source": "Linux /proc/<pid>/smaps_rollup of Node Playwright descendants",
+        "limitation": "PSS includes browser, JS, workers and WASM; not WASM heap or physical system-wide RAM"
+      }
+    },
+    {
+      "stage": "sql-start",
+      "elapsedMs": 1199.464999999851,
+      "state": {
+        "sqlStarted": true,
+        "sqlConnections": 1,
+        "linearMemoryBytes": 773586944,
+        "hardwareConcurrency": 5,
+        "queue": {
+          "pending": 0,
+          "running": true,
+          "bytes": 0
+        }
+      },
+      "processMemory": {
+        "available": true,
+        "processCount": 6,
+        "rssSumBytes": 1249746944,
+        "pssBytes": 1030634496,
+        "source": "Linux /proc/<pid>/smaps_rollup of Node Playwright descendants",
+        "limitation": "PSS includes browser, JS, workers and WASM; not WASM heap or physical system-wide RAM"
+      }
+    },
+    {
+      "stage": "sql-work",
+      "latency": {
+        "count": 100,
+        "p50": 1.625,
+        "p95": 4.105000000447035,
+        "max": 15.169999998062849
+      },
+      "state": {
+        "sqlStarted": true,
+        "sqlConnections": 1,
+        "linearMemoryBytes": 773586944,
+        "hardwareConcurrency": 5,
+        "queue": {
+          "pending": 0,
+          "running": true,
+          "bytes": 0
+        }
+      },
+      "processMemory": {
+        "available": true,
+        "processCount": 6,
+        "rssSumBytes": 1298853888,
+        "pssBytes": 1092287488,
+        "source": "Linux /proc/<pid>/smaps_rollup of Node Playwright descendants",
+        "limitation": "PSS includes browser, JS, workers and WASM; not WASM heap or physical system-wide RAM"
+      }
+    },
+    {
+      "stage": "sql-stop",
+      "elapsedMs": 90.64499999955297,
+      "state": {
+        "sqlStarted": false,
+        "sqlConnections": 0,
+        "linearMemoryBytes": 773586944,
+        "hardwareConcurrency": 5,
+        "queue": {
+          "pending": 0,
+          "running": true,
+          "bytes": 0
+        }
+      },
+      "processMemory": {
+        "available": true,
+        "processCount": 6,
+        "rssSumBytes": 1390145536,
+        "pssBytes": 1151712256,
+        "source": "Linux /proc/<pid>/smaps_rollup of Node Playwright descendants",
+        "limitation": "PSS includes browser, JS, workers and WASM; not WASM heap or physical system-wide RAM"
+      }
+    },
+    {
+      "stage": "worker-destroyed",
+      "processMemory": {
+        "available": true,
+        "processCount": 6,
+        "rssSumBytes": 1360396288,
+        "pssBytes": 1121676288,
+        "source": "Linux /proc/<pid>/smaps_rollup of Node Playwright descendants",
+        "limitation": "PSS includes browser, JS, workers and WASM; not WASM heap or physical system-wide RAM"
+      }
+    }
+  ]
+}

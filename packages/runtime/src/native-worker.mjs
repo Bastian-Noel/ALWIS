@@ -49,7 +49,7 @@ function copyChunks(chunks) {
   for (const chunk of chunks) { output.set(chunk, offset); offset += chunk.byteLength; }
   return output;
 }
-function state() { return { sqlStarted: module._pbl_mysql_started() !== 0, sqlConnections: module._pbl_mysql_connection_count(), linearMemoryBytes: module.HEAPU8.buffer.byteLength, hardwareConcurrency: navigator.hardwareConcurrency, projectKey, queue: queue.stats }; }
+function state() { return { sqlStarted: module._pbl_mysql_started() !== 0, sqlConnections: module._pbl_mysql_connection_count(), linearMemoryBytes: module.HEAPU8.buffer.byteLength, allocatorUsedBytes: module._pbl_heap_used?.() ?? null, allocatorFreeBytes: module._pbl_heap_free?.() ?? null, hardwareConcurrency: navigator.hardwareConcurrency, projectKey, queue: queue.stats }; }
 async function request(input) {
   const script = path(input.script);
   const url = new URL(input.url ?? 'https://project.local' + script.slice('/workspace'.length));
@@ -168,5 +168,5 @@ self.onmessage = event => {
   queue.run(() => dispatch(message), { bytes: admittedBytes }).then(value => {
     const transfers = value instanceof Uint8Array ? [value.buffer] : value?.body ? [value.body.buffer, value.stderr.buffer] : [];
     self.postMessage({ id: message.id, ok: true, value }, transfers);
-  }, error => self.postMessage({ id: message.id, ok: false, error: error.message, code: error.code }));
+  }, error => self.postMessage({ id: message.id, ok: false, error: error.message, code: error.code, errno: error.errno, sqlstate: error.sqlstate }));
 };

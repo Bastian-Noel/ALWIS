@@ -1,0 +1,11 @@
+{
+  "source": "/workspace/WASMWebServer/build-work/mariadb-shallow/wasm/lite4mariadb.c",
+  "originalSha256": "b45954f15bd0b5137bbb02af1538496f3d939e0e38acb13a72275375f6ddb0d0",
+  "generatedSha256": "a931277a2a9a35e6d65e6f604d7a7783b5b0cf7f897e6683e778e5838c5b5482",
+  "changes": {
+    "--innodb-buffer-pool-size=64M": "--innodb-buffer-pool-size=16M",
+    "--loose-innodb-buffer-pool-size-max=256M": "--loose-innodb-buffer-pool-size-max=16M",
+    "--max-allowed-packet=128M": "--max-allowed-packet=16M",
+    "(char *)\"--innodb-log-buffer-size=2M\",": "(char *)\"--innodb-log-buffer-size=2M\",\n    (char *)\"--innodb-log-file-size=8M\",\n    (char *)\"--aria-pagecache-buffer-size=1M\",\n    (char *)\"--key-buffer-size=1M\",\n    (char *)\"--query-cache-size=0\",\n    (char *)\"--tmp-table-size=4M\",\n    (char *)\"--max-heap-table-size=4M\",\n    (char *)\"--sort-buffer-size=256K\",\n    (char *)\"--join-buffer-size=256K\",\n    (char *)\"--read-buffer-size=128K\",\n    (char *)\"--read-rnd-buffer-size=256K\","
+  }
+}

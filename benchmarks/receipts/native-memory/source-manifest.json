@@ -1,0 +1,34 @@
+{
+  "scope": "Memory observations and retained initial binary hashes; exact build options described in benchmarks/native/README.md",
+  "initialArtifacts": [
+    {
+      "path": "build-work/native-profiles/original/pbl-runtime.wasm",
+      "bytes": 33210552,
+      "sha256": "63be3cb01065585eebf2dc12f5ee10137654615011964aee29a8c9cfba6acf9b"
+    },
+    {
+      "path": "build-work/native-profiles/original/pbl-runtime.mjs",
+      "bytes": 485850,
+      "sha256": "7538a33581014d7776d65187c9f9c3ec5cd3f568c7426e3e7a0a353b4b23c0f2"
+    }
+  ],
+  "finalRuntimeManifest": "../../../engine/fusion/receipts/native-runtime/source-manifest.json",
+  "harnesses": [
+    {
+      "path": "benchmarks/native/memory.mjs",
+      "sha256": "90c379026d956b60212f108e8d4cdf3175cf0e67b6280c03d81ccb6ba90ffe30"
+    },
+    {
+      "path": "benchmarks/browser-process-memory.mjs",
+      "sha256": "9ea7ffd97f8996bff25e9688d55393ac57074523a0319b3754f5e861486d53d5"
+    },
+    {
+      "path": "tests/browser/load-native.mjs",
+      "sha256": "ff7756895f7e4c88b0740bff80b681fe8b5f92f61ffebd04dc62f35d236874b2"
+    },
+    {
+      "path": "fixtures/compatibility/load.php",
+      "sha256": "0b11ffb7abf20675f242aeefdcdabea8f3faca6e7d2f2377a988e244bd8f00c9"
+    }
+  ]
+}

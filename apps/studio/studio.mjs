@@ -1,16 +1,11 @@
+import { identifier, literal, editValue, sameValue } from './sql-values.mjs';
 import { ProjectHub } from './project-hub.mjs';
 import { readState, writeState } from './state.mjs';
 const $ = selector => document.querySelector(selector), decoder = new TextDecoder();
 let hub, dirty = false, operation = Promise.resolve();
 const tools = new Map();
 function status(text, error = false) { $('#status').textContent = text; $('#status').toggleAttribute('data-error', error); }
-function action(task) { operation = operation.then(task).catch(error => status(error.message, true)); return operation; }
-const identifier = value => '`' + String(value).replace(/`/g, '``') + '`';
-const literal = value => {
-  if (value === null) return 'NULL';
-  const hex = [...(value instanceof Uint8Array ? value : new TextEncoder().encode(String(value)))].map(byte => byte.toString(16).padStart(2, '0')).join('');
-  return value instanceof Uint8Array ? `X'${hex}'` : `CONVERT(X'${hex}' USING utf8mb4)`;
-};
+function action(task) { operation = operation.then(task).catch(error => status((error.sqlstate ? '[' + error.sqlstate + '/' + error.errno + '] ' : '') + error.message, true)); return operation; }
 const display = value => value === null ? 'NULL' : value instanceof Uint8Array ? literal(value) : String(value);
 async function rows(sql, database) { return hub.runtime.sql(sql, database); }
 async function files(path = '/workspace', depth = 0) {
@@ -55,43 +50,66 @@ async function renderSQL(container, saved) {
   container.append($('#sql-template').content.cloneNode(true));
   const query = container.querySelector('.query'), database = container.querySelector('.database'), grid = container.querySelector('.grid'), tableSelect = container.querySelector('.table'), message = container.querySelector('.message');
   query.value = saved?.query ?? 'SHOW TABLES'; database.value = saved?.database ?? 'test';
-  let result, page = 0, editingTable, primaryKeys = [];
+  let result, page = 0, editingTable, primaryKeys = [], totalRows = 0;
   const draw = () => {
     grid.replaceChildren();
     if (!result) return;
     const table = document.createElement('table'), head = table.createTHead().insertRow();
     result.columns.forEach(column => { const cell = document.createElement('th'); cell.textContent = column.name; head.append(cell); });
     const body = table.createTBody();
-    for (const row of result.rows.slice(page * 100, page * 100 + 100)) {
+    for (const row of editingTable ? result.rows : result.rows.slice(page * 100, page * 100 + 100)) {
       const tr = body.insertRow();
       row.forEach((value, index) => {
         const cell = tr.insertCell(); cell.textContent = display(value);
         if (editingTable && primaryKeys.length) {
           cell.dataset.editable = '';
-          cell.ondblclick = () => { const input = document.createElement('input'); input.value = value === null ? '' : display(value); cell.replaceChildren(input); input.focus(); input.onkeydown = event => {
-            if (event.key === 'Escape') draw();
-            if (event.key === 'Enter') action(async () => {
-              const where = primaryKeys.map(key => identifier(key) + '=' + literal(row[result.columns.findIndex(column => column.name === key)])).join(' AND ');
-              await rows(`UPDATE ${identifier(editingTable)} SET ${identifier(result.columns[index].name)}=${literal(input.value)} WHERE ${where}`, database.value); dirty = true; await browse();
+          cell.ondblclick = () => {
+            const mode=document.createElement('select'); mode.setAttribute('aria-label','Type de valeur');
+            for(const [value,label] of [['text','Texte'],['hex','Binaire (hex)'],['null','NULL']]) mode.append(Object.assign(document.createElement('option'),{value,textContent:label}));
+            mode.value=value===null?'null':value instanceof Uint8Array?'hex':'text';
+            const input=document.createElement('input'); input.setAttribute('aria-label','Nouvelle valeur');
+            input.value=value===null?'':value instanceof Uint8Array?[...value].map(b=>b.toString(16).padStart(2,'0')).join(''):String(value);
+            const save=document.createElement('button');save.textContent='Valider';
+            const cancel=document.createElement('button');cancel.textContent='Annuler';cancel.onclick=draw;
+            cell.replaceChildren(mode,input,save,cancel);input.focus();
+            const submit=()=>action(async()=>{
+              const next=editValue(mode.value,input.value);if(sameValue(next,value)){draw();return;}
+              const where=result.columns.map((column,i)=>`${column.kind===1?'BINARY ':''}${identifier(column.name)} <=> ${literal(row[i])}`).join(' AND ');
+              const changed=await rows(`UPDATE ${identifier(editingTable)} SET ${identifier(result.columns[index].name)}=${literal(next)} WHERE ${where} LIMIT 1`,database.value);
+              if(changed.affectedRows!=='1') throw Error('La ligne a changé depuis son affichage. Rechargez les données avant de modifier.');
+              dirty=true;await browse(false);
             });
-          }; };
+            save.onclick=submit;
+            input.onkeydown=event=>{if(event.key==='Escape')draw();if(event.key==='Enter')submit();};
+          };
         }
       });
     }
-    grid.append(table); container.querySelector('.page').textContent = `${page + 1} / ${Math.max(1, Math.ceil(result.rows.length / 100))}`;
-    container.querySelector('.previous').disabled = page === 0; container.querySelector('.next').disabled = (page + 1) * 100 >= result.rows.length;
+    grid.append(table); container.querySelector('.page').textContent = `${page + 1} / ${Math.max(1, Math.ceil((editingTable ? totalRows : result.rows.length) / 100))}`;
+    container.querySelector('.previous').disabled = page === 0; container.querySelector('.next').disabled = (page + 1) * 100 >= (editingTable ? totalRows : result.rows.length);
   };
   const execute = async () => { editingTable = undefined; result = await rows(query.value, database.value); dirty = true; page = 0; message.textContent = `${result.rows.length} lignes · ${result.affectedRows} lignes affectées`; draw(); await updateEngine(); };
   const tables = async () => { const data = await rows('SHOW TABLES', database.value); tableSelect.replaceChildren(...data.rows.map(row => Object.assign(document.createElement('option'), { value: row[0], textContent: row[0] }))); };
-  const browse = async () => {
+  const browse = async (reset = true) => {
     const name = tableSelect.value; if (!name) return;
     const keys = await rows(`SELECT COLUMN_NAME FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA=${literal(database.value)} AND TABLE_NAME=${literal(name)} AND CONSTRAINT_NAME='PRIMARY' ORDER BY ORDINAL_POSITION`, database.value);
-    primaryKeys = keys.rows.map(row => row[0]); editingTable = name;
-    result = await rows(`SELECT * FROM ${identifier(name)} LIMIT 1000`, database.value); page = 0;
-    message.textContent = primaryKeys.length ? 'Double-cliquez une cellule pour la modifier. 1 000 lignes au maximum.' : 'Lecture seule : aucune clé primaire. 1 000 lignes au maximum.'; draw();
+    primaryKeys = keys.rows.map(row => row[0]); editingTable = name; if(reset)page=0;
+    const count=await rows(`SELECT COUNT(*) FROM ${identifier(name)}`,database.value);
+    if(BigInt(count.rows[0][0])>BigInt(Number.MAX_SAFE_INTEGER))throw Error('Table trop grande pour cette pagination.');
+    totalRows=Number(count.rows[0][0]);page=Math.min(page,Math.max(0,Math.ceil(totalRows/100)-1));
+    const order=primaryKeys.length?' ORDER BY '+primaryKeys.map(identifier).join(','):'';
+    result = await rows(`SELECT * FROM ${identifier(name)}${order} LIMIT 100 OFFSET ${page*100}`, database.value);
+    message.textContent = primaryKeys.length ? `Double-cliquez pour modifier · ${totalRows} lignes · 100 lignes par page.` : `Lecture seule : aucune clé primaire · ${totalRows} lignes. L’ordre peut changer entre les pages.`; draw();
   };
-  container.querySelector('.run').onclick = () => action(execute); container.querySelector('.tables').onclick = () => action(tables); container.querySelector('.browse').onclick = () => action(browse);
-  container.querySelector('.previous').onclick = () => { page = Math.max(0, page - 1); draw(); }; container.querySelector('.next').onclick = () => { page++; draw(); };
+  container.querySelector('.run').onclick = () => action(execute); container.querySelector('.tables').onclick = () => action(tables); container.querySelector('.browse').onclick = () => action(() => browse());
+  container.querySelector('.previous').onclick = () => action(async()=>{page=Math.max(0,page-1);if(editingTable)await browse(false);else draw();}); container.querySelector('.next').onclick = () => action(async()=>{page++;if(editingTable)await browse(false);else draw();});
+  container.querySelector('.structure').onclick=()=>action(async()=>{
+    if(!tableSelect.value)throw Error('Choisissez une table.');
+    const ddl=await rows(`SHOW CREATE TABLE ${identifier(tableSelect.value)}`,database.value);
+    const indexes=await rows(`SHOW INDEX FROM ${identifier(tableSelect.value)}`,database.value);
+    const output=container.querySelector('.structure-output');output.hidden=false;
+    output.textContent=ddl.rows[0][1]+';\n\nIndex :\n'+indexes.rows.map(row=>indexes.columns.map((col,i)=>col.name+': '+display(row[i])).join(' · ')).join('\n');
+  });
   const input = container.querySelector('.sql-file'); container.querySelector('.import-sql').onclick = () => input.click();
   input.onchange = () => action(async () => {
     const file = input.files[0]; if (!file) return;
@@ -111,26 +129,35 @@ async function renderSchema(container, saved) {
   database.value = saved?.database ?? 'test'; const positions = saved?.positions ?? {}; const ns = 'http://www.w3.org/2000/svg';
   const element = (name, attrs = {}, text) => { const node = document.createElementNS(ns, name); for (const [key, value] of Object.entries(attrs)) node.setAttribute(key, value); if (text !== undefined) node.textContent = text; return node; };
   const refresh = async () => {
-    const columns = await rows(`SELECT TABLE_NAME,COLUMN_NAME,COLUMN_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=${literal(database.value)} ORDER BY TABLE_NAME,ORDINAL_POSITION`, database.value);
-    const relations = await rows(`SELECT TABLE_NAME,REFERENCED_TABLE_NAME FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA=${literal(database.value)} AND REFERENCED_TABLE_NAME IS NOT NULL`, database.value);
+    const columns = await rows(`SELECT TABLE_NAME,COLUMN_NAME,COLUMN_TYPE,COLUMN_KEY,IS_NULLABLE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=${literal(database.value)} ORDER BY TABLE_NAME,ORDINAL_POSITION`, database.value);
+    const relations = await rows(`SELECT TABLE_NAME,REFERENCED_TABLE_NAME,COLUMN_NAME,REFERENCED_COLUMN_NAME,CONSTRAINT_NAME FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA=${literal(database.value)} AND REFERENCED_TABLE_NAME IS NOT NULL`, database.value);
     const tables = new Map(); for (const row of columns.rows) { if (!tables.has(row[0])) tables.set(row[0], []); tables.get(row[0]).push(row); }
     if (tables.size > 50) throw Error('Le diagramme est limité à 50 tables.');
     svg.replaceChildren(); let i = 0;
-    for (const [name] of tables) positions[name] ??= { x: 30 + i % 3 * 350, y: 30 + Math.floor(i++ / 3) * 230 };
+    let rowY=30,rowHeight=0; for (const [name,fields] of tables) { if(i && i%3===0){rowY+=rowHeight+30;rowHeight=0;} positions[name] ??= {x:30+i%3*350,y:rowY}; rowHeight=Math.max(rowHeight,45+fields.length*18); i++; }
     const lines = [];
-    for (const [from, to] of relations.rows) if (positions[from] && positions[to]) { const line = element('line'); svg.append(line); lines.push({ line, from, to }); }
-    const updateLines = () => lines.forEach(({ line, from, to }) => { for (const [key, value] of Object.entries({ x1: positions[from].x + 150, y1: positions[from].y + 20, x2: positions[to].x + 150, y2: positions[to].y + 20 })) line.setAttribute(key, value); });
+    for (const [from,to,column,referenced,constraint] of relations.rows) if(tables.has(from)&&tables.has(to)) {
+      const line=element('line'),label=element('text',{class:'relation-label'},`${constraint}: ${column} → ${referenced}`);
+      line.append(element('title',{},`${from}.${column} → ${to}.${referenced}`));svg.append(line,label);
+      const fromIndex=tables.get(from).findIndex(field=>field[1]===column),toIndex=tables.get(to).findIndex(field=>field[1]===referenced);
+      lines.push({line,label,from,to,fromIndex,toIndex});
+    }
+    const updateLines=()=>lines.forEach(({line,label,from,to,fromIndex,toIndex})=>{
+      const x1=positions[from].x+300,y1=positions[from].y+41+fromIndex*18,x2=positions[to].x,y2=positions[to].y+41+toIndex*18;
+      for(const [key,value] of Object.entries({x1,y1,x2,y2}))line.setAttribute(key,value);
+      label.setAttribute('x',(x1+x2)/2);label.setAttribute('y',(y1+y2)/2-5);
+    });
     for (const [name, fields] of tables) {
       const group = element('g', { transform: `translate(${positions[name].x},${positions[name].y})` });
-      group.append(element('rect', { width: 300, height: 45 + Math.min(fields.length, 8) * 18 }), element('text', { x: 12, y: 24 }, name));
-      fields.slice(0, 8).forEach((field, index) => group.append(element('text', { x: 12, y: 46 + index * 18 }, `${field[1]} : ${field[2]}`)));
-      group.onpointerdown = event => { group.setPointerCapture(event.pointerId); const box = svg.getBoundingClientRect(), scale = 1100 / box.width; const start = { x: event.clientX, y: event.clientY, ...positions[name] };
+      group.append(element('rect', { width: 300, height: 45 + fields.length * 18 }), element('text', { x: 12, y: 24 }, name));
+      fields.forEach((field, index) => group.append(element('text', { x: 12, y: 46 + index * 18 }, `${field[3]==='PRI'?'◆ ':field[3]==='MUL'?'◇ ':''}${field[1]} : ${field[2]}${field[4]==='NO'?' NOT NULL':''}`)));
+      group.onpointerdown = event => { group.setPointerCapture(event.pointerId); const box = svg.getBoundingClientRect(), scale = svg.viewBox.baseVal.width / box.width; const start = { x: event.clientX, y: event.clientY, ...positions[name] };
         group.onpointermove = move => { positions[name] = { x: Math.max(0, start.x + (move.clientX - event.clientX) * scale), y: Math.max(0, start.y + (move.clientY - event.clientY) * scale) }; group.setAttribute('transform', `translate(${positions[name].x},${positions[name].y})`); updateLines(); };
         group.onpointerup = () => { group.onpointermove = null; };
       };
       svg.append(group);
     }
-    updateLines(); svg.setAttribute('viewBox', `0 0 1100 ${Math.max(350, ...Object.values(positions).map(position => position.y + 230))}`); message.textContent = `${tables.size} tables · ${relations.rows.length} relations`;
+    updateLines(); svg.setAttribute('viewBox', `0 0 ${Math.max(1100,...[...tables.keys()].map(name=>positions[name].x+330))} ${Math.max(350,...[...tables].map(([name,fields])=>positions[name].y+75+fields.length*18))}`); message.textContent = `${tables.size} tables · ${relations.rows.length} relations`;
   };
   container.querySelector('.refresh').onclick = () => action(refresh);
   container.querySelector('.apply').onclick = () => action(async () => { await rows(container.querySelector('.ddl').value, database.value); dirty = true; await refresh(); });
@@ -152,7 +179,14 @@ async function setTool(name, mode) {
   tool.mode = mode;
 }
 function refreshSessions() { $('#sessions').replaceChildren(...[...hub.sessions.sessions.values()].map(session => Object.assign(document.createElement('option'), { value: session.id, textContent: session.label }))); }
-async function updateEngine() { if (hub) { const state = await hub.runtime.state(); $('#engine-state').textContent = `SQL ${state.sqlStarted ? 'actif' : 'arrêté'} · capacité du moteur ${(state.linearMemoryBytes / 1048576).toFixed(0)} Mio`; } }
+async function updateEngine() {
+  if(!hub)return;
+  const state=await hub.runtime.state(),label=$('#engine-state');
+  label.dataset.linearMemoryBytes=state.linearMemoryBytes;
+  label.dataset.allocatorUsedBytes=state.allocatorUsedBytes??'';
+  label.textContent=`SQL ${state.sqlStarted?'actif':'arrêté'} · ${state.allocatorUsedBytes===null?'':`tas occupé ${(state.allocatorUsedBytes/1048576).toFixed(0)} Mio · `}capacité WASM ${(state.linearMemoryBytes/1048576).toFixed(0)} Mio`;
+  label.title='Le tas occupé et la capacité WASM sont distincts de la RAM résidente du navigateur.';
+}
 async function openProject() {
   const key = $('#project').value; if (!/^[A-Za-z0-9_-]{1,64}$/.test(key)) throw Error('Nom de projet : lettres, chiffres, tirets et underscore, 64 caractères maximum.');
   if (hub) { for (const name of tools.keys()) await setTool(name, 'unloaded'); await hub.close(); }
