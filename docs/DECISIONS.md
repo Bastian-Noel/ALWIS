@@ -17,6 +17,7 @@ Les décisions de périmètre viennent des demandes utilisateur ; les choix d'im
 | RAM | Cache/file/résultats/threads/historique bornés | Mesures globales et pics sur scénarios identiques |
 | Transport SQL | Réduire JSON/base64 ; buffers typés et curseurs | Exactitude binaire, BIGINT/DECIMAL, sémantique bufferisée |
 | Fusion | **Cible principale au jalon 4**, après référence séparée vérifiée et mesurée | ABI commune, PDO, gain/coût total, reprise sur erreur, RAM et disponibilité SQL à la demande |
+| Édition web | **CodeMirror 6 + services WASM `php-lsp`, SuperHTML, SWC ou Babel-light** ; définitions jQuery internes invisibles | [Orientation utilisateur et exigences](EDITEUR-CODE.md) ; prototype de complétion et mesures de chargement/déchargement |
 | UI SQL | JavaScript, SQL/données/diagramme ; chargement à la demande | DDL exécuté puis schéma relu ; échecs affichés |
 | Dossier PC | Reporté V2 | Permissions, cohérence et conflits externes |
 | Réseau entre appareils | Chantier ultérieur avec un hôte unique | Signalisation/transport et reprise |

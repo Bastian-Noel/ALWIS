@@ -13,6 +13,8 @@ Une étape n'est close qu'avec des tests réels, des commandes reproductibles, d
 | **5 — MySQLi natif + mémoire** | Spike mysqlnd/extension native, types/résultats, profils MariaDB et cycles stop/restart expérimentaux | Conformité PDO/MySQLi, trace allocateurs/pics navigateur ; décisions fondées sur les chiffres | Non commencé |
 | **6 — Environnement navigateur** | Routage HTTP, N fenêtres, sessions virtuelles partagées/indépendantes, persistance fichiers, éditeur et SQL UI déchargeables | GET/POST/cookies/uploads/redirections, même DB, sessions correctes, sauvegarde/reprise et UI démontée | Non commencé |
 
+Édition du code web : suivre [la recommandation utilisateur enregistrée](EDITEUR-CODE.md) — CodeMirror 6, services de langage WASM et définitions jQuery internes. Cette intégration reste à réaliser ; le textarea actuel est le socle provisoire.
+
 ### Sous-lots à traiter au jalon correspondant
 
 - **4 :** modèle de propriétaire par requête/console, rollback et nettoyage ciblés, file bornée, résultats typés, contrôles des buffers, pont C sans JSON/base64.
