@@ -1,0 +1,40 @@
+# Native PHP drivers and runtime integration
+
+This directory contains a real Zend C extension, not PHP implementations of mysqli functions. It shares `packages/sql-native/src/pbl_mysql.c` with the adapted stock PDO MySQL C driver. Both link to the same embedded MariaDB library in `pbl-runtime.wasm`.
+
+`pbl_mysql.c` owns lazy SQL startup, the 32-caller connection limit, per-request owner IDs, connection teardown/rollback and SQL shutdown refusal while caller connections are alive. PHP request cleanup happens after Zend/PDO/MySQLi destructors; it does not reset the whole SQL server. The bootstrap connection is internal to MariaDB and not part of the caller count.
+
+The generated driver copies are traceable through `driver-adapter.json`. Upstream source trees are retained. PDO uses PHP's external-client driver with native embedded connections, rather than the old asynchronous JSON/base64 host bridge. The adapter also fixes external-client length pointer types and excludes a MySQL-only JSON type case from the MariaDB build.
+
+## Initial MySQLi surface
+
+- Procedural and object connections, queries, prepared statements, close, charset and transactions.
+- By-reference `bind_param` with i/d/s/b parameters read at execute time; NULL and binary string lengths stay native.
+- `get_result`, `fetch_assoc`, `fetch_row`, result free and insert ID.
+- SQL exceptions and the common report flags.
+
+This is a subset, not a claim of complete MySQLi compatibility. `bind_result`, long-data streaming, multi-query, async mysqli, `fetch_all`, metadata methods and execute(array) are not implemented yet. Prepared result values are currently lossless strings/NULL rather than full mysqlnd native numeric typing. The standard school fixtures are the first integration acceptance gate; both unchanged fixtures and the object path pass on Chromium/Firefox; their results are recorded separately.
+
+The result copy is limited to 16 MiB and 10,000 rows. MariaDB's internal buffered result is obtained before that check, so this does NOT yet bound peak native result allocation. Persistent connections and the full public `pbl_sql.h` cursor/batch contract still require dedicated implementation/validation.
+
+## Files and networking
+
+`packages/files-native/src/files.c` provides project-root path checks and POSIX write/fsync/rename, remove and rename operations. The JS worker facade uses them; PHP uses the same filesystem through normal file functions. The facade defaults to MEMFS and accepts a persistent projectKey to mount separate IDBFS file/SQL stores. save() closes the console, stops SQL and synchronizes the VFS; shutdown() then releases the project lock. Worker recreation/restoration is verified on both browsers. fsync alone does not claim browser durability.
+
+`packages/network-native/src/http-stream.c` registers HTTP/HTTPS read streams using Emscripten's synchronous fetch API inside the project worker. PHP `file_get_contents` therefore uses real browser HTTP instead of pretending browser WASM has ordinary TCP sockets. Browser CORS, redirects and credentials apply. The initial implementation handles the method/content/ignore_errors context options; custom headers, response-header variables, timeout context options and complete HTTP wrapper parity remain to be added. The response copy limit does not prevent the browser from first receiving a larger response.
+
+Incoming HTTP/CGI semantics reuse the pinned native runtime with custom drivers installed at startup and targeted owner cleanup afterwards. `packages/runtime/src/native-runtime.mjs` exposes file operations, CGI requests, runtime state and SQL stop through a bounded queue in one project-owner worker. Clients must share that owner instead of creating a database per window. A Service Worker router, virtual client sessions and cross-window transport are still separate work.
+
+## Build and first end-to-end check
+
+After the native source prerequisites in `engine/fusion/spike/README.md`:
+
+```sh
+source /workspace/toolchains/host/activate.sh
+source /workspace/WASMWebServer/build-work/emsdk/emsdk_env.sh
+cd /workspace/WASMWebServer
+PBL_TARGET=pbl-runtime JOBS=3 bash engine/fusion/spike/build.sh
+PLAYWRIGHT_BROWSERS_PATH=/workspace/.cache/ms-playwright node engine/fusion/spike/test-native-runtime.mjs
+```
+
+The integration check executes real files, GET/POST CGI, outgoing browser HTTP, both unchanged school fixtures and object MySQLi, then verifies connection cleanup and SQL stop. Do not describe an unexecuted or failed check as a working feature. Debug assertions and function names are currently kept in the native link to diagnose integration errors.

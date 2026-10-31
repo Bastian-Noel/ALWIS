@@ -1,0 +1,253 @@
+{
+  "browser": "firefox",
+  "version": "157.0",
+  "passed": true,
+  "results": {
+    "initial": {
+      "sqlStarted": false,
+      "sqlConnections": 0,
+      "linearMemoryBytes": 268435456,
+      "hardwareConcurrency": 5,
+      "queue": {
+        "pending": 0,
+        "running": true,
+        "bytes": 0
+      }
+    },
+    "file": "native-file-ok",
+    "http": {
+      "status": 201,
+      "headers": [
+        "X-Powered-By: PHP/8.4.27",
+        "X-Native: yes",
+        "Content-type: text/html; charset=UTF-8"
+      ],
+      "body": "[\"query\",\"posted\",\"native-file-ok\"]",
+      "stderr": "",
+      "exitCode": 0,
+      "sqlStarted": false,
+      "sqlConnections": 0,
+      "linearMemoryBytes": 268435456,
+      "hardwareConcurrency": 5,
+      "queue": {
+        "pending": 0,
+        "running": true,
+        "bytes": 11
+      }
+    },
+    "afterPurePhp": {
+      "sqlStarted": false,
+      "sqlConnections": 0,
+      "linearMemoryBytes": 268435456,
+      "hardwareConcurrency": 5,
+      "queue": {
+        "pending": 0,
+        "running": true,
+        "bytes": 0
+      }
+    },
+    "network": {
+      "status": 200,
+      "headers": [
+        "X-Powered-By: PHP/8.4.27",
+        "Content-type: text/html; charset=UTF-8"
+      ],
+      "body": "network-ok",
+      "stderr": "",
+      "exitCode": 0,
+      "sqlStarted": false,
+      "sqlConnections": 0,
+      "linearMemoryBytes": 268435456,
+      "hardwareConcurrency": 5,
+      "queue": {
+        "pending": 0,
+        "running": true,
+        "bytes": 0
+      }
+    },
+    "schema": {
+      "status": 200,
+      "headers": [
+        "X-Powered-By: PHP/8.4.27",
+        "Content-type: text/html; charset=UTF-8"
+      ],
+      "body": "schema-ok",
+      "stderr": "",
+      "exitCode": 0,
+      "sqlStarted": true,
+      "sqlConnections": 0,
+      "linearMemoryBytes": 775684096,
+      "hardwareConcurrency": 5,
+      "queue": {
+        "pending": 0,
+        "running": true,
+        "bytes": 0
+      }
+    },
+    "driverResults": {
+      "pdo": {
+        "ok": true,
+        "row": {
+          "label": "élève 🎲",
+          "nullable_text": null,
+          "amount": "12345678901234.123456",
+          "big_value": "18446744073709551615",
+          "payload_hex": "410042FF"
+        }
+      },
+      "mysqli": {
+        "ok": true,
+        "row": {
+          "label": "élève 🎲",
+          "nullable_text": null,
+          "amount": "12345678901234.123456",
+          "big_value": "18446744073709551615",
+          "payload_hex": "410042FF"
+        }
+      }
+    },
+    "object": {
+      "status": 200,
+      "headers": [
+        "X-Powered-By: PHP/8.4.27",
+        "Content-type: text/html; charset=UTF-8"
+      ],
+      "body": "after",
+      "stderr": "",
+      "exitCode": 0,
+      "sqlStarted": true,
+      "sqlConnections": 0,
+      "linearMemoryBytes": 775684096,
+      "hardwareConcurrency": 5,
+      "queue": {
+        "pending": 0,
+        "running": true,
+        "bytes": 0
+      }
+    },
+    "consoleMarker": {
+      "columns": [
+        {
+          "kind": 3,
+          "nativeType": 8,
+          "flags": 32896,
+          "name": "value"
+        }
+      ],
+      "rows": [
+        [
+          "42"
+        ]
+      ],
+      "affectedRows": "1",
+      "insertId": "0"
+    },
+    "consoleTypes": {
+      "columns": [
+        {
+          "kind": 1,
+          "nativeType": 6,
+          "flags": 32896,
+          "name": "n"
+        },
+        {
+          "kind": 2,
+          "nativeType": 253,
+          "flags": 128,
+          "name": "b"
+        },
+        {
+          "kind": 3,
+          "nativeType": 8,
+          "flags": 32929,
+          "name": "big"
+        },
+        {
+          "kind": 4,
+          "nativeType": 246,
+          "flags": 32897,
+          "name": "amount"
+        }
+      ],
+      "rows": [
+        [
+          null,
+          {
+            "0": 65,
+            "1": 0,
+            "2": 255
+          },
+          "18446744073709551615",
+          "12345678901234.123456"
+        ]
+      ],
+      "affectedRows": "1",
+      "insertId": "0"
+    },
+    "phpAfterStop": {
+      "status": 201,
+      "headers": [
+        "X-Powered-By: PHP/8.4.27",
+        "X-Native: yes",
+        "Content-type: text/html; charset=UTF-8"
+      ],
+      "body": "[null,null,\"native-file-ok\"]",
+      "stderr": "",
+      "exitCode": 0,
+      "sqlStarted": false,
+      "sqlConnections": 0,
+      "linearMemoryBytes": 775684096,
+      "hardwareConcurrency": 5,
+      "queue": {
+        "pending": 0,
+        "running": true,
+        "bytes": 0
+      }
+    },
+    "final": {
+      "sqlStarted": true,
+      "sqlConnections": 0,
+      "linearMemoryBytes": 775684096,
+      "hardwareConcurrency": 5,
+      "queue": {
+        "pending": 0,
+        "running": true,
+        "bytes": 0
+      }
+    },
+    "stopped": {
+      "sqlStarted": false,
+      "sqlConnections": 0,
+      "linearMemoryBytes": 775684096,
+      "hardwareConcurrency": 5,
+      "queue": {
+        "pending": 0,
+        "running": true,
+        "bytes": 0
+      }
+    }
+  },
+  "persistence": {
+    "passed": true,
+    "projectKey": "test-348e7f19-0aaf-48b9-b62a-2151a0c4de39",
+    "output": "saved-native-project",
+    "sql": {
+      "columns": [
+        {
+          "kind": 1,
+          "nativeType": 253,
+          "flags": 0,
+          "name": "value"
+        }
+      ],
+      "rows": [
+        [
+          "saved-native-project"
+        ]
+      ],
+      "affectedRows": "1",
+      "insertId": "0"
+    },
+    "scope": "New owner worker and WASM instance in the same browser profile after explicit save"
+  }
+}

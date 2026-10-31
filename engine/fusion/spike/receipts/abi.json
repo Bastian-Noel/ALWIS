@@ -1,0 +1,45 @@
+{
+  "file": "build-work/bridge/.native-build/engine/wasm/fusion-dist/pbl-fusion.wasm",
+  "sha256": "89f6dbd2de96c891a90cc859315e4be6401abb13335d452c681b02d3fca0ce01",
+  "bytes": 30642360,
+  "memoryImports": [
+    {
+      "module": "env",
+      "name": "memory",
+      "minPages": 4096,
+      "maxPages": 32768,
+      "shared": true,
+      "minBytes": 268435456,
+      "maxBytes": 2147483648
+    }
+  ],
+  "definedMemories": [],
+  "importedFunctions": 264,
+  "exportedMemories": [],
+  "interfaceExports": [
+    "l4m_open",
+    "l4m_close",
+    "l4m_free",
+    "l4m_escape",
+    "l4m_query",
+    "l4m_session_open",
+    "l4m_session_query",
+    "l4m_session_close",
+    "l4m_exec_multi"
+  ],
+  "asyncifyExports": [
+    "asyncify_start_unwind",
+    "asyncify_stop_unwind",
+    "asyncify_start_rewind",
+    "asyncify_stop_rewind",
+    "asyncify_get_state"
+  ],
+  "pthreadExports": [
+    "pthread_self",
+    "_emscripten_thread_init",
+    "_emscripten_thread_crashed",
+    "_emscripten_thread_free_data",
+    "_emscripten_thread_exit"
+  ],
+  "hostCallImports": []
+}

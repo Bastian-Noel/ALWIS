@@ -1,0 +1,135 @@
+{
+  "toolchain": "Emscripten 6.0.6",
+  "sourceBase": "380077439a496892c018decaf4872f654ce81173",
+  "target": "pbl-runtime",
+  "files": [
+    {
+      "path": "engine/fusion/spike/CMakeLists.txt",
+      "sha256": "8f80d87eb8135455b462036536ae15affde18f574e0df8cb979184edb11ee562"
+    },
+    {
+      "path": "engine/fusion/spike/README.md",
+      "sha256": "3fa9e79fc414f31a196d80c067e0f75b2bcb6b97fc97d008c00a5f0936c200cd"
+    },
+    {
+      "path": "engine/fusion/spike/RECEIPT.md",
+      "sha256": "841797a7c018c3f23245bf58d1cf1b460644bf158d730bb1c38987b3f7d309ee"
+    },
+    {
+      "path": "engine/fusion/spike/attach.cmake",
+      "sha256": "75442e4759fa08fb3eeb4c373c4409b2f6611d61745e08127f524f8b6901a92d"
+    },
+    {
+      "path": "engine/fusion/spike/build.sh",
+      "sha256": "ec17a48ab31575beeb8dfb53fcf815496fd63d6a073bd28a74341ba9c8c24919"
+    },
+    {
+      "path": "engine/fusion/spike/runtime-target.cmake",
+      "sha256": "fc6e4fa15f55d98767893caa8a148c311831b4f54d88d7d22523f7a2657f2c25"
+    },
+    {
+      "path": "engine/fusion/spike/select-one.c",
+      "sha256": "9c15752f872d4fcad423cc717ede98de743cc01b7e71e260d578813760961c3b"
+    },
+    {
+      "path": "engine/fusion/spike/test-browser.mjs",
+      "sha256": "c03d29ea0d1d91ee40c26023dd287919c488cdb70b55f1b56298d46b534885cf"
+    },
+    {
+      "path": "engine/fusion/spike/test-native-runtime.mjs",
+      "sha256": "7386529e25a711bb37bf42cdf89a494948a88e08223741864d41469dc714d86d"
+    },
+    {
+      "path": "engine/fusion/spike/worker.mjs",
+      "sha256": "c9e4d261cc0a808ba458b44ac6260bf305065f1e8ab7f8f4321aea70e6024964"
+    },
+    {
+      "path": "packages/files-native/src/files.c",
+      "sha256": "9298a9dd48807f328daf38a287022509197eaaa4383cbb309eb9682713ec3622"
+    },
+    {
+      "path": "packages/network-native/src/http-stream.c",
+      "sha256": "0bff8dcc839c8397cab2faa0f23eb523bc04907a552873b5731dbce70d8606ae"
+    },
+    {
+      "path": "packages/php-native/README.md",
+      "sha256": "c3b7a31021d72654259b9f826f0c86f57f6b865d98b42f2f30135648e489a0f2"
+    },
+    {
+      "path": "packages/php-native/src/module.c",
+      "sha256": "7812e8bbe748a3a9be37c1512bf08cdebfe7659f68d42f17f7f8df930d1fc0b8"
+    },
+    {
+      "path": "packages/php-native/src/mysqli.c",
+      "sha256": "bf95d939e54448b9ea5cdf892defbf43be7f0adf78803f57a1ad3896ddb3e5e0"
+    },
+    {
+      "path": "packages/php-native/src/pdo-adapter.h",
+      "sha256": "d5f6d0c810a2dee44eaf87c15e998b3700de28d9727183e87422aa411fedc9ee"
+    },
+    {
+      "path": "packages/runtime/src/native-runtime.mjs",
+      "sha256": "89f5a2704ae68fd14c5895d7d4a49497a8c59a64832c36aebc256e3f075a2c40"
+    },
+    {
+      "path": "packages/runtime/src/native-worker.mjs",
+      "sha256": "ee16ddaffbc37de9cf9b42a1efe62ac45a87ac394830bb409919ef21f7690382"
+    },
+    {
+      "path": "packages/runtime/src/request-queue.mjs",
+      "sha256": "d8e27add9c2df5d387c84a505560d2439f51717c06b6b723ad48c5e53bbf0e2e"
+    },
+    {
+      "path": "packages/runtime/src/sql-frame.mjs",
+      "sha256": "6321333725a6e53ac039068ef00baef6359b59d62a8bceda55ed350ecd6cf169"
+    },
+    {
+      "path": "packages/sql-native/README.md",
+      "sha256": "0d033a62891ccbb5c80802c551bfa68657f6859f6257e7c7fe20c547c81349ad"
+    },
+    {
+      "path": "packages/sql-native/include/pbl_mysql.h",
+      "sha256": "31b11a84a235f9c7905af7a2615e5c522f832f49d1dbccd0639ddee932a8b9b0"
+    },
+    {
+      "path": "packages/sql-native/include/pbl_sql.h",
+      "sha256": "5307f6f76143a699494c3467ef864d866dd955938a264c05b670da4b3bad69e1"
+    },
+    {
+      "path": "packages/sql-native/src/console.c",
+      "sha256": "e7022bba29a821d17ab7aad204f95215dbee31a748a56946f05d2026a357eeae"
+    },
+    {
+      "path": "packages/sql-native/src/pbl_mysql.c",
+      "sha256": "e36814f2d43e8e04b4c730e650f68acb6d4a77b46712f2dace48bb3019bf8f9d"
+    },
+    {
+      "path": "scripts/prepare-native-drivers.py",
+      "sha256": "d7be169419c213cb6566403f98c9e1efcd787a87e18aec2c6e11e7a05980064d"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "build-work/bridge/.native-build/engine/wasm/runtime-dist/pbl-runtime.mjs",
+      "sha256": "3e40d565052a682a0c01c146d960e59cb1693962ffa808204090d1e31eee251f",
+      "bytes": 485293
+    },
+    {
+      "path": "build-work/bridge/.native-build/engine/wasm/runtime-dist/pbl-runtime.wasm",
+      "sha256": "9fb2f61d67a260eacb465b48eaeacb2b3305136409a2c482a64b228c74cc400c",
+      "bytes": 33183806
+    }
+  ],
+  "nativeLibraries": [
+    {
+      "path": "build-work/php-minimal/.libs/libphp.a",
+      "sha256": "44f5bee348f6b0cb887f52a3221d16e66c9468f3b0b78849bf4458be712b2097",
+      "bytes": 6649626
+    },
+    {
+      "path": "build-work/bridge/.native-build/engine/wasm/libmysqld/libmariadbd.a",
+      "sha256": "90020c6f38b7b802d9149b1a44691ab5a4eadfa60524f343e1727511c4b16ba5",
+      "bytes": 82048566
+    }
+  ]
+}

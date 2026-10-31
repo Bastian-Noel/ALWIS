@@ -1,0 +1,15 @@
+{
+  "browser": "chromium",
+  "version": "156.0.8078.4",
+  "ok": true,
+  "evidence": {
+    "status": 0,
+    "directCalls": 1,
+    "sqlStarted": 1,
+    "linearMemoryBytes": 777781248,
+    "output": [
+      "fusion-select-one-ok"
+    ],
+    "sqlStopped": true
+  }
+}

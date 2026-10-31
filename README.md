@@ -1,5 +1,7 @@
 # WASMWebServer
 
+> **Runtime custom C disponible et testé sur Chromium/Firefox** : PHP/MariaDB communs, PDO/MySQLi natifs, fichiers, CGI/HTTP et sauvegarde/restauration. Voir [le receipt actuel](engine/fusion/NATIVE-RUNTIME-RECEIPT.md) pour les preuves et les limites ; les sections historiques ci-dessous décrivent la préparation initiale.
+
 > Cadrage actualisé : voir [l’objectif actif](docs/EXECUTION.md). N fenêtres avec sessions indépendantes ou partagées ; WASM unique PHP/MariaDB comme cible principale ; SQL à la demande et déchargement évalué sur mesures. Les scénarios à deux joueurs ci-dessous sont des tests, pas une limite produit.
 
 Environnement PHP + MariaDB entièrement dans le navigateur, destiné aux petits projets scolaires, avec PDO/MySQLi natifs, N fenêtres rattachées à des sessions indépendantes ou partagées et une console SQL utilisant la même base. Nom du socle importé : **PHP Browser Lab**.

@@ -8,8 +8,8 @@ Ce cadrage remplace les anciennes formulations limitant le produit à deux joueu
 |---|---|---|
 | 1 Structure/cadrage | Répertoires, responsabilités, identifiants et critères | Structure initiale créée |
 | 2 Sources | Matrice épinglée et cartographie du cycle moteur | Cartographie prioritaire consolidée dans `engine/baseline/SOURCE-ANALYSIS.md` ; versions A/B non interchangeables |
-| 3 Témoins amont | Compilation PHP et MariaDB, PDO, exécution navigateur, persistance et mesures | Trois builds natifs verts (run 41204266390) ; benchmark Chromium/Firefox 3/3 et persistance (run 41212313878) ; **mémoire navigateur non mesurable par l'API disponible**, preuves de RAM à compléter |
-| 4 Fusion | Un binaire, pont C, PDO, démarrage SQL à la demande, comparaison | Analyse de l'ABI des trois binaires commencée ; reconstruction unifiée non commencée |
+| 3 Témoins amont | Compilation PHP et MariaDB, PDO, exécution navigateur, persistance et mesures | Trois builds natifs verts (run 41204266390) ; benchmark Chromium/Firefox 3/3 et persistance (run 41212313878) ; PSS globale rapportée et capacités linéaires maintenant instrumentées via copie diagnostique ; reprise après interruption post-flush testée ; limites dans le receipt de reprise |
+| 4 Fusion | Un binaire, pont C, PDO, démarrage SQL à la demande, comparaison | Analyse de l'ABI des trois binaires commencée ; premier SELECT natif commun et runtime PDO/MySQLi/fichiers/HTTP validés sur Chromium/Firefox ; studio final et optimisation restent ouverts |
 | 5 MySQLi/optimisation | Compatibilité, limites, mesures et décisions | Non commencé |
 | 6 Environnement web | N fenêtres/sessions, HTTP, fichiers, outils et reprise | Non commencé |
 
@@ -22,3 +22,11 @@ PHP : formulaires GET/POST, cookies et sessions, uploads, en-têtes répétés e
 Comparer même origine/session virtuelle et sous-domaines avant de fixer le routage. Un Service Worker ne contrôle qu'une origine : la piste sous-domaines nécessite plusieurs inscriptions et une liaison au même moteur. Les gains de déchargement UI ou MariaDB doivent être mesurés, sans assimiler mémoire libérée dans le tas WASM à RAM rendue au navigateur.
 
 Hors premier prototype : dossiers PC, réseau entre appareils et compatibilité WordPress étendue.
+
+## Reprise locale : état distinct des preuves historiques
+
+Le [receipt du 31 octobre](../benchmarks/REPRISE-2026-10-31.md) décrit les corrections d'isolation du banc, ses 23 tests de socle et la levée des blocages réseau puis la validation réelle des témoins séparés. Les rapports de PSS fournis sont des mesures globales du navigateur ; mémoire linéaire, reprise après crash SQL et moteur fusionné restent à vérifier. Aucun statut CI en direct n'est déduit des tests locaux.
+
+## Tranche fonctionnelle custom C
+
+Le [receipt du runtime C](../engine/fusion/NATIVE-RUNTIME-RECEIPT.md) atteste les fixtures PDO/MySQLi inchangées, fichiers, CGI, HTTP navigateur, console indépendante et reprise après sauvegarde/nouveau propriétaire sur les deux navigateurs. Les jalons UI/sessions et la compatibilité complète restent ouverts. Ne pas relancer les témoins amont pour une simple modification du runtime custom.

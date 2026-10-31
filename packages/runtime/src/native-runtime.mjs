@@ -1,0 +1,49 @@
+/** Browser-facing facade; engine/files/HTTP share one project-owner worker. */
+export class NativeRuntime {
+  #worker; #nextId = 0; #pending = new Map(); #closed = false;
+  constructor(worker) {
+    this.#worker = worker;
+    worker.onmessage = ({ data }) => {
+      const request = this.#pending.get(data?.id);
+      if (!request) return;
+      this.#pending.delete(data.id); clearTimeout(request.timer);
+      if (data.ok) request.resolve(data.value); else request.reject(Object.assign(new Error(data.error), { code: data.code }));
+    };
+    worker.onerror = event => this.close(new Error(event.message));
+    worker.onmessageerror = () => this.close(new Error('Unreadable runtime message'));
+  }
+  static async create({ moduleURL, projectKey, workerURL = new URL('./native-worker.mjs', import.meta.url) }) {
+    const runtime = new NativeRuntime(new Worker(workerURL, { type: 'module', name: 'wasm-web-server' }));
+    try { await runtime.call('initialize', { moduleURL, projectKey }); return runtime; }
+    catch (error) { runtime.close(error); throw error; }
+  }
+  call(operation, args = {}, timeoutMs = 180000) {
+    if (this.#closed) return Promise.reject(new Error('Runtime is closed'));
+    if (this.#pending.size >= 64) return Promise.reject(new Error('Too many pending runtime calls'));
+    const id = ++this.#nextId;
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => this.close(new Error(`Runtime ${operation} timed out; worker terminated`)), timeoutMs);
+      this.#pending.set(id, { resolve, reject, timer });
+      try { this.#worker.postMessage({ ...args, id, operation }); }
+      catch (error) { clearTimeout(timer); this.#pending.delete(id); reject(error); }
+    });
+  }
+  write(path, data) { return this.call('write', { path, data }); }
+  read(path) { return this.call('read', { path }); }
+  list(path = '/workspace') { return this.call('list', { path }); }
+  rename(path, target) { return this.call('rename', { path, target }); }
+  remove(path) { return this.call('remove', { path }); }
+  request(options) { return this.call('request', options); }
+  state() { return this.call('state'); }
+  sql(sql, database) { return this.call('sql', { sql, database }); }
+  closeConsole() { return this.call('closeConsole'); }
+  save() { return this.call('save'); }
+  async shutdown({ save = true } = {}) { if (save) await this.save(); await this.call('release'); this.close(); }
+  stopSQL() { return this.call('stopSQL'); }
+  close(error = new Error('Runtime closed')) {
+    if (this.#closed) return;
+    this.#closed = true; this.#worker.terminate();
+    for (const request of this.#pending.values()) { clearTimeout(request.timer); request.reject(error); }
+    this.#pending.clear();
+  }
+}
