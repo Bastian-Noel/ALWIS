@@ -1,0 +1,23 @@
+{
+  "checked_at": "2026-10-31T11:02:37.588540+00:00",
+  "primary_repositories": 17,
+  "submodule_archives": 2,
+  "verified_source_archives": 19,
+  "verified_code_locations": 81,
+  "node_tests": "14 passed",
+  "native_contract": "C11 syntax verified; declarations only, not linked",
+  "not_executed": [
+    "PHP fixtures",
+    "PDO/MariaDB runtime",
+    "native MySQLi",
+    "OPFS integration",
+    "browser Service Worker",
+    "RAM/performance benchmarks",
+    "WASM compilation"
+  ],
+  "import_scope": "preparation.zip + sources.zip + additional conversation",
+  "restoration_fix": "Clean upstream directory restored successfully using mkdir(parents=True)",
+  "python_syntax": "All scripts compiled",
+  "archive_integrity": "19 original SHA-256 and byte sizes verified",
+  "reports_from_preparation": "Original validation.json/environment.json/node-tests.txt retained unchanged"
+}
