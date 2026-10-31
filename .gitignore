@@ -8,3 +8,5 @@ __pycache__/
 *.pyc
 /sources.zip
 /SHA256SUMS
+
+/benchmarks/results/
