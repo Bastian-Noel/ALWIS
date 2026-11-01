@@ -1,0 +1,316 @@
+{
+  "label": "lazy-sql-workers",
+  "browser": "firefox",
+  "version": "157.0",
+  "scope": "One fresh browser; Linux aggregate process PSS/RSS separate from WASM linear capacity and allocator usage; observational sample, not a statistical benchmark",
+  "observations": [
+    {
+      "stage": "php-only",
+      "elapsedMs": 9.599999999999909,
+      "state": {
+        "sqlStarted": false,
+        "sqlPhase": "dormant",
+        "sqlConnections": 0,
+        "nativeStatements": 0,
+        "preparedSQLReservedBytes": 0,
+        "pthreadWorkers": {
+          "used": 0,
+          "idle": 0,
+          "created": 0,
+          "peak": 0
+        },
+        "linearMemoryBytes": 268435456,
+        "allocatorUsedBytes": 3344,
+        "allocatorFreeBytes": 1705952,
+        "vfs": {
+          "groups": {
+            "project": {
+              "bytes": 22,
+              "reserved": 22,
+              "nodes": 3,
+              "maxBytes": 67108864,
+              "maxFileBytes": 16777216,
+              "maxNodes": 2048
+            },
+            "temp": {
+              "bytes": 0,
+              "reserved": 0,
+              "nodes": 1,
+              "maxBytes": 16777216,
+              "maxFileBytes": 16777216,
+              "maxNodes": 256
+            },
+            "sql": {
+              "bytes": 0,
+              "reserved": 0,
+              "nodes": 0,
+              "maxBytes": 134217728,
+              "maxFileBytes": 67108864,
+              "maxNodes": 4096
+            },
+            "system": {
+              "bytes": 2771606,
+              "reserved": 2771606,
+              "nodes": 109,
+              "maxBytes": 16777216,
+              "maxFileBytes": 16777216,
+              "maxNodes": 2048
+            }
+          },
+          "openFiles": 3,
+          "maxOpenFiles": 512
+        },
+        "hardwareConcurrency": 5,
+        "storageLayout": "volatile",
+        "queue": {
+          "pending": 0,
+          "running": true,
+          "bytes": 0
+        }
+      },
+      "processMemory": {
+        "available": true,
+        "processCount": 8,
+        "rssSumBytes": 823144448,
+        "pssBytes": 647862272,
+        "source": "Linux /proc/<pid>/smaps_rollup of Node Playwright descendants",
+        "limitation": "PSS includes browser, JS, workers and WASM; not WASM heap or physical system-wide RAM"
+      }
+    },
+    {
+      "stage": "sql-start",
+      "elapsedMs": 955.3199999999999,
+      "state": {
+        "sqlStarted": true,
+        "sqlPhase": "running",
+        "sqlConnections": 1,
+        "nativeStatements": 0,
+        "preparedSQLReservedBytes": 0,
+        "pthreadWorkers": {
+          "used": 15,
+          "idle": 1,
+          "created": 16,
+          "peak": 15
+        },
+        "linearMemoryBytes": 268435456,
+        "allocatorUsedBytes": 78259480,
+        "allocatorFreeBytes": 1093592,
+        "vfs": {
+          "groups": {
+            "project": {
+              "bytes": 22,
+              "reserved": 22,
+              "nodes": 3,
+              "maxBytes": 67108864,
+              "maxFileBytes": 16777216,
+              "maxNodes": 2048
+            },
+            "temp": {
+              "bytes": 0,
+              "reserved": 0,
+              "nodes": 5,
+              "maxBytes": 16777216,
+              "maxFileBytes": 16777216,
+              "maxNodes": 256
+            },
+            "sql": {
+              "bytes": 65915505,
+              "reserved": 65979349,
+              "nodes": 101,
+              "maxBytes": 134217728,
+              "maxFileBytes": 67108864,
+              "maxNodes": 4096
+            },
+            "system": {
+              "bytes": 2773736,
+              "reserved": 2773736,
+              "nodes": 112,
+              "maxBytes": 16777216,
+              "maxFileBytes": 16777216,
+              "maxNodes": 2048
+            }
+          },
+          "openFiles": 33,
+          "maxOpenFiles": 512
+        },
+        "hardwareConcurrency": 5,
+        "storageLayout": "volatile",
+        "queue": {
+          "pending": 0,
+          "running": true,
+          "bytes": 0
+        }
+      },
+      "processMemory": {
+        "available": true,
+        "processCount": 8,
+        "rssSumBytes": 959549440,
+        "pssBytes": 783004672,
+        "source": "Linux /proc/<pid>/smaps_rollup of Node Playwright descendants",
+        "limitation": "PSS includes browser, JS, workers and WASM; not WASM heap or physical system-wide RAM"
+      }
+    },
+    {
+      "stage": "sql-work",
+      "latency": {
+        "count": 100,
+        "p50": 1.900000000000091,
+        "p95": 2.7399999999997817,
+        "max": 3.0399999999999636
+      },
+      "state": {
+        "sqlStarted": true,
+        "sqlPhase": "running",
+        "sqlConnections": 1,
+        "nativeStatements": 0,
+        "preparedSQLReservedBytes": 0,
+        "pthreadWorkers": {
+          "used": 15,
+          "idle": 1,
+          "created": 16,
+          "peak": 15
+        },
+        "linearMemoryBytes": 268435456,
+        "allocatorUsedBytes": 78410664,
+        "allocatorFreeBytes": 942408,
+        "vfs": {
+          "groups": {
+            "project": {
+              "bytes": 22,
+              "reserved": 22,
+              "nodes": 3,
+              "maxBytes": 67108864,
+              "maxFileBytes": 16777216,
+              "maxNodes": 2048
+            },
+            "temp": {
+              "bytes": 0,
+              "reserved": 0,
+              "nodes": 5,
+              "maxBytes": 16777216,
+              "maxFileBytes": 16777216,
+              "maxNodes": 256
+            },
+            "sql": {
+              "bytes": 66261319,
+              "reserved": 66325163,
+              "nodes": 103,
+              "maxBytes": 134217728,
+              "maxFileBytes": 67108864,
+              "maxNodes": 4096
+            },
+            "system": {
+              "bytes": 2773736,
+              "reserved": 2773736,
+              "nodes": 112,
+              "maxBytes": 16777216,
+              "maxFileBytes": 16777216,
+              "maxNodes": 2048
+            }
+          },
+          "openFiles": 34,
+          "maxOpenFiles": 512
+        },
+        "hardwareConcurrency": 5,
+        "storageLayout": "volatile",
+        "queue": {
+          "pending": 0,
+          "running": true,
+          "bytes": 0
+        }
+      },
+      "processMemory": {
+        "available": true,
+        "processCount": 8,
+        "rssSumBytes": 971890688,
+        "pssBytes": 795094016,
+        "source": "Linux /proc/<pid>/smaps_rollup of Node Playwright descendants",
+        "limitation": "PSS includes browser, JS, workers and WASM; not WASM heap or physical system-wide RAM"
+      }
+    },
+    {
+      "stage": "sql-stop",
+      "elapsedMs": 26.88000000000011,
+      "state": {
+        "sqlStarted": false,
+        "sqlPhase": "stopped",
+        "sqlConnections": 0,
+        "nativeStatements": 0,
+        "preparedSQLReservedBytes": 0,
+        "pthreadWorkers": {
+          "used": 0,
+          "idle": 16,
+          "created": 16,
+          "peak": 15
+        },
+        "linearMemoryBytes": 268435456,
+        "allocatorUsedBytes": 6152,
+        "allocatorFreeBytes": 79740136,
+        "vfs": {
+          "groups": {
+            "project": {
+              "bytes": 22,
+              "reserved": 22,
+              "nodes": 3,
+              "maxBytes": 67108864,
+              "maxFileBytes": 16777216,
+              "maxNodes": 2048
+            },
+            "temp": {
+              "bytes": 0,
+              "reserved": 0,
+              "nodes": 1,
+              "maxBytes": 16777216,
+              "maxFileBytes": 16777216,
+              "maxNodes": 256
+            },
+            "sql": {
+              "bytes": 53662923,
+              "reserved": 53726767,
+              "nodes": 102,
+              "maxBytes": 134217728,
+              "maxFileBytes": 67108864,
+              "maxNodes": 4096
+            },
+            "system": {
+              "bytes": 2773736,
+              "reserved": 2773736,
+              "nodes": 112,
+              "maxBytes": 16777216,
+              "maxFileBytes": 16777216,
+              "maxNodes": 2048
+            }
+          },
+          "openFiles": 3,
+          "maxOpenFiles": 512
+        },
+        "hardwareConcurrency": 5,
+        "storageLayout": "volatile",
+        "queue": {
+          "pending": 0,
+          "running": true,
+          "bytes": 0
+        }
+      },
+      "processMemory": {
+        "available": true,
+        "processCount": 8,
+        "rssSumBytes": 973414400,
+        "pssBytes": 796575744,
+        "source": "Linux /proc/<pid>/smaps_rollup of Node Playwright descendants",
+        "limitation": "PSS includes browser, JS, workers and WASM; not WASM heap or physical system-wide RAM"
+      }
+    },
+    {
+      "stage": "worker-destroyed",
+      "processMemory": {
+        "available": true,
+        "processCount": 8,
+        "rssSumBytes": 974221312,
+        "pssBytes": 796814336,
+        "source": "Linux /proc/<pid>/smaps_rollup of Node Playwright descendants",
+        "limitation": "PSS includes browser, JS, workers and WASM; not WASM heap or physical system-wide RAM"
+      }
+    }
+  ]
+}

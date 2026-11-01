@@ -1,5 +1,7 @@
 # Native PHP drivers and runtime integration
 
+The current PHP build is minimal, not the complete extension set proposed in docs/BUILD.md. The browser inventory confirms Core/date/hash/json/pcre/PDO/random/Reflection/session/SPL/standard plus native pdo_mysql/mysqli/pbl_native. filter, ctype, mbstring, iconv, tokenizer, fileinfo, DOM/XML, ZIP/zlib, cURL, OpenSSL and GD are not loaded. The studio's JavaScript ZIP importer does not provide PHP ZipArchive. See [the consolidated status](../../docs/BILAN-2026-11-01.md) and `engine/fusion/receipts/php-inventory.json` before claiming ordinary applications are generally compatible.
+
 This directory contains a real Zend C extension, not PHP implementations of mysqli functions. It shares `packages/sql-native/src/pbl_mysql.c` with the adapted stock PDO MySQL C driver. Both link to the same embedded MariaDB library in `pbl-runtime.wasm`.
 
 `pbl_mysql.c` owns lazy SQL startup, the 32-caller connection limit, per-request owner IDs, connection teardown/rollback and SQL shutdown refusal while caller connections are alive. PHP request cleanup happens after Zend/PDO/MySQLi destructors; it does not reset the whole SQL server. The bootstrap connection is internal to MariaDB and not part of the caller count.

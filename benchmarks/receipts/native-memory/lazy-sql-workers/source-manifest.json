@@ -1,0 +1,64 @@
+{
+  "scope": "One fresh browser each; current lazy-worker runtime, no native rebuild for this report; PSS observations are not continuous peaks or guaranteed budgets.",
+  "command": "PLAYWRIGHT_BROWSERS_PATH=/workspace/.cache/ms-playwright node benchmarks/native/memory.mjs lazy-sql-workers",
+  "files": [
+    {
+      "path": "benchmarks/native/memory.mjs",
+      "sha256": "90c379026d956b60212f108e8d4cdf3175cf0e67b6280c03d81ccb6ba90ffe30"
+    },
+    {
+      "path": "benchmarks/browser-process-memory.mjs",
+      "sha256": "9ea7ffd97f8996bff25e9688d55393ac57074523a0319b3754f5e861486d53d5"
+    },
+    {
+      "path": "benchmarks/native/php-inventory.mjs",
+      "sha256": "020b3937faa85322739b58984b0facbb85ab9dfea346943a2bb268bceb2f0083"
+    },
+    {
+      "path": "packages/runtime/src/native-runtime.mjs",
+      "sha256": "9e138ff30d8fe8ae9172c3fa99c7942375cd571e50b3b4b410e2cae54de1a2ea"
+    },
+    {
+      "path": "packages/runtime/src/native-worker.mjs",
+      "sha256": "2efc39813a69e2b3575c149522cbe8155a04b4d3c7233e5b81f2051e02308ffe"
+    },
+    {
+      "path": "engine/fusion/spike/runtime-target.cmake",
+      "sha256": "b06d59fcce05531dcc80106798466bb9a2a1a61602506e6b5376e7a5d8131f81"
+    },
+    {
+      "path": "packages/sql-native/src/pbl_mysql.c",
+      "sha256": "b0a3a6fd7107eab8f163bdefe8ca3f7780289e3d71e4bc158decbb5185da83db"
+    },
+    {
+      "path": "packages/php-native/src/module.c",
+      "sha256": "773ee0e28f1721a1e6e76727b1e246203a498c33142d4586001fb41b8994d75e"
+    },
+    {
+      "path": "packages/php-native/src/mysqli.c",
+      "sha256": "1c5ff6b3358d60d5de54b44a780f977b77bd0b48c9f7610f4d631b00305296ad"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "build-work/bridge/.native-build/engine/wasm/runtime-dist/pbl-runtime.mjs",
+      "bytes": 468589,
+      "sha256": "a8676065f1bded9dc3b52dd21fa4376b6099ca9cbcb25a697627d5e9254e93aa"
+    },
+    {
+      "path": "build-work/bridge/.native-build/engine/wasm/runtime-dist/pbl-runtime.wasm",
+      "bytes": 33301236,
+      "sha256": "c7bd5f619bd80b5068e6c63e6b98d62fc529bbd2e2d7047cc3a44bc93e13bc60"
+    }
+  ],
+  "phpInventory": "../../../../engine/fusion/receipts/php-inventory.json",
+  "runtimeSourceRevision": "5b0375c07a838d6a7036cd486bd86d0bb05f630a",
+  "measurementInventoryScript": "Added with this report; source hash retained in files",
+  "versions": {
+    "php": "8.4.27",
+    "mariadbSource": "13.1.0",
+    "mariadbMaturity": "alpha",
+    "lite4mariadbCommit": "24be9371a2f6c71250a2356631ad6feab2280b02",
+    "emscripten": "6.0.6"
+  }
+}

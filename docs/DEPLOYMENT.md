@@ -31,4 +31,6 @@ Le test charge le paquet statique exact dans Chromium et Firefox : isolation, PH
 
 La préparation ne prouve pas une mise en ligne. À ce jalon, aucun déploiement public n'est confirmé : les outils Sites n'étaient pas exposés dans la session de travail. Le paquet est prêt pour la connexion de l'hébergement demandé. Un aperçu public chez un autre fournisseur doit suivre l'accord explicite demandé dans la conversation.
 
+État actualisé pendant le bilan : l'utilisateur a autorisé l'aperçu gratuit Cloudflare. L'exécutable officiel vérifié ne peut pas provisionner le tunnel depuis cet environnement ; la requête API via le proxy renvoie HTTP 403, « Your request was blocked ». Aucun lien ni déploiement Cloudflare n'a été créé. Cette autorisation n'est donc plus le blocage ; l'accès au service l'est.
+
 Les Workers pthreads SQL sont maintenant chargés au premier besoin SQL, et leur nombre reste borné à 16 dans ce profil. Les observations du paquet sont 0 Worker auxiliaire avant SQL, puis 16 créés ; le pic observé vaut 15 sur les deux navigateurs lors du dernier passage. Cela ne constitue pas encore une mesure du gain de RAM globale. Le démarrage conserve la même requête PHP : le compteur écrit avant PDO passe de 1 à 2 sur deux requêtes, sans rejeu automatique.

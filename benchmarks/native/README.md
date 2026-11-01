@@ -1,5 +1,7 @@
 # Profil du moteur fusionné
 
+Le [rapport de profils du 1 novembre](../../docs/PROFILS-PERFORMANCE.md) consolide les mesures du binaire actuel, les variantes historiques et le choix conseillé. Il contient une nouvelle série `lazy-sql-workers`, avec consommation PHP seul à 278,93 Mio PSS Chromium / 617,85 Mio Firefox et SQL au travail à 542,41 / 758,26 Mio. Ces passages ponctuels ne constituent pas une borne générale de RAM.
+
 ```sh
 PLAYWRIGHT_BROWSERS_PATH=/workspace/.cache/ms-playwright node benchmarks/native/memory.mjs profile-name
 PLAYWRIGHT_BROWSERS_PATH=/workspace/.cache/ms-playwright node tests/browser/load-native.mjs

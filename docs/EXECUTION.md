@@ -1,5 +1,7 @@
 # Objectif actif et preuves de progression
 
+État consolidé au 1 novembre : [bilan complet, fonctionnalités et reste à faire](BILAN-2026-11-01.md), [profils mesurés et recommandation](PROFILS-PERFORMANCE.md). Le build PHP reste minimal ; les profils historiques ne sont pas des options sélectionnables du studio.
+
 L'objectif complet est un prototype navigateur fonctionnel et mesuré avec **un WASM unique PHP + MariaDB et pont natif**, PDO/MySQLi, N fenêtres et sessions indépendantes ou partagées. Les outils texte/SQL doivent pouvoir avoir des cycles de vie séparés. MariaDB démarre à la demande avec un profil mémoire réduit, puis reste active jusqu'à la sauvegarde ou la fermeture. Après arrêt, le runtime est recréé : voir le [cycle simplifié retenu](CYCLE-MOTEUR.md), qui remplace l'expérience de redémarrage SQL à chaud.
 
 Ce cadrage remplace les anciennes formulations limitant le produit à deux joueurs ou reléguant systématiquement le moteur fusionné à une option de fin de projet. Deux joueurs restent une fixture.
