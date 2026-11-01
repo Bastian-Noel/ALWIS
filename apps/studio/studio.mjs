@@ -1,17 +1,25 @@
 import { identifier, literal, editValue, sameValue } from './sql-values.mjs';
 import { ProjectHub } from './project-hub.mjs';
 import { readState, writeState } from './state.mjs';
+import { createStudioShell } from './studio-shell.mjs';
 const $ = selector => document.querySelector(selector), decoder = new TextDecoder();
 let hub, dirty = false, operation = Promise.resolve();
 const tools = new Map();
-function status(text, error = false) { $('#status').textContent = text; $('#status').toggleAttribute('data-error', error); }
+const shell=createStudioShell({project:()=>hub?.key,isDirty:()=>dirty,refresh:()=>action(updateEngine)});
+window.addEventListener('error',event=>shell.error(event.error??Error(event.message),'Interface'));
+window.addEventListener('unhandledrejection',event=>shell.error(event.reason,'Interface'));
+function status(text, error = false) { if(error)shell.error(Error(text));else shell.status(text); }
 function action(task) {
   const expectedHub=hub;
+  const context=document.activeElement?.closest('button')?.textContent.trim()||task.name||'Opération';
   operation=operation.then(async()=>{
+    shell.busy(true);
+    try{
     if(task!==openProject&&hub!==expectedHub)throw Error('Le projet a changé. Relancez cette action dans le projet courant.');
     const recovering=$('#status').hasAttribute('data-error');if(recovering)status('Opération en cours…');
-    const value=await task();if(recovering&&$('#status').textContent==='Opération en cours…')status('Opération terminée.');return value;
-  }).catch(error=>status((error.sqlstate?'['+error.sqlstate+'/'+error.errno+'] ':'')+error.message,true));return operation;
+    const value=await task();if(recovering&&$('#status').textContent==='Opération en cours…')status('Opération terminée.');shell.record('info',context+' : opération terminée.',{context:hub?.key??'Studio'});return value;
+    }finally{if(hub&&!hub.runtime.closed)await updateEngine().catch(()=>{});shell.busy(false);shell.update();}
+  }).catch(error=>shell.error(error,context));return operation;
 }
 const display = value => value === null ? 'NULL' : value instanceof Uint8Array ? literal(value) : String(value);
 async function rows(sql, database) { return hub.runtime.sql(sql, database); }
@@ -48,10 +56,13 @@ async function renderEditor(container, saved) {
   container.querySelector('.write').onclick = () => action(write);
   container.querySelector('.refresh').onclick = () => action(refresh);
   list.onchange = () => action(async () => { await writeState('draft:' + hub.key + ':' + filename.value, snapshot()); filename.value = list.value; const draft = await readState('draft:' + hub.key + ':' + filename.value); if (draft) { source.value = draft.text; base = undefined; } else await load(); });
-  source.oninput = () => { dirty = true; message.textContent = 'Brouillon modifié.'; };
+  const footer=document.createElement('div');footer.className='editor-footer';const position=document.createElement('span'),language=document.createElement('span');footer.append(position,language);source.after(footer);
+  const updatePosition=()=>{const text=source.value,cursor=source.selectionStart;let line=1,last=-1,next=text.indexOf('\n');if(text.length<=1048576){while(next>=0&&next<cursor){line++;last=next;next=text.indexOf('\n',next+1);}position.textContent=`Ligne ${line}, colonne ${cursor-last}`;}else position.textContent=`Position ${new Intl.NumberFormat('fr').format(cursor)}`;language.textContent=({php:'PHP',html:'HTML',css:'CSS',js:'JavaScript',json:'JSON',sql:'SQL'})[filename.value.split('.').pop()]??'Texte';};
+  for(const event of ['click','keyup','select'])source.addEventListener(event,updatePosition);
+  source.oninput = () => { dirty = true; message.textContent = 'Brouillon modifié.'; shell.update();updatePosition(); };
   await refresh();
   if (!saved?.dirty) { try { await load(); } catch { message.textContent = 'Nouveau fichier : écrivez du code puis enregistrez.'; } }
-  return { snapshot, write };
+  updatePosition();return { snapshot, write };
 }
 async function renderSQL(container, saved) {
   container.append($('#sql-template').content.cloneNode(true));
@@ -73,6 +84,8 @@ async function renderSQL(container, saved) {
         const cell = tr.insertCell(); cell.textContent = display(value);
         if (editingTable && primaryKeys.length) {
           cell.dataset.editable = '';
+          cell.tabIndex=0;cell.setAttribute('aria-label',`${columns[index].name} : ${display(value)}. Entrée pour modifier.`);
+          cell.onkeydown=event=>{if(event.key==='Enter'&&event.target===cell){event.preventDefault();cell.ondblclick();}};
           cell.ondblclick = () => {
             const mode=document.createElement('select'); mode.setAttribute('aria-label','Type de valeur');
             for(const [value,label] of [['text','Texte'],['hex','Binaire (hex)'],['null','NULL']]) mode.append(Object.assign(document.createElement('option'),{value,textContent:label}));
@@ -106,7 +119,7 @@ async function renderSQL(container, saved) {
     container.querySelector('.previous').disabled = page === 0; container.querySelector('.next').disabled = (page + 1) * 100 >= (editingTable ? totalRows : result.rows.length);
   };
   const execute = async () => { editingTable = undefined;viewDatabase=database.value; result = await rows(query.value, database.value); dirty = true; page = 0; message.textContent = `${result.rows.length} lignes · ${result.affectedRows} lignes affectées`; draw(); await updateEngine(); };
-  const tables = async () => { const data = await rows('SHOW TABLES', database.value); tableSelect.replaceChildren(...data.rows.map(row => Object.assign(document.createElement('option'), { value: row[0], textContent: row[0] }))); };
+  const tables = async () => { const data = await rows('SHOW TABLES', database.value); tableSelect.replaceChildren(...data.rows.map(row => Object.assign(document.createElement('option'), { value: row[0], textContent: row[0] })));if(!data.rows.length)message.textContent='Aucune table dans cette base. Créez une table avec SQL ou importez un fichier SQL.'; };
   const browse = async (reset = true) => {
     const name = tableSelect.value; if (!name) return;
     const keys = await rows(`SELECT COLUMN_NAME FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA=${literal(database.value)} AND TABLE_NAME=${literal(name)} AND CONSTRAINT_NAME='PRIMARY' ORDER BY ORDINAL_POSITION`, database.value);
@@ -183,6 +196,11 @@ async function renderSQL(container, saved) {
 async function renderSchema(container, saved) {
   container.append($('#schema-template').content.cloneNode(true));
   const database = container.querySelector('.database'), svg = container.querySelector('svg'), message = container.querySelector('.message');
+  const movement=document.createElement('div');movement.className='schema-move';const moveLabel=document.createElement('label'),moveSelect=document.createElement('select');moveSelect.setAttribute('aria-label','Table à déplacer');moveLabel.append('Déplacer une table',moveSelect);movement.append(moveLabel);svg.before(movement);
+  const textView=document.createElement('details'),textSummary=document.createElement('summary'),textTables=document.createElement('div');textView.className='feature-note';textSummary.textContent='Lire les tables et relations en texte';textView.append(textSummary,textTables);svg.after(textView);
+  movement.hidden=true;textView.hidden=true;svg.hidden=true;message.textContent='Choisissez une base puis utilisez « Lire le schéma » pour afficher ses tables.';
+  let moveTable=()=>{};
+  for(const [label,dx,dy]of [['Vers la gauche',-30,0],['Vers la droite',30,0],['Vers le haut',0,-30],['Vers le bas',0,30]]){const button=document.createElement('button');button.textContent=label;button.onclick=()=>moveTable(moveSelect.value,dx,dy);movement.append(button);}
   let catalog=new Map();
   database.value = saved?.database ?? 'test'; const positions = saved?.positions ?? {}; const ns = 'http://www.w3.org/2000/svg';
   const element = (name, attrs = {}, text) => { const node = document.createElementNS(ns, name); for (const [key, value] of Object.entries(attrs)) node.setAttribute(key, value); if (text !== undefined) node.textContent = text; return node; };
@@ -192,6 +210,10 @@ async function renderSchema(container, saved) {
     const tables = new Map(); for (const row of columns.rows) { if (!tables.has(row[0])) tables.set(row[0], []); tables.get(row[0]).push(row); }
     for(const name of Object.keys(positions))if(!tables.has(name))delete positions[name];
     catalog=tables;
+    movement.hidden=!tables.size;textView.hidden=!tables.size;svg.hidden=!tables.size;
+    moveSelect.replaceChildren(...[...tables.keys()].map(name=>Object.assign(document.createElement('option'),{value:name,textContent:name})));
+    textTables.replaceChildren(...[...tables].map(([name,fields])=>{const block=document.createElement('section'),heading=document.createElement('h3'),description=document.createElement('p');heading.textContent=name;description.textContent=fields.map(field=>field[1]+' : '+field[2]).join(' ; ');block.append(heading,description);return block;}));
+    for(const [from,to,column,referenced]of relations.rows){const description=document.createElement('p');description.textContent=`${from}.${column} → ${to}.${referenced}`;textTables.append(description);}
     for(const selector of ['.fk-from','.fk-to']){const select=container.querySelector(selector),current=select.value;select.replaceChildren(...[...tables.keys()].map(name=>Object.assign(document.createElement('option'),{value:name,textContent:name})));if(tables.has(current))select.value=current;}
     updateRelationColumns();
     if (tables.size > 50) throw Error('Le diagramme est limité à 50 tables.');
@@ -209,17 +231,20 @@ async function renderSchema(container, saved) {
       for(const [key,value] of Object.entries({x1,y1,x2,y2}))line.setAttribute(key,value);
       label.setAttribute('x',(x1+x2)/2);label.setAttribute('y',(y1+y2)/2-5);
     });
+    const groups=new Map();const fit=()=>svg.setAttribute('viewBox',`0 0 ${Math.max(1100,...[...tables.keys()].map(name=>positions[name].x+330))} ${Math.max(350,...[...tables].map(([name,fields])=>positions[name].y+75+fields.length*18))}`);
+    moveTable=(name,dx,dy)=>{if(!positions[name])return;positions[name]={x:Math.min(5000,Math.max(0,positions[name].x+dx)),y:Math.min(5000,Math.max(0,positions[name].y+dy))};groups.get(name).setAttribute('transform',`translate(${positions[name].x},${positions[name].y})`);updateLines();fit();};
     for (const [name, fields] of tables) {
-      const group = element('g', { transform: `translate(${positions[name].x},${positions[name].y})` });
+      const group = element('g', { transform: `translate(${positions[name].x},${positions[name].y})`,tabindex:0,role:'button','aria-label':`${name}. Déplacer avec les flèches du clavier.` });groups.set(name,group);
+      group.onkeydown=event=>{const moves={ArrowLeft:[-30,0],ArrowRight:[30,0],ArrowUp:[0,-30],ArrowDown:[0,30]};if(moves[event.key]){event.preventDefault();moveTable(name,...moves[event.key]);}else if(event.key==='Enter'||event.key===' '){event.preventDefault();moveSelect.value=name;moveSelect.focus();}};
       group.append(element('rect', { width: 300, height: 45 + fields.length * 18 }), element('text', { x: 12, y: 24 }, name));
       fields.forEach((field, index) => group.append(element('text', { x: 12, y: 46 + index * 18 }, `${field[3]==='PRI'?'◆ ':field[3]==='MUL'?'◇ ':''}${field[1]} : ${field[2]}${field[4]==='NO'?' NOT NULL':''}`)));
       group.onpointerdown = event => { group.setPointerCapture(event.pointerId); const box = svg.getBoundingClientRect(), scale = svg.viewBox.baseVal.width / box.width; const start = { x: event.clientX, y: event.clientY, ...positions[name] };
         group.onpointermove = move => { positions[name] = { x: Math.max(0, start.x + (move.clientX - event.clientX) * scale), y: Math.max(0, start.y + (move.clientY - event.clientY) * scale) }; group.setAttribute('transform', `translate(${positions[name].x},${positions[name].y})`); updateLines(); };
-        group.onpointerup = () => { group.onpointermove = null; };
+        group.onpointerup = () => { group.onpointermove = null;fit(); };group.onpointercancel=()=>{group.onpointermove=null;fit();};
       };
       svg.append(group);
     }
-    updateLines(); svg.setAttribute('viewBox', `0 0 ${Math.max(1100,...[...tables.keys()].map(name=>positions[name].x+330))} ${Math.max(350,...[...tables].map(([name,fields])=>positions[name].y+75+fields.length*18))}`); message.textContent = `${tables.size} tables · ${relations.rows.length} relations`;
+    updateLines();fit();message.textContent = tables.size?`${tables.size} tables · ${relations.rows.length} relations`:'Cette base ne contient aucune table. Créez-en une dans SQL et données, puis relisez le schéma.';
   };
   function updateRelationColumns(){
     for(const [tableName,columnName] of [['.fk-from','.fk-column'],['.fk-to','.fk-reference']]){
@@ -255,7 +280,11 @@ async function setTool(name, mode) {
   }
   tool.mode = mode;
 }
-function refreshSessions() { $('#sessions').replaceChildren(...[...hub.sessions.sessions.values()].map(session => Object.assign(document.createElement('option'), { value: session.id, textContent: session.label }))); }
+function refreshSessions() {
+  const sessions=[...hub.sessions.sessions.values()];
+  $('#sessions').replaceChildren(...sessions.map(session => Object.assign(document.createElement('option'), { value: session.id, textContent: session.label })));
+  $('#session-overview').replaceChildren(...sessions.map(session=>{const row=document.createElement('div');row.className='session-row';const identity=document.createElement('div'),label=document.createElement('strong'),id=document.createElement('code');label.textContent=session.label;id.textContent=session.id;identity.append(label,id);const button=document.createElement('button');button.textContent='Ouvrir cette session';button.onclick=()=>{$('#sessions').value=session.id;openWindow(false);};row.append(identity,button);return row;}));
+}
 async function updateEngine() {
   if(!hub)return;
   const state=await hub.runtime.state(),label=$('#engine-state');
@@ -264,21 +293,24 @@ async function updateEngine() {
   const sqlStatus={dormant:'à la demande',running:'actif',stopped:'arrêté — nouveau moteur requis',failed:'en échec — nouveau moteur requis'}[state.sqlPhase]??(state.sqlStarted?'actif':'à la demande');
   label.textContent=`SQL ${sqlStatus} · ${state.allocatorUsedBytes===null?'':`tas occupé ${(state.allocatorUsedBytes/1048576).toFixed(0)} Mio · `}capacité WASM ${(state.linearMemoryBytes/1048576).toFixed(0)} Mio`;
   label.title='MariaDB démarre au premier besoin PDO MySQL, MySQLi ou console SQL et reste active jusqu’à la sauvegarde ou la fermeture. Le tas occupé et la capacité WASM sont distincts de la RAM résidente du navigateur.';
+  shell.resources(state);shell.update();
 }
 async function openProject() {
-  const key = $('#project').value; if (!/^[A-Za-z0-9_-]{1,64}$/.test(key)) throw Error('Nom de projet : lettres, chiffres, tirets et underscore, 64 caractères maximum.');
+  const key = $('#project').value;const valid=/^[A-Za-z0-9_-]{1,64}$/.test(key);$('#project').setAttribute('aria-invalid',String(!valid));if(!valid){$('#project').focus();throw Error('Nom de projet : lettres, chiffres, tirets et underscore, 64 caractères maximum.');}
   status('Ouverture du projet…');$('main').inert=true;$('#open').disabled=true;
   try{
     if (hub) { for (const name of tools.keys()) await setTool(name, 'unloaded'); await hub.close();navigator.serviceWorker.controller.postMessage({type:'pbl-release',project:hub.key});hub=null;$('#engine-state').textContent='Aucun moteur actif.'; }
     for(const id of ['save','close','window','new-client','demo','export','import-files'])$('#'+id).disabled=true;
     hub = await ProjectHub.open(key); dirty = false;
+    hub.onDiagnostic=(message,details)=>shell.error(Object.assign(Error(message),{stack:details}),'Requête PHP');
+    hub.onRequest=({method,path,status:code,durationMs})=>shell.record(code>=500?'warning':'info',`${method} ${path} · HTTP ${code} · ${new Intl.NumberFormat('fr',{maximumFractionDigits:0}).format(durationMs)} ms`,{context:`${key} · Requête cliente`});
     navigator.serviceWorker.controller.postMessage({ type: 'pbl-owner', project: key });
     for (const id of ['save','close','window','new-client','demo','export','import-files']) $('#' + id).disabled = false;
     refreshSessions(); for (const select of document.querySelectorAll('[data-tool]')) { select.value = 'active'; await setTool(select.dataset.tool, 'active'); }
     await updateEngine(); status('Projet prêt. SQL démarre uniquement si nécessaire.');
   }finally{$('main').inert=false;$('#open').disabled=false;}
 }
-navigator.serviceWorker.addEventListener('message', event => {
+navigator.serviceWorker?.addEventListener('message', event => {
   const reply = (ok, value, error) => { const transfers = value?.body ? [value.body.buffer] : []; event.ports[0]?.postMessage({ ok, value, error }, transfers); };
   const data = event.data;
   if (data?.type === 'pbl-discover') { reply(true, !!hub && hub.key === data.project); return; }
@@ -302,8 +334,12 @@ $('#demo').onclick = () => action(async () => { const demo = await import('./sch
 $('#export').onclick = () => action(async () => { const entries = []; for (const name of await files()) entries.push({ name: name.slice(1), bytes: await hub.runtime.read('/workspace' + name) }); const { makeZip } = await import('./zip.mjs'); const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([makeZip(entries)], { type: 'application/zip' })); link.download = hub.key + '.zip'; link.click(); setTimeout(() => URL.revokeObjectURL(link.href), 1000); });
 window.addEventListener('beforeunload', event => { if (hub && dirty) { event.preventDefault(); event.returnValue = ''; } });
 const params = new URLSearchParams(location.search); if (params.has('project')) $('#project').value = params.get('project');
+async function initializeStudio(){
+if(!isSecureContext||!navigator.serviceWorker)throw Error('Ouvrez le studio en HTTPS ou sur localhost pour activer les projets et fenêtres clientes.');
 const registration = await navigator.serviceWorker.register('/service-worker.js', { type: 'module', scope: '/' });
 await navigator.serviceWorker.ready;
 if (!navigator.serviceWorker.controller) await new Promise(resolve => navigator.serviceWorker.addEventListener('controllerchange', resolve, { once: true }));
 for (const name of Object.keys(renderers)) await setTool(name, 'unloaded');
 status('Prêt à ouvrir un projet.');
+}
+initializeStudio().catch(error=>shell.error(error,'Initialisation du studio'));

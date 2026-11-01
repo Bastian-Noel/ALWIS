@@ -7,11 +7,11 @@
     },
     {
       "path": "apps/studio/index.html",
-      "sha256": "e00f69b47bb84eea4023dadb04d5284696c31bba6c26dedabf90e47a67e521ac"
+      "sha256": "277c9343e0d4d51ae85ebd5c48f81b9566ee68e58fb199039e7a74b0013a04cd"
     },
     {
       "path": "apps/studio/project-hub.mjs",
-      "sha256": "1544a242d5540cbf7a73ba709ecba7e0c7faa58d11f9251f80ba220961de5a04"
+      "sha256": "5c010f40487d956f0e20d9f506742686e6d5166f3196dbe939a856770e12e09e"
     },
     {
       "path": "apps/studio/school-demo.mjs",
@@ -27,11 +27,11 @@
     },
     {
       "path": "apps/studio/studio.css",
-      "sha256": "203b8796339236291d7247561c7de1c6f2f49318578562e6415b81f450b1ef44"
+      "sha256": "0ed27a3d52056a39bf068e811f2849792941a00ca3bc7b6f4b1463213417e033"
     },
     {
       "path": "apps/studio/studio.mjs",
-      "sha256": "ca2d703472b027dcc322cdc6d66e6514eefcb76319db3054f6a141df25b45dc7"
+      "sha256": "a31f1b44f3b742dbe855eb72b0e64d36dc0620c58855bae4585b31e3ca87cce6"
     },
     {
       "path": "apps/studio/zip.mjs",
@@ -47,7 +47,7 @@
     },
     {
       "path": "tests/browser/studio.mjs",
-      "sha256": "f7c512624c71a94e02cac2fb6df9520f908d00698e4648843364dd0320132dc8"
+      "sha256": "18b87a8a6ec7628b504479a6b9cc7babc704534517bd04773af5249ccaec8665"
     },
     {
       "path": "apps/studio/sql-values.mjs",
@@ -68,6 +68,55 @@
     {
       "path": "packages/runtime/src/idbfs-atomic.mjs",
       "sha256": "f5d10d162adbcbf9696ee1eca6e6cfb61c1d1e8d88a83bb768be99b1d9f8f7cb"
+    },
+    {
+      "path": "apps/studio/diagnostics.mjs",
+      "sha256": "2fc5c5f1b70d67afad99ce06cd0ab1bfd01e4ff7c1bce75bf54ec0cbf68c5e6b"
+    },
+    {
+      "path": "apps/studio/diagnostics-view.mjs",
+      "sha256": "bd8fddbafeb503a2377982f9d43c698bef856d0f92bced4e62fe9713933e2aaf"
+    },
+    {
+      "path": "apps/studio/studio-shell.mjs",
+      "sha256": "51cbb349ddcd03147f99a966688e49a140d5340c5ac089a1cb491e8d35d50103"
+    },
+    {
+      "path": "apps/studio/interface-stress.html",
+      "sha256": "43ad0982ee3f4f3618d039a873c445856f4ffb81f47ba07b1a52e58d5ebd618d"
+    },
+    {
+      "path": "tests/browser/studio-shell.mjs",
+      "sha256": "4ea7da30b6ad937e11dc865cbf7f013f9dcf8cd1d11aa33beb3f01ac056ea619"
+    },
+    {
+      "path": "tests/diagnostics.test.mjs",
+      "sha256": "920d300e7dc990ca85f6f96a14fb60339009b8b102203767ba86fff8daf42a9b"
+    },
+    {
+      "path": "scripts/audit-studio-interface.mjs",
+      "sha256": "1de0868d67699678608a73cca738567418319408d3d6133f0b35fb226cd383f2"
     }
-  ]
+  ],
+  "interfaceSkills": {
+    "antiAiSlop": {
+      "repository": "https://github.com/Krirox/anti-ai-slop-skills",
+      "revision": "b7515139a58dd3076588a3981d3d6f8d4e5bb064"
+    },
+    "betterInterface": {
+      "repository": "https://github.com/jakubkrehel/skills",
+      "revision": "592aedc44d7d5b3e29740984252902f3e5402a1c"
+    }
+  },
+  "accessibilityAudit": {
+    "version": "4.11.1",
+    "resolved": "https://registry.npmjs.org/axe-core/-/axe-core-4.11.1.tgz",
+    "integrity": "sha512-BASOg+YwO2C+346x3LZOeoovTIoTrRqEsqMa6fmfAV0P+U9mFr9NsyOEpiYvFjbc64NMrSswhV50WdXzdb/Z5A=="
+  },
+  "diagnosticLimits": {
+    "entries": 200,
+    "messageCharacters": 4096,
+    "detailCharacters": 8192,
+    "recoveryCharacters": 1024
+  }
 }

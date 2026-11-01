@@ -25,7 +25,9 @@ try {
       console.log(name, 'studio opened');
       await page.locator('#demo').click();
       await page.waitForFunction(() => document.querySelector('#status').textContent.startsWith('Exemple chargé.'));
+      async function tab(name){await page.locator('#tab-'+name).click();}
       async function client(button) {
+        await tab('clients');
         const popup = page.waitForEvent('popup'); await page.locator(button).click(); const client = await popup;
         client.setDefaultTimeout(180000); await client.waitForSelector('#session'); return client;
       }
@@ -50,7 +52,7 @@ try {
       assert.match(await a1.locator('body').textContent(),/uploaded:upload.txt/);
       const upload = await b.evaluate(async () => (await fetch('/uploads/upload.txt')).text()); assert.equal(upload,'native-upload-bytes');
       console.log(name,'shared SQL, forms, cookies, redirect and upload verified');
-      await page.locator('#sql-tool .tables').click(); await page.locator('#sql-tool .table option[value=studio_notes]').waitFor({state:'attached'});
+      await tab('sql'); await page.locator('#sql-tool .tables').click(); await page.locator('#sql-tool .table option[value=studio_notes]').waitFor({state:'attached'});
       await page.locator('#sql-tool .table').selectOption('studio_notes'); await page.locator('#sql-tool .browse').click();
       const label = page.locator('#sql-tool td').filter({hasText:'shared-native-row'}); await label.waitFor(); await label.dblclick();
       await page.locator('#sql-tool td input').fill('edited-native-row'); await page.locator('#sql-tool td input').press('Enter');
@@ -99,7 +101,7 @@ CREATE TRIGGER grid_audit_insert AFTER INSERT ON grid_types FOR EACH ROW INSERT 
       await page.locator('#status').filter({hasText:'La ligne a changé'}).waitFor();
       await page.locator('#sql-tool .browse').click();await first.locator('td').nth(1).filter({hasText:'concurrent'}).waitFor();
       console.log(name,'server pagination, NULL, binary, exact numeric and conflict checks verified');
-      await page.locator('#schema-tool .refresh').click(); await page.locator('#schema-tool svg text').filter({hasText:'studio_notes'}).first().waitFor();
+      await tab('schema'); await page.locator('#schema-tool .refresh').click(); await page.locator('#schema-tool svg text').filter({hasText:'studio_notes'}).first().waitFor();
       await page.locator('#schema-tool svg text').filter({hasText:'fk_grid_parent: parent_id → id'}).waitFor();
       await page.locator('#schema-tool .relation-form summary').click();
       await page.locator('#schema-tool .fk-from').selectOption('grid_children');await page.locator('#schema-tool .fk-column').selectOption('alternate_id');
@@ -107,16 +109,16 @@ CREATE TRIGGER grid_audit_insert AFTER INSERT ON grid_types FOR EACH ROW INSERT 
       await page.locator('#schema-tool .fk-delete').selectOption('CASCADE');await page.locator('#schema-tool .fk-add').click();
       await page.waitForFunction(()=>document.querySelectorAll('#schema-tool .relation-label').length===2);
       console.log(name,'insert/delete and creation of a real foreign key verified');
-      await page.locator('#editor-tool .source').fill('<?php echo "draft-preserved";');
-      await page.locator('[data-tool=editor]').selectOption('unloaded'); await page.locator('#editor-tool .unloaded').waitFor();
-      await page.locator('[data-tool=editor]').selectOption('active'); await page.locator('#editor-tool .source').waitFor();
+      await tab('editor'); await page.locator('#editor-tool .source').fill('<?php echo "draft-preserved";');
+      await tab('resources'); await page.locator('[data-tool=editor]').selectOption('unloaded'); await page.locator('#editor-tool .unloaded').waitFor({state:'attached'});
+      await page.locator('[data-tool=editor]').selectOption('active'); await page.locator('#editor-tool .source').waitFor({state:'attached'}); await tab('editor');
       assert.equal(await page.locator('#editor-tool .source').inputValue(),'<?php echo "draft-preserved";');
       // Restore the original working demo source from the file before project save.
       await page.locator('#editor-tool .load').click();
       await page.waitForFunction(() => document.querySelector('#editor-tool .source').value.includes('session_start'));
-      await page.locator('#sql-tool .query').fill('SELECT 123 AS preserved');
-      await page.locator('[data-tool=sql]').selectOption('unloaded'); await page.locator('#sql-tool .unloaded').waitFor();
-      await page.locator('[data-tool=sql]').selectOption('active'); await page.locator('#sql-tool .query').waitFor();
+      await tab('sql'); await page.locator('#sql-tool .query').fill('SELECT 123 AS preserved'); await tab('resources');
+      await page.locator('[data-tool=sql]').selectOption('unloaded'); await page.locator('#sql-tool .unloaded').waitFor({state:'attached'});
+      await page.locator('[data-tool=sql]').selectOption('active'); await page.locator('#sql-tool .query').waitFor({state:'attached'}); await tab('sql');
       assert.equal(await page.locator('#sql-tool .query').inputValue(),'SELECT 123 AS preserved');
       console.log(name,'tools restored');
       await page.locator('#save').click(); await page.waitForFunction(() => document.querySelector('#status').textContent.startsWith('Fichiers et transactions'));
@@ -126,7 +128,7 @@ CREATE TRIGGER grid_audit_insert AFTER INSERT ON grid_types FOR EACH ROW INSERT 
       await b.goto(origin + new URL(b.url()).pathname); await b.waitForSelector('#notes');
       assert.match(await b.locator('#notes').textContent(),/edited-native-row/);
       assert.equal(await b.locator('#session').textContent(),ids[2]);
-      await page.locator('#sql-tool .query').fill('CREATE DATABASE alternate_import');await page.locator('#sql-tool .run').click();await page.locator('#sql-tool .message').filter({hasText:'1 lignes affectées'}).waitFor();
+      await tab('sql'); await page.locator('#sql-tool .query').fill('CREATE DATABASE alternate_import');await page.locator('#sql-tool .run').click();await page.locator('#sql-tool .message').filter({hasText:'1 lignes affectées'}).waitFor();
       await page.locator('#sql-tool .database').fill('alternate_import');
       await page.locator('#sql-tool .sql-file').setInputFiles({name:'alternate.sql',mimeType:'text/plain',buffer:Buffer.from('CREATE TABLE alternate_marker(id INT PRIMARY KEY); INSERT INTO alternate_marker VALUES(55);')});
       await page.locator('#sql-tool .message').filter({hasText:'Import SQL terminé.'}).waitFor();

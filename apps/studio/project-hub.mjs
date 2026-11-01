@@ -21,7 +21,8 @@ export class ProjectHub {
   route(sessionId,input){
     if(this.lastSaveError)return Promise.resolve(this.error(503,'Sauvegarde échouée. Le propriétaire doit réessayer la sauvegarde avant de reprendre les clients.'));
     if(this.busy)return Promise.resolve(this.error(503,'Projet en cours de sauvegarde. Réessayez dans un instant.'));
-    return this.track(this.serveRequest(sessionId,input));
+    const started=performance.now();
+    return this.track(this.serveRequest(sessionId,input).then(response=>{this.onRequest?.({method:input.method??'GET',path:new URL(input.url).pathname,status:response.status,durationMs:performance.now()-started});return response;}));
   }
   async serveRequest(sessionId, input) {
     if (this.busy) return { status: 503, headers: [['Content-Type', 'text/plain']], body: encoder.encode('Projet en cours de sauvegarde. Réessayez dans un instant.') };
@@ -40,6 +41,7 @@ export class ProjectHub {
       const cookies = session.jar.header(url);
       if (cookies) requestHeaders.push(['Cookie', cookies]);
       const result = await this.runtime.request({ script: '/workspace' + pathname, url: url.href, method: input.method, headers: requestHeaders, body: input.body });
+      if(result.stderr?.byteLength)this.onDiagnostic?.(`PHP a signalé un problème dans ${pathname}. Corrigez le fichier puis relancez la requête.`,decoder.decode(result.stderr.subarray(0,8192)));
       status = result.status; body = result.body;
       for (const line of result.headers) {
         const colon = line.indexOf(':'); if (colon < 1) continue;

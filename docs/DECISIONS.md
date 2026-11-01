@@ -20,6 +20,7 @@ Les décisions de périmètre viennent des demandes utilisateur ; les choix d'im
 | Fusion | **Cible principale au jalon 4**, après référence séparée vérifiée et mesurée | ABI commune, PDO, gain/coût total, reprise sur erreur, RAM et disponibilité SQL à la demande |
 | Édition web | **CodeMirror 6 + services WASM `php-lsp`, SuperHTML, SWC ou Babel-light** ; définitions jQuery internes invisibles | [Orientation utilisateur et exigences](EDITEUR-CODE.md) ; prototype de complétion et mesures de chargement/déchargement |
 | UI SQL | JavaScript, SQL/données/diagramme ; chargement à la demande | DDL exécuté puis schéma relu ; échecs affichés |
+| Interface du studio | Six espaces, actions et états définis ; anti-ai-slop prioritaire puis suite better-* demandée par l'utilisateur | [Contrat d'interface](INTERFACE-STUDIO.md) et [revue rendue](INTERFACE-REVIEW-2026-11-01.md) ; journal borné, erreurs réelles, navigation clavier et contrastes vérifiés |
 | Dossier PC | Reporté V2 | Permissions, cohérence et conflits externes |
 | Réseau entre appareils | Chantier ultérieur avec un hôte unique | Signalisation/transport et reprise |
 | WordPress | Compatibilité élargie après les fixtures scolaires | Installation, admin, médias, REST et persistance |

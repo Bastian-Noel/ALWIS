@@ -1,0 +1,174 @@
+{
+  "axeVersion": "4.11.1",
+  "browser": "156.0.8078.4",
+  "results": [
+    {
+      "label": "empty/editor",
+      "violations": [],
+      "incomplete": [],
+      "passes": 27
+    },
+    {
+      "label": "empty/sql",
+      "violations": [],
+      "incomplete": [],
+      "passes": 27
+    },
+    {
+      "label": "empty/schema",
+      "violations": [],
+      "incomplete": [],
+      "passes": 27
+    },
+    {
+      "label": "empty/clients",
+      "violations": [],
+      "incomplete": [],
+      "passes": 28
+    },
+    {
+      "label": "empty/resources",
+      "violations": [],
+      "incomplete": [],
+      "passes": 30
+    },
+    {
+      "label": "empty/journal",
+      "violations": [],
+      "incomplete": [],
+      "passes": 28
+    },
+    {
+      "label": "sql/grid",
+      "violations": [],
+      "incomplete": [],
+      "passes": 30
+    },
+    {
+      "label": "sql/insert-dialog",
+      "violations": [],
+      "incomplete": [],
+      "passes": 16
+    },
+    {
+      "label": "schema/catalog",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": [
+            [
+              "text[y=\"24\"]"
+            ],
+            [
+              "text[y=\"46\"]"
+            ],
+            [
+              "text[y=\"64\"]"
+            ]
+          ]
+        }
+      ],
+      "passes": 29
+    },
+    {
+      "label": "open/editor",
+      "violations": [],
+      "incomplete": [],
+      "passes": 28
+    },
+    {
+      "label": "open/clients",
+      "violations": [],
+      "incomplete": [],
+      "passes": 28
+    },
+    {
+      "label": "open/resources",
+      "violations": [],
+      "incomplete": [],
+      "passes": 30
+    },
+    {
+      "label": "open/journal",
+      "violations": [],
+      "incomplete": [],
+      "passes": 28
+    },
+    {
+      "label": "320/sql",
+      "violations": [],
+      "incomplete": [],
+      "passes": 30
+    },
+    {
+      "label": "320/clients",
+      "violations": [],
+      "incomplete": [],
+      "passes": 28
+    },
+    {
+      "label": "320/journal",
+      "violations": [],
+      "incomplete": [],
+      "passes": 28
+    },
+    {
+      "label": "error/sql",
+      "violations": [],
+      "incomplete": [],
+      "passes": 30
+    }
+  ],
+  "contrast": [
+    {
+      "label": "body",
+      "foreground": "rgb(242, 240, 233)",
+      "background": "rgb(24, 27, 30)",
+      "ratio": 15.165307257058178
+    },
+    {
+      "label": "secondary",
+      "foreground": "rgb(184, 189, 194)",
+      "background": "rgb(24, 27, 30)",
+      "ratio": 9.137428838199744
+    },
+    {
+      "label": "control boundary",
+      "foreground": "rgb(115, 125, 134)",
+      "background": "rgb(32, 36, 40)",
+      "ratio": 3.724068425691909
+    },
+    {
+      "label": "focus",
+      "foreground": "rgb(243, 210, 139)",
+      "background": "rgb(32, 36, 40)",
+      "ratio": 10.712828414903557,
+      "focusVisible": true
+    },
+    {
+      "label": "primary action",
+      "foreground": "rgb(34, 33, 28)",
+      "background": "rgb(233, 225, 206)",
+      "ratio": 12.382497224508493
+    },
+    {
+      "label": "error text",
+      "foreground": "rgb(255, 180, 171)",
+      "background": "rgb(56, 33, 31)",
+      "ratio": 8.800244062049083
+    }
+  ],
+  "keyboardChecks": [
+    "SQL cell edit via Enter",
+    "schema move via ArrowRight",
+    "dialog close via Escape"
+  ],
+  "rtl320NoPageOverflow": true,
+  "notVerified": [
+    "NVDA/VoiceOver speech output",
+    "browser UI zoom (200% text resize is checked separately)",
+    "Safari",
+    "full WCAG conformance"
+  ]
+}

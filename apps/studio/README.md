@@ -8,6 +8,8 @@ node scripts/serve-studio.mjs
 
 Le serveur de développement fournit uniquement les ressources statiques, les en-têtes COOP/COEP et le module compilé. PHP et MariaDB s'exécutent dans le navigateur. Le studio possède un Worker moteur par projet ; le Service Worker route les requêtes des fenêtres vers ce propriétaire. Fermer le studio coupe donc le service des clients.
 
+La [première interface structurée](../../docs/INTERFACE-STUDIO.md) sépare Code, SQL et données, Schéma, Clients, Ressources et Journal. Les onglets se parcourent au clavier. Le journal local conserve au plus 200 événements bornés, erreurs PHP/SQL et requêtes HTTP, sans corps, cookies ni paramètres d'URL ; il s'exporte en JSON. Un bandeau conserve la dernière erreur avec une piste de récupération jusqu'à sa fermeture explicite. Le textarea reste l'éditeur provisoire ; CodeMirror et les services de langage sont annoncés comme à intégrer.
+
 Ouvrir un projet, charger l'exemple scolaire dans un projet vide, puis ouvrir plusieurs fenêtres. « Fenêtre dans cette session » partage les cookies/PHPSESSID ; « Nouveau client indépendant » crée une identité distincte. Toutes utilisent la même base. Les requêtes PHP sont sérialisées dans la file bornée du moteur.
 
 L'éditeur lit et écrit le même VFS que PHP. La console et la grille interrogent directement le pont C ; la grille permet de modifier une cellule lorsqu'une clé primaire existe (100 lignes par page SQL, avec ordre par clé primaire lorsqu’elle existe). La grille préserve NULL et binaires, refuse une modification si les valeurs de la ligne ont changé et affiche structure/index. Un formulaire distingue DEFAULT, NULL, texte et binaire pour l’insertion ; une suppression demande confirmation et vérifie également la ligne d’origine. Le schéma lit `information_schema`, affiche toutes les colonnes, marque les clés et relie les colonnes des clés étrangères ; les tables sont déplaçables. Un formulaire crée une clé étrangère à partir du catalogue, avec action ON DELETE ; le champ DDL applique une modification SQL puis relit le schéma. Les outils peuvent être mis en veille ou déchargés avec conservation du brouillon dans IndexedDB. Le déchargement SQL ferme sa connexion et annule ses transactions non validées.
@@ -24,6 +26,7 @@ Vérification ciblée, avec les navigateurs Playwright installés :
 
 ```sh
 PLAYWRIGHT_BROWSERS_PATH=/workspace/.cache/ms-playwright node tests/browser/studio.mjs
+PLAYWRIGHT_BROWSERS_PATH=/workspace/.cache/ms-playwright node tests/browser/studio-shell.mjs
 ```
 
 Les reçus et captures de ce scénario vont dans `build-work/studio-receipts/`. Un échec n'est jamais un reçu de réussite. La capacité linéaire WASM affichée ne représente pas la RAM résidente ; les gains mémoire du déchargement et la tenue en charge restent à mesurer.
@@ -33,3 +36,5 @@ La couverture reste inférieure à phpMyAdmin : création/modification assistée
 Le changement de projet rend les outils inertes pendant la transition et refuse les actions mises en attente depuis un autre propriétaire. La vue SQL conserve table et page lors du déchargement et relit les données au retour. Les fichiers de projet cachés usuels (.env, .htaccess) sont affichés/exportés ; les sessions et fichiers internes du studio restent exclus.
 
 La sauvegarde attend les requêtes déjà acceptées avant de figer les cookies/sessions. Après un échec de stockage, les nouveaux clients reçoivent 503 jusqu’au réessai. L’état SQL arrêté ne redémarre jamais dans le même WASM ; le studio recrée son propriétaire après sauvegarde réussie. Voir les [preuves de récupération](../../engine/fusion/STORAGE-RECOVERY-RECEIPT.md).
+
+Le [rapport d'interface](../../docs/INTERFACE-REVIEW-2026-11-01.md) consigne les skills appliqués, états rendus, contrastes et limites de vérification. La page locale `/apps/studio/interface-stress.html` affiche le vrai composant de diagnostic sous dix scénarios isolés ; ses données sont des exemples, sans projet actif.

@@ -13,6 +13,8 @@ Ce cadrage remplace les anciennes formulations limitant le produit à deux joueu
 | 5 MySQLi/optimisation | Compatibilité, limites, mesures et décisions | En cours : extension MySQLi C, préparations et résultats liés exécutés ; 72/106 entrées procédurales enregistrées ; conformité approfondie et profils réduits mesurés ; compatibilité complète ouverte |
 | 6 Environnement web | N fenêtres/sessions, HTTP, fichiers, outils et reprise | Prototype fonctionnel : quatre fenêtres/trois sessions, base commune, fichiers, console/grille, schéma, déchargement et sauvegarde/reprise exécutés sur les deux navigateurs |
 
+La [première interface structurée](INTERFACE-STUDIO.md) ajoute six espaces, erreurs récupérables et journal local borné. Les parcours réels et largeurs mobiles passent sur les deux navigateurs ; l'audit Chromium couvre 17 états sans violation automatisée détectée. Voir [la revue et ses limites](INTERFACE-REVIEW-2026-11-01.md). CodeMirror et les services de langage restent à intégrer.
+
 Les archives et 14 tests JavaScript importés prouvent uniquement la préparation. Les documents historiques et leurs rapports restent des preuves datées. Le premier benchmark navigateur chiffré a réussi (6 échantillons et scénarios SQL/PDO) ; la mémoire physique demeure non instrumentée dans ce banc. La CI amont a cependant déjà exécuté PHP et MariaDB réels dans Chromium/Firefox ; voir `engine/baseline/CI-RECEIPT.md` pour les preuves et l'échec du témoin original.
 
 ## Conditions d'acceptation
