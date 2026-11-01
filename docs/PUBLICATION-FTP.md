@@ -1,12 +1,25 @@
 # Publication et nettoyage vérifiés — 1 novembre 2026
 
-Le build statique de la source `355952c688171eb1a7aa4680d5b577d05070d9e2` a passé la [CI](https://github.com/Bastian-Noel/WASMWebServer/actions/runs/41332776634) et la [publication FTP](https://github.com/Bastian-Noel/WASMWebServer/actions/runs/41332776511). Le transfert FTP vers la racine est réussi ; le secret est correctement disponible dans GitHub Actions.
+Le build statique de la source `19b6ee0dbec4bd9395cdf5113701aed281f62c43` a passé la [CI](https://github.com/Bastian-Noel/WASMWebServer/actions/runs/41337154626) et la [publication FTP](https://github.com/Bastian-Noel/WASMWebServer/actions/runs/41337170552). Le transfert FTP vers la racine est réussi ; le secret est correctement disponible dans GitHub Actions.
 
-Les contrôles partagés vérifient les empreintes du moteur natif et ses sources C, construisent les éditeurs, exécutent les 41 tests Node et les contrôles C/Python, puis les scénarios réels Chromium/Firefox, les services de langage, les éditeurs, les API MySQLi et l'accessibilité. Le paquet conserve un manifeste des fichiers et de leurs empreintes.
+La [préversion v0.2.0-preview.2](https://github.com/Bastian-Noel/WASMWebServer/releases/tag/v0.2.0-preview.2) distribue la refonte IDE : accueil des projets, arborescence à droite, complétion contextuelle, navigation bases/tables, formulaires de structure, diagramme de relations, sessions visuelles et archives ZIP fichiers + bases. Voir le [guide IDE](ESPACE-IDE.md).
 
-La version [v0.1.0](https://github.com/Bastian-Noel/WASMWebServer/releases/tag/v0.1.0) correspond à cette source validée, avec le site statique, les reçus et SHA256SUMS. Elle reste un prototype avec les restrictions documentées ; ce nom ne signifie pas une parité exhaustive avec PHP/MySQL natifs.
+| Contrôle | Résultat |
+|---|---|
+| Empreintes du moteur natif et correspondance aux sources C | Réussies |
+| Build des éditeurs et paquet statique | Réussis |
+| Tests Node | 44 réussis |
+| Parcours IDE réels Chromium / Firefox | 17 contrôles réussis dans chacun |
+| Atelier existant et paquet distribué sur les deux navigateurs | Réussis |
+| Journal, vrais diagnostics PHP/SQL et mises en page Chromium | Réussis |
+| Audit axe Chromium | 11 états, aucune violation détectée |
+| Tests natifs MySQLi du workflow | Réussis, restrictions documentées conservées |
+| Transfert FTP | Réussi |
+| Préversion et trois pièces jointes | Publiées |
 
-L'URL publique n'est pas configurée : HTTPS et les en-têtes du véritable domaine restent à vérifier. Un transfert FTP réussi ne constitue pas ce contrôle navigateur en ligne.
+Le ZIP du site fait 23 109 017 octets, SHA-256 `dfe5f36972a706f1416f1c70cce19e24dd8d34b362a7aa612bdb7895e84b3b61`. Les reçus et SHA256SUMS l’accompagnent. La préversion intermédiaire a été retirée après réussite du build corrigé ; v0.1.0 reste la précédente distribution stable.
+
+L’URL publique n’est pas configurée : HTTPS et les en-têtes du véritable domaine restent à vérifier. Un transfert FTP réussi ne constitue pas ce contrôle navigateur en ligne. Le moteur natif n’a pas été recompilé pour cette refonte ; aucune nouvelle réduction de RAM totale n’est déduite des changements d’interface.
 
 ## Nettoyage
 

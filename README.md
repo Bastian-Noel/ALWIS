@@ -36,6 +36,6 @@ Le paquet autonome se prépare avec `node scripts/package-studio.mjs`. HTTPS et 
 
 ## Documentation et provenance
 
-L'[index de documentation](docs/INDEX.md) donne les guides actuels et identifie les rapports historiques. Les sources amont épinglées, leurs licences et leurs empreintes restent dans `provenance/`. La version applicative [v0.1.0](https://github.com/Bastian-Noel/WASMWebServer/releases/tag/v0.1.0) fournit le paquet validé et ses preuves. L'archive séparée `sources-2026-10-31` conserve les 19 sources amont nécessaires à la restauration ; elle n'est pas une version du studio. Voir les [règles CI et releases](docs/RELEASES.md).
+L'[index de documentation](docs/INDEX.md) donne les guides actuels et identifie les rapports historiques. Les sources amont épinglées, leurs licences et leurs empreintes restent dans `provenance/`. La préversion actuelle [v0.2.0-preview.2](https://github.com/Bastian-Noel/WASMWebServer/releases/tag/v0.2.0-preview.2) fournit la refonte IDE validée et ses preuves ; v0.1.0 reste la précédente distribution stable. L'archive séparée `sources-2026-10-31` conserve les 19 sources amont nécessaires à la restauration ; elle n'est pas une version du studio. Voir les [règles CI et releases](docs/RELEASES.md).
 
 Les dossiers `build-work/`, `sources/`, `upstream/` et les dépendances npm sont générés ou restaurés localement. Ils ne font pas partie du code source de l'application.
