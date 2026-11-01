@@ -1,7 +1,7 @@
 {
   "file": "/workspace/WASMWebServer/build-work/bridge/.native-build/engine/wasm/runtime-dist/pbl-runtime.wasm",
-  "sha256": "f57fd404fa071e8d8b8375b65f45a108bd16e589202d1809fce19d43919f18f9",
-  "bytes": 33286908,
+  "sha256": "f4b1533fe37ef2b2c192d6df9d10e7928dc0eb5ddee51971ccbe10c997c213c7",
+  "bytes": 33297851,
   "memoryImports": [
     {
       "module": "env",

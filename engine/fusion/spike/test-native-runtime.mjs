@@ -35,6 +35,7 @@ await new Promise((resolve, reject) => { server.once('error', reject); server.li
 const fixtures = {};
 for (const name of ['schema.sql', 'pdo.php', 'mysqli.php']) fixtures[name] = await readFile(join(repo, 'fixtures/school', name), 'utf8');
 fixtures['coverage.php']=await readFile(join(repo,'fixtures/compatibility/native-coverage.php'),'utf8');
+fixtures['convenience.php']=await readFile(join(repo,'fixtures/compatibility/native-convenience.php'),'utf8');
 await mkdir(join(dist, 'receipts'), { recursive: true });
 try {
   for (const browserName of (process.argv[2] ?? 'chromium,firefox').split(',')) {
@@ -71,6 +72,9 @@ try {
           if (http.status !== 201 || JSON.stringify(JSON.parse(http.body)) !== JSON.stringify(['query', 'posted', 'native-file-ok'])) throw Error('CGI GET/POST/files response mismatch: ' + http.body);
           const afterPurePhp = await runtime.state();
           if (afterPurePhp.sqlStarted) throw Error('Pure PHP started SQL');
+          await runtime.write('/workspace/handles.php', '<?php $a=mysqli_init();$b=new mysqli();echo "handles-only";');
+          const handles=await checked({script:'/workspace/handles.php'});
+          if(handles.body!=='handles-only'||handles.sqlStarted)throw Error('Unconnected MySQLi handles started SQL');
           await runtime.write('/workspace/network.php', '<?php echo file_get_contents($_GET["url"]);');
           console.log('native: entering browser network');
           const network = await checked({ script: '/workspace/network.php', url: new URL('/network.php?url=' + encodeURIComponent(new URL('/network-check', location.href).href), location.href).href });
@@ -129,6 +133,9 @@ $stmt->close(); $db->close(); echo 'metadata-array-ok';`);
           await runtime.write('/workspace/coverage.php',fixtures['coverage.php']);
           const coverage=await checked({script:'/workspace/coverage.php'});
           if(JSON.parse(coverage.body).ok!==true)throw Error('Native compatibility coverage failed');
+          await runtime.write('/workspace/convenience.php',fixtures['convenience.php']);
+          const convenience=await checked({script:'/workspace/convenience.php'});
+          if(JSON.parse(convenience.body).ok!==true)throw Error('Native MySQLi convenience coverage failed');
           for(const sql of ["SELECT REPEAT('x',65536) FROM seq_1_to_1000",'SELECT seq FROM seq_1_to_10001']) {
             let refused=false;try{await runtime.sql(sql,'school');}catch(error){refused=error.message.includes('WASM result exceeds');}
             if(!refused)throw Error('Console result budget was not enforced');
@@ -161,7 +168,7 @@ $stmt->close(); $db->close(); echo 'metadata-array-ok';`);
           if (phpAfterStop.sqlStarted || phpAfterStop.status !== 201) throw Error('PHP is not usable independently after SQL stop');
           for(const script of ['/workspace/pdo.php','/workspace/mysqli.php']){const refused=await runtime.request({script});if(refused.exitCode===0||!decode(refused.stderr).includes('SQL is stopped'))throw Error('PHP adapter attempted an unsafe SQL restart');}
           if((await checked({script:'/workspace/http.php'})).status!==201)throw Error('Stopped SQL refusal poisoned pure PHP');
-          return { initial, file, http, afterPurePhp, network, networkContext, bound, metadata, coverage, rollbackCheck, systemQuota, schema, driverResults, object, consoleMarker, consoleTypes, phpAfterStop, final, stopped };
+          return { initial, file, http, afterPurePhp, handles, network, networkContext, bound, metadata, coverage, convenience, rollbackCheck, systemQuota, schema, driverResults, object, consoleMarker, consoleTypes, phpAfterStop, final, stopped };
         } finally { runtime.close(); }
       }, fixtures);
       const quota=storageOnly?null:await page.evaluate(async()=>{

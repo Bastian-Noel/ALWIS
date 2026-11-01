@@ -37,7 +37,7 @@
     },
     {
       "path": "engine/fusion/spike/test-native-runtime.mjs",
-      "sha256": "9c27765e5952b49f62ff639470b29a210a69ada44b498157f3d0791909206301"
+      "sha256": "24ceff5bc1369e4f5518dccc17f3eb6ee6fe1ef8b45bc869c90612f66c7fe12d"
     },
     {
       "path": "engine/fusion/spike/worker.mjs",
@@ -53,7 +53,7 @@
     },
     {
       "path": "packages/php-native/README.md",
-      "sha256": "d96fcd1ccc9ea123638dfa9705d64c7a9f5168cc01d289ec86f1ca44567eaafc"
+      "sha256": "f422dd0fe100253616ffe75d7c2c7d2a5c1525091c83d3594cfbdccbc3bcd846"
     },
     {
       "path": "packages/php-native/src/module.c",
@@ -61,7 +61,7 @@
     },
     {
       "path": "packages/php-native/src/mysqli.c",
-      "sha256": "8a2b6cbba8f5b523d91d65f88a771f36ae3905bd8ae8456f4258147462959c9b"
+      "sha256": "afbba3e0ff3840bc4f554a8de4b38f11a03c814c339e0e66364bde162bba20c3"
     },
     {
       "path": "packages/php-native/src/pdo-adapter.h",
@@ -154,6 +154,10 @@
     {
       "path": "docs/CYCLE-MOTEUR.md",
       "sha256": "2b0037b63aca92bd404084c0b719943d63693a06c6aaf98e5202215d0cd260d1"
+    },
+    {
+      "path": "fixtures/compatibility/native-convenience.php",
+      "sha256": "3764499776fdd88646e306763aa5f02cf739600f33e34881777ea754cb29ca93"
     }
   ],
   "artifacts": [
@@ -164,8 +168,8 @@
     },
     {
       "path": "build-work/bridge/.native-build/engine/wasm/runtime-dist/pbl-runtime.wasm",
-      "sha256": "f57fd404fa071e8d8b8375b65f45a108bd16e589202d1809fce19d43919f18f9",
-      "bytes": 33286908
+      "sha256": "f4b1533fe37ef2b2c192d6df9d10e7928dc0eb5ddee51971ccbe10c997c213c7",
+      "bytes": 33297851
     }
   ],
   "nativeLibraries": [
