@@ -19,19 +19,22 @@ const shell = createStudioShell({
   refresh: () => action(updateEngine),
   onSelect: (name) => {
     if (["editor", "sql", "schema"].includes(name) && hub)
-      action(async () => {
-        if (!tools.get(name)?.view) {
-          await setTool(name, "active");
-          const select = document.querySelector(`[data-tool="${name}"]`);
-          if (select) select.value = "active";
-        }
-        const view = tools.get(name)?.view;
-        if (name === "sql") await view?.activate?.();
-        else if (name === "schema")
-          await view?.setDatabase?.(
-            tools.get("sql")?.view?.snapshot().database ?? "test",
-          );
-      });
+      action(
+        async () => {
+          if (!tools.get(name)?.view) {
+            await setTool(name, "active");
+            const select = document.querySelector(`[data-tool="${name}"]`);
+            if (select) select.value = "active";
+          }
+          const view = tools.get(name)?.view;
+          if (name === "sql") await view?.activate?.();
+          else if (name === "schema")
+            await view?.setDatabase?.(
+              tools.get("sql")?.view?.snapshot().database ?? "test",
+            );
+        },
+        { background: true },
+      );
   },
 });
 window.addEventListener("error", (event) =>
@@ -44,7 +47,7 @@ function status(text, error = false) {
   if (error) shell.error(Error(text));
   else shell.status(text);
 }
-function action(task) {
+function action(task, { background = false } = {}) {
   const expectedHub = hub;
   const context =
     document.activeElement?.closest("button")?.textContent.trim() ||
@@ -58,7 +61,8 @@ function action(task) {
           throw Error(
             "Le projet a changé. Relancez cette action dans le projet courant.",
           );
-        const recovering = $("#status").hasAttribute("data-error");
+        const recovering =
+          !background && $("#status").hasAttribute("data-error");
         if (recovering) status("Opération en cours…");
         const value = await task();
         if (recovering && $("#status").textContent === "Opération en cours…")

@@ -178,7 +178,7 @@ export function attachDatabaseManager(
           loaded = true;
         };
         details.ontoggle = () => {
-          if (details.open) run(load);
+          if (details.open) run(load, { background: true });
         };
         if (details.open) await load();
       }
