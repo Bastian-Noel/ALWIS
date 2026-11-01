@@ -3,6 +3,40 @@
 #include <stdio.h>
 #include <string.h>
 #include <errmsg.h>
+#include <emscripten.h>
+#ifndef PBL_SQL_WORKER_COUNT
+#define PBL_SQL_WORKER_COUNT 16
+#endif
+/* Browser scheduling only: SQL values still go directly through C. Populate the
+ * bounded worker pool while Asyncify yields, before MariaDB waits on pthreads. */
+EM_ASYNC_JS(int,pbl_prepare_sql_workers,(unsigned count),{
+    if(!PThread.pblReady)PThread.pblReady=(async()=>{
+        const original=PThread.getNewWorker;
+        PThread.getNewWorker=function(){const worker=original.call(PThread);if(worker)PThread.pblPeak=Math.max(PThread.pblPeak||0,Object.keys(PThread.pthreads).length+1);return worker;};
+        const loads=[];
+        for(let i=0;i<count;i++){
+            const worker=PThread.allocateUnusedWorker();
+            loads.push(new Promise((resolve,reject)=>{
+                const loaded=PThread.loadWasmModuleToWorker(worker),onerror=worker.onerror;
+                worker.onerror=event=>{event.preventDefault();reject(Error('SQL worker could not load'));};
+                loaded.then(()=>{worker.onerror=onerror;resolve();},error=>{worker.onerror=onerror;reject(error);});
+            }));
+        }
+        let timer;
+        try{await Promise.race([Promise.all(loads),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('SQL worker loading timed out')),30000);})]);}
+        finally{clearTimeout(timer);}
+    })();
+    try{await PThread.pblReady;return 0;}
+    catch(error){PThread.terminateAllThreads();console.error('SQL worker pool initialization failed:',error.message);return 1;}
+});
+EM_JS(unsigned,pbl_js_sql_threads_used,(void),{return Object.keys(PThread.pthreads).length;});
+EM_JS(unsigned,pbl_js_sql_threads_idle,(void),{return PThread.unusedWorkers.length;});
+EM_JS(unsigned,pbl_js_sql_threads_created,(void),{return PThread.nextWorkerID-1;});
+EM_JS(unsigned,pbl_js_sql_threads_peak,(void),{return PThread.pblPeak||0;});
+unsigned pbl_sql_threads_used(void){return pbl_js_sql_threads_used();}
+unsigned pbl_sql_threads_idle(void){return pbl_js_sql_threads_idle();}
+unsigned pbl_sql_threads_created(void){return pbl_js_sql_threads_created();}
+unsigned pbl_sql_threads_peak(void){return pbl_js_sql_threads_peak();}
 
 int l4m_open(void);
 void l4m_close(void);
@@ -93,6 +127,7 @@ MYSQL *pbl_mysql_init_owner(uint64_t owner)
     if(phase>=2) return NULL;
     if (pbl_mysql_connection_count() >= 32) {initialization_error="Native SQL caller connection limit reached";return NULL;}
     if (!started) {
+        if(pbl_prepare_sql_workers(PBL_SQL_WORKER_COUNT)!=0){phase=3;return NULL;}
         if (l4m_open() != 0) {phase=3;return NULL;}
         started = 1;phase=1;
     }

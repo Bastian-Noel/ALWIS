@@ -46,13 +46,19 @@ target_include_directories(pbl-runtime PRIVATE
 target_link_libraries(pbl-runtime PRIVATE "${PBL_PHP_BUILD}/.libs/libphp.a" mysqlserver)
 add_dependencies(pbl-runtime GenError)
 get_target_property(pbl_runtime_options pbl-fusion LINK_OPTIONS)
-list(FILTER pbl_runtime_options EXCLUDE REGEX "EXPORTED_FUNCTIONS|EXPORTED_RUNTIME_METHODS|EXPORT_NAME|MAXIMUM_MEMORY")
+list(FILTER pbl_runtime_options EXCLUDE REGEX "EXPORTED_FUNCTIONS|EXPORTED_RUNTIME_METHODS|EXPORT_NAME|MAXIMUM_MEMORY|PTHREAD_POOL_SIZE")
 set(PBL_PTHREAD_STACK_BYTES 2097152 CACHE STRING "Native runtime default pthread stack bytes")
+set(PBL_SQL_WORKER_COUNT 16 CACHE STRING "Browser SQL worker pool populated at first use")
+if(NOT PBL_SQL_WORKER_COUNT MATCHES "^[1-9][0-9]*$" OR PBL_SQL_WORKER_COUNT GREATER 32)
+  message(FATAL_ERROR "PBL_SQL_WORKER_COUNT must be an integer between 1 and 32")
+endif()
+target_compile_definitions(pbl-runtime PRIVATE PBL_SQL_WORKER_COUNT=${PBL_SQL_WORKER_COUNT})
 target_link_options(pbl-runtime PRIVATE ${pbl_runtime_options}
+  "SHELL:-s PTHREAD_POOL_SIZE=0" "SHELL:-s PTHREAD_POOL_SIZE_STRICT=2"
   "SHELL:-s MAXIMUM_MEMORY=536870912"
   "SHELL:-s DEFAULT_PTHREAD_STACK_SIZE=${PBL_PTHREAD_STACK_BYTES}"
   "SHELL:--embed-file ${PBL_GENERATED}/system-tables.sql@/mariadb/share/pbl-system-tables.sql"
   "SHELL:-s EXPORT_NAME=createPHP" -g2 "SHELL:-s ASSERTIONS=2"
-  "SHELL:-s EXPORTED_FUNCTIONS=['_php_wasm_run','_php_wasm_exit_code','_php_wasm_abi_version','_php_wasm_version','_php_wasm_add_server_variable','_php_wasm_setenv','_malloc','_free','_pbl_fs_write','_pbl_fs_remove','_pbl_fs_rename','_pbl_mysql_phase','_pbl_mysql_started','_pbl_mysql_connection_count','_pbl_mysql_stop','_pbl_mysql_statement_count','_pbl_mysql_statement_bytes','_pbl_console_open','_pbl_console_close','_pbl_console_query','_pbl_console_length','_pbl_console_error','_pbl_console_sqlstate','_pbl_console_errno','_pbl_heap_used','_pbl_heap_free']"
+  "SHELL:-s EXPORTED_FUNCTIONS=['_php_wasm_run','_php_wasm_exit_code','_php_wasm_abi_version','_php_wasm_version','_php_wasm_add_server_variable','_php_wasm_setenv','_malloc','_free','_pbl_fs_write','_pbl_fs_remove','_pbl_fs_rename','_pbl_mysql_phase','_pbl_mysql_started','_pbl_mysql_connection_count','_pbl_mysql_stop','_pbl_mysql_statement_count','_pbl_mysql_statement_bytes','_pbl_sql_threads_used','_pbl_sql_threads_idle','_pbl_sql_threads_created','_pbl_sql_threads_peak','_pbl_console_open','_pbl_console_close','_pbl_console_query','_pbl_console_length','_pbl_console_error','_pbl_console_sqlstate','_pbl_console_errno','_pbl_heap_used','_pbl_heap_free']"
   "SHELL:-s EXPORTED_RUNTIME_METHODS=['FS','IDBFS','ENV','ccall','cwrap','UTF8ToString','stringToUTF8','lengthBytesUTF8','HEAPU8']")
 set_target_properties(pbl-runtime PROPERTIES SUFFIX ".mjs" RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/runtime-dist")

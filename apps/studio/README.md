@@ -6,6 +6,8 @@ Démarrage après compilation du target `pbl-runtime` :
 node scripts/serve-studio.mjs
 ```
 
+Pour un hébergement statique ou un paquet de test autonome, suivre [DEPLOYMENT.md](../../docs/DEPLOYMENT.md). La préparation du paquet et sa réussite locale ne signifient pas qu'une URL publique a été publiée.
+
 Le serveur de développement fournit uniquement les ressources statiques, les en-têtes COOP/COEP et le module compilé. PHP et MariaDB s'exécutent dans le navigateur. Le studio possède un Worker moteur par projet ; le Service Worker route les requêtes des fenêtres vers ce propriétaire. Fermer le studio coupe donc le service des clients.
 
 La [première interface structurée](../../docs/INTERFACE-STUDIO.md) sépare Code, SQL et données, Schéma, Clients, Ressources et Journal. Les onglets se parcourent au clavier. Le journal local conserve au plus 200 événements bornés, erreurs PHP/SQL et requêtes HTTP, sans corps, cookies ni paramètres d'URL ; il s'exporte en JSON. Un bandeau conserve la dernière erreur avec une piste de récupération jusqu'à sa fermeture explicite. Le textarea reste l'éditeur provisoire ; CodeMirror et les services de langage sont annoncés comme à intégrer.

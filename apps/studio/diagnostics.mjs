@@ -15,6 +15,7 @@ export function createDiagnosticLog({maxEntries=200,maxMessage=4096,maxDetails=8
 export function describeFailure(error) {
   const message=String(error?.message??error).slice(0,4096);
   let category='ACTION',recovery='Vérifiez les champs puis relancez cette action. Consultez les détails si le problème persiste.';
+  if(/COOP\/COEP|crossOriginIsolated|SharedArrayBuffer/.test(message)){category='HÉBERGEMENT';recovery='Ouvrez le site en HTTPS ou sur localhost. Configurez les en-têtes COOP/COEP sur l’hébergement, puis rechargez le studio.';}
   if(error?.sqlstate){category='SQL';recovery='Vérifiez la base, les noms de colonnes et la requête. Corrigez le SQL avant de le réexécuter.';}
   if(/quota|ENOSPC|byte limit|exceeds.*limit|mémoire/i.test(message)){category='LIMITE';recovery='Réduisez le fichier, le résultat ou le nombre de données chargées, puis réessayez. Exportez les données utiles avant de fermer le projet.';}
   else if(/stopped|poisoned|initialization failed|Moteur perdu/i.test(message)){category='MOTEUR';recovery='Conservez les fichiers exportables. Rouvrez le projet depuis sa dernière sauvegarde ; les requêtes PHP ne seront pas rejouées automatiquement.';}

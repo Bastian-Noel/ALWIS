@@ -1,0 +1,202 @@
+[
+  {
+    "browser": "chromium",
+    "version": "156.0.8078.4",
+    "passed": true,
+    "core": {
+      "isolated": true,
+      "initial": {
+        "sqlStarted": false,
+        "sqlPhase": "dormant",
+        "sqlConnections": 0,
+        "nativeStatements": 0,
+        "preparedSQLReservedBytes": 0,
+        "pthreadWorkers": {
+          "used": 0,
+          "idle": 0,
+          "created": 0,
+          "peak": 0
+        },
+        "linearMemoryBytes": 268435456,
+        "allocatorUsedBytes": 3176,
+        "allocatorFreeBytes": 2184,
+        "vfs": {
+          "groups": {
+            "project": {
+              "bytes": 0,
+              "reserved": 0,
+              "nodes": 2,
+              "maxBytes": 67108864,
+              "maxFileBytes": 16777216,
+              "maxNodes": 2048
+            },
+            "temp": {
+              "bytes": 0,
+              "reserved": 0,
+              "nodes": 1,
+              "maxBytes": 16777216,
+              "maxFileBytes": 16777216,
+              "maxNodes": 256
+            },
+            "sql": {
+              "bytes": 0,
+              "reserved": 0,
+              "nodes": 0,
+              "maxBytes": 134217728,
+              "maxFileBytes": 67108864,
+              "maxNodes": 4096
+            },
+            "system": {
+              "bytes": 2771606,
+              "reserved": 2771606,
+              "nodes": 109,
+              "maxBytes": 16777216,
+              "maxFileBytes": 16777216,
+              "maxNodes": 2048
+            }
+          },
+          "openFiles": 3,
+          "maxOpenFiles": 512
+        },
+        "hardwareConcurrency": 5,
+        "storageLayout": "volatile",
+        "queue": {
+          "pending": 0,
+          "running": true,
+          "bytes": 0
+        }
+      },
+      "pure": {
+        "state": {
+          "used": 0,
+          "idle": 0,
+          "created": 0,
+          "peak": 0
+        },
+        "body": "plain"
+      },
+      "first": {
+        "state": {
+          "used": 15,
+          "idle": 1,
+          "created": 16,
+          "peak": 15
+        },
+        "body": "[1,\"42\",\"43\",\"posted-once\"]",
+        "stderr": "",
+        "exitCode": 0
+      },
+      "second": {
+        "state": {
+          "used": 15,
+          "idle": 1,
+          "created": 16,
+          "peak": 15
+        },
+        "body": "[2,\"42\",\"43\",null]",
+        "exitCode": 0
+      }
+    },
+    "studio": "project/demo/PDO client/save/close passed"
+  },
+  {
+    "browser": "firefox",
+    "version": "157.0",
+    "passed": true,
+    "core": {
+      "isolated": true,
+      "initial": {
+        "sqlStarted": false,
+        "sqlPhase": "dormant",
+        "sqlConnections": 0,
+        "nativeStatements": 0,
+        "preparedSQLReservedBytes": 0,
+        "pthreadWorkers": {
+          "used": 0,
+          "idle": 0,
+          "created": 0,
+          "peak": 0
+        },
+        "linearMemoryBytes": 268435456,
+        "allocatorUsedBytes": 3176,
+        "allocatorFreeBytes": 2184,
+        "vfs": {
+          "groups": {
+            "project": {
+              "bytes": 0,
+              "reserved": 0,
+              "nodes": 2,
+              "maxBytes": 67108864,
+              "maxFileBytes": 16777216,
+              "maxNodes": 2048
+            },
+            "temp": {
+              "bytes": 0,
+              "reserved": 0,
+              "nodes": 1,
+              "maxBytes": 16777216,
+              "maxFileBytes": 16777216,
+              "maxNodes": 256
+            },
+            "sql": {
+              "bytes": 0,
+              "reserved": 0,
+              "nodes": 0,
+              "maxBytes": 134217728,
+              "maxFileBytes": 67108864,
+              "maxNodes": 4096
+            },
+            "system": {
+              "bytes": 2771606,
+              "reserved": 2771606,
+              "nodes": 109,
+              "maxBytes": 16777216,
+              "maxFileBytes": 16777216,
+              "maxNodes": 2048
+            }
+          },
+          "openFiles": 3,
+          "maxOpenFiles": 512
+        },
+        "hardwareConcurrency": 5,
+        "storageLayout": "volatile",
+        "queue": {
+          "pending": 0,
+          "running": true,
+          "bytes": 0
+        }
+      },
+      "pure": {
+        "state": {
+          "used": 0,
+          "idle": 0,
+          "created": 0,
+          "peak": 0
+        },
+        "body": "plain"
+      },
+      "first": {
+        "state": {
+          "used": 15,
+          "idle": 1,
+          "created": 16,
+          "peak": 15
+        },
+        "body": "[1,\"42\",\"43\",\"posted-once\"]",
+        "stderr": "",
+        "exitCode": 0
+      },
+      "second": {
+        "state": {
+          "used": 15,
+          "idle": 1,
+          "created": 16,
+          "peak": 15
+        },
+        "body": "[2,\"42\",\"43\",null]",
+        "exitCode": 0
+      }
+    },
+    "studio": "project/demo/PDO client/save/close passed"
+  }
+]

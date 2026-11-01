@@ -5,6 +5,7 @@ Décision utilisateur du 1 novembre 2026 : simplifier le cycle de vie en conserv
 ## Fonctionnement retenu
 
 - À l'ouverture, PHP est disponible et MariaDB reste non initialisée. Le binaire commun contient toujours les deux moteurs : cela ne constitue pas encore un téléchargement PHP seul, ni une réduction de la capacité linéaire réservée.
+- Les Workers auxiliaires SQL sont eux aussi chargés à la demande : 0 avant la première connexion, puis un pool borné de 16 dans ce profil. Asyncify attend leur chargement avant de démarrer MariaDB, sans rejouer la requête PHP. Les compteurs `pthreadWorkers` distinguent Workers créés, utilisés, inactifs et pic observé.
 - La première ouverture native PDO MySQL ou MySQLi, ou une connexion de la console SQL, initialise MariaDB. La détection porte sur l'utilisation réelle du pilote ; aucune recherche de mots dans les fichiers PHP. PDO SQLite, par exemple, ne doit pas déclencher MariaDB.
 - Ce premier démarrage fonctionne déjà dans l'instance courante : il ne nécessite ni redémarrage de PHP ni réexécution de la requête. `mysqli_init()` et `new mysqli()` sans arguments créent seulement l'objet PHP ; ils ne déclenchent pas MariaDB. `real_connect()` ou un constructeur avec arguments ouvre la connexion native.
 - Une fois démarrée, MariaDB reste active jusqu'à la sauvegarde ou la fermeture du moteur. La fermeture d'une connexion PDO/MySQLi ou de la console ne signifie pas l'arrêt du serveur.

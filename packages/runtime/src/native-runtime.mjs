@@ -14,6 +14,7 @@ export class NativeRuntime {
     worker.onmessageerror = () => this.close(new Error('Unreadable runtime message'));
   }
   static async create({ moduleURL, projectKey, vfsLimits, workerURL = new URL('./native-worker.mjs', import.meta.url) }) {
+    if(!globalThis.crossOriginIsolated||typeof SharedArrayBuffer==='undefined')throw Error('Le moteur PHP/MariaDB nécessite HTTPS (ou localhost) et les en-têtes COOP/COEP de l’hébergeur.');
     const runtime = new NativeRuntime(new Worker(workerURL, { type: 'module', name: 'wasm-web-server' }));
     try { await runtime.call('initialize', { moduleURL, projectKey, vfsLimits }); return runtime; }
     catch (error) { runtime.close(error); throw error; }

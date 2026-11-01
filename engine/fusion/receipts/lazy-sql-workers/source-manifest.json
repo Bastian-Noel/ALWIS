@@ -1,0 +1,57 @@
+{
+  "base": "e053b9828d59ed53b3b0d18f67cf755ced5749ed",
+  "scope": "Lazy SQL worker startup and exact static deployment package smoke; general compatibility remains covered by preceding native receipt.",
+  "files": [
+    {
+      "path": "packages/sql-native/src/pbl_mysql.c",
+      "sha256": "b0a3a6fd7107eab8f163bdefe8ca3f7780289e3d71e4bc158decbb5185da83db"
+    },
+    {
+      "path": "packages/runtime/src/native-runtime.mjs",
+      "sha256": "9e138ff30d8fe8ae9172c3fa99c7942375cd571e50b3b4b410e2cae54de1a2ea"
+    },
+    {
+      "path": "packages/runtime/src/native-worker.mjs",
+      "sha256": "2efc39813a69e2b3575c149522cbe8155a04b4d3c7233e5b81f2051e02308ffe"
+    },
+    {
+      "path": "engine/fusion/spike/runtime-target.cmake",
+      "sha256": "b06d59fcce05531dcc80106798466bb9a2a1a61602506e6b5376e7a5d8131f81"
+    },
+    {
+      "path": "scripts/package-studio.mjs",
+      "sha256": "718242f299ccbabd966e9af11257d116c209abc911163d75e2fc0308f388ae1d"
+    },
+    {
+      "path": "scripts/serve-site-package.mjs",
+      "sha256": "a10ed91cb2dedf57a01d66824d9397a21412ffd2561b5179daa049fa1ae77a11"
+    },
+    {
+      "path": "tests/browser/site-package.mjs",
+      "sha256": "66d334f33643f01c721d3ef18d3307214829a6602a2eefc0da1bb57610cc7183"
+    },
+    {
+      "path": "apps/studio/diagnostics.mjs",
+      "sha256": "23564046534579f20ad89297f77e715849019609585da90573126fd59056b235"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "build-work/bridge/.native-build/engine/wasm/runtime-dist/pbl-runtime.mjs",
+      "bytes": 468589,
+      "sha256": "a8676065f1bded9dc3b52dd21fa4376b6099ca9cbcb25a697627d5e9254e93aa"
+    },
+    {
+      "path": "build-work/bridge/.native-build/engine/wasm/runtime-dist/pbl-runtime.wasm",
+      "bytes": 33301236,
+      "sha256": "c7bd5f619bd80b5068e6c63e6b98d62fc529bbd2e2d7047cc3a44bc93e13bc60"
+    }
+  ],
+  "checks": "apps/studio/receipts/deployment/chromium-firefox.json",
+  "profile": {
+    "eagerWorkers": 0,
+    "sqlWorkersAtFirstUse": 16,
+    "defaultPthreadStackBytes": 2097152,
+    "strictBrowserPool": true
+  }
+}
