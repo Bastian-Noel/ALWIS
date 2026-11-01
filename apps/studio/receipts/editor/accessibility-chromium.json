@@ -7,7 +7,16 @@
     {
       "name": "empty editor",
       "violations": [],
-      "incomplete": []
+      "incomplete": [
+        {
+          "id": "aria-prohibited-attr",
+          "impact": "serious"
+        },
+        {
+          "id": "color-contrast",
+          "impact": "serious"
+        }
+      ]
     },
     {
       "name": "file dialog",
@@ -17,32 +26,98 @@
     {
       "name": "PHP editor",
       "violations": [],
-      "incomplete": []
+      "incomplete": [
+        {
+          "id": "aria-prohibited-attr",
+          "impact": "serious"
+        },
+        {
+          "id": "color-contrast",
+          "impact": "serious"
+        }
+      ]
     },
     {
       "name": "search panel",
       "violations": [],
-      "incomplete": []
+      "incomplete": [
+        {
+          "id": "aria-prohibited-attr",
+          "impact": "serious"
+        },
+        {
+          "id": "color-contrast",
+          "impact": "serious"
+        }
+      ]
     },
     {
       "name": "SQL result",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious"
+        }
+      ]
+    },
+    {
+      "name": "SQL structure dialog",
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "name": "relational schema",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious"
+        }
+      ]
+    },
+    {
+      "name": "foreign key dialog",
       "violations": [],
       "incomplete": []
     },
     {
       "name": "editor at 320",
       "violations": [],
-      "incomplete": []
+      "incomplete": [
+        {
+          "id": "aria-prohibited-attr",
+          "impact": "serious"
+        },
+        {
+          "id": "color-contrast",
+          "impact": "serious"
+        }
+      ]
     },
     {
       "name": "sql at 320",
       "violations": [],
-      "incomplete": []
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious"
+        }
+      ]
     },
     {
       "name": "editor text 200%",
       "violations": [],
-      "incomplete": []
+      "incomplete": [
+        {
+          "id": "aria-prohibited-attr",
+          "impact": "serious"
+        },
+        {
+          "id": "color-contrast",
+          "impact": "serious"
+        }
+      ]
     }
   ]
 }

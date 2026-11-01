@@ -10,6 +10,8 @@
 
 ## Utilisation et publication
 
+- [Espace IDE, administration SQL et archives de projets](ESPACE-IDE.md).
+
 - [Guide du studio](../apps/studio/README.md), [publication FTP manuelle](FTP-DEPLOYMENT.md), [résultat réel du dernier essai](PUBLICATION-FTP.md), [hébergement statique](DEPLOYMENT.md).
 - [CI, nettoyage et versions](RELEASES.md).
 - [Build natif custom](../engine/fusion/spike/README.md), [build et versions](BUILD.md), [reprise locale](REPRISE.md).

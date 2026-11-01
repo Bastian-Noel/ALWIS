@@ -1,0 +1,26 @@
+{
+  "passed": true,
+  "browser": "chromium",
+  "version": "156.0.8078.4",
+  "project": "ide-770f8d1e-3ad2-4fe6-91dd-2b120fb8321f",
+  "checks": [
+    "project welcome and recents",
+    "SQL remains lazy before SQL tab",
+    "right explorer",
+    "Enter newline and Tab acceptance",
+    "HTML close tags and indentation",
+    "PHP/JS/HTML region detection",
+    "jQuery completion inside PHP script region",
+    "live database/table tree",
+    "filter/sort and structure form",
+    "real FK drag and SQL application",
+    "cardinalities from actual keys",
+    "many-to-many junction creation",
+    "one-to-one relation update and compound foreign key form",
+    "new tables do not overlap existing positions",
+    "visual clients",
+    "worker compressed project ZIP with SQL roundtrip",
+    "320/768/1500 no page overflow"
+  ],
+  "pageErrors": []
+}

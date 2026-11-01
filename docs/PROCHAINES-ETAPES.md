@@ -20,12 +20,12 @@ Sortie : petits projets PHP CRUD/authentification/upload importés sans réécri
 
 **Lot livré :** CodeMirror, arborescence et opérations de fichiers, recherche/remplacement, services PHP/HTML/SWC, déclarations jQuery internes, cycle de vie et protections des écritures. [Fonctions et limites actuelles](../apps/studio/editor/README.md).
 
-Approfondir les diagnostics PHP sémantiques, le contexte Composer, les documents mixtes, les opérations sur dossiers et l’endurance des services ; compléter les vérifications lecteurs d’écran et Safari.
+Approfondir les diagnostics PHP sémantiques, le contexte Composer, les diagnostics des documents mixtes, les opérations sur dossiers et l’endurance des services ; compléter les vérifications lecteurs d’écran et Safari.
 
 ## 3. Administration SQL complète
 
-**Lot livré :** CodeMirror MySQL, sélection/scripts, résultats multiples, historique, catalogue réel pour la complétion et import DELIMITER/routines. Les formulaires DDL et la parité phpMyAdmin restent ouverts.
+**Lot livré :** CodeMirror MySQL, sélection/scripts, résultats multiples, historique, catalogue réel pour la complétion et import DELIMITER/routines. L’explorateur bases/tables, les grilles filtrées/triées, les formulaires DDL, les relations visuelles et le ZIP multi-bases sont désormais livrés : [espace IDE](ESPACE-IDE.md). La parité exhaustive phpMyAdmin reste ouverte.
 
-Finaliser console et résultats multiples, recherche/tri/filtres, formulaires de tables/colonnes/index/contraintes, schéma, imports/dumps usuels et sauvegarde complète. Garder les contrôles de concurrence, types exacts, erreurs utiles et budgets ; valider sur un vrai projet avec les outils déjà livrés.
+Approfondir les variantes avancées de colonnes et index, les formulaires de routines et privilèges, les gros imports/dumps, les dispositions de schémas denses et les restaurations interrompues. Garder les contrôles de concurrence, types exacts, erreurs utiles et budgets ; valider sur un vrai projet avec les outils déjà livrés.
 
 Le bilan du 1 novembre reste une photographie des capacités ; ce fichier définit l'ordre de travail suivant, pas une déclaration de fonctionnalités terminées.

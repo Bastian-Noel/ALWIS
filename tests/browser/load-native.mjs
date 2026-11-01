@@ -37,7 +37,7 @@ try{
     stages.push({ratePerClient:rate,durationMs:10000,memoryBefore,memoryAfter,engineLabel:await studio.locator('#engine-state').textContent(),linearMemoryBytes:Number(await studio.locator('#engine-state').getAttribute('data-linear-memory-bytes')),allocatorUsedBytes:Number(await studio.locator('#engine-state').getAttribute('data-allocator-used-bytes')),clients:results.map(({responses,...r})=>({...r,session:responses[0].session,first:responses[0],last:responses.at(-1)}))});
     console.log(name,rate,'requests/s/client passed');
    }
-   await studio.locator('#close').click();await studio.locator('#status').filter({hasText:'Projet fermé'}).waitFor();
+   await studio.locator('.project-menu summary').click();await studio.locator('#close').click();await studio.locator('#status').filter({hasText:'Projet fermé'}).waitFor();
    await writeFile(resolve(output,name+'.json'),JSON.stringify({browser:name,version:browser.version(),passed:true,scope:'Two clients; 10 seconds per stage. Short sustained scenario, not a leak endurance proof.',stages},null,2)+'\n');
   }finally{await browser.close();}
  }

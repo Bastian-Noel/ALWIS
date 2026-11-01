@@ -38,7 +38,7 @@ Le tas JS de TypeScript, le code compilé et les autres processus du navigateur 
 
 CodeMirror MySQL, Ctrl+Entrée sur sélection ou script, jeux de résultats sélectionnables, historique local de 20 requêtes de 4 K caractères maximum, complétion des tables/colonnes du vrai catalogue (2 048 colonnes maximum). Les imports acceptent DELIMITER, commentaires exécutables mysqldump et corps de routines usuels ; le fichier est validé/découpé avant exécution, puis envoyé à PDO par instructions encadrées en binaire. Limites : import 8 Mio / 4 096 instructions, console 256 instructions. Les modes de quoting SQL inhabituels, dont les changements dynamiques de NO_BACKSLASH_ESCAPES, nécessitent encore des cas dédiés ; ce lexer ne se présente pas comme toute la grammaire MariaDB.
 
-Les fonctions existantes de grille, insertion, suppression, schéma, sauvegarde et export SQL restent disponibles. Les formulaires complets de DDL pour colonnes/index/contraintes, l'administration des privilèges/événements, le tri/filtrage avancé et la parité phpMyAdmin ne sont pas terminés.
+Les fonctions existantes de grille, insertion, suppression, schéma, sauvegarde et export SQL restent disponibles. Les formulaires de tables/colonnes/index/contraintes, le tri et le filtre simple, ainsi que le diagramme de relations sont décrits dans le [guide IDE](../../../docs/ESPACE-IDE.md). Les variantes avancées et la parité exhaustive phpMyAdmin restent ouvertes. Tab valide les suggestions ; Entrée garde son comportement de retour à la ligne. La complétion suit les régions des documents mixtes PHP/HTML/JS/CSS.
 
 ## Construire et vérifier
 
@@ -53,4 +53,4 @@ node scripts/package-studio.mjs
 
 `fetch-editor-engines.py` vérifie les SHA-256 des archives officielles et des WASM ; les sources/licences sont identifiées dans engines.lock.json, licenses/ et THIRD-PARTY.txt de l'archive distribuée. `editor:build` assemble les dépendances npm épinglées et copie ces binaires amont : il ne prétend pas recompiler leurs sources Rust/Zig. Les binaires générés restent hors Git ; les reçus et ASSETS.json sont conservés.
 
-Preuves dans `apps/studio/receipts/editor/` : services et atelier sur Chromium/Firefox ; audit axe 4.11.1 sur huit états Chromium, 320 px et texte à 200 %. Lecteurs d'écran et Safari non vérifiés. Les skills d'interface et la revue sont référencés dans REVIEW.md.
+Preuves dans `apps/studio/receipts/editor/` : services et atelier sur Chromium/Firefox ; audit axe 4.11.1 sur onze états Chromium, 320 px et texte à 200 %. Lecteurs d'écran et Safari non vérifiés. Les skills d'interface et la revue sont référencés dans REVIEW.md.

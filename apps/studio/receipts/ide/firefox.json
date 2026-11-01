@@ -1,0 +1,26 @@
+{
+  "passed": true,
+  "browser": "firefox",
+  "version": "157.0",
+  "project": "ide-f94d86c8-e9cd-4325-8880-f5a8a161e31c",
+  "checks": [
+    "project welcome and recents",
+    "SQL remains lazy before SQL tab",
+    "right explorer",
+    "Enter newline and Tab acceptance",
+    "HTML close tags and indentation",
+    "PHP/JS/HTML region detection",
+    "jQuery completion inside PHP script region",
+    "live database/table tree",
+    "filter/sort and structure form",
+    "real FK drag and SQL application",
+    "cardinalities from actual keys",
+    "many-to-many junction creation",
+    "one-to-one relation update and compound foreign key form",
+    "new tables do not overlap existing positions",
+    "visual clients",
+    "worker compressed project ZIP with SQL roundtrip",
+    "320/768/1500 no page overflow"
+  ],
+  "pageErrors": []
+}

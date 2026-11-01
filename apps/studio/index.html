@@ -1,34 +1,530 @@
 <!doctype html>
-<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#181b1e"><title>WASMWebServer · Studio</title><link rel="stylesheet" href="/apps/studio/studio.css"></head>
-<body>
-<a class="skip-link" href="#workspace">Aller à l’espace de travail</a>
-<header class="app-header"><a class="brand" href="/" aria-label="WASMWebServer, accueil"><span class="brand-mark" aria-hidden="true">W/</span><span><strong>WASMWebServer</strong><small>Atelier web local</small></span></a><div class="project"><label for="project">Projet</label><input id="project" name="project" value="school-demo" pattern="[A-Za-z0-9_\-]{1,64}" maxlength="64" aria-describedby="project-help" autocomplete="off" spellcheck="false"><button id="open">Ouvrir</button><button id="save" data-project-action disabled>Sauvegarder le projet</button><button id="close" data-project-action disabled>Fermer</button></div></header>
-<div class="app-shell">
-<aside class="project-sidebar" aria-label="Projet et navigation">
-<div class="project-summary"><span class="eyebrow">Projet actif</span><strong id="project-name">Aucun projet ouvert</strong><span id="dirty-state" class="state-label">Choisissez un projet pour commencer</span></div>
-<div class="workspace-tabs" role="tablist" aria-label="Espaces du studio" aria-orientation="vertical">
-<button id="tab-editor" role="tab" aria-selected="true" aria-controls="panel-editor" data-panel="editor"><span class="tab-number" aria-hidden="true">01</span>Code</button>
-<button id="tab-sql" role="tab" aria-selected="false" aria-controls="panel-sql" data-panel="sql" tabindex="-1"><span class="tab-number" aria-hidden="true">02</span>SQL et données</button>
-<button id="tab-schema" role="tab" aria-selected="false" aria-controls="panel-schema" data-panel="schema" tabindex="-1"><span class="tab-number" aria-hidden="true">03</span>Schéma</button>
-<button id="tab-clients" role="tab" aria-selected="false" aria-controls="panel-clients" data-panel="clients" tabindex="-1"><span class="tab-number" aria-hidden="true">04</span>Clients</button>
-<button id="tab-resources" role="tab" aria-selected="false" aria-controls="panel-resources" data-panel="resources" tabindex="-1"><span class="tab-number" aria-hidden="true">05</span>Ressources</button>
-<button id="tab-journal" role="tab" aria-selected="false" aria-controls="panel-journal" data-panel="journal" tabindex="-1"><span class="tab-number" aria-hidden="true">06</span>Journal <span id="error-count" class="count" hidden>0</span></button>
-</div>
-<details class="project-files" open><summary>Fichiers du projet</summary><label class="upload" for="import-files">Importer des fichiers ou un ZIP<input id="import-files" type="file" multiple data-project-action disabled></label><button id="demo" data-project-action disabled>Charger l’exemple scolaire</button><button id="export" data-project-action disabled>Exporter les fichiers (ZIP)</button><p class="hint">L’export SQL se fait dans SQL et données.</p></details>
-<p id="project-help" class="hint">Nom : lettres, chiffres, tirets ou underscore. Les projets sont conservés dans ce navigateur après sauvegarde.</p>
-<div class="sidebar-engine"><span class="eyebrow">Moteur local</span><p id="engine-state">Aucun moteur actif.</p><p class="hint">PHP et MariaDB s’exécutent dans ce navigateur.</p></div>
-</aside>
-<main id="workspace" tabindex="-1">
-<div class="workspace-status"><p id="status" role="status" aria-live="polite">Ouvrez un projet pour commencer.</p><span id="activity" class="state-label">En attente</span></div>
-<section id="error-banner" class="error-banner" role="alert" aria-atomic="true" hidden><div><strong id="error-title">Action impossible</strong><p id="error-message"></p><p id="error-recovery"></p></div><div class="bar"><button id="show-error">Voir le diagnostic</button><button id="dismiss-error">Masquer l’erreur</button></div></section>
-<section id="panel-editor" class="workspace-panel" role="tabpanel" aria-labelledby="tab-editor"><div class="view-heading"><div><span class="eyebrow">Fichiers et code</span><h1>Éditeur</h1><p>Écrivez le fichier pour l’exécuter. Sauvegardez ensuite le projet.</p></div><span class="capability">CodeMirror 6</span></div><div id="editor-tool" class="tool-surface"></div><details class="feature-note"><summary>Complétion et services de langage</summary><p>La complétion PHP et les diagnostics HTML utilisent des services WASM séparés. Les erreurs de syntaxe PHP sont signalées par l’éditeur ; les diagnostics sémantiques PHP complets restent à intégrer. JavaScript utilise SWC et les types jQuery internes. Ctrl+Espace : compléter · Ctrl+F : rechercher · Échap puis Tab : quitter l’éditeur. La bibliothèque jQuery doit être chargée par votre site pour s’exécuter.</p></details></section>
-<section id="panel-sql" class="workspace-panel" role="tabpanel" aria-labelledby="tab-sql" hidden><div class="view-heading"><div><span class="eyebrow">MariaDB</span><h1>SQL et données</h1><p>Interrogez la base commune et modifiez les données réelles du projet.</p></div><span class="capability">PDO · MySQLi natifs</span></div><div id="sql-tool" class="tool-surface"></div></section>
-<section id="panel-schema" class="workspace-panel" role="tabpanel" aria-labelledby="tab-schema" hidden><div class="view-heading"><div><span class="eyebrow">Structure relationnelle</span><h1>Schéma</h1><p>Lisez les tables et leurs clés étrangères avant de modifier la structure.</p></div></div><div id="schema-tool" class="tool-surface"></div></section>
-<section id="panel-clients" class="workspace-panel" role="tabpanel" aria-labelledby="tab-clients" hidden><div class="view-heading"><div><span class="eyebrow">Aperçu du projet</span><h1>Fenêtres clientes</h1><p>Une base commune. Des identités partagées ou indépendantes, au choix.</p></div></div><div class="client-launch tool-surface"><h2>Ouvrir une page PHP</h2><div class="form-columns"><label for="sessions">Session cliente<select id="sessions" data-project-action disabled></select></label><label for="preview-path">Page à ouvrir<input id="preview-path" value="/index.php" name="preview-path" spellcheck="false"></label></div><div class="bar"><button id="window" class="primary" data-project-action disabled>Fenêtre dans cette session</button><button id="new-client" data-project-action disabled>Nouveau client indépendant</button></div><p class="hint">Deux fenêtres rattachées à la même session partagent cookies et identité PHP. Une session indépendante garde son identité ; la base reste partagée.</p></div><section class="tool-surface"><h2>Sessions du projet</h2><div id="session-overview" class="session-overview"><p class="empty-state">Ouvrez un projet pour créer sa première session.</p></div></section></section>
-<section id="panel-resources" class="workspace-panel" role="tabpanel" aria-labelledby="tab-resources" hidden><div class="view-heading"><div><span class="eyebrow">Exécution et mémoire</span><h1>Ressources</h1><p>Les mesures du moteur sont distinctes de la mémoire totale du navigateur.</p></div><button id="refresh-resources" class="primary" data-project-action disabled>Actualiser les mesures</button></div><dl class="resource-readings"><div><dt>Capacité WASM</dt><dd id="memory-capacity">—</dd></div><div><dt>Tas C occupé</dt><dd id="memory-used">—</dd></div><div><dt>MariaDB</dt><dd id="sql-phase">Non initialisée</dd></div></dl><section class="tool-surface"><h2>Stockage en mémoire</h2><p class="hint">Octets logiques VFS, avant sauvegarde dans le navigateur. Ce n’est pas une mesure de RAM résidente.</p><div id="vfs-readings"><p class="empty-state">Les mesures apparaîtront après ouverture du projet.</p></div></section><section class="tool-surface"><h2>Cycle de vie des outils</h2><p class="hint">Décharger conserve le brouillon et retire l’interface de l’outil. Le moteur continue de servir les clients.</p><div class="form-columns"><label>Éditeur<select data-tool="editor"><option value="active">Actif</option><option value="idle">En veille</option><option value="unloaded">Déchargé</option></select></label><label>SQL<select data-tool="sql"><option value="active">Actif</option><option value="idle">En veille</option><option value="unloaded">Déchargé</option></select></label><label>Schéma<select data-tool="schema"><option value="active">Actif</option><option value="idle">En veille</option><option value="unloaded">Déchargé</option></select></label></div></section><section class="feature-note"><h2>PHP seul, puis SQL au besoin</h2><p>La première connexion PDO MySQL ou MySQLi active MariaDB. Elle reste active jusqu’à la sauvegarde ou la fermeture. Après arrêt, le studio crée un nouveau moteur ; il ne rejoue pas les requêtes PHP.</p></section></section>
-<section id="panel-journal" class="workspace-panel" role="tabpanel" aria-labelledby="tab-journal" hidden><div class="view-heading"><div><span class="eyebrow">Diagnostic local</span><h1>Journal</h1><p>Les 200 derniers événements de cet onglet. Aucun envoi à un service externe.</p></div><button id="export-log" class="primary">Exporter le journal</button></div><div class="bar log-toolbar"><label for="log-filter">Afficher<select id="log-filter"><option value="">Tous les événements</option><option value="error">Erreurs</option><option value="warning">Avertissements</option><option value="info">Informations</option></select></label><button id="clear-log">Effacer le journal</button><span id="log-count" class="hint"></span></div><div id="journal-entries"></div></section>
-</main></div><footer class="app-footer"><span>Local au navigateur</span><span id="footer-project">Aucun projet ouvert</span><span>Prototype en développement</span></footer>
-<template id="editor-template"><div class="bar"><input class="filename" value="/index.php" aria-label="Chemin du fichier"><button class="load">Charger</button><button class="write primary">Écrire le fichier</button></div><div class="bar"><select class="files" aria-label="Fichiers du projet"></select><button class="refresh">Actualiser</button></div><details class="project-tree"><summary>Arborescence du projet</summary><nav class="file-tree" aria-label="Arborescence des fichiers"></nav></details><div class="bar editor-actions"><button class="new-file">Nouveau fichier</button><button class="search-code">Rechercher / remplacer</button><details><summary>Gérer le fichier</summary><div class="bar"><button class="rename-file">Renommer</button><button class="delete-file danger">Supprimer</button></div></details></div><div class="source code-editor"></div><p class="language-status hint" role="status"></p><dialog class="file-dialog" aria-labelledby="file-dialog-title"><form method="dialog"><h3 class="file-dialog-title" id="file-dialog-title">Nouveau fichier</h3><label>Chemin du fichier<input class="file-target" aria-describedby="file-operation-error" value="/index.php" required></label><p class="hint file-error" id="file-operation-error" role="status"></p><div class="bar"><button class="file-confirm primary" type="button">Créer le fichier</button><button value="cancel">Annuler</button></div></form></dialog><p class="hint message" role="status"></p></template>
-<template id="sql-template"><div class="bar"><label>Base <input class="database" value="test"></label><button class="run primary">Exécuter</button></div><div class="query code-editor"></div><div class="bar"><button class="search-sql">Rechercher / remplacer</button><select class="query-history" aria-label="Historique SQL"><option value="">Requêtes récentes</option></select><button class="clear-history">Effacer l’historique</button><span class="hint">Ctrl+Entrée : exécuter la sélection ou la requête.</span></div><div class="bar"><button class="tables">Tables</button><select class="table" aria-label="Table"></select><button class="browse">Voir les données</button><button class="structure">Structure et index</button><button class="insert">Insérer une ligne</button><button class="import-sql">Importer SQL</button><button class="export-sql">Exporter la base SQL</button><input class="sql-file" type="file" accept=".sql,text/plain" hidden></div><p class="hint message" role="status"></p><dialog class="row-dialog" aria-label="Insérer une ligne"><form method="dialog"><h3>Insérer une ligne</h3><p class="hint">DEFAULT laisse le serveur choisir la valeur par défaut. NULL reste distinct du texte vide.</p><div class="row-fields"></div><p class="message"></p><div class="bar"><button type="button" class="insert-confirm">Insérer</button><button value="cancel">Annuler</button></div></form></dialog><pre class="structure-output" hidden></pre><select class="result-sets" aria-label="Jeux de résultats" hidden></select><div class="grid"></div><div class="bar pagination"><button class="previous">Précédent</button><span class="page"></span><button class="next">Suivant</button></div></template>
-<template id="schema-template"><div class="bar"><input class="database" value="test" aria-label="Base du schéma"><button class="refresh primary">Lire le schéma</button><input class="ddl" placeholder="ALTER TABLE …" aria-label="Modification DDL"><button class="apply">Appliquer puis relire</button></div><details class="relation-form"><summary>Ajouter une clé étrangère</summary><div class="bar"><label>Table enfant <select class="fk-from"></select></label><label>Colonne <select class="fk-column"></select></label><label>Table parente <select class="fk-to"></select></label><label>Colonne référencée <select class="fk-reference"></select></label></div><div class="bar"><label>À la suppression <select class="fk-delete"><option>RESTRICT</option><option>CASCADE</option><option>SET NULL</option></select></label><button class="fk-add">Créer la relation</button></div></details><p class="hint message" role="status"></p><svg class="diagram" viewBox="0 0 1100 350" aria-label="Tables et relations"></svg></template>
-<script type="module" src="/apps/studio/studio.mjs"></script></body></html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#1e1e1e" />
+    <title>WASMWebServer</title>
+    <link rel="stylesheet" href="/apps/studio/studio.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#workspace">Aller à l’espace de travail</a>
+    <header class="app-header">
+      <a class="brand" href="/">WASMWebServer</a
+      ><strong id="project-name">Aucun projet ouvert</strong
+      ><span id="dirty-state" class="state-label"></span>
+      <div class="header-actions">
+        <button id="save" data-project-action disabled>Sauvegarder</button>
+        <details class="project-menu">
+          <summary>Projet</summary>
+          <div class="menu-content">
+            <label class="upload" for="import-files"
+              >Importer des fichiers / ZIP<input
+                id="import-files"
+                type="file"
+                multiple
+                data-project-action
+                disabled /></label
+            ><button id="export" data-project-action disabled>
+              Exporter le projet ZIP</button
+            ><button id="demo" data-project-action disabled>
+              Charger l’exemple scolaire</button
+            ><button id="close" data-project-action disabled>
+              Fermer le projet
+            </button>
+          </div>
+        </details>
+        <details class="secondary-tools">
+          <summary>
+            Outils <span id="error-count" class="count" hidden>0</span>
+          </summary>
+          <div
+            class="menu-content"
+            role="tablist"
+            aria-label="Outils secondaires"
+          >
+            <button
+              id="tab-resources"
+              role="tab"
+              aria-selected="false"
+              aria-controls="panel-resources"
+              data-panel="resources"
+              tabindex="-1"
+            >
+              Ressources</button
+            ><button
+              id="tab-journal"
+              role="tab"
+              aria-selected="false"
+              aria-controls="panel-journal"
+              data-panel="journal"
+              tabindex="-1"
+            >
+              Journal
+            </button>
+          </div>
+        </details>
+      </div>
+    </header>
+    <nav aria-label="Navigation du studio">
+      <div
+        class="workspace-tabs"
+        role="tablist"
+        aria-label="Espaces du studio"
+        aria-orientation="horizontal"
+      >
+        <button
+          id="tab-home"
+          role="tab"
+          aria-selected="true"
+          aria-controls="panel-home"
+          data-panel="home"
+        >
+          Accueil
+        </button>
+        <button
+          id="tab-editor"
+          role="tab"
+          aria-selected="false"
+          aria-controls="panel-editor"
+          data-panel="editor"
+          tabindex="-1"
+        >
+          Code
+        </button>
+        <button
+          id="tab-sql"
+          role="tab"
+          aria-selected="false"
+          aria-controls="panel-sql"
+          data-panel="sql"
+          tabindex="-1"
+        >
+          Base de données
+        </button>
+        <button
+          id="tab-schema"
+          role="tab"
+          aria-selected="false"
+          aria-controls="panel-schema"
+          data-panel="schema"
+          tabindex="-1"
+        >
+          Schéma relationnel
+        </button>
+        <button
+          id="tab-clients"
+          role="tab"
+          aria-selected="false"
+          aria-controls="panel-clients"
+          data-panel="clients"
+          tabindex="-1"
+        >
+          Clients et sessions
+        </button>
+      </div>
+    </nav>
+    <main id="workspace" tabindex="-1">
+      <section
+        id="error-banner"
+        class="error-banner"
+        role="alert"
+        aria-atomic="true"
+        hidden
+      >
+        <div>
+          <strong id="error-title">Action impossible</strong>
+          <p id="error-message"></p>
+          <p id="error-recovery"></p>
+        </div>
+        <div class="bar">
+          <button id="show-error">Voir le diagnostic</button
+          ><button id="dismiss-error">Masquer l’erreur</button>
+        </div>
+      </section>
+      <section
+        id="panel-home"
+        class="workspace-panel home-panel"
+        role="tabpanel"
+        aria-labelledby="tab-home"
+      >
+        <div class="home-content">
+          <h1>Projets</h1>
+          <p class="home-intro">
+            Votre espace PHP, vos fichiers et vos bases, dans ce navigateur.
+          </p>
+          <section class="open-project">
+            <h2>Ouvrir ou créer un projet</h2>
+            <div class="bar">
+              <label for="project"
+                >Nom du projet<input
+                  id="project"
+                  value="school-demo"
+                  pattern="[A-Za-z0-9_\-]{1,64}"
+                  maxlength="64"
+                  aria-describedby="project-help"
+                  autocomplete="off"
+                  spellcheck="false" /></label
+              ><button id="open" class="primary">Ouvrir</button
+              ><button id="home-import">Importer un projet ZIP</button
+              ><input
+                id="home-zip"
+                type="file"
+                accept=".zip,application/zip"
+                hidden
+              />
+            </div>
+            <p id="project-help" class="hint">
+              Lettres, chiffres, tirets et underscore. Un nouveau nom crée un
+              projet vide.
+            </p>
+          </section>
+          <section class="recent-projects">
+            <h2>Projets récents</h2>
+            <div id="project-list">
+              <p class="empty-state">Aucun projet enregistré ici.</p>
+            </div>
+          </section>
+          <div id="current-project-info"></div>
+        </div>
+      </section>
+      <section
+        id="panel-editor"
+        class="workspace-panel"
+        role="tabpanel"
+        aria-labelledby="tab-editor"
+        hidden
+      >
+        <h1 class="sr-only">Code</h1>
+        <div id="editor-tool" class="tool-surface"></div>
+      </section>
+      <section
+        id="panel-sql"
+        class="workspace-panel"
+        role="tabpanel"
+        aria-labelledby="tab-sql"
+        hidden
+      >
+        <h1 class="sr-only">Base de données</h1>
+        <div id="sql-tool" class="tool-surface"></div>
+      </section>
+      <section
+        id="panel-schema"
+        class="workspace-panel"
+        role="tabpanel"
+        aria-labelledby="tab-schema"
+        hidden
+      >
+        <h1 class="sr-only">Schéma relationnel</h1>
+        <div id="schema-tool" class="tool-surface"></div>
+      </section>
+      <section
+        id="panel-clients"
+        class="workspace-panel clients-panel"
+        role="tabpanel"
+        aria-labelledby="tab-clients"
+        hidden
+      >
+        <div class="view-heading"><h1>Clients et sessions</h1></div>
+        <div class="client-launch">
+          <div class="bar">
+            <label for="preview-path"
+              >Page<input
+                id="preview-path"
+                value="/index.php"
+                spellcheck="false" /></label
+            ><label for="sessions"
+              >Identité<select
+                id="sessions"
+                data-project-action
+                disabled
+              ></select></label
+            ><button id="window" class="primary" data-project-action disabled>
+              Ouvrir un client</button
+            ><button id="new-client" data-project-action disabled>
+              Nouvelle session indépendante
+            </button>
+          </div>
+        </div>
+        <div class="session-layout">
+          <section>
+            <h2>Identités</h2>
+            <div id="session-overview" class="session-overview"></div>
+          </section>
+          <section>
+            <h2>Fenêtres ouvertes</h2>
+            <div id="client-windows">
+              <p class="empty-state">
+                Aucune fenêtre ouverte depuis ce studio.
+              </p>
+            </div>
+          </section>
+        </div>
+      </section>
+      <section
+        id="panel-resources"
+        class="workspace-panel secondary-panel"
+        role="tabpanel"
+        aria-labelledby="tab-resources"
+        hidden
+      >
+        <div class="view-heading">
+          <h1>Ressources</h1>
+          <button id="refresh-resources" data-project-action disabled>
+            Actualiser
+          </button>
+        </div>
+        <p id="engine-state">Aucun moteur actif.</p>
+        <dl class="resource-readings">
+          <div>
+            <dt>Capacité WASM</dt>
+            <dd id="memory-capacity">—</dd>
+          </div>
+          <div>
+            <dt>Tas C occupé</dt>
+            <dd id="memory-used">—</dd>
+          </div>
+          <div>
+            <dt>MariaDB</dt>
+            <dd id="sql-phase">Non initialisée</dd>
+          </div>
+        </dl>
+        <h2>Stockage en mémoire</h2>
+        <div id="vfs-readings"></div>
+        <h2>Outils</h2>
+        <div class="bar">
+          <label
+            >Code<select data-tool="editor">
+              <option value="active">Actif</option>
+              <option value="idle">En veille</option>
+              <option value="unloaded">Déchargé</option>
+            </select></label
+          ><label
+            >SQL<select data-tool="sql">
+              <option value="active">Actif</option>
+              <option value="idle">En veille</option>
+              <option value="unloaded">Déchargé</option>
+            </select></label
+          ><label
+            >Schéma<select data-tool="schema">
+              <option value="active">Actif</option>
+              <option value="idle">En veille</option>
+              <option value="unloaded">Déchargé</option>
+            </select></label
+          >
+        </div>
+        <p class="hint">
+          La capacité WASM et le tas C ne représentent pas la RAM totale du
+          navigateur. MariaDB démarre au besoin et reste active jusqu’à la
+          sauvegarde ou la fermeture.
+        </p>
+      </section>
+      <section
+        id="panel-journal"
+        class="workspace-panel secondary-panel"
+        role="tabpanel"
+        aria-labelledby="tab-journal"
+        hidden
+      >
+        <div class="view-heading">
+          <h1>Journal</h1>
+          <button id="export-log">Exporter</button>
+        </div>
+        <div class="bar log-toolbar">
+          <label for="log-filter"
+            >Niveau<select id="log-filter">
+              <option value="">Tous</option>
+              <option value="error">Erreurs</option>
+              <option value="warning">Avertissements</option>
+              <option value="info">Informations</option>
+            </select></label
+          ><button id="clear-log">Effacer</button
+          ><span id="log-count" class="hint"></span>
+        </div>
+        <div id="journal-entries"></div>
+      </section>
+    </main>
+    <footer class="app-footer">
+      <p id="status" role="status" aria-live="polite">Ouverture du studio…</p>
+      <span id="activity">En attente</span
+      ><span id="footer-project">Aucun projet ouvert</span>
+    </footer>
+    <template id="editor-template"
+      ><div class="editor-workbench">
+        <div class="editor-main">
+          <div class="file-tabs" aria-label="Fichiers ouverts"></div>
+          <div class="bar">
+            <input
+              class="filename"
+              value="/index.php"
+              aria-label="Chemin du fichier"
+            /><button class="load">Charger</button
+            ><button class="write primary">Écrire le fichier</button>
+          </div>
+          <div class="bar editor-actions">
+            <button class="new-file">Nouveau fichier</button
+            ><button class="search-code">Rechercher / remplacer</button>
+            <details>
+              <summary>Gérer le fichier</summary>
+              <div class="bar">
+                <button class="rename-file">Renommer</button
+                ><button class="delete-file danger">Supprimer</button>
+              </div>
+            </details>
+          </div>
+          <div class="source code-editor"></div>
+          <p class="language-status hint" role="status"></p>
+          <dialog class="file-dialog" aria-labelledby="file-dialog-title">
+            <form method="dialog">
+              <h3 class="file-dialog-title" id="file-dialog-title">
+                Nouveau fichier
+              </h3>
+              <label
+                >Chemin du fichier<input
+                  class="file-target"
+                  aria-describedby="file-operation-error"
+                  value="/index.php"
+                  required
+              /></label>
+              <p
+                class="hint file-error"
+                id="file-operation-error"
+                role="status"
+              ></p>
+              <div class="bar">
+                <button class="file-confirm primary" type="button">
+                  Créer le fichier</button
+                ><button value="cancel">Annuler</button>
+              </div>
+            </form>
+          </dialog>
+          <p class="hint message" role="status"></p>
+        </div>
+        <aside class="editor-explorer" aria-label="Explorateur de fichiers">
+          <h2>Explorateur</h2>
+          <div class="bar">
+            <select class="files" aria-label="Fichiers du projet"></select
+            ><button class="refresh">Actualiser</button>
+          </div>
+          <details class="project-tree" open>
+            <summary>Arborescence du projet</summary>
+            <nav class="file-tree" aria-label="Arborescence des fichiers"></nav>
+          </details>
+        </aside></div
+    ></template>
+    <template id="sql-template"
+      ><div class="sql-workspace">
+        <aside class="database-explorer">
+          <div class="bar">
+            <h2>Bases de données</h2>
+            <button class="refresh-databases">Actualiser</button>
+          </div>
+          <div class="database-tree"></div>
+          <div class="bar">
+            <button class="create-database">Créer une base</button
+            ><button class="drop-database danger">Supprimer la base</button>
+          </div>
+        </aside>
+        <div class="sql-main">
+          <div class="bar">
+            <label
+              >Base
+              <select class="database" aria-label="Base SQL">
+                <option>test</option>
+              </select></label
+            ><button class="run primary">Exécuter</button>
+          </div>
+          <div class="query code-editor"></div>
+          <div class="bar">
+            <button class="search-sql">Rechercher / remplacer</button
+            ><select class="query-history" aria-label="Historique SQL">
+              <option value="">Requêtes récentes</option></select
+            ><button class="clear-history">Effacer l’historique</button
+            ><span class="hint"
+              >Ctrl+Entrée : exécuter la sélection ou la requête.</span
+            >
+          </div>
+          <div class="bar">
+            <button class="tables">Actualiser les tables</button
+            ><select class="table" aria-label="Table"></select
+            ><button class="browse">Voir les données</button
+            ><button class="structure">Structure et index</button
+            ><button class="export-csv">Exporter le résultat CSV</button
+            ><button class="insert">Insérer une ligne</button
+            ><button class="create-table">Créer une table</button
+            ><button class="manage-table">Modifier la structure</button
+            ><button class="import-sql">Importer SQL</button
+            ><button class="export-sql">Exporter la base SQL</button
+            ><input
+              class="sql-file"
+              type="file"
+              accept=".sql,text/plain"
+              hidden
+            />
+          </div>
+          <details class="data-filter">
+            <summary>Filtrer et trier les lignes</summary>
+            <div class="bar">
+              <label
+                >Colonne
+                <select class="filter-column">
+                  <option value="">Sans filtre</option>
+                </select></label
+              ><label
+                >Opérateur
+                <select class="filter-operator">
+                  <option>=</option>
+                  <option>!=</option>
+                  <option>&lt;</option>
+                  <option>&gt;</option>
+                  <option>LIKE</option>
+                  <option>IS NULL</option>
+                  <option>IS NOT NULL</option>
+                </select></label
+              ><label>Valeur <input class="filter-value" /></label
+              ><label
+                >Trier par
+                <select class="sort-column">
+                  <option value="">Clé primaire</option>
+                </select></label
+              ><select class="sort-direction" aria-label="Sens du tri">
+                <option>ASC</option>
+                <option>DESC</option></select
+              ><button class="filter-apply">Appliquer le filtre</button
+              ><button class="filter-reset">Réinitialiser</button>
+            </div>
+          </details>
+          <p class="hint message" role="status"></p>
+          <dialog class="row-dialog" aria-label="Insérer une ligne">
+            <form method="dialog">
+              <h3>Insérer une ligne</h3>
+              <p class="hint">
+                DEFAULT laisse le serveur choisir la valeur par défaut. NULL
+                reste distinct du texte vide.
+              </p>
+              <div class="row-fields"></div>
+              <p class="message"></p>
+              <div class="bar">
+                <button type="button" class="insert-confirm">Insérer</button
+                ><button value="cancel">Annuler</button>
+              </div>
+            </form>
+          </dialog>
+          <div class="structure-grid" hidden></div>
+          <pre class="structure-output" hidden></pre>
+          <select
+            class="result-sets"
+            aria-label="Jeux de résultats"
+            hidden
+          ></select>
+          <div class="grid"></div>
+          <div class="bar pagination">
+            <button class="previous">Précédent</button><span class="page"></span
+            ><button class="next">Suivant</button>
+          </div>
+          <div class="sql-ddl-host"></div>
+        </div></div
+    ></template>
+    <script type="module" src="/apps/studio/studio.mjs"></script>
+  </body>
+</html>

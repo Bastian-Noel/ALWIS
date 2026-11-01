@@ -9,6 +9,7 @@ Le prototype fonctionne dans Chromium et Firefox. Le [cadrage actif](docs/EXECUT
 - PHP 8.4.27 : formulaires, sessions, uploads, fichiers et HTTP navigateur ; filter, ctype, tokenizer, fileinfo, mbstring et iconv.
 - [MySQLi : 106 fonctions enregistrées](engine/fusion/MYSQLI-106-RECEIPT.md), avec six API hors contexte refusées explicitement. PDO/MySQLi natifs, préparations, types exacts, transactions et résultats multiples sous quotas.
 - [Éditeur CodeMirror 6](apps/studio/editor/README.md) : fichiers, arborescence, recherche/remplacement, brouillons, PHP LSP en Rust/WASM, SuperHTML, SWC et définitions jQuery internes. Aucun interpréteur PHP supplémentaire pour la complétion.
+- [Espace IDE](docs/ESPACE-IDE.md) : accueil des projets, onglets d’outils, explorateur à droite, sessions visuelles et ZIP fichiers + bases SQL.
 - SQL : console avec scripts et résultats multiples, catalogue réel pour la complétion, grille paginée, insertion/modification/suppression, schéma et import/export.
 - Sauvegarde et reprise du projet dans le navigateur, contrôle des propriétaires, quotas et journal local borné.
 

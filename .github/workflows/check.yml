@@ -29,6 +29,8 @@ jobs:
           if-no-files-found: ignore
           path: |
             build-work/site-smoke.json
+            apps/studio/receipts/ide/*.json
+            apps/studio/receipts/ide/*.png
             apps/studio/receipts/editor/*.json
             apps/studio/receipts/editor/*.png
             engine/fusion/receipts/mysqli-complete/*.json
