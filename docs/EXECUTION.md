@@ -1,6 +1,8 @@
 # Objectif actif et preuves de progression
 
-État consolidé au 1 novembre : [bilan complet, fonctionnalités et reste à faire](BILAN-2026-11-01.md), [profils mesurés et recommandation](PROFILS-PERFORMANCE.md). Le build PHP reste minimal ; les profils historiques ne sont pas des options sélectionnables du studio.
+**Priorité utilisateur actuelle :** [PHP essentiel + consolidation PDO/MySQLi, puis vrai éditeur de site, puis administration SQL complète](PROCHAINES-ETAPES.md). La diffusion reste un chantier indépendant et ne bloque pas ces développements.
+
+État consolidé au 1 novembre : [bilan complet, fonctionnalités et reste à faire](BILAN-2026-11-01.md), [profils mesurés et recommandation](PROFILS-PERFORMANCE.md). Le [lot PHP essentiel et consolidation PDO/MySQLi](../engine/fusion/PHP-ESSENTIALS-RECEIPT.md) prolonge ce bilan ; les profils historiques ne sont pas des options sélectionnables du studio.
 
 L'objectif complet est un prototype navigateur fonctionnel et mesuré avec **un WASM unique PHP + MariaDB et pont natif**, PDO/MySQLi, N fenêtres et sessions indépendantes ou partagées. Les outils texte/SQL doivent pouvoir avoir des cycles de vie séparés. MariaDB démarre à la demande avec un profil mémoire réduit, puis reste active jusqu'à la sauvegarde ou la fermeture. Après arrêt, le runtime est recréé : voir le [cycle simplifié retenu](CYCLE-MOTEUR.md), qui remplace l'expérience de redémarrage SQL à chaud.
 
@@ -12,7 +14,7 @@ Ce cadrage remplace les anciennes formulations limitant le produit à deux joueu
 | 2 Sources | Matrice épinglée et cartographie du cycle moteur | Cartographie prioritaire consolidée dans `engine/baseline/SOURCE-ANALYSIS.md` ; versions A/B non interchangeables |
 | 3 Témoins amont | Compilation PHP et MariaDB, PDO, exécution navigateur, persistance et mesures | Trois builds natifs verts (run 41204266390) ; benchmark Chromium/Firefox 3/3 et persistance (run 41212313878) ; PSS globale rapportée et capacités linéaires maintenant instrumentées via copie diagnostique ; reprise après interruption post-flush testée ; limites dans le receipt de reprise |
 | 4 Fusion | Un binaire, pont C, PDO, démarrage SQL à la demande, comparaison | Un module principal commun et runtime PDO/MySQLi/fichiers/HTTP validés sur Chromium/Firefox ; comparaison mémoire/performance à compléter |
-| 5 MySQLi/optimisation | Compatibilité, limites, mesures et décisions | En cours : extension MySQLi C, préparations et résultats liés exécutés ; 72/106 entrées procédurales enregistrées ; conformité approfondie et profils réduits mesurés ; compatibilité complète ouverte |
+| 5 MySQLi/optimisation | Compatibilité, limites, mesures et décisions | En cours : extension MySQLi C, préparations et résultats liés exécutés ; 74/106 entrées procédurales enregistrées, dont savepoints ; conformité approfondie et profils réduits mesurés ; compatibilité complète ouverte |
 | 6 Environnement web | N fenêtres/sessions, HTTP, fichiers, outils et reprise | Prototype fonctionnel : quatre fenêtres/trois sessions, base commune, fichiers, console/grille, schéma, déchargement et sauvegarde/reprise exécutés sur les deux navigateurs |
 
 La [première interface structurée](INTERFACE-STUDIO.md) ajoute six espaces, erreurs récupérables et journal local borné. Les parcours réels et largeurs mobiles passent sur les deux navigateurs ; l'audit Chromium couvre 17 états sans violation automatisée détectée. Voir [la revue et ses limites](INTERFACE-REVIEW-2026-11-01.md). CodeMirror et les services de langage restent à intégrer.

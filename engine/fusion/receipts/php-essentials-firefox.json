@@ -1,0 +1,174 @@
+{
+  "browser": "firefox",
+  "version": "157.0",
+  "wasmBytes": 38207412,
+  "wasmSha256": "c1f09293757b494964b0bec2154f38e3f84cfd093ec884ad7073e33c9a4117f8",
+  "passed": true,
+  "cases": [
+    {
+      "label": "PHP without SQL",
+      "ok": true,
+      "extensions": [
+        "filter",
+        "ctype",
+        "tokenizer",
+        "fileinfo",
+        "mbstring",
+        "iconv"
+      ],
+      "checks": [
+        "form validation",
+        "ctype",
+        "Unicode",
+        "encodings",
+        "tokenizer",
+        "binary MIME",
+        "passwords",
+        "random",
+        "HTML escaping"
+      ],
+      "mbregex": false
+    },
+    {
+      "label": "Real binary multipart upload",
+      "ok": true,
+      "checks": [
+        "multipart",
+        "finfo file",
+        "move_uploaded_file",
+        "binary fidelity"
+      ]
+    },
+    {
+      "label": "Shared PDO/MySQLi project operations",
+      "ok": true,
+      "checks": [
+        "PDO native: types/stringify/references/LOB/transactions",
+        "PDO emulated: types/stringify/references/LOB/transactions",
+        "MySQLi savepoints, quoting, rollback, errors and recovery"
+      ]
+    }
+  ],
+  "pureState": {
+    "sqlStarted": false,
+    "sqlPhase": "dormant",
+    "sqlConnections": 0,
+    "nativeStatements": 0,
+    "preparedSQLReservedBytes": 0,
+    "pthreadWorkers": {
+      "used": 0,
+      "idle": 0,
+      "created": 0,
+      "peak": 0
+    },
+    "linearMemoryBytes": 268435456,
+    "allocatorUsedBytes": 3344,
+    "allocatorFreeBytes": 1861408,
+    "vfs": {
+      "groups": {
+        "project": {
+          "bytes": 7435,
+          "reserved": 7435,
+          "nodes": 4,
+          "maxBytes": 67108864,
+          "maxFileBytes": 16777216,
+          "maxNodes": 2048
+        },
+        "temp": {
+          "bytes": 0,
+          "reserved": 0,
+          "nodes": 1,
+          "maxBytes": 16777216,
+          "maxFileBytes": 16777216,
+          "maxNodes": 256
+        },
+        "sql": {
+          "bytes": 0,
+          "reserved": 0,
+          "nodes": 0,
+          "maxBytes": 134217728,
+          "maxFileBytes": 67108864,
+          "maxNodes": 4096
+        },
+        "system": {
+          "bytes": 2771606,
+          "reserved": 2771606,
+          "nodes": 109,
+          "maxBytes": 16777216,
+          "maxFileBytes": 16777216,
+          "maxNodes": 2048
+        }
+      },
+      "openFiles": 3,
+      "maxOpenFiles": 512
+    },
+    "hardwareConcurrency": 5,
+    "storageLayout": "volatile",
+    "queue": {
+      "pending": 0,
+      "running": true,
+      "bytes": 0
+    }
+  },
+  "state": {
+    "sqlStarted": true,
+    "sqlPhase": "running",
+    "sqlConnections": 0,
+    "nativeStatements": 0,
+    "preparedSQLReservedBytes": 0,
+    "pthreadWorkers": {
+      "used": 15,
+      "idle": 1,
+      "created": 16,
+      "peak": 15
+    },
+    "linearMemoryBytes": 268435456,
+    "allocatorUsedBytes": 77549648,
+    "allocatorFreeBytes": 2819040,
+    "vfs": {
+      "groups": {
+        "project": {
+          "bytes": 7435,
+          "reserved": 7435,
+          "nodes": 4,
+          "maxBytes": 67108864,
+          "maxFileBytes": 16777216,
+          "maxNodes": 2048
+        },
+        "temp": {
+          "bytes": 0,
+          "reserved": 0,
+          "nodes": 5,
+          "maxBytes": 16777216,
+          "maxFileBytes": 16777216,
+          "maxNodes": 256
+        },
+        "sql": {
+          "bytes": 65982379,
+          "reserved": 66046223,
+          "nodes": 103,
+          "maxBytes": 134217728,
+          "maxFileBytes": 67108864,
+          "maxNodes": 4096
+        },
+        "system": {
+          "bytes": 2773736,
+          "reserved": 2773736,
+          "nodes": 112,
+          "maxBytes": 16777216,
+          "maxFileBytes": 16777216,
+          "maxNodes": 2048
+        }
+      },
+      "openFiles": 34,
+      "maxOpenFiles": 512
+    },
+    "hardwareConcurrency": 5,
+    "storageLayout": "volatile",
+    "queue": {
+      "pending": 0,
+      "running": true,
+      "bytes": 0
+    }
+  }
+}

@@ -23,8 +23,8 @@ for ($i = 0; $i < $serverPrepared; ++$i) $mysqli->query('DEALLOCATE PREPARE budg
 $rejected[] = 'server SQL PREPARE count';
 unset($pdoStatements[0]);
 $replacement = $pdo->prepare('SELECT 42'); $replacement->execute();
-// The pinned external-client PDO branch returns this scalar as text.
-demand($replacement->fetchColumn() === '42', 'freed statement slot must be reusable');
+// The custom external-client adapter preserves the SQL integer type.
+demand($replacement->fetchColumn() === 42, 'freed statement slot must be reusable');
 unset($replacement); $pdoStatements = []; $mysqliStatements = []; gc_collect_cycles();
 
 $largeSQL = 'SELECT 1 /* ' . str_repeat('x', 2*1024*1024) . ' */';

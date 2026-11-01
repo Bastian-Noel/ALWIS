@@ -464,6 +464,38 @@ TRANSACTION_METHOD(begin_transaction,pbl_mysql_query(m,"START TRANSACTION",17))
 TRANSACTION_METHOD(commit,mysql_commit(m))
 TRANSACTION_METHOD(rollback,mysql_rollback(m))
 
+/* Identifiers are quoted, including embedded backticks; never interpolate a
+ * savepoint name as SQL syntax. Keep the statement within the shared budget. */
+static int savepoint_command(zval *object,zend_string *name,int release)
+{
+    MYSQL *mysql=require_connection(object); if(!mysql) return 0;
+    size_t length=ZSTR_LEN(name);
+    if(!length || memchr(ZSTR_VAL(name),'\0',length)) {
+        zend_value_error("Savepoint name must be non-empty and contain no null bytes"); return 0;
+    }
+    const char *prefix=release?"RELEASE SAVEPOINT `":"SAVEPOINT `";
+    size_t prefix_length=strlen(prefix);
+    if(length>(SQL_BYTES-prefix_length-1)/2) {
+        zend_value_error("Savepoint name exceeds native request byte limit"); return 0;
+    }
+    zend_string *sql=zend_string_alloc(prefix_length+length*2+1,0);
+    char *out=ZSTR_VAL(sql);memcpy(out,prefix,prefix_length);out+=prefix_length;
+    for(size_t i=0;i<length;i++) { if(ZSTR_VAL(name)[i]=='`') *out++='`'; *out++=ZSTR_VAL(name)[i]; }
+    *out++='`';*out='\0';
+    int rc=pbl_mysql_query(mysql,ZSTR_VAL(sql),out-ZSTR_VAL(sql));
+    zend_string_release(sql);connection_info(object);
+    if(rc)sql_error(mysql,NULL);
+    return !rc;
+}
+#define SAVEPOINT_FUNCTION(func,release) \
+ PHP_FUNCTION(func) { zval *object;zend_string *name;ZEND_PARSE_PARAMETERS_START(2,2) Z_PARAM_OBJECT_OF_CLASS(object,connection_ce) Z_PARAM_STR(name) ZEND_PARSE_PARAMETERS_END();RETURN_BOOL(savepoint_command(object,name,release)); }
+#define SAVEPOINT_METHOD(method,release) \
+ PHP_METHOD(mysqli,method) { zend_string *name;ZEND_PARSE_PARAMETERS_START(1,1) Z_PARAM_STR(name) ZEND_PARSE_PARAMETERS_END();RETURN_BOOL(savepoint_command(ZEND_THIS,name,release)); }
+SAVEPOINT_FUNCTION(mysqli_savepoint,0)
+SAVEPOINT_FUNCTION(mysqli_release_savepoint,1)
+SAVEPOINT_METHOD(savepoint,0)
+SAVEPOINT_METHOD(release_savepoint,1)
+
 
 static int bind_outputs(zval *object,zval *values,int count)
 {
@@ -634,6 +666,8 @@ ZEND_BEGIN_ARG_INFO_EX(ai_method_real_connect,0,0,0) ZEND_ARG_INFO(0,host) ZEND_
 ZEND_BEGIN_ARG_INFO_EX(ai_connect,0,0,0) ZEND_ARG_INFO(0,hostname) ZEND_ARG_INFO(0,username) ZEND_ARG_INFO(0,password) ZEND_ARG_INFO(0,database) ZEND_ARG_INFO(0,port) ZEND_ARG_INFO(0,socket) ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO_EX(ai_one,0,0,1) ZEND_ARG_INFO(0,value) ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO_EX(ai_two,0,0,2) ZEND_ARG_INFO(0,object) ZEND_ARG_INFO(0,value) ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_savepoint,0,0,2) ZEND_ARG_INFO(0,mysql) ZEND_ARG_TYPE_INFO(0,name,IS_STRING,0) ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_method_savepoint,0,0,1) ZEND_ARG_TYPE_INFO(0,name,IS_STRING,0) ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO_EX(ai_query,0,0,2) ZEND_ARG_INFO(0,object) ZEND_ARG_INFO(0,query) ZEND_ARG_INFO(0,result_mode) ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO_EX(ai_method_query,0,0,1) ZEND_ARG_INFO(0,query) ZEND_ARG_INFO(0,result_mode) ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO_EX(ai_none,0,0,0) ZEND_END_ARG_INFO()
@@ -652,6 +686,7 @@ ZEND_BEGIN_ARG_INFO_EX(ai_method_bind_output,0,0,1) ZEND_ARG_VARIADIC_INFO(1,var
 ZEND_BEGIN_ARG_INFO_EX(ai_result_mode,0,0,1) ZEND_ARG_INFO(0,result) ZEND_ARG_INFO(0,mode) ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO_EX(ai_method_mode,0,0,0) ZEND_ARG_INFO(0,mode) ZEND_END_ARG_INFO()
 const zend_function_entry pbl_mysqli_functions[]={
+ PHP_FE(mysqli_savepoint,ai_savepoint) PHP_FE(mysqli_release_savepoint,ai_savepoint)
  PHP_FE(mysqli_fetch_object,ai_fetch_object) PHP_FE(mysqli_execute_query,ai_execute_query) PHP_FE(mysqli_stmt_init,ai_stmt_init) PHP_FE(mysqli_stmt_prepare,ai_stmt_prepare)
  PHP_FE(mysqli_fetch_column,ai_column) PHP_FE(mysqli_fetch_lengths,ai_one) PHP_FE(mysqli_num_fields,ai_one) PHP_FE(mysqli_field_seek,ai_two) PHP_FE(mysqli_field_tell,ai_one)
  PHP_FE(mysqli_stmt_free_result,ai_one) PHP_FE(mysqli_stmt_reset,ai_one) PHP_FE(mysqli_stmt_data_seek,ai_two)
@@ -668,7 +703,7 @@ const zend_function_entry pbl_mysqli_functions[]={
  PHP_FE(mysqli_stmt_close,ai_one) PHP_FE(mysqli_insert_id,ai_one) PHP_FE(mysqli_close,ai_one)
  PHP_FE(mysqli_fetch_assoc,ai_one) PHP_FE(mysqli_fetch_row,ai_one) PHP_FE(mysqli_free_result,ai_one) PHP_FE_END
 };
-static const zend_function_entry connection_methods[]={ PHP_ME(mysqli,real_connect,ai_method_real_connect,ZEND_ACC_PUBLIC) PHP_ME(mysqli,autocommit,ai_one,ZEND_ACC_PUBLIC) PHP_ME(mysqli,select_db,ai_one,ZEND_ACC_PUBLIC) PHP_ME(mysqli,real_escape_string,ai_one,ZEND_ACC_PUBLIC)
+static const zend_function_entry connection_methods[]={ PHP_ME(mysqli,savepoint,ai_method_savepoint,ZEND_ACC_PUBLIC) PHP_ME(mysqli,release_savepoint,ai_method_savepoint,ZEND_ACC_PUBLIC) PHP_ME(mysqli,real_connect,ai_method_real_connect,ZEND_ACC_PUBLIC) PHP_ME(mysqli,autocommit,ai_one,ZEND_ACC_PUBLIC) PHP_ME(mysqli,select_db,ai_one,ZEND_ACC_PUBLIC) PHP_ME(mysqli,real_escape_string,ai_one,ZEND_ACC_PUBLIC)
  PHP_ME(mysqli,execute_query,ai_method_execute_query,ZEND_ACC_PUBLIC) PHP_ME(mysqli,stmt_init,ai_none,ZEND_ACC_PUBLIC)
  PHP_ME(mysqli,__construct,ai_connect,ZEND_ACC_PUBLIC) PHP_ME(mysqli,query,ai_method_query,ZEND_ACC_PUBLIC)
  PHP_ME(mysqli,prepare,ai_one,ZEND_ACC_PUBLIC) PHP_ME(mysqli,set_charset,ai_one,ZEND_ACC_PUBLIC)

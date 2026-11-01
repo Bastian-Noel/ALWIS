@@ -1,12 +1,14 @@
 # Native PHP drivers and runtime integration
 
-The current PHP build is minimal, not the complete extension set proposed in docs/BUILD.md. The browser inventory confirms Core/date/hash/json/pcre/PDO/random/Reflection/session/SPL/standard plus native pdo_mysql/mysqli/pbl_native. filter, ctype, mbstring, iconv, tokenizer, fileinfo, DOM/XML, ZIP/zlib, cURL, OpenSSL and GD are not loaded. The studio's JavaScript ZIP importer does not provide PHP ZipArchive. See [the consolidated status](../../docs/BILAN-2026-11-01.md) and `engine/fusion/receipts/php-inventory.json` before claiming ordinary applications are generally compatible.
+The PHP essential profile adds filter, ctype, mbstring (without mbregex), iconv, tokenizer and fileinfo to Core/date/hash/json/pcre/PDO/random/Reflection/session/SPL/standard plus native pdo_mysql/mysqli/pbl_native. It remains smaller than the extension set proposed in docs/BUILD.md: DOM/XML, ZIP/zlib, cURL, OpenSSL and GD are not loaded. The studio's JavaScript ZIP importer does not provide PHP ZipArchive. The previous minimal inventory is retained in `engine/fusion/receipts/php-inventory.json`; the new profile has separate browser receipts and a [current implementation report](../../engine/fusion/PHP-ESSENTIALS-RECEIPT.md).
 
 This directory contains a real Zend C extension, not PHP implementations of mysqli functions. It shares `packages/sql-native/src/pbl_mysql.c` with the adapted stock PDO MySQL C driver. Both link to the same embedded MariaDB library in `pbl-runtime.wasm`.
 
 `pbl_mysql.c` owns lazy SQL startup, the 32-caller connection limit, per-request owner IDs, connection teardown/rollback and SQL shutdown refusal while caller connections are alive. PHP request cleanup happens after Zend/PDO/MySQLi destructors; it does not reset the whole SQL server. The bootstrap connection is internal to MariaDB and not part of the caller count.
 
 The generated driver copies are traceable through `driver-adapter.json`. Upstream source trees are retained. PDO uses PHP's external-client driver with native embedded connections, rather than the old asynchronous JSON/base64 host bridge. The adapter also fixes external-client length pointer types and excludes a MySQL-only JSON type case from the MariaDB build.
+
+The custom PDO column adapter returns SQL integers that fit this PHP build's `zend_long` and SQL floating-point values as native PHP values, for prepared and direct results. `ATTR_STRINGIFY_FETCHES` preserves text when enabled. DECIMAL, oversized integers, numeric-looking VARCHAR, binary data and NULL retain their exact representation. The WASM build uses 32-bit PHP integers; converting every BIGINT to a PHP float would lose data. MySQLi also exposes native procedural/object savepoint creation and release, with bounded identifier quoting and ordinary SQL errors.
 
 ## Initial MySQLi surface
 
@@ -35,7 +37,9 @@ After the native source prerequisites in `engine/fusion/spike/README.md`:
 source /workspace/toolchains/host/activate.sh
 source /workspace/WASMWebServer/build-work/emsdk/emsdk_env.sh
 cd /workspace/WASMWebServer
+JOBS=3 bash scripts/build-php-essentials.sh
 PBL_TARGET=pbl-runtime JOBS=3 bash engine/fusion/spike/build.sh
+PLAYWRIGHT_BROWSERS_PATH=/workspace/.cache/ms-playwright node tests/browser/php-essentials.mjs
 PLAYWRIGHT_BROWSERS_PATH=/workspace/.cache/ms-playwright node engine/fusion/spike/test-native-runtime.mjs
 ```
 

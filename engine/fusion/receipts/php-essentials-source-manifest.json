@@ -1,0 +1,93 @@
+{
+  "base": "13c6edd2e67c87de0e94d8e2235375b07797461f",
+  "scope": "PHP essential extensions, native PDO numeric columns and MySQLi savepoints; exact WASM in browser receipts. Previous minimal inventory and performance profiles are historical.",
+  "files": [
+    {
+      "path": "scripts/build-php-essentials.sh",
+      "bytes": 1333,
+      "sha256": "5188b35dd027c5ab6c56318833375b83ee9eeb68f5d30ff71e042e290a0bf60f"
+    },
+    {
+      "path": "scripts/prepare-native-drivers.py",
+      "bytes": 3752,
+      "sha256": "17c205be7d7120e1744a2d2235a273d6818232ef10f5a0fd81f467d50a21e26b"
+    },
+    {
+      "path": "packages/php-native/src/pdo-values.h",
+      "bytes": 1250,
+      "sha256": "2f4ad9c70040b55bc0be64d7d1657f0b66e4364e504bbe871aba89d6e73fbd5d"
+    },
+    {
+      "path": "packages/php-native/src/mysqli.c",
+      "bytes": 70519,
+      "sha256": "2b4b95af8df5f0b7ebe40da2f5f92db1f938c1e63daf7086f487da6a498d1e66"
+    },
+    {
+      "path": "packages/sql-native/src/pbl_mysql.c",
+      "bytes": 8627,
+      "sha256": "b0a3a6fd7107eab8f163bdefe8ca3f7780289e3d71e4bc158decbb5185da83db"
+    },
+    {
+      "path": "engine/fusion/spike/runtime-target.cmake",
+      "bytes": 4689,
+      "sha256": "b06d59fcce05531dcc80106798466bb9a2a1a61602506e6b5376e7a5d8131f81"
+    },
+    {
+      "path": "fixtures/compatibility/php-essentials.php",
+      "bytes": 3053,
+      "sha256": "4399022d48b8a4fef85ce2967553c59c7271e818d7dbf8daabd98ae6731f03f1"
+    },
+    {
+      "path": "fixtures/compatibility/php-database-essentials.php",
+      "bytes": 4382,
+      "sha256": "46826458ea71b71089b915acd06f7a8586b0c35615f5ef9c6c15291dbb3910f8"
+    },
+    {
+      "path": "fixtures/compatibility/native-statement-budget.php",
+      "bytes": 4346,
+      "sha256": "bc1134ae8de5830c0eae41363a3a4c2ae776e9913fede9e8af8017677b11dc86"
+    },
+    {
+      "path": "tests/browser/php-essentials.mjs",
+      "bytes": 4330,
+      "sha256": "e591f46a82781a0e8b9c7f11d0f842399cf277176b49d93f19358d308bbc6591"
+    },
+    {
+      "path": "engine/fusion/spike/test-native-runtime.mjs",
+      "bytes": 29782,
+      "sha256": "01ea8af2df673a1315bcdb2469500de6ac92b487fc8903c5180eb3518761c46d"
+    },
+    {
+      "path": "tests/browser/studio.mjs",
+      "bytes": 18376,
+      "sha256": "18b87a8a6ec7628b504479a6b9cc7babc704534517bd04773af5249ccaec8665"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "build-work/php-minimal/config.nice",
+      "bytes": 1312,
+      "sha256": "19a9d5c2dfaad8021933b944219b955dc515c8ed283c0d43e3b8d6e9f69a40c7"
+    },
+    {
+      "path": "build-work/php-minimal/main/php_config.h",
+      "bytes": 67794,
+      "sha256": "ebf4a51d842ce97049a6d0f8a5a38c0b6e749e8fb87c2a5d99f5749232a299c4"
+    },
+    {
+      "path": "build-work/php-minimal/.libs/libphp.a",
+      "bytes": 16731086,
+      "sha256": "4ea72bf539b2410d8dfb20584bd29de5fa84aba2f1f44dbcf1f316ff1bcbbf52"
+    },
+    {
+      "path": "build-work/bridge/.native-build/engine/wasm/runtime-dist/pbl-runtime.mjs",
+      "bytes": 468589,
+      "sha256": "a8676065f1bded9dc3b52dd21fa4376b6099ca9cbcb25a697627d5e9254e93aa"
+    },
+    {
+      "path": "build-work/bridge/.native-build/engine/wasm/runtime-dist/pbl-runtime.wasm",
+      "bytes": 38207412,
+      "sha256": "c1f09293757b494964b0bec2154f38e3f84cfd093ec884ad7073e33c9a4117f8"
+    }
+  ]
+}

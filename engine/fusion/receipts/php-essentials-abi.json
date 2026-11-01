@@ -1,0 +1,74 @@
+{
+  "file": "/workspace/WASMWebServer/build-work/bridge/.native-build/engine/wasm/runtime-dist/pbl-runtime.wasm",
+  "sha256": "c1f09293757b494964b0bec2154f38e3f84cfd093ec884ad7073e33c9a4117f8",
+  "bytes": 38207412,
+  "memoryImports": [
+    {
+      "module": "env",
+      "name": "memory",
+      "minPages": 4096,
+      "maxPages": 8192,
+      "shared": true,
+      "minBytes": 268435456,
+      "maxBytes": 536870912
+    }
+  ],
+  "definedMemories": [],
+  "importedFunctions": 285,
+  "exportedMemories": [],
+  "interfaceExports": [
+    "php_wasm_abi_version",
+    "php_wasm_version",
+    "php_wasm_exit_code",
+    "php_wasm_add_server_variable",
+    "php_wasm_setenv",
+    "php_wasm_run",
+    "pbl_heap_used",
+    "pbl_heap_free",
+    "pbl_sql_threads_used",
+    "pbl_sql_threads_idle",
+    "pbl_sql_threads_created",
+    "pbl_sql_threads_peak",
+    "pbl_mysql_statement_count",
+    "pbl_mysql_statement_bytes",
+    "pbl_mysql_phase",
+    "pbl_mysql_started",
+    "pbl_mysql_connection_count",
+    "pbl_mysql_stop",
+    "l4m_close",
+    "pbl_console_open",
+    "pbl_console_close",
+    "pbl_console_error",
+    "pbl_console_sqlstate",
+    "pbl_console_errno",
+    "pbl_console_length",
+    "pbl_console_query",
+    "pbl_fs_write",
+    "pbl_fs_remove",
+    "pbl_fs_rename",
+    "l4m_free",
+    "l4m_escape",
+    "l4m_query",
+    "l4m_session_open",
+    "l4m_session_query",
+    "l4m_session_close",
+    "l4m_exec_multi"
+  ],
+  "asyncifyExports": [
+    "asyncify_start_unwind",
+    "asyncify_stop_unwind",
+    "asyncify_start_rewind",
+    "asyncify_stop_rewind",
+    "asyncify_get_state"
+  ],
+  "pthreadExports": [
+    "pthread_self",
+    "_emscripten_thread_init",
+    "_emscripten_thread_crashed",
+    "_emscripten_thread_free_data",
+    "_emscripten_thread_exit"
+  ],
+  "hostCallImports": [
+    "__asyncjs__host_call"
+  ]
+}

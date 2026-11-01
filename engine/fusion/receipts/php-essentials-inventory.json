@@ -1,0 +1,117 @@
+{
+  "browser": "156.0.8078.4",
+  "inventory": {
+    "php": "8.4.27",
+    "extensions": [
+      "Core",
+      "PDO",
+      "Reflection",
+      "SPL",
+      "ctype",
+      "date",
+      "fileinfo",
+      "filter",
+      "hash",
+      "iconv",
+      "json",
+      "mbstring",
+      "mysqli",
+      "pbl_native",
+      "pcre",
+      "pdo_mysql",
+      "random",
+      "session",
+      "standard",
+      "tokenizer"
+    ],
+    "pdoDrivers": [
+      "mysql"
+    ],
+    "wrappers": [
+      "php",
+      "file",
+      "glob",
+      "data",
+      "ftp",
+      "http",
+      "https"
+    ],
+    "functions": {
+      "filter_var": true,
+      "ctype_alpha": true,
+      "mb_strlen": true,
+      "iconv": true,
+      "curl_init": false,
+      "imagecreate": false,
+      "token_get_all": true,
+      "finfo_open": true,
+      "gzencode": false
+    },
+    "classes": {
+      "ZipArchive": false,
+      "DOMDocument": false,
+      "SimpleXMLElement": false
+    }
+  },
+  "state": {
+    "sqlStarted": false,
+    "sqlPhase": "dormant",
+    "sqlConnections": 0,
+    "nativeStatements": 0,
+    "preparedSQLReservedBytes": 0,
+    "pthreadWorkers": {
+      "used": 0,
+      "idle": 0,
+      "created": 0,
+      "peak": 0
+    },
+    "linearMemoryBytes": 268435456,
+    "allocatorUsedBytes": 3344,
+    "allocatorFreeBytes": 1746720,
+    "vfs": {
+      "groups": {
+        "project": {
+          "bytes": 557,
+          "reserved": 557,
+          "nodes": 3,
+          "maxBytes": 67108864,
+          "maxFileBytes": 16777216,
+          "maxNodes": 2048
+        },
+        "temp": {
+          "bytes": 0,
+          "reserved": 0,
+          "nodes": 1,
+          "maxBytes": 16777216,
+          "maxFileBytes": 16777216,
+          "maxNodes": 256
+        },
+        "sql": {
+          "bytes": 0,
+          "reserved": 0,
+          "nodes": 0,
+          "maxBytes": 134217728,
+          "maxFileBytes": 67108864,
+          "maxNodes": 4096
+        },
+        "system": {
+          "bytes": 2771606,
+          "reserved": 2771606,
+          "nodes": 109,
+          "maxBytes": 16777216,
+          "maxFileBytes": 16777216,
+          "maxNodes": 2048
+        }
+      },
+      "openFiles": 3,
+      "maxOpenFiles": 512
+    },
+    "hardwareConcurrency": 5,
+    "storageLayout": "volatile",
+    "queue": {
+      "pending": 0,
+      "running": true,
+      "bytes": 0
+    }
+  }
+}
