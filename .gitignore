@@ -12,3 +12,6 @@ __pycache__/
 /benchmarks/results/
 
 /apps/studio/editor/dist/
+
+# Checkout of the separately retained native artifact in the publication job.
+/deployment/native/

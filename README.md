@@ -29,7 +29,7 @@ Ouvrir un projet vide, charger l'exemple scolaire et ouvrir une fenêtre cliente
 
 ## Publier
 
-Le [workflow FTP](docs/FTP-DEPLOYMENT.md) construit et vérifie le site statique avant publication. Il se lance manuellement dans GitHub Actions et utilise le secret FTP_PASSWORD. Le module natif validé est conservé séparément sur `studio-native-runtime`, avec ses empreintes ; il ne mélange pas les fichiers des projets avec le site publié.
+Le [dernier essai](docs/PUBLICATION-FTP.md) a validé le build sur les deux navigateurs ; l’envoi attend le secret GitHub FTP_PASSWORD. Le [workflow FTP](docs/FTP-DEPLOYMENT.md) construit et vérifie le site statique avant publication. Il se lance manuellement dans GitHub Actions et utilise le secret FTP_PASSWORD. Le module natif validé est conservé séparément sur `studio-native-runtime`, avec ses empreintes ; il ne mélange pas les fichiers des projets avec le site publié.
 
 Le paquet autonome se prépare avec `node scripts/package-studio.mjs`. HTTPS et les en-têtes COOP/COEP sont nécessaires à PHP/MariaDB. Les projets restent dans le stockage du navigateur ; ils ne sont pas envoyés sur FTP.
 

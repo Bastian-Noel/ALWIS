@@ -10,7 +10,7 @@
 
 ## Utilisation et publication
 
-- [Guide du studio](../apps/studio/README.md), [publication FTP manuelle](FTP-DEPLOYMENT.md), [hébergement statique](DEPLOYMENT.md).
+- [Guide du studio](../apps/studio/README.md), [publication FTP manuelle](FTP-DEPLOYMENT.md), [résultat réel du dernier essai](PUBLICATION-FTP.md), [hébergement statique](DEPLOYMENT.md).
 - [Build natif custom](../engine/fusion/spike/README.md), [build et versions](BUILD.md), [reprise locale](REPRISE.md).
 - [Profils mesurés](PROFILS-PERFORMANCE.md), [protocole mémoire](MEMOIRE-BENCHMARKS.md).
 
