@@ -1,5 +1,7 @@
 # Paquet statique de test du studio
 
+Publication FTP via GitHub Actions : [guide actuel](FTP-DEPLOYMENT.md).
+
 Le site se prépare sans serveur PHP distant : PHP et MariaDB sont compilés dans le moteur WASM et exécutés dans le navigateur. Les projets restent dans le stockage de ce navigateur après sauvegarde.
 
 ```bash

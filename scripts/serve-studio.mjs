@@ -9,7 +9,7 @@ export function createStudioServer() {
   return createServer(async (request, response) => {
     response.setHeader('Cross-Origin-Opener-Policy', 'same-origin'); response.setHeader('Cross-Origin-Embedder-Policy', 'require-corp'); response.setHeader('Cache-Control', 'no-store');
     const pathname = new URL(request.url, 'http://localhost').pathname;
-    const special = { '/': 'apps/studio/index.html', '/service-worker.js': 'apps/studio/service-worker.mjs', '/_pbl/client.js': 'apps/studio/client-bootstrap.js' };
+    const special = { '/apps/studio/sql-export.source.txt':'apps/studio/sql-export.php', '/': 'apps/studio/index.html', '/service-worker.js': 'apps/studio/service-worker.mjs', '/_pbl/client.js': 'apps/studio/client-bootstrap.js' };
     const base = pathname.startsWith('/engine/') ? engine : repo;
     let relative = pathname.startsWith('/engine/') ? pathname.slice(8) : special[pathname] ?? pathname.slice(1);
     // Serve only application sources, not Git metadata, upstream checkouts or receipts.

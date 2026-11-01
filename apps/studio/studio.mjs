@@ -209,7 +209,7 @@ async function renderSQL(container, saved) {
   });
   container.querySelector('.export-sql').onclick=()=>action(async()=>{
     const tool='/workspace/.pbl-export-'+crypto.randomUUID();
-    const response=await fetch('/apps/studio/sql-export.php');if(!response.ok)throw Error('Outil d’export indisponible.');
+    const response=await fetch('/apps/studio/sql-export.source.txt');if(!response.ok)throw Error('Outil d’export indisponible.');
     await hub.runtime.write(tool+'.php',await response.text());
     try{
       const result=await hub.runtime.request({script:tool+'.php',url:new URL('/export.php?database='+encodeURIComponent(database.value),location.href).href});
