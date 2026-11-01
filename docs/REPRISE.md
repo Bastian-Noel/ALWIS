@@ -1,5 +1,7 @@
 # Guide de reprise
 
+> Guides actuels : [état actif](EXECUTION.md), [étapes restantes](PROCHAINES-ETAPES.md), [publication FTP](FTP-DEPLOYMENT.md). Ce document conserve son contexte et ses preuves historiques ; les lots CodeMirror/MySQLi plus récents sont décrits dans ces guides.
+
 > Cadrage actualisé : voir [l’objectif actif](EXECUTION.md). N fenêtres avec sessions indépendantes ou partagées ; WASM unique PHP/MariaDB comme cible principale ; SQL à la demande et déchargement évalué sur mesures. Les scénarios à deux joueurs ci-dessous sont des tests, pas une limite produit.
 
 Commencer par [CONTEXTE](CONTEXTE.md) et [DECISIONS](DECISIONS.md), consolidés à partir des deux traces de conversation. Les scripts se lancent à la racine du dépôt WASMWebServer.

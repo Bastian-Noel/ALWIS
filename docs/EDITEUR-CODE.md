@@ -30,7 +30,7 @@ Limiter taille/nombre de documents ouverts, index, caches, diagnostics et demand
 
 Au déchargement, conserver texte, sélection, position et état utile, puis libérer les Workers/services et leurs références. Mesurer séparément coût initial, tas occupé, capacité WASM, RAM navigateur et coût de réactivation. Les résultats syntaxiques doivent rester disponibles si un service sémantique est indisponible, avec un état clair.
 
-## Prochain prototype vérifiable
+## Parcours d’acceptation du prototype
 
 1. Remplacer le textarea par CodeMirror 6 avec chargement des langages à la demande, sans perdre l'écriture VFS, les brouillons et la restauration existants.
 2. Épingler les sources et vérifier le démarrage WASM de `php-lsp` et SuperHTML, puis transport, diagnostics et arrêt propre.

@@ -1,5 +1,7 @@
 # Étapes d'implémentation
 
+> Guides actuels : [état actif](EXECUTION.md), [étapes restantes](PROCHAINES-ETAPES.md), [publication FTP](FTP-DEPLOYMENT.md). Ce document conserve son contexte et ses preuves historiques ; les lots CodeMirror/MySQLi plus récents sont décrits dans ces guides.
+
 La [synthèse du 1 novembre](BILAN-2026-11-01.md) précise les ajouts, finalisations et optimisations restants, notamment les extensions PHP absentes du build minimal, les 34 entrées MySQLi non enregistrées, CodeMirror/services de langage et la publication. Les [profils de performance](PROFILS-PERFORMANCE.md) distinguent les modes actuels des variantes encore à expérimenter.
 
 > Ordre impératif : [objectif actif](EXECUTION.md). N fenêtres peuvent partager ou non une session ; la fusion PHP/MariaDB est la **cible principale**, pas un lot reporté après l'UI. La mesure précède chaque optimisation.
