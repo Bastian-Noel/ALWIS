@@ -1,7 +1,5 @@
-name: Build static studio and publish FTP
+name: Publish FTP - validated studio
 on:
-  push:
-    branches: [studio-deploy]
   workflow_dispatch:
 permissions:
   contents: read
@@ -13,39 +11,16 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-          cache: npm
-      - name: Install pinned editor dependencies
-        run: npm ci
-      - uses: actions/checkout@v4
-        with:
-          ref: studio-native-runtime
-          path: deployment/native
-          persist-credentials: false
-      - name: Restore the verified custom native module
-        run: python3 scripts/restore-deployment-engine.py
-      - name: Build static editors and run foundation checks
-        run: |
-          npm run editor:build
-          npm test
-          node scripts/package-studio.mjs
-      - name: Verify the actual static package in Chromium and Firefox
-        run: |
-          mkdir -p build-work/php
-          npm install --prefix build-work/php --no-package-lock --ignore-scripts playwright@1.64.1
-          build-work/php/node_modules/.bin/playwright install --with-deps --only-shell chromium firefox
-          node tests/browser/site-package.mjs
-      - name: Retain the static package even if FTP is unavailable
-        uses: actions/upload-artifact@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: ./.github/actions/validated-studio
+      - name: Retain the validated static package
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: studio-static-${{ github.sha }}
           retention-days: 14
           include-hidden-files: true
           path: build-work/site/
-      - name: Publish files through passive FTP
+      - name: Publish through passive FTP
         env:
           FTP_HOST: '141.253.111.13'
           FTP_PORT: '21'
@@ -56,7 +31,7 @@ jobs:
         run: python3 scripts/deploy-static-ftp.py build-work/site
       - name: Retain previous files privately for recovery
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: ftp-previous-site-${{ github.run_id }}
           retention-days: 7

@@ -1,12 +1,12 @@
 # Publication statique sur FTP avec GitHub Actions
 
-Workflow : **Build static studio and publish FTP** (`.github/workflows/publish-ftp.yml`). Lancement manuel depuis Actions → workflow → Run workflow, ou publication de la branche `studio-deploy`.
+Workflow : **Publish FTP - validated studio** (`.github/workflows/publish-ftp.yml`). Lancement manuel uniquement depuis Actions → workflow → Run workflow. Aucun push ne déclenche une publication FTP.
 
 Le job installe les dépendances npm épinglées, construit les éditeurs, vérifie les tests Node, assemble le site statique et l'ouvre réellement dans Chromium et Firefox avant l'envoi FTP. Le module PHP/MariaDB provient du dernier build natif validé, conservé sur la branche `studio-native-runtime`. Son hash et les empreintes des sources C doivent correspondre ; une modification native oblige à recompiler/valider avant publication. Ce job court ne prétend pas recompiler MariaDB à chaque publication d'interface.
 
 ## Configuration
 
-Un seul secret obligatoire dans Settings → Secrets and variables → Actions : **FTP_PASSWORD**. Le mot de passe ne figure ni dans le dépôt, ni dans le workflow, ni dans les logs du script.
+La relance du 1 novembre a réussi l’envoi FTP. Un seul secret obligatoire dans Settings → Secrets and variables → Actions : **FTP_PASSWORD**. Le mot de passe ne figure ni dans le dépôt, ni dans le workflow, ni dans les logs du script.
 
 Hôte, port 21 et utilisateur sont préconfigurés dans le workflow selon les paramètres fournis. Variables facultatives du dépôt :
 

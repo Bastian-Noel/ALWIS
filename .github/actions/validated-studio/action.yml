@@ -1,0 +1,52 @@
+name: Build and validate the static studio
+description: Shared source, editor, native-artifact and real-browser checks for CI and FTP publication.
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      with:
+        node-version: '24'
+        cache: npm
+    - name: Install pinned dependencies
+      shell: bash
+      run: npm ci
+    - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      with:
+        path: build-work/editor-upstream
+        key: ${{ runner.os }}-editor-engines-${{ hashFiles('apps/studio/editor/engines.lock.json') }}
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      with:
+        ref: studio-native-runtime
+        path: deployment/native
+        persist-credentials: false
+    - name: Verify and restore the validated native module
+      shell: bash
+      run: python3 scripts/restore-deployment-engine.py
+    - name: Build editors, verify source checks and assemble static files
+      shell: bash
+      run: |
+        npm run editor:build
+        npm test
+        cc -std=c11 -Wall -Wextra -Werror -fsyntax-only -x c packages/sql-native/include/pbl_sql.h
+        python3 -m compileall -q scripts
+        node scripts/package-studio.mjs
+    - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      with:
+        path: ~/.cache/ms-playwright
+        key: ${{ runner.os }}-studio-playwright-1.64.1
+    - name: Install pinned real browsers
+      shell: bash
+      run: |
+        mkdir -p build-work/php
+        npm install --prefix build-work/php --no-package-lock --ignore-scripts playwright@1.64.1
+        build-work/php/node_modules/.bin/playwright install --with-deps --only-shell chromium firefox
+    - name: Validate the shipped static package in Chromium and Firefox
+      shell: bash
+      run: node tests/browser/site-package.mjs
+    - name: Validate language services, code and SQL editors, native APIs and accessibility
+      shell: bash
+      run: |
+        node tests/browser/editor-services.mjs
+        node tests/browser/editor-workbench.mjs
+        node tests/browser/mysqli-complete.mjs
+        node tests/browser/editor-accessibility.mjs

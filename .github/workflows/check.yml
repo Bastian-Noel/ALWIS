@@ -1,23 +1,34 @@
-name: Verify preparation
+name: CI - validated studio
 on:
   push:
+    branches: [main]
+    paths-ignore:
+      - '**/*.md'
   pull_request:
+    paths-ignore:
+      - '**/*.md'
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: studio-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
-  foundation:
-    runs-on: ubuntu-latest
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: ./.github/actions/validated-studio
+      - name: Retain validation receipts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          node-version: '24'
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - run: npm test
-      - name: Verify native declarations
-        run: cc -std=c11 -Wall -Wextra -Werror -fsyntax-only -x c packages/sql-native/include/pbl_sql.h
-      - name: Check Python syntax
-        run: python3 -m compileall -q scripts
+          name: studio-validation-${{ github.sha }}
+          retention-days: 7
+          if-no-files-found: ignore
+          path: |
+            build-work/site-smoke.json
+            apps/studio/receipts/editor/*.json
+            apps/studio/receipts/editor/*.png
+            engine/fusion/receipts/mysqli-complete/*.json
