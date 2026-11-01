@@ -1,5 +1,7 @@
 # Accélération CI : artefacts et caches (31 octobre 2026)
 
+> Document historique des témoins amont. Les recettes décrites sont désormais archivées dans `.github/workflow-templates/`. Les workflows actifs et leur rétention sont décrits dans [CI et releases](RELEASES.md). Les anciens caches amont ont été supprimés ; ils restent reconstructibles.
+
 ## Réutiliser des builds existants (priorité absolue)
 
 Le workflow `baseline-measurements.yml` récupère un artefact PHP compilé, par exemple le run natif **41204266390** (3 jobs verts, 30 min 45 s). Les changements du benchmark ne relancent **pas** la compilation native. Le déclenchement `push` lit le plus récent `Native upstream baseline` **réussi** sur `main` ; `workflow_dispatch` accepte un `run_id` explicite. Les mesures restent attribuées au SHA du harness et à l'identifiant du build.

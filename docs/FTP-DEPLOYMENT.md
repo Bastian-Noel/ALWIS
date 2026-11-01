@@ -26,3 +26,7 @@ Le site statique validé est conservé quatorze jours dans l'artefact `studio-st
 Un bloc Apache `.htaccess` géré est ajouté en conservant les règles existantes : MIME WASM, COOP same-origin, COEP require-corp et index.html. Nginx ignore `.htaccess` et doit fournir ces en-têtes dans sa configuration serveur. L'outil PHP d'export SQL est distribué comme **sql-export.source.txt** ; un hébergeur disposant de PHP ne doit jamais l'exécuter côté serveur.
 
 Le FTP doit accepter les connexions passives et les renommages. Le protocole demandé est FTP sur le port 21 ; l'authentification n'est pas assimilée à du FTPS. Depuis l'environnement cloud de préparation, le port direct était refusé et le proxy expirait sans bannière ; le runner GitHub effectue donc son propre test réel.
+
+## Versionner le paquet publié
+
+Les champs manuels `operation`, `version` et `validated_run` permettent de publier une version nommée à partir du paquet exact dont le transfert FTP a réussi. `publish` réalise le build et l’envoi ; `release` reprend un envoi antérieur sans refaire le transfert. Voir les [règles et limites de création des tags](RELEASES.md).
