@@ -1,6 +1,20 @@
 name: Publish FTP - validated studio
 on:
   workflow_dispatch:
+    inputs:
+      operation:
+        description: Publier sur FTP ou versionner un précédent envoi réussi
+        type: choice
+        options: [publish, release]
+        default: publish
+      version:
+        description: Version optionnelle, par exemple v0.1.0
+        type: string
+        required: false
+      validated_run:
+        description: ID de publication FTP réussie (pour operation release)
+        type: string
+        required: false
 permissions:
   contents: read
 concurrency:
@@ -8,6 +22,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   publish:
+    if: inputs.operation != 'release'
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
@@ -38,3 +53,22 @@ jobs:
           include-hidden-files: true
           if-no-files-found: ignore
           path: ${{ runner.temp }}/ftp-previous-site/
+  release:
+    needs: [publish]
+    if: always() && !cancelled() && inputs.version != '' && (needs.publish.result == 'success' || inputs.operation == 'release')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Publish only a validated FTP version
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ inputs.version }}
+          VALIDATED_RUN: ${{ inputs.operation == 'release' && inputs.validated_run || github.run_id }}
+        run: python3 scripts/release-validated-site.py
