@@ -10,7 +10,7 @@
       "sqlConnections": 0,
       "linearMemoryBytes": 268435456,
       "allocatorUsedBytes": 3176,
-      "allocatorFreeBytes": 3144,
+      "allocatorFreeBytes": 4680,
       "vfs": {
         "groups": {
           "project": {
@@ -73,7 +73,7 @@
       "sqlConnections": 0,
       "linearMemoryBytes": 268435456,
       "allocatorUsedBytes": 3344,
-      "allocatorFreeBytes": 1706912,
+      "allocatorFreeBytes": 1704352,
       "vfs": {
         "groups": {
           "project": {
@@ -126,7 +126,7 @@
       "sqlConnections": 0,
       "linearMemoryBytes": 268435456,
       "allocatorUsedBytes": 3344,
-      "allocatorFreeBytes": 1706912,
+      "allocatorFreeBytes": 1704352,
       "vfs": {
         "groups": {
           "project": {
@@ -187,7 +187,7 @@
       "sqlConnections": 0,
       "linearMemoryBytes": 268435456,
       "allocatorUsedBytes": 3344,
-      "allocatorFreeBytes": 1706912,
+      "allocatorFreeBytes": 1802656,
       "vfs": {
         "groups": {
           "project": {
@@ -240,7 +240,7 @@
         "X-Powered-By: PHP/8.4.27",
         "Content-type: text/html; charset=UTF-8"
       ],
-      "body": "[[\"POST\",\"custom\",\"native-body\"],[\"HTTP\\/1.1 202 Accepted\",\"cache-control: no-store\",\"connection: keep-alive\",\"content-type: application\\/json\",\"cross-origin-embedder-policy: require-corp\",\"cross-origin-opener-policy: same-origin\",\"date: Sun, 01 Nov 2026 09:54:29 GMT\",\"keep-alive: timeout=5\",\"transfer-encoding: chunked\",\"x-native-reply: present\"]]",
+      "body": "[[\"POST\",\"custom\",\"native-body\"],[\"HTTP\\/1.1 202 Accepted\",\"cache-control: no-store\",\"connection: keep-alive\",\"content-type: application\\/json\",\"cross-origin-embedder-policy: require-corp\",\"cross-origin-opener-policy: same-origin\",\"date: Sun, 01 Nov 2026 10:11:29 GMT\",\"keep-alive: timeout=5\",\"transfer-encoding: chunked\",\"x-native-reply: present\"]]",
       "stderr": "",
       "exitCode": 0,
       "sqlStarted": false,
@@ -248,7 +248,7 @@
       "sqlConnections": 0,
       "linearMemoryBytes": 268435456,
       "allocatorUsedBytes": 3344,
-      "allocatorFreeBytes": 1706912,
+      "allocatorFreeBytes": 1802656,
       "vfs": {
         "groups": {
           "project": {
@@ -308,8 +308,8 @@
       "sqlPhase": "running",
       "sqlConnections": 0,
       "linearMemoryBytes": 268435456,
-      "allocatorUsedBytes": 75397520,
-      "allocatorFreeBytes": 3247904,
+      "allocatorUsedBytes": 79609280,
+      "allocatorFreeBytes": 2748656,
       "vfs": {
         "groups": {
           "project": {
@@ -337,8 +337,8 @@
             "maxNodes": 4096
           },
           "system": {
-            "bytes": 2773736,
-            "reserved": 2773736,
+            "bytes": 2773732,
+            "reserved": 2773732,
             "nodes": 112,
             "maxBytes": 16777216,
             "maxFileBytes": 16777216,
@@ -369,8 +369,8 @@
       "sqlPhase": "running",
       "sqlConnections": 0,
       "linearMemoryBytes": 268435456,
-      "allocatorUsedBytes": 75397520,
-      "allocatorFreeBytes": 3247904,
+      "allocatorUsedBytes": 79609280,
+      "allocatorFreeBytes": 2748656,
       "vfs": {
         "groups": {
           "project": {
@@ -398,8 +398,8 @@
             "maxNodes": 4096
           },
           "system": {
-            "bytes": 2773736,
-            "reserved": 2773736,
+            "bytes": 2773732,
+            "reserved": 2773732,
             "nodes": 112,
             "maxBytes": 16777216,
             "maxFileBytes": 16777216,
@@ -430,8 +430,8 @@
       "sqlPhase": "running",
       "sqlConnections": 0,
       "linearMemoryBytes": 268435456,
-      "allocatorUsedBytes": 177599712,
-      "allocatorFreeBytes": 1954768,
+      "allocatorUsedBytes": 181799344,
+      "allocatorFreeBytes": 1946880,
       "vfs": {
         "groups": {
           "project": {
@@ -459,8 +459,8 @@
             "maxNodes": 4096
           },
           "system": {
-            "bytes": 2773736,
-            "reserved": 2773736,
+            "bytes": 2773732,
+            "reserved": 2773732,
             "nodes": 112,
             "maxBytes": 16777216,
             "maxFileBytes": 16777216,
@@ -500,8 +500,8 @@
       "sqlPhase": "running",
       "sqlConnections": 1,
       "linearMemoryBytes": 268435456,
-      "allocatorUsedBytes": 194761224,
-      "allocatorFreeBytes": 11593384,
+      "allocatorUsedBytes": 198975264,
+      "allocatorFreeBytes": 11566992,
       "vfs": {
         "groups": {
           "project": {
@@ -529,8 +529,8 @@
             "maxNodes": 4096
           },
           "system": {
-            "bytes": 13390568,
-            "reserved": 13390568,
+            "bytes": 13390564,
+            "reserved": 13390564,
             "nodes": 114,
             "maxBytes": 16777216,
             "maxFileBytes": 16777216,
@@ -561,8 +561,8 @@
       "sqlPhase": "running",
       "sqlConnections": 0,
       "linearMemoryBytes": 268435456,
-      "allocatorUsedBytes": 75345504,
-      "allocatorFreeBytes": 3299920,
+      "allocatorUsedBytes": 79557280,
+      "allocatorFreeBytes": 2800656,
       "vfs": {
         "groups": {
           "project": {
@@ -590,8 +590,8 @@
             "maxNodes": 4096
           },
           "system": {
-            "bytes": 2773736,
-            "reserved": 2773736,
+            "bytes": 2773732,
+            "reserved": 2773732,
             "nodes": 112,
             "maxBytes": 16777216,
             "maxFileBytes": 16777216,
@@ -644,8 +644,8 @@
       "sqlPhase": "running",
       "sqlConnections": 0,
       "linearMemoryBytes": 268435456,
-      "allocatorUsedBytes": 75397856,
-      "allocatorFreeBytes": 3247568,
+      "allocatorUsedBytes": 79609280,
+      "allocatorFreeBytes": 2748656,
       "vfs": {
         "groups": {
           "project": {
@@ -673,8 +673,8 @@
             "maxNodes": 4096
           },
           "system": {
-            "bytes": 2773736,
-            "reserved": 2773736,
+            "bytes": 2773732,
+            "reserved": 2773732,
             "nodes": 112,
             "maxBytes": 16777216,
             "maxFileBytes": 16777216,
@@ -765,8 +765,8 @@
       "sqlPhase": "stopped",
       "sqlConnections": 0,
       "linearMemoryBytes": 268435456,
-      "allocatorUsedBytes": 119199152,
-      "allocatorFreeBytes": 87155456,
+      "allocatorUsedBytes": 119199192,
+      "allocatorFreeBytes": 91343064,
       "vfs": {
         "groups": {
           "project": {
@@ -794,8 +794,8 @@
             "maxNodes": 4096
           },
           "system": {
-            "bytes": 13390568,
-            "reserved": 13390568,
+            "bytes": 13390564,
+            "reserved": 13390564,
             "nodes": 114,
             "maxBytes": 16777216,
             "maxFileBytes": 16777216,
@@ -818,8 +818,8 @@
       "sqlPhase": "running",
       "sqlConnections": 0,
       "linearMemoryBytes": 268435456,
-      "allocatorUsedBytes": 194697280,
-      "allocatorFreeBytes": 11657328,
+      "allocatorUsedBytes": 198911352,
+      "allocatorFreeBytes": 11630904,
       "vfs": {
         "groups": {
           "project": {
@@ -847,8 +847,8 @@
             "maxNodes": 4096
           },
           "system": {
-            "bytes": 13390568,
-            "reserved": 13390568,
+            "bytes": 13390564,
+            "reserved": 13390564,
             "nodes": 114,
             "maxBytes": 16777216,
             "maxFileBytes": 16777216,
@@ -871,8 +871,8 @@
       "sqlPhase": "stopped",
       "sqlConnections": 0,
       "linearMemoryBytes": 268435456,
-      "allocatorUsedBytes": 144473160,
-      "allocatorFreeBytes": 61881448,
+      "allocatorUsedBytes": 144473192,
+      "allocatorFreeBytes": 66069064,
       "vfs": {
         "groups": {
           "project": {
@@ -900,8 +900,8 @@
             "maxNodes": 4096
           },
           "system": {
-            "bytes": 13390568,
-            "reserved": 13390568,
+            "bytes": 13390564,
+            "reserved": 13390564,
             "nodes": 114,
             "maxBytes": 16777216,
             "maxFileBytes": 16777216,
@@ -928,7 +928,7 @@
       "sqlConnections": 0,
       "linearMemoryBytes": 268435456,
       "allocatorUsedBytes": 3176,
-      "allocatorFreeBytes": 3144,
+      "allocatorFreeBytes": 4680,
       "vfs": {
         "groups": {
           "project": {
@@ -981,7 +981,7 @@
       "sqlConnections": 0,
       "linearMemoryBytes": 268435456,
       "allocatorUsedBytes": 3344,
-      "allocatorFreeBytes": 8006560,
+      "allocatorFreeBytes": 8004000,
       "vfs": {
         "groups": {
           "project": {
@@ -1034,7 +1034,7 @@
       "sqlConnections": 0,
       "linearMemoryBytes": 268435456,
       "allocatorUsedBytes": 3344,
-      "allocatorFreeBytes": 8006560,
+      "allocatorFreeBytes": 8004000,
       "vfs": {
         "groups": {
           "project": {
@@ -1087,7 +1087,7 @@
       "sqlConnections": 0,
       "linearMemoryBytes": 268435456,
       "allocatorUsedBytes": 3344,
-      "allocatorFreeBytes": 8006560,
+      "allocatorFreeBytes": 8004000,
       "vfs": {
         "groups": {
           "project": {
@@ -1149,7 +1149,7 @@
   },
   "persistence": {
     "passed": true,
-    "projectKey": "test-e9979a0f-b11a-499e-bca5-fbb8e5178100",
+    "projectKey": "test-496c12fb-450c-4255-b807-db85c81f06fd",
     "output": "saved-native-project",
     "sql": {
       "columns": [

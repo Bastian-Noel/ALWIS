@@ -21,13 +21,13 @@ Le backend est celui d'Emscripten **6.0.6**. Les contrôles renvoient les erreur
 
 Le harness natif exerce réellement dans les deux navigateurs : écritures PHP directes, append, ftruncate, fichier ouvert supprimé, réutilisation du quota, renommage, refus sans fuite d'un fichier temporaire atomique, nœuds et descripteurs, quota temporaire et SQL INTO OUTFILE hors projet. Il vérifie ensuite les autres requêtes et la sauvegarde/restauration. Les cas de quotas sont abaissés dans un runtime distinct pour ne pas créer de centaines de Mio de données de test. Les écritures SQL en dehors du dossier projet sont aussi exercées sur le vrai serveur.
 
-Autres limites déjà appliquées : RPC en attente avant copie 8 Mio/64 appels ; file du Worker 8 Mio/32 tâches ; sortie HTTP PHP 8 Mio ; collecte de résultat SQL 16 Mio/10 000 lignes ; 32 connexions appelantes ; mémoire linéaire maximale 512 Mio. Le profil observé reste à 256 Mio de capacité dans les fixtures actuelles.
+Autres limites déjà appliquées : RPC en attente avant copie 8 Mio/64 appels ; file du Worker 8 Mio/32 tâches ; sortie HTTP PHP 8 Mio ; [HTTP sortant](../network-native/README.md) 8 Mio par corps de requête et 16 Mio par réponse pendant la lecture ; collecte de résultat SQL 16 Mio/10 000 lignes ; 32 connexions appelantes ; mémoire linéaire maximale 512 Mio. Le profil observé reste à 256 Mio de capacité dans les fixtures actuelles.
 
 ## À consolider
 
 - Erreurs de disque plein pendant agrandissement InnoDB, initialisation SQL incomplète et récupération après interruption.
 - Les nouveaux projets ont maintenant un snapshot atomique unique et les échecs de transaction sont exercés ; restent le mode historique à magasins séparés, la migration et les quotas réels du stockage navigateur. Voir `engine/fusion/STORAGE-RECOVERY-RECEIPT.md`.
-- Réponses HTTP sortantes : le wrapper XHR actuel reçoit encore le corps avant sa limite de copie ; remplacer ce comportement par une lecture avec limite pendant la réception.
+- Réponses HTTP sortantes : Fetch annule désormais les réponses dépassant le budget pendant la lecture ; restent les copies temporaires autorisées et les buffers réseau/décompression internes au navigateur, distincts des blocs conservés par l'application.
 - Longues sessions et mesures continues des pics, en séparant allocateur C, VFS, JS/JIT et PSS navigateur.
 
 Les limites de copie et quotas renforcent les bornes ; elles ne prouvent pas une limite globale de 300 Mio de RAM. Les données persistées par une ancienne version peuvent aussi être chargées par IndexedDB avant qu'un quota plus petit refuse leur restauration ; les magasins existants ne sont pas supprimés automatiquement.

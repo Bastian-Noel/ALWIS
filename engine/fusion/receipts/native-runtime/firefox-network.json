@@ -1,0 +1,301 @@
+{
+  "passed": true,
+  "cases": [
+    {
+      "label": "binary body at exact 16 MiB limit",
+      "ok": true,
+      "length": 16777216,
+      "hash": "0e7606694ef6d61c30551ec13797b0090d3a88f0465f9a949146515acd4fb7b4",
+      "warnings": [],
+      "headers": [
+        "HTTP/1.1 200 OK",
+        "cache-control: no-store",
+        "connection: keep-alive",
+        "content-type: application/octet-stream",
+        "cross-origin-embedder-policy: require-corp",
+        "cross-origin-opener-policy: same-origin",
+        "date: Sun, 01 Nov 2026 10:10:48 GMT",
+        "keep-alive: timeout=5",
+        "transfer-encoding: chunked"
+      ]
+    },
+    {
+      "label": "chunked body cancellation",
+      "ok": false,
+      "length": null,
+      "hash": null,
+      "warnings": [
+        "file_get_contents(http://127.0.0.1:34989/stream?size=67108864&amp;kind=chunked&amp;browser=firefox): Failed to open stream: Browser HTTP: HTTP response exceeds byte limit"
+      ],
+      "headers": [
+        "HTTP/1.1 200 OK",
+        "cache-control: no-store",
+        "connection: keep-alive",
+        "content-type: application/octet-stream",
+        "cross-origin-embedder-policy: require-corp",
+        "cross-origin-opener-policy: same-origin",
+        "date: Sun, 01 Nov 2026 10:10:49 GMT",
+        "keep-alive: timeout=5",
+        "transfer-encoding: chunked"
+      ]
+    },
+    {
+      "label": "oversized Content-Length refused",
+      "ok": false,
+      "length": null,
+      "hash": null,
+      "warnings": [
+        "file_get_contents(http://127.0.0.1:34989/stream?size=67108864&amp;kind=declared&amp;browser=firefox): Failed to open stream: Browser HTTP: HTTP response exceeds byte limit"
+      ],
+      "headers": [
+        "HTTP/1.1 200 OK",
+        "cache-control: no-store",
+        "connection: keep-alive",
+        "content-length: 67108864",
+        "content-type: application/octet-stream",
+        "cross-origin-embedder-policy: require-corp",
+        "cross-origin-opener-policy: same-origin",
+        "date: Sun, 01 Nov 2026 10:10:49 GMT",
+        "keep-alive: timeout=5"
+      ]
+    },
+    {
+      "label": "gzip decoded body limit",
+      "ok": false,
+      "length": null,
+      "hash": null,
+      "warnings": [
+        "file_get_contents(http://127.0.0.1:34989/gzip): Failed to open stream: Browser HTTP: HTTP response exceeds byte limit"
+      ],
+      "headers": [
+        "HTTP/1.1 200 OK",
+        "cache-control: no-store",
+        "connection: keep-alive",
+        "content-encoding: gzip",
+        "content-length: 17359",
+        "cross-origin-embedder-policy: require-corp",
+        "cross-origin-opener-policy: same-origin",
+        "date: Sun, 01 Nov 2026 10:10:49 GMT",
+        "keep-alive: timeout=5"
+      ]
+    },
+    {
+      "label": "timeout before headers",
+      "ok": false,
+      "length": null,
+      "hash": null,
+      "warnings": [
+        "file_get_contents(http://127.0.0.1:34989/slow): Failed to open stream: Browser HTTP: HTTP request timed out"
+      ],
+      "headers": []
+    },
+    {
+      "label": "timeout during body",
+      "ok": false,
+      "length": null,
+      "hash": null,
+      "warnings": [
+        "file_get_contents(http://127.0.0.1:34989/slow?body=1): Failed to open stream: Browser HTTP: HTTP request timed out"
+      ],
+      "headers": [
+        "HTTP/1.1 200 OK",
+        "cache-control: no-store",
+        "connection: keep-alive",
+        "cross-origin-embedder-policy: require-corp",
+        "cross-origin-opener-policy: same-origin",
+        "date: Sun, 01 Nov 2026 10:10:49 GMT",
+        "keep-alive: timeout=5",
+        "transfer-encoding: chunked"
+      ]
+    },
+    {
+      "label": "request body bound",
+      "ok": false,
+      "length": null,
+      "hash": null,
+      "warnings": [
+        "file_get_contents(http://127.0.0.1:34989/small): Failed to open stream: HTTP request exceeds byte limit"
+      ],
+      "headers": []
+    },
+    {
+      "label": "HTTP error without ignore_errors",
+      "ok": false,
+      "length": null,
+      "hash": null,
+      "warnings": [
+        "file_get_contents(http://127.0.0.1:34989/status): Failed to open stream: Browser HTTP status 418 (network and CORS failures may have status 0)"
+      ],
+      "headers": [
+        "HTTP/1.1 418 I'm a Teapot",
+        "cache-control: no-store",
+        "connection: keep-alive",
+        "cross-origin-embedder-policy: require-corp",
+        "cross-origin-opener-policy: same-origin",
+        "date: Sun, 01 Nov 2026 10:10:49 GMT",
+        "keep-alive: timeout=5",
+        "transfer-encoding: chunked"
+      ]
+    },
+    {
+      "label": "HTTP error with ignore_errors",
+      "ok": true,
+      "length": 6,
+      "hash": "33f38545e00a507fba8be0243f5d19ee24dac952e6664422f91c32df2c63ff0b",
+      "warnings": [],
+      "headers": [
+        "HTTP/1.1 418 I'm a Teapot",
+        "cache-control: no-store",
+        "connection: keep-alive",
+        "cross-origin-embedder-policy: require-corp",
+        "cross-origin-opener-policy: same-origin",
+        "date: Sun, 01 Nov 2026 10:10:49 GMT",
+        "keep-alive: timeout=5",
+        "transfer-encoding: chunked"
+      ]
+    },
+    {
+      "label": "204 empty body",
+      "ok": true,
+      "length": 0,
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "warnings": [],
+      "headers": [
+        "HTTP/1.1 204 No Content",
+        "cache-control: no-store",
+        "connection: keep-alive",
+        "cross-origin-embedder-policy: require-corp",
+        "cross-origin-opener-policy: same-origin",
+        "date: Sun, 01 Nov 2026 10:10:50 GMT",
+        "keep-alive: timeout=5"
+      ]
+    },
+    {
+      "label": "HEAD with large representation",
+      "ok": true,
+      "length": 0,
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "warnings": [],
+      "headers": [
+        "HTTP/1.1 200 OK",
+        "cache-control: no-store",
+        "connection: keep-alive",
+        "content-length: 67108864",
+        "content-type: application/octet-stream",
+        "cross-origin-embedder-policy: require-corp",
+        "cross-origin-opener-policy: same-origin",
+        "date: Sun, 01 Nov 2026 10:10:50 GMT",
+        "keep-alive: timeout=5"
+      ]
+    },
+    {
+      "label": "redirect and recovery",
+      "ok": true,
+      "length": 10,
+      "hash": "4a8938e7517810dc4a80459e4539fbde7043001c7aded97379cc66662f9414b6",
+      "warnings": [],
+      "headers": [
+        "HTTP/1.1 200 OK",
+        "cache-control: no-store",
+        "connection: keep-alive",
+        "content-length: 10",
+        "cross-origin-embedder-policy: require-corp",
+        "cross-origin-opener-policy: same-origin",
+        "date: Sun, 01 Nov 2026 10:10:50 GMT",
+        "keep-alive: timeout=5",
+        "x-native-reply: present"
+      ]
+    },
+    {
+      "label": "PHP HTTP after SQL activation",
+      "ok": true,
+      "length": 10,
+      "hash": "4a8938e7517810dc4a80459e4539fbde7043001c7aded97379cc66662f9414b6",
+      "warnings": [],
+      "headers": [
+        "HTTP/1.1 200 OK",
+        "cache-control: no-store",
+        "connection: keep-alive",
+        "content-length: 10",
+        "cross-origin-embedder-policy: require-corp",
+        "cross-origin-opener-policy: same-origin",
+        "date: Sun, 01 Nov 2026 10:10:52 GMT",
+        "keep-alive: timeout=5",
+        "x-native-reply: present"
+      ]
+    }
+  ],
+  "state": {
+    "sqlStarted": true,
+    "sqlPhase": "running",
+    "sqlConnections": 1,
+    "linearMemoryBytes": 268435456,
+    "allocatorUsedBytes": 78263424,
+    "allocatorFreeBytes": 1841712,
+    "vfs": {
+      "groups": {
+        "project": {
+          "bytes": 706,
+          "reserved": 706,
+          "nodes": 3,
+          "maxBytes": 67108864,
+          "maxFileBytes": 16777216,
+          "maxNodes": 2048
+        },
+        "temp": {
+          "bytes": 0,
+          "reserved": 0,
+          "nodes": 5,
+          "maxBytes": 16777216,
+          "maxFileBytes": 16777216,
+          "maxNodes": 256
+        },
+        "sql": {
+          "bytes": 65915505,
+          "reserved": 65979349,
+          "nodes": 101,
+          "maxBytes": 134217728,
+          "maxFileBytes": 67108864,
+          "maxNodes": 4096
+        },
+        "system": {
+          "bytes": 2773736,
+          "reserved": 2773736,
+          "nodes": 112,
+          "maxBytes": 16777216,
+          "maxFileBytes": 16777216,
+          "maxNodes": 2048
+        }
+      },
+      "openFiles": 33,
+      "maxOpenFiles": 512
+    },
+    "hardwareConcurrency": 5,
+    "storageLayout": "volatile",
+    "queue": {
+      "pending": 0,
+      "running": true,
+      "bytes": 0
+    }
+  },
+  "transfers": [
+    {
+      "browser": "firefox",
+      "kind": "chunked",
+      "sent": 16777216,
+      "finished": true
+    },
+    {
+      "browser": "firefox",
+      "kind": "chunked",
+      "sent": 16842752,
+      "finished": false
+    },
+    {
+      "browser": "firefox",
+      "kind": "declared",
+      "sent": 65536,
+      "finished": false
+    }
+  ]
+}

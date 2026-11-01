@@ -25,7 +25,7 @@
     },
     {
       "path": "engine/fusion/spike/runtime-target.cmake",
-      "sha256": "8eda90f2c04320348ed68006d9a0cce600eed1121fed15b4ea0d9455c5d4cae4"
+      "sha256": "c12670d04e36c32ee890b3a27fd1aed5c27df811e98e399fe200aaa1ed531996"
     },
     {
       "path": "engine/fusion/spike/select-one.c",
@@ -49,11 +49,11 @@
     },
     {
       "path": "packages/network-native/src/http-stream.c",
-      "sha256": "fbafc2ec99daa423b71bdf41404d292c49ebb67185e9602af46222e3e42016c0"
+      "sha256": "e58002576c791a6ed8d576dd2233d6d608835c961fecd50de419b9827b26f962"
     },
     {
       "path": "packages/php-native/README.md",
-      "sha256": "9e9cc85b9ec40ad79ecb83cc774c8ab48dd6cf5de986b3efe7c6ae7f60aee710"
+      "sha256": "d96fcd1ccc9ea123638dfa9705d64c7a9f5168cc01d289ec86f1ca44567eaafc"
     },
     {
       "path": "packages/php-native/src/module.c",
@@ -142,18 +142,30 @@
     {
       "path": "scripts/inspect-wasm-abi.mjs",
       "sha256": "2dc2af9ec318f7fc281ddae995d6acb482063a738305ca7ddcfb5c9d0be6b2fc"
+    },
+    {
+      "path": "tests/browser/network-native.mjs",
+      "sha256": "656181b024bf08827bff139369c178b0209cdc386e81904b273e34463c9826e3"
+    },
+    {
+      "path": "packages/network-native/README.md",
+      "sha256": "aecaac2ae66a879281536017ec1168442f771b087765c9164264e0d7f57b1d63"
+    },
+    {
+      "path": "docs/CYCLE-MOTEUR.md",
+      "sha256": "2b0037b63aca92bd404084c0b719943d63693a06c6aaf98e5202215d0cd260d1"
     }
   ],
   "artifacts": [
     {
       "path": "build-work/bridge/.native-build/engine/wasm/runtime-dist/pbl-runtime.mjs",
-      "sha256": "6cf77aa32c3fc1ff517a9cc286f813e8626b8f6ed620ae674f06b7b7941dcf85",
-      "bytes": 483725
+      "sha256": "9511183042c6095125f622500175425d19b7954551141fbcedade576566e4d0c",
+      "bytes": 465075
     },
     {
       "path": "build-work/bridge/.native-build/engine/wasm/runtime-dist/pbl-runtime.wasm",
-      "sha256": "85c2433390c3f6d87e86903700741012b490dec80c0c136fb1970709f6955e8d",
-      "bytes": 33289652
+      "sha256": "f57fd404fa071e8d8b8375b65f45a108bd16e589202d1809fce19d43919f18f9",
+      "bytes": 33286908
     }
   ],
   "nativeLibraries": [
@@ -173,6 +185,9 @@
     "initialLinearMemoryBytes": 268435456,
     "pthreadDefaultStackBytes": 2097152,
     "embeddedResultBlocksBytes": 16777216,
-    "resultRows": 10000
+    "resultRows": 10000,
+    "outgoingHttpRequestBytes": 8388608,
+    "outgoingHttpResponseBytes": 16777216,
+    "outgoingHttpBlockBytes": 65536
   }
 }

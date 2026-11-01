@@ -5,7 +5,7 @@ Le target `pbl-runtime` rassemble maintenant PHP, MariaDB, PDO adapté, MySQLi n
 ## Fonctionnement exécuté
 
 - PHP seul sert une requête CGI GET/POST avec status 201 et en-tête, lit un fichier écrit/renommé par le gestionnaire POSIX C et ne démarre pas MariaDB.
-- `file_get_contents()` ouvre un vrai stream HTTP via Emscripten fetch dans le Worker et retrouve la réponse du serveur de test. Un second parcours POST vérifie le corps, un en-tête personnalisé, le status 202 et `$http_response_header`. CORS et règles du navigateur restent applicables.
+- `file_get_contents()` ouvre un vrai stream HTTP via Fetch/Asyncify dans le Worker et retrouve la réponse du serveur de test. Un second parcours POST vérifie le corps, un en-tête personnalisé, le status 202 et `$http_response_header`. CORS et règles du navigateur restent applicables.
 - PDO et MySQLi utilisent le même registre de connexions C et la même MariaDB embarquée ; aucun appel SQL n'utilise le pont JavaScript JSON/base64.
 - Les deux fixtures `fixtures/school/{pdo,mysqli}.php` sont exécutées **sans modification** : transactions, valeurs liées, référence modifiée avant execute, NULL, Unicode, DECIMAL, BIGINT exact et BLOB avec NUL/FF.
 - La surface MySQLi objet est également exécutée : prepare/bind_param/execute/get_result/fetch_assoc/close, puis bind_result/store_result/fetch, types natifs, fetch_all/fetch_array/data_seek et accès refusé après libération du résultat.
@@ -34,3 +34,11 @@ Le défaut de démarrage CGI a été résolu en conservant l'attribution du modu
 Le parcours de conformité `fixtures/compatibility/native-coverage.php` approfondit PDO préparé émulé/natif, fetch/bind/metadata et les refus de résultat, ainsi que les nouveaux appels MySQLi. La [matrice de compatibilité](../../packages/php-native/COMPATIBILITY.md) distingue enregistrement et preuve. La limite maximale du module est maintenant 512 Mio, avec piles pthread de 2 Mio et petit profil de caches.
 
 Le [jalon de récupération du 1 novembre](STORAGE-RECOVERY-RECEIPT.md) remplace la limite initiale « nouveau Worker seulement » : snapshots atomiques pour les nouveaux projets, échec/retry de transaction et redémarrage/SIGKILL du navigateur sont exécutés. Le redémarrage SQL dans un même WASM est explicitement refusé après un abort reproduit ; la sauvegarde du studio recrée l’instance.
+
+## Réception HTTP bornée — 1 novembre
+
+Le wrapper XHR synchrone, qui recevait tout le corps avant de contrôler sa taille, est remplacé par Fetch avec lecture incrémentale, blocs possédés de 64 Kio et annulation au dépassement de 16 Mio. Asyncify conserve l'appel PHP synchrone habituel. Voir [le contrat réseau](../../packages/network-native/README.md) pour les copies temporaires et les buffers internes du navigateur.
+
+`tests/browser/network-native.mjs` passe sur Chromium et Firefox : 13 scénarios, dont un corps binaire exact de 16 Mio, un producteur chunked de 64 Mio effectivement interrompu après respectivement 16 908 288 et 16 842 752 octets envoyés, un Content-Length excessif arrêté après 131 072/65 536 octets, une réponse gzip décompressée de 17 Mio refusée, timeout avant les en-têtes et pendant le corps, HEAD et erreurs HTTP. Après ces refus, une connexion SQL et une nouvelle lecture HTTP PHP réussissent. Les octets envoyés incluent le surplus en transit ; les blocs acceptés par l'application restent bornés à 16 Mio. Ces observations ne mesurent pas la RAM totale du navigateur.
+
+Le parcours natif général a ensuite repassé sur les deux navigateurs avec le même nouveau binaire : POST/contexte HTTP, PDO, MySQLi, quotas VFS, snapshots atomiques et restauration historique. Reçus `chromium-network.json`, `firefox-network.json` et reçus généraux actualisés dans `receipts/native-runtime/`. Les tests de redémarrage complet du navigateur et du studio restent les preuves du jalon précédent ; ils n'ont pas été réexécutés pour ce changement réseau.
