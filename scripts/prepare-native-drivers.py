@@ -26,6 +26,7 @@ write('mysql_driver.c',php_build/'ext/pdo_mysql/mysql_driver.c',[
  ('if (!(H->server = pdo_mysql_init(dbh->is_persistent))) {\n\t\tpdo_mysql_error(dbh);','if (!(H->server = pdo_mysql_init(dbh->is_persistent))) {\n\t\tstrcpy(dbh->error_code, "HY000");\n\t\tzend_throw_exception(php_pdo_get_exception(), pbl_mysql_last_error(), 0);'),
 ])
 write('mysql_statement.c',php_build/'ext/pdo_mysql/mysql_statement.c',[
+ ('#include "php.h"','#include "php.h"\n#include "pdo-adapter.h"'),
  ('#if MYSQL_VERSION_ID >= 50708 || defined(PDO_USE_MYSQLND)', '#if (MYSQL_VERSION_ID >= 50708 && !defined(MARIADB_BASE_VERSION)) || defined(PDO_USE_MYSQLND)'),
 ])
 for filename in ['pdo_mysql.c','mysql_sql_parser.c','php_pdo_mysql.h','pdo_mysql_arginfo.h']:

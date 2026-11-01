@@ -25,7 +25,7 @@
     },
     {
       "path": "engine/fusion/spike/runtime-target.cmake",
-      "sha256": "c12670d04e36c32ee890b3a27fd1aed5c27df811e98e399fe200aaa1ed531996"
+      "sha256": "610dd14002ebc249a1dd6195f10837dd0799dfff82612aa7d92c9c96783142ed"
     },
     {
       "path": "engine/fusion/spike/select-one.c",
@@ -37,7 +37,7 @@
     },
     {
       "path": "engine/fusion/spike/test-native-runtime.mjs",
-      "sha256": "24ceff5bc1369e4f5518dccc17f3eb6ee6fe1ef8b45bc869c90612f66c7fe12d"
+      "sha256": "01ea8af2df673a1315bcdb2469500de6ac92b487fc8903c5180eb3518761c46d"
     },
     {
       "path": "engine/fusion/spike/worker.mjs",
@@ -61,11 +61,11 @@
     },
     {
       "path": "packages/php-native/src/mysqli.c",
-      "sha256": "afbba3e0ff3840bc4f554a8de4b38f11a03c814c339e0e66364bde162bba20c3"
+      "sha256": "1c5ff6b3358d60d5de54b44a780f977b77bd0b48c9f7610f4d631b00305296ad"
     },
     {
       "path": "packages/php-native/src/pdo-adapter.h",
-      "sha256": "d5f6d0c810a2dee44eaf87c15e998b3700de28d9727183e87422aa411fedc9ee"
+      "sha256": "3375b4c986acf84c531e6e27cfcdb59b0d637b25aa4e20cae217f6bbce3d975c"
     },
     {
       "path": "packages/runtime/src/native-runtime.mjs",
@@ -73,7 +73,7 @@
     },
     {
       "path": "packages/runtime/src/native-worker.mjs",
-      "sha256": "ebcc983f2495ff8ecafd82f9f807633d5161e8e6561814aa92c6a7806d64b530"
+      "sha256": "96f09780289d76560b70dc466b1d20de498ec9342e27dca0df014f082417b92b"
     },
     {
       "path": "packages/runtime/src/request-queue.mjs",
@@ -89,7 +89,7 @@
     },
     {
       "path": "packages/sql-native/include/pbl_mysql.h",
-      "sha256": "a4f449d858382728cff8ecbadf2f24fe777919e4bc21de92757074f81d7cf1ec"
+      "sha256": "86322fc862290446545d972acaeabecb19e31083225f9f9d28097a788c2b42af"
     },
     {
       "path": "packages/sql-native/include/pbl_sql.h",
@@ -101,19 +101,19 @@
     },
     {
       "path": "packages/sql-native/src/pbl_mysql.c",
-      "sha256": "d3a10da26e03419a51b15c1a83112a1ea40aca16b6f446aaeaceac7ae45c57a7"
+      "sha256": "31859f3a5d80bf8788f5925b97d29e5c4bd1333510c4b0922069bf8e7040d891"
     },
     {
       "path": "scripts/prepare-native-drivers.py",
-      "sha256": "aed09c13bd29669a375bc1c2a19b85ba5f5b0a9614877d4270224416d0a1dd74"
+      "sha256": "db3ca208c3a85339cbe8e0b345bf1b7143c06e7c3fd34442af13c9883d67fc20"
     },
     {
       "path": "scripts/prepare-native-server.py",
-      "sha256": "7843e8a0cd43183a2bd538235f8347eb0d2eef6b168b5f77534c1c6086e5ab72"
+      "sha256": "fa6d3492aef29c2c9b9a544c8c74cb52f9284c101c6f8155891a5d168dfc35a3"
     },
     {
       "path": "scripts/prepare-native-result-budget.py",
-      "sha256": "c0da1fce13135dc17928f8688142766e983bf737a1e4a6c09bfe6b9e670979ba"
+      "sha256": "ceb3a2ae62b4363aecef9f7a6207430939d8121947027a4c88937a66d06d7726"
     },
     {
       "path": "fixtures/compatibility/native-coverage.php",
@@ -158,18 +158,22 @@
     {
       "path": "fixtures/compatibility/native-convenience.php",
       "sha256": "3764499776fdd88646e306763aa5f02cf739600f33e34881777ea754cb29ca93"
+    },
+    {
+      "path": "fixtures/compatibility/native-statement-budget.php",
+      "sha256": "920a75e869501f303fd3584ac7502175935c74e3cb9f0d1c9616b02e8c89fbc4"
     }
   ],
   "artifacts": [
     {
       "path": "build-work/bridge/.native-build/engine/wasm/runtime-dist/pbl-runtime.mjs",
-      "sha256": "9511183042c6095125f622500175425d19b7954551141fbcedade576566e4d0c",
-      "bytes": 465075
+      "sha256": "e1ec77cccd26af5e8ccdf6c326eb3aeb1743ae0d0b8af4e104bf7f6bb3b83050",
+      "bytes": 465907
     },
     {
       "path": "build-work/bridge/.native-build/engine/wasm/runtime-dist/pbl-runtime.wasm",
-      "sha256": "f4b1533fe37ef2b2c192d6df9d10e7928dc0eb5ddee51971ccbe10c997c213c7",
-      "bytes": 33297851
+      "sha256": "9aed35c8309b45511f8bacb9a96eb018a2ef4d937339792426d9d17134a7e76e",
+      "bytes": 33300405
     }
   ],
   "nativeLibraries": [
@@ -180,8 +184,8 @@
     },
     {
       "path": "build-work/bridge/.native-build/engine/wasm/libmysqld/libmariadbd.a",
-      "sha256": "e65db616b05a805729c4258fa123e54b3b2db6da01a5025b8e8fb4a7bcabb0de",
-      "bytes": 82049724
+      "sha256": "824de9498a750d12c3ead34abff4d4885957eab7cac5dd0b9f86e85c071bac16",
+      "bytes": 82049642
     }
   ],
   "limits": {
@@ -192,6 +196,9 @@
     "resultRows": 10000,
     "outgoingHttpRequestBytes": 8388608,
     "outgoingHttpResponseBytes": 16777216,
-    "outgoingHttpBlockBytes": 65536
+    "outgoingHttpBlockBytes": 65536,
+    "nativeStatements": 128,
+    "preparedSQLReservedBytes": 16777216,
+    "nativeQueryBytes": 8388608
   }
 }

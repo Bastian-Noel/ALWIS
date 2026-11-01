@@ -23,6 +23,14 @@ Le harness natif exerce réellement dans les deux navigateurs : écritures PHP d
 
 Autres limites déjà appliquées : RPC en attente avant copie 8 Mio/64 appels ; file du Worker 8 Mio/32 tâches ; sortie HTTP PHP 8 Mio ; [HTTP sortant](../network-native/README.md) 8 Mio par corps de requête et 16 Mio par réponse pendant la lecture ; collecte de résultat SQL 16 Mio/10 000 lignes ; 32 connexions appelantes ; mémoire linéaire maximale 512 Mio. Le profil observé reste à 256 Mio de capacité dans les fixtures actuelles.
 
+## Préparations et nettoyage des refus SQL
+
+PDO et MySQLi partagent maintenant un registre C de **128 handles natifs maximum** et **16 Mio de texte SQL réservé** pour leurs préparations, avec 8 Mio par requête avant appel au serveur. Le driver PDO externe utilise le même contrôle pour les requêtes directes/émulées ; les préparations émulées ne créent pas de handle natif. Le profil MariaDB fixe aussi `max_prepared_stmt_count=128`, exercé avec des commandes SQL PREPARE. Les limites du registre C sont distinctes de cette variable serveur.
+
+Une fermeture libère le slot et sa réservation ; une préparation réussie plus petite réduit la réservation. Après une repréparation native échouée, la réservation reste conservatrice jusqu'à une réussite ou fermeture, au lieu de déclarer libérée une allocation native partielle incertaine. `runtime.state().nativeStatements` et `preparedSQLReservedBytes` sont des compteurs de ce registre, pas une mesure de toute la mémoire SQL. Les requêtes et structures internes créées directement par SQL restent distinctes de ce registre ; les allocations de travail doivent encore être approfondies.
+
+La répétition des refus de résultats a révélé une fuite réelle : le client embarqué libérait seulement l'enveloppe d'un résultat en erreur, en conservant ses blocs MEM_ROOT. La copie générée libère désormais blocs et enveloppe. Sur les deux navigateurs, six refus successifs conservent un usage stable après échauffement : delta 0 pour la console, 0 à 16 octets pour PDO. Les fixtures conservent aussi un prochain appel réussi et vérifient le retour à zéro des compteurs de préparation en fin de requête PHP. Voir les [preuves mémoire](../../benchmarks/native/README.md) ; cela ne constitue pas un test sur plusieurs heures.
+
 ## À consolider
 
 - Erreurs de disque plein pendant agrandissement InnoDB, initialisation SQL incomplète et récupération après interruption.

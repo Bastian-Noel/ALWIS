@@ -13,6 +13,7 @@ changes={
     (char *)"--aria-pagecache-buffer-size=1M",
     (char *)"--key-buffer-size=1M",
     (char *)"--query-cache-size=0",
+    (char *)"--max-prepared-stmt-count=128",
     (char *)"--tmp-table-size=4M",
     (char *)"--max-heap-table-size=4M",
     (char *)"--sort-buffer-size=256K",

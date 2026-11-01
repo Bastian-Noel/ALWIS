@@ -46,3 +46,9 @@ Le parcours natif général a ensuite repassé sur les deux navigateurs avec le 
 ## MySQLi : hydratation et préparations — 1 novembre
 
 Le parcours natif général passe de nouveau sur les deux navigateurs avec `native-convenience.php`, qui ajoute objets de résultat, execute_query et initialisation/préparation séparées des statements. Le premier essai a détecté un contrôle de classe trop restrictif ; le suivant a détecté la remise à zéro des compteurs par la fermeture du statement temporaire dans le client natif. Les deux ont été corrigés en conservant les assertions. L'inventaire atteint 72/106 fonctions procédurales enregistrées ; la conformité complète reste ouverte. Voir la matrice PHP pour le périmètre exécuté.
+
+## Préparations bornées et nettoyage des résultats refusés
+
+PDO et MySQLi utilisent désormais le même registre C de statements : 128 handles et 16 Mio de texte SQL réservé, refus de SQL supérieur à 8 Mio avant appel natif, fermeture et réutilisation vérifiées. L'adaptateur PDO couvre ses deux unités driver/statement, y compris les requêtes émulées. Les compteurs sont exportés dans l'état du runtime et reviennent à zéro après la fin de requête. Le profil serveur borne aussi les commandes SQL PREPARE à 128.
+
+L'essai a aussi révélé une fuite de résultat partiel en erreur, corrigée dans la copie générée de lib_sql.cc. Les six refus console et six PDO successifs restent stables en allocations dans les deux navigateurs ; le parcours complet reste à 256 Mio de capacité. Voir les [mesures et le reçu d'échec préservé](../../benchmarks/native/README.md). La borne du texte préparé n'est pas une borne de toutes les allocations de travail du serveur.

@@ -1,7 +1,7 @@
 {
   "file": "/workspace/WASMWebServer/build-work/bridge/.native-build/engine/wasm/runtime-dist/pbl-runtime.wasm",
-  "sha256": "f4b1533fe37ef2b2c192d6df9d10e7928dc0eb5ddee51971ccbe10c997c213c7",
-  "bytes": 33297851,
+  "sha256": "9aed35c8309b45511f8bacb9a96eb018a2ef4d937339792426d9d17134a7e76e",
+  "bytes": 33300405,
   "memoryImports": [
     {
       "module": "env",
@@ -25,6 +25,8 @@
     "php_wasm_run",
     "pbl_heap_used",
     "pbl_heap_free",
+    "pbl_mysql_statement_count",
+    "pbl_mysql_statement_bytes",
     "pbl_mysql_phase",
     "pbl_mysql_started",
     "pbl_mysql_connection_count",

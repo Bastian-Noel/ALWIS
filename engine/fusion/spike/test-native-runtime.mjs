@@ -36,6 +36,7 @@ const fixtures = {};
 for (const name of ['schema.sql', 'pdo.php', 'mysqli.php']) fixtures[name] = await readFile(join(repo, 'fixtures/school', name), 'utf8');
 fixtures['coverage.php']=await readFile(join(repo,'fixtures/compatibility/native-coverage.php'),'utf8');
 fixtures['convenience.php']=await readFile(join(repo,'fixtures/compatibility/native-convenience.php'),'utf8');
+fixtures['statement-budget.php']=await readFile(join(repo,'fixtures/compatibility/native-statement-budget.php'),'utf8');
 await mkdir(join(dist, 'receipts'), { recursive: true });
 try {
   for (const browserName of (process.argv[2] ?? 'chromium,firefox').split(',')) {
@@ -136,6 +137,22 @@ $stmt->close(); $db->close(); echo 'metadata-array-ok';`);
           await runtime.write('/workspace/convenience.php',fixtures['convenience.php']);
           const convenience=await checked({script:'/workspace/convenience.php'});
           if(JSON.parse(convenience.body).ok!==true)throw Error('Native MySQLi convenience coverage failed');
+          await runtime.write('/workspace/statement-budget.php',fixtures['statement-budget.php']);
+          const statementBudget=await checked({script:'/workspace/statement-budget.php'});
+          const statementCleanup=await runtime.state();
+          if(JSON.parse(statementBudget.body).ok!==true||statementCleanup.nativeStatements!==0||statementCleanup.preparedSQLReservedBytes!==0)throw Error('Shared native statement budget/cleanup failed');
+          const refusedAllocations=[];
+          for(let i=0;i<6;i++){
+            try{await runtime.sql("SELECT REPEAT('x',65536) FROM seq_1_to_1000",'school');throw Error('Result limit was not enforced');}
+            catch(error){if(!error.message.includes('WASM result exceeds'))throw error;}
+            refusedAllocations.push(await runtime.state());
+          }
+          if(refusedAllocations.at(-1).allocatorUsedBytes-refusedAllocations[0].allocatorUsedBytes>2*1024*1024)throw Error('Repeated refused console results retain native allocations');
+          await runtime.closeConsole();
+          await runtime.write('/workspace/refused-results.php',`<?php $db=new PDO('mysql:dbname=school','root','',[PDO::ATTR_EMULATE_PREPARES=>false]);try{$db->query("SELECT REPEAT('x',65536) FROM seq_1_to_1000");}catch(PDOException $error){echo 'refused';}`);
+          const refusedPdoAllocations=[];
+          for(let i=0;i<6;i++){if((await checked({script:'/workspace/refused-results.php'})).body!=='refused')throw Error('PDO result refusal missing');refusedPdoAllocations.push(await runtime.state());}
+          if(refusedPdoAllocations.at(-1).allocatorUsedBytes-refusedPdoAllocations[0].allocatorUsedBytes>2*1024*1024)throw Error('Repeated refused PDO results retain native allocations');
           for(const sql of ["SELECT REPEAT('x',65536) FROM seq_1_to_1000",'SELECT seq FROM seq_1_to_10001']) {
             let refused=false;try{await runtime.sql(sql,'school');}catch(error){refused=error.message.includes('WASM result exceeds');}
             if(!refused)throw Error('Console result budget was not enforced');
@@ -168,7 +185,7 @@ $stmt->close(); $db->close(); echo 'metadata-array-ok';`);
           if (phpAfterStop.sqlStarted || phpAfterStop.status !== 201) throw Error('PHP is not usable independently after SQL stop');
           for(const script of ['/workspace/pdo.php','/workspace/mysqli.php']){const refused=await runtime.request({script});if(refused.exitCode===0||!decode(refused.stderr).includes('SQL is stopped'))throw Error('PHP adapter attempted an unsafe SQL restart');}
           if((await checked({script:'/workspace/http.php'})).status!==201)throw Error('Stopped SQL refusal poisoned pure PHP');
-          return { initial, file, http, afterPurePhp, handles, network, networkContext, bound, metadata, coverage, convenience, rollbackCheck, systemQuota, schema, driverResults, object, consoleMarker, consoleTypes, phpAfterStop, final, stopped };
+          return { initial, file, http, afterPurePhp, handles, network, networkContext, bound, metadata, coverage, convenience, statementBudget, statementCleanup, refusedAllocations, refusedPdoAllocations, rollbackCheck, systemQuota, schema, driverResults, object, consoleMarker, consoleTypes, phpAfterStop, final, stopped };
         } finally { runtime.close(); }
       }, fixtures);
       const quota=storageOnly?null:await page.evaluate(async()=>{

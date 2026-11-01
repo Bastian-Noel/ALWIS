@@ -1,12 +1,12 @@
 {
   "source": "/workspace/WASMWebServer/build-work/mariadb-shallow/wasm/lite4mariadb.c",
   "originalSha256": "b45954f15bd0b5137bbb02af1538496f3d939e0e38acb13a72275375f6ddb0d0",
-  "generatedSha256": "d85ce27c1a67e25bd2c9674d910de55ecf439ec57e5fbd3157abb54028e5e386",
+  "generatedSha256": "9bd16cf61df9351e106d8e6509ce1bced49efc13820bdba8f5c3adff2a5dd2ce",
   "changes": {
     "--innodb-buffer-pool-size=64M": "--innodb-buffer-pool-size=16M",
     "--loose-innodb-buffer-pool-size-max=256M": "--loose-innodb-buffer-pool-size-max=16M",
     "--max-allowed-packet=128M": "--max-allowed-packet=16M",
-    "(char *)\"--innodb-log-buffer-size=2M\",": "(char *)\"--innodb-log-buffer-size=2M\",\n    (char *)\"--innodb-log-file-size=8M\",\n    (char *)\"--aria-pagecache-buffer-size=1M\",\n    (char *)\"--key-buffer-size=1M\",\n    (char *)\"--query-cache-size=0\",\n    (char *)\"--tmp-table-size=4M\",\n    (char *)\"--max-heap-table-size=4M\",\n    (char *)\"--sort-buffer-size=256K\",\n    (char *)\"--join-buffer-size=256K\",\n    (char *)\"--read-buffer-size=128K\",\n    (char *)\"--read-rnd-buffer-size=256K\","
+    "(char *)\"--innodb-log-buffer-size=2M\",": "(char *)\"--innodb-log-buffer-size=2M\",\n    (char *)\"--innodb-log-file-size=8M\",\n    (char *)\"--aria-pagecache-buffer-size=1M\",\n    (char *)\"--key-buffer-size=1M\",\n    (char *)\"--query-cache-size=0\",\n    (char *)\"--max-prepared-stmt-count=128\",\n    (char *)\"--tmp-table-size=4M\",\n    (char *)\"--max-heap-table-size=4M\",\n    (char *)\"--sort-buffer-size=256K\",\n    (char *)\"--join-buffer-size=256K\",\n    (char *)\"--read-buffer-size=128K\",\n    (char *)\"--read-rnd-buffer-size=256K\","
   },
   "systemTablesSource": "/workspace/WASMWebServer/build-work/mariadb-shallow/scripts/mariadb_system_tables.sql",
   "systemTablesSourceSha256": "22e23166715ef17156ae2c6e2d8ae20a699ee5c6192cedfd85a367e22e39893d",

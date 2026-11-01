@@ -1,7 +1,8 @@
 {
   "source": "/workspace/WASMWebServer/build-work/mariadb-shallow/libmysqld/lib_sql.cc",
   "originalSha256": "ecd40450e5d84c1b509a4afcfdc849b4dcec57b17cd4122eb4c1b32e82cfafee",
-  "generatedSha256": "5176fc05f4ad6a61147f5603633e4c3d5418319a98dfef035cd4d66d4d0b1dbd",
+  "generatedSha256": "3aec50bca5a22d8f043292eeef01423e6a2959c35929b7bc930319d9951f4877",
   "resultBlockBudgetBytes": 16777216,
-  "rowBudget": 10000
+  "rowBudget": 10000,
+  "partialErrorResultCleanup": "free_rows releases result MEM_ROOT and envelope"
 }

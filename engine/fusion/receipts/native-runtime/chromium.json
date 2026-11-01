@@ -8,9 +8,11 @@
       "sqlStarted": false,
       "sqlPhase": "dormant",
       "sqlConnections": 0,
+      "nativeStatements": 0,
+      "preparedSQLReservedBytes": 0,
       "linearMemoryBytes": 268435456,
       "allocatorUsedBytes": 3176,
-      "allocatorFreeBytes": 3848,
+      "allocatorFreeBytes": 3528,
       "vfs": {
         "groups": {
           "project": {
@@ -71,9 +73,11 @@
       "sqlStarted": false,
       "sqlPhase": "dormant",
       "sqlConnections": 0,
+      "nativeStatements": 0,
+      "preparedSQLReservedBytes": 0,
       "linearMemoryBytes": 268435456,
       "allocatorUsedBytes": 3344,
-      "allocatorFreeBytes": 1707616,
+      "allocatorFreeBytes": 1707296,
       "vfs": {
         "groups": {
           "project": {
@@ -124,9 +128,11 @@
       "sqlStarted": false,
       "sqlPhase": "dormant",
       "sqlConnections": 0,
+      "nativeStatements": 0,
+      "preparedSQLReservedBytes": 0,
       "linearMemoryBytes": 268435456,
       "allocatorUsedBytes": 3344,
-      "allocatorFreeBytes": 1707616,
+      "allocatorFreeBytes": 1707296,
       "vfs": {
         "groups": {
           "project": {
@@ -185,9 +191,11 @@
       "sqlStarted": false,
       "sqlPhase": "dormant",
       "sqlConnections": 0,
+      "nativeStatements": 0,
+      "preparedSQLReservedBytes": 0,
       "linearMemoryBytes": 268435456,
       "allocatorUsedBytes": 3344,
-      "allocatorFreeBytes": 1707616,
+      "allocatorFreeBytes": 1707296,
       "vfs": {
         "groups": {
           "project": {
@@ -246,9 +254,11 @@
       "sqlStarted": false,
       "sqlPhase": "dormant",
       "sqlConnections": 0,
+      "nativeStatements": 0,
+      "preparedSQLReservedBytes": 0,
       "linearMemoryBytes": 268435456,
       "allocatorUsedBytes": 3344,
-      "allocatorFreeBytes": 1805920,
+      "allocatorFreeBytes": 1805600,
       "vfs": {
         "groups": {
           "project": {
@@ -301,15 +311,17 @@
         "X-Powered-By: PHP/8.4.27",
         "Content-type: text/html; charset=UTF-8"
       ],
-      "body": "[[\"POST\",\"custom\",\"native-body\"],[\"HTTP\\/1.1 202 Accepted\",\"cache-control: no-store\",\"connection: keep-alive\",\"content-type: application\\/json\",\"cross-origin-embedder-policy: require-corp\",\"cross-origin-opener-policy: same-origin\",\"date: Sun, 01 Nov 2026 10:20:54 GMT\",\"keep-alive: timeout=5\",\"transfer-encoding: chunked\",\"x-native-reply: present\"]]",
+      "body": "[[\"POST\",\"custom\",\"native-body\"],[\"HTTP\\/1.1 202 Accepted\",\"cache-control: no-store\",\"connection: keep-alive\",\"content-type: application\\/json\",\"cross-origin-embedder-policy: require-corp\",\"cross-origin-opener-policy: same-origin\",\"date: Sun, 01 Nov 2026 11:01:37 GMT\",\"keep-alive: timeout=5\",\"transfer-encoding: chunked\",\"x-native-reply: present\"]]",
       "stderr": "",
       "exitCode": 0,
       "sqlStarted": false,
       "sqlPhase": "dormant",
       "sqlConnections": 0,
+      "nativeStatements": 0,
+      "preparedSQLReservedBytes": 0,
       "linearMemoryBytes": 268435456,
       "allocatorUsedBytes": 3344,
-      "allocatorFreeBytes": 1805920,
+      "allocatorFreeBytes": 1805600,
       "vfs": {
         "groups": {
           "project": {
@@ -368,9 +380,11 @@
       "sqlStarted": true,
       "sqlPhase": "running",
       "sqlConnections": 0,
+      "nativeStatements": 0,
+      "preparedSQLReservedBytes": 0,
       "linearMemoryBytes": 268435456,
-      "allocatorUsedBytes": 79614272,
-      "allocatorFreeBytes": 2742832,
+      "allocatorUsedBytes": 79604888,
+      "allocatorFreeBytes": 2620824,
       "vfs": {
         "groups": {
           "project": {
@@ -398,8 +412,8 @@
             "maxNodes": 4096
           },
           "system": {
-            "bytes": 2773736,
-            "reserved": 2773736,
+            "bytes": 2773732,
+            "reserved": 2773732,
             "nodes": 112,
             "maxBytes": 16777216,
             "maxFileBytes": 16777216,
@@ -429,9 +443,11 @@
       "sqlStarted": true,
       "sqlPhase": "running",
       "sqlConnections": 0,
+      "nativeStatements": 0,
+      "preparedSQLReservedBytes": 0,
       "linearMemoryBytes": 268435456,
-      "allocatorUsedBytes": 79614272,
-      "allocatorFreeBytes": 2742832,
+      "allocatorUsedBytes": 79604888,
+      "allocatorFreeBytes": 2620824,
       "vfs": {
         "groups": {
           "project": {
@@ -459,8 +475,8 @@
             "maxNodes": 4096
           },
           "system": {
-            "bytes": 2773736,
-            "reserved": 2773736,
+            "bytes": 2773732,
+            "reserved": 2773732,
             "nodes": 112,
             "maxBytes": 16777216,
             "maxFileBytes": 16777216,
@@ -490,9 +506,11 @@
       "sqlStarted": true,
       "sqlPhase": "running",
       "sqlConnections": 0,
+      "nativeStatements": 0,
+      "preparedSQLReservedBytes": 0,
       "linearMemoryBytes": 268435456,
-      "allocatorUsedBytes": 181804968,
-      "allocatorFreeBytes": 1952712,
+      "allocatorUsedBytes": 79699592,
+      "allocatorFreeBytes": 19651496,
       "vfs": {
         "groups": {
           "project": {
@@ -520,8 +538,8 @@
             "maxNodes": 4096
           },
           "system": {
-            "bytes": 2773736,
-            "reserved": 2773736,
+            "bytes": 2773732,
+            "reserved": 2773732,
             "nodes": 112,
             "maxBytes": 16777216,
             "maxFileBytes": 16777216,
@@ -551,9 +569,11 @@
       "sqlStarted": true,
       "sqlPhase": "running",
       "sqlConnections": 0,
+      "nativeStatements": 0,
+      "preparedSQLReservedBytes": 0,
       "linearMemoryBytes": 268435456,
-      "allocatorUsedBytes": 198411656,
-      "allocatorFreeBytes": 2033128,
+      "allocatorUsedBytes": 79716072,
+      "allocatorFreeBytes": 19635016,
       "vfs": {
         "groups": {
           "project": {
@@ -581,8 +601,8 @@
             "maxNodes": 4096
           },
           "system": {
-            "bytes": 2773736,
-            "reserved": 2773736,
+            "bytes": 2773732,
+            "reserved": 2773732,
             "nodes": 112,
             "maxBytes": 16777216,
             "maxFileBytes": 16777216,
@@ -600,35 +620,28 @@
         "bytes": 0
       }
     },
-    "rollbackCheck": {
-      "columns": [
-        {
-          "kind": 3,
-          "nativeType": 8,
-          "flags": 32897,
-          "name": "COUNT(*)"
-        }
+    "statementBudget": {
+      "status": 200,
+      "headers": [
+        "X-Powered-By: PHP/8.4.27",
+        "Content-type: text/html; charset=UTF-8"
       ],
-      "rows": [
-        [
-          "0"
-        ]
-      ],
-      "affectedRows": "1",
-      "insertId": "0"
-    },
-    "systemQuota": {
+      "body": "{\"ok\":true,\"countLimit\":128,\"aggregateRetainedQueries\":7,\"rejected\":[\"PDO count\",\"MySQLi count\",\"server SQL PREPARE count\",\"shared retained SQL bytes\",\"PDO native and emulated SQL input\"]}",
+      "stderr": "",
+      "exitCode": 0,
       "sqlStarted": true,
       "sqlPhase": "running",
-      "sqlConnections": 1,
+      "sqlConnections": 0,
+      "nativeStatements": 0,
+      "preparedSQLReservedBytes": 0,
       "linearMemoryBytes": 268435456,
-      "allocatorUsedBytes": 215573912,
-      "allocatorFreeBytes": 11564504,
+      "allocatorUsedBytes": 79716072,
+      "allocatorFreeBytes": 41077576,
       "vfs": {
         "groups": {
           "project": {
-            "bytes": 17856,
-            "reserved": 17856,
+            "bytes": 22024,
+            "reserved": 22024,
             "nodes": 18,
             "maxBytes": 67108864,
             "maxFileBytes": 16777216,
@@ -651,8 +664,799 @@
             "maxNodes": 4096
           },
           "system": {
-            "bytes": 13390568,
-            "reserved": 13390568,
+            "bytes": 2773732,
+            "reserved": 2773732,
+            "nodes": 112,
+            "maxBytes": 16777216,
+            "maxFileBytes": 16777216,
+            "maxNodes": 2048
+          }
+        },
+        "openFiles": 35,
+        "maxOpenFiles": 512
+      },
+      "hardwareConcurrency": 5,
+      "storageLayout": "volatile",
+      "queue": {
+        "pending": 0,
+        "running": true,
+        "bytes": 0
+      }
+    },
+    "statementCleanup": {
+      "sqlStarted": true,
+      "sqlPhase": "running",
+      "sqlConnections": 0,
+      "nativeStatements": 0,
+      "preparedSQLReservedBytes": 0,
+      "linearMemoryBytes": 268435456,
+      "allocatorUsedBytes": 79714280,
+      "allocatorFreeBytes": 41079368,
+      "vfs": {
+        "groups": {
+          "project": {
+            "bytes": 22024,
+            "reserved": 22024,
+            "nodes": 18,
+            "maxBytes": 67108864,
+            "maxFileBytes": 16777216,
+            "maxNodes": 2048
+          },
+          "temp": {
+            "bytes": 0,
+            "reserved": 0,
+            "nodes": 5,
+            "maxBytes": 16777216,
+            "maxFileBytes": 16777216,
+            "maxNodes": 256
+          },
+          "sql": {
+            "bytes": 66049542,
+            "reserved": 66113386,
+            "nodes": 107,
+            "maxBytes": 134217728,
+            "maxFileBytes": 67108864,
+            "maxNodes": 4096
+          },
+          "system": {
+            "bytes": 2773732,
+            "reserved": 2773732,
+            "nodes": 112,
+            "maxBytes": 16777216,
+            "maxFileBytes": 16777216,
+            "maxNodes": 2048
+          }
+        },
+        "openFiles": 35,
+        "maxOpenFiles": 512
+      },
+      "hardwareConcurrency": 5,
+      "storageLayout": "volatile",
+      "queue": {
+        "pending": 0,
+        "running": true,
+        "bytes": 0
+      }
+    },
+    "refusedAllocations": [
+      {
+        "sqlStarted": true,
+        "sqlPhase": "running",
+        "sqlConnections": 1,
+        "nativeStatements": 0,
+        "preparedSQLReservedBytes": 0,
+        "linearMemoryBytes": 268435456,
+        "allocatorUsedBytes": 79777584,
+        "allocatorFreeBytes": 41016064,
+        "vfs": {
+          "groups": {
+            "project": {
+              "bytes": 22024,
+              "reserved": 22024,
+              "nodes": 18,
+              "maxBytes": 67108864,
+              "maxFileBytes": 16777216,
+              "maxNodes": 2048
+            },
+            "temp": {
+              "bytes": 0,
+              "reserved": 0,
+              "nodes": 5,
+              "maxBytes": 16777216,
+              "maxFileBytes": 16777216,
+              "maxNodes": 256
+            },
+            "sql": {
+              "bytes": 66049542,
+              "reserved": 66113386,
+              "nodes": 107,
+              "maxBytes": 134217728,
+              "maxFileBytes": 67108864,
+              "maxNodes": 4096
+            },
+            "system": {
+              "bytes": 2773732,
+              "reserved": 2773732,
+              "nodes": 112,
+              "maxBytes": 16777216,
+              "maxFileBytes": 16777216,
+              "maxNodes": 2048
+            }
+          },
+          "openFiles": 35,
+          "maxOpenFiles": 512
+        },
+        "hardwareConcurrency": 5,
+        "storageLayout": "volatile",
+        "queue": {
+          "pending": 0,
+          "running": true,
+          "bytes": 0
+        }
+      },
+      {
+        "sqlStarted": true,
+        "sqlPhase": "running",
+        "sqlConnections": 1,
+        "nativeStatements": 0,
+        "preparedSQLReservedBytes": 0,
+        "linearMemoryBytes": 268435456,
+        "allocatorUsedBytes": 79777584,
+        "allocatorFreeBytes": 41016064,
+        "vfs": {
+          "groups": {
+            "project": {
+              "bytes": 22024,
+              "reserved": 22024,
+              "nodes": 18,
+              "maxBytes": 67108864,
+              "maxFileBytes": 16777216,
+              "maxNodes": 2048
+            },
+            "temp": {
+              "bytes": 0,
+              "reserved": 0,
+              "nodes": 5,
+              "maxBytes": 16777216,
+              "maxFileBytes": 16777216,
+              "maxNodes": 256
+            },
+            "sql": {
+              "bytes": 66049542,
+              "reserved": 66113386,
+              "nodes": 107,
+              "maxBytes": 134217728,
+              "maxFileBytes": 67108864,
+              "maxNodes": 4096
+            },
+            "system": {
+              "bytes": 2773732,
+              "reserved": 2773732,
+              "nodes": 112,
+              "maxBytes": 16777216,
+              "maxFileBytes": 16777216,
+              "maxNodes": 2048
+            }
+          },
+          "openFiles": 35,
+          "maxOpenFiles": 512
+        },
+        "hardwareConcurrency": 5,
+        "storageLayout": "volatile",
+        "queue": {
+          "pending": 0,
+          "running": true,
+          "bytes": 0
+        }
+      },
+      {
+        "sqlStarted": true,
+        "sqlPhase": "running",
+        "sqlConnections": 1,
+        "nativeStatements": 0,
+        "preparedSQLReservedBytes": 0,
+        "linearMemoryBytes": 268435456,
+        "allocatorUsedBytes": 79777584,
+        "allocatorFreeBytes": 41016064,
+        "vfs": {
+          "groups": {
+            "project": {
+              "bytes": 22024,
+              "reserved": 22024,
+              "nodes": 18,
+              "maxBytes": 67108864,
+              "maxFileBytes": 16777216,
+              "maxNodes": 2048
+            },
+            "temp": {
+              "bytes": 0,
+              "reserved": 0,
+              "nodes": 5,
+              "maxBytes": 16777216,
+              "maxFileBytes": 16777216,
+              "maxNodes": 256
+            },
+            "sql": {
+              "bytes": 66049542,
+              "reserved": 66113386,
+              "nodes": 107,
+              "maxBytes": 134217728,
+              "maxFileBytes": 67108864,
+              "maxNodes": 4096
+            },
+            "system": {
+              "bytes": 2773732,
+              "reserved": 2773732,
+              "nodes": 112,
+              "maxBytes": 16777216,
+              "maxFileBytes": 16777216,
+              "maxNodes": 2048
+            }
+          },
+          "openFiles": 35,
+          "maxOpenFiles": 512
+        },
+        "hardwareConcurrency": 5,
+        "storageLayout": "volatile",
+        "queue": {
+          "pending": 0,
+          "running": true,
+          "bytes": 0
+        }
+      },
+      {
+        "sqlStarted": true,
+        "sqlPhase": "running",
+        "sqlConnections": 1,
+        "nativeStatements": 0,
+        "preparedSQLReservedBytes": 0,
+        "linearMemoryBytes": 268435456,
+        "allocatorUsedBytes": 79777584,
+        "allocatorFreeBytes": 41016064,
+        "vfs": {
+          "groups": {
+            "project": {
+              "bytes": 22024,
+              "reserved": 22024,
+              "nodes": 18,
+              "maxBytes": 67108864,
+              "maxFileBytes": 16777216,
+              "maxNodes": 2048
+            },
+            "temp": {
+              "bytes": 0,
+              "reserved": 0,
+              "nodes": 5,
+              "maxBytes": 16777216,
+              "maxFileBytes": 16777216,
+              "maxNodes": 256
+            },
+            "sql": {
+              "bytes": 66049542,
+              "reserved": 66113386,
+              "nodes": 107,
+              "maxBytes": 134217728,
+              "maxFileBytes": 67108864,
+              "maxNodes": 4096
+            },
+            "system": {
+              "bytes": 2773732,
+              "reserved": 2773732,
+              "nodes": 112,
+              "maxBytes": 16777216,
+              "maxFileBytes": 16777216,
+              "maxNodes": 2048
+            }
+          },
+          "openFiles": 35,
+          "maxOpenFiles": 512
+        },
+        "hardwareConcurrency": 5,
+        "storageLayout": "volatile",
+        "queue": {
+          "pending": 0,
+          "running": true,
+          "bytes": 0
+        }
+      },
+      {
+        "sqlStarted": true,
+        "sqlPhase": "running",
+        "sqlConnections": 1,
+        "nativeStatements": 0,
+        "preparedSQLReservedBytes": 0,
+        "linearMemoryBytes": 268435456,
+        "allocatorUsedBytes": 79777584,
+        "allocatorFreeBytes": 41016064,
+        "vfs": {
+          "groups": {
+            "project": {
+              "bytes": 22024,
+              "reserved": 22024,
+              "nodes": 18,
+              "maxBytes": 67108864,
+              "maxFileBytes": 16777216,
+              "maxNodes": 2048
+            },
+            "temp": {
+              "bytes": 0,
+              "reserved": 0,
+              "nodes": 5,
+              "maxBytes": 16777216,
+              "maxFileBytes": 16777216,
+              "maxNodes": 256
+            },
+            "sql": {
+              "bytes": 66049542,
+              "reserved": 66113386,
+              "nodes": 107,
+              "maxBytes": 134217728,
+              "maxFileBytes": 67108864,
+              "maxNodes": 4096
+            },
+            "system": {
+              "bytes": 2773732,
+              "reserved": 2773732,
+              "nodes": 112,
+              "maxBytes": 16777216,
+              "maxFileBytes": 16777216,
+              "maxNodes": 2048
+            }
+          },
+          "openFiles": 35,
+          "maxOpenFiles": 512
+        },
+        "hardwareConcurrency": 5,
+        "storageLayout": "volatile",
+        "queue": {
+          "pending": 0,
+          "running": true,
+          "bytes": 0
+        }
+      },
+      {
+        "sqlStarted": true,
+        "sqlPhase": "running",
+        "sqlConnections": 1,
+        "nativeStatements": 0,
+        "preparedSQLReservedBytes": 0,
+        "linearMemoryBytes": 268435456,
+        "allocatorUsedBytes": 79777584,
+        "allocatorFreeBytes": 41016064,
+        "vfs": {
+          "groups": {
+            "project": {
+              "bytes": 22024,
+              "reserved": 22024,
+              "nodes": 18,
+              "maxBytes": 67108864,
+              "maxFileBytes": 16777216,
+              "maxNodes": 2048
+            },
+            "temp": {
+              "bytes": 0,
+              "reserved": 0,
+              "nodes": 5,
+              "maxBytes": 16777216,
+              "maxFileBytes": 16777216,
+              "maxNodes": 256
+            },
+            "sql": {
+              "bytes": 66049542,
+              "reserved": 66113386,
+              "nodes": 107,
+              "maxBytes": 134217728,
+              "maxFileBytes": 67108864,
+              "maxNodes": 4096
+            },
+            "system": {
+              "bytes": 2773732,
+              "reserved": 2773732,
+              "nodes": 112,
+              "maxBytes": 16777216,
+              "maxFileBytes": 16777216,
+              "maxNodes": 2048
+            }
+          },
+          "openFiles": 35,
+          "maxOpenFiles": 512
+        },
+        "hardwareConcurrency": 5,
+        "storageLayout": "volatile",
+        "queue": {
+          "pending": 0,
+          "running": true,
+          "bytes": 0
+        }
+      }
+    ],
+    "refusedPdoAllocations": [
+      {
+        "sqlStarted": true,
+        "sqlPhase": "running",
+        "sqlConnections": 0,
+        "nativeStatements": 0,
+        "preparedSQLReservedBytes": 0,
+        "linearMemoryBytes": 268435456,
+        "allocatorUsedBytes": 79713832,
+        "allocatorFreeBytes": 41079816,
+        "vfs": {
+          "groups": {
+            "project": {
+              "bytes": 22217,
+              "reserved": 22217,
+              "nodes": 19,
+              "maxBytes": 67108864,
+              "maxFileBytes": 16777216,
+              "maxNodes": 2048
+            },
+            "temp": {
+              "bytes": 0,
+              "reserved": 0,
+              "nodes": 5,
+              "maxBytes": 16777216,
+              "maxFileBytes": 16777216,
+              "maxNodes": 256
+            },
+            "sql": {
+              "bytes": 66049542,
+              "reserved": 66113386,
+              "nodes": 107,
+              "maxBytes": 134217728,
+              "maxFileBytes": 67108864,
+              "maxNodes": 4096
+            },
+            "system": {
+              "bytes": 2773732,
+              "reserved": 2773732,
+              "nodes": 112,
+              "maxBytes": 16777216,
+              "maxFileBytes": 16777216,
+              "maxNodes": 2048
+            }
+          },
+          "openFiles": 35,
+          "maxOpenFiles": 512
+        },
+        "hardwareConcurrency": 5,
+        "storageLayout": "volatile",
+        "queue": {
+          "pending": 0,
+          "running": true,
+          "bytes": 0
+        }
+      },
+      {
+        "sqlStarted": true,
+        "sqlPhase": "running",
+        "sqlConnections": 0,
+        "nativeStatements": 0,
+        "preparedSQLReservedBytes": 0,
+        "linearMemoryBytes": 268435456,
+        "allocatorUsedBytes": 79713832,
+        "allocatorFreeBytes": 41079816,
+        "vfs": {
+          "groups": {
+            "project": {
+              "bytes": 22217,
+              "reserved": 22217,
+              "nodes": 19,
+              "maxBytes": 67108864,
+              "maxFileBytes": 16777216,
+              "maxNodes": 2048
+            },
+            "temp": {
+              "bytes": 0,
+              "reserved": 0,
+              "nodes": 5,
+              "maxBytes": 16777216,
+              "maxFileBytes": 16777216,
+              "maxNodes": 256
+            },
+            "sql": {
+              "bytes": 66049542,
+              "reserved": 66113386,
+              "nodes": 107,
+              "maxBytes": 134217728,
+              "maxFileBytes": 67108864,
+              "maxNodes": 4096
+            },
+            "system": {
+              "bytes": 2773732,
+              "reserved": 2773732,
+              "nodes": 112,
+              "maxBytes": 16777216,
+              "maxFileBytes": 16777216,
+              "maxNodes": 2048
+            }
+          },
+          "openFiles": 35,
+          "maxOpenFiles": 512
+        },
+        "hardwareConcurrency": 5,
+        "storageLayout": "volatile",
+        "queue": {
+          "pending": 0,
+          "running": true,
+          "bytes": 0
+        }
+      },
+      {
+        "sqlStarted": true,
+        "sqlPhase": "running",
+        "sqlConnections": 0,
+        "nativeStatements": 0,
+        "preparedSQLReservedBytes": 0,
+        "linearMemoryBytes": 268435456,
+        "allocatorUsedBytes": 79713832,
+        "allocatorFreeBytes": 41079816,
+        "vfs": {
+          "groups": {
+            "project": {
+              "bytes": 22217,
+              "reserved": 22217,
+              "nodes": 19,
+              "maxBytes": 67108864,
+              "maxFileBytes": 16777216,
+              "maxNodes": 2048
+            },
+            "temp": {
+              "bytes": 0,
+              "reserved": 0,
+              "nodes": 5,
+              "maxBytes": 16777216,
+              "maxFileBytes": 16777216,
+              "maxNodes": 256
+            },
+            "sql": {
+              "bytes": 66049542,
+              "reserved": 66113386,
+              "nodes": 107,
+              "maxBytes": 134217728,
+              "maxFileBytes": 67108864,
+              "maxNodes": 4096
+            },
+            "system": {
+              "bytes": 2773732,
+              "reserved": 2773732,
+              "nodes": 112,
+              "maxBytes": 16777216,
+              "maxFileBytes": 16777216,
+              "maxNodes": 2048
+            }
+          },
+          "openFiles": 35,
+          "maxOpenFiles": 512
+        },
+        "hardwareConcurrency": 5,
+        "storageLayout": "volatile",
+        "queue": {
+          "pending": 0,
+          "running": true,
+          "bytes": 0
+        }
+      },
+      {
+        "sqlStarted": true,
+        "sqlPhase": "running",
+        "sqlConnections": 0,
+        "nativeStatements": 0,
+        "preparedSQLReservedBytes": 0,
+        "linearMemoryBytes": 268435456,
+        "allocatorUsedBytes": 79713848,
+        "allocatorFreeBytes": 41079800,
+        "vfs": {
+          "groups": {
+            "project": {
+              "bytes": 22217,
+              "reserved": 22217,
+              "nodes": 19,
+              "maxBytes": 67108864,
+              "maxFileBytes": 16777216,
+              "maxNodes": 2048
+            },
+            "temp": {
+              "bytes": 0,
+              "reserved": 0,
+              "nodes": 5,
+              "maxBytes": 16777216,
+              "maxFileBytes": 16777216,
+              "maxNodes": 256
+            },
+            "sql": {
+              "bytes": 66049542,
+              "reserved": 66113386,
+              "nodes": 107,
+              "maxBytes": 134217728,
+              "maxFileBytes": 67108864,
+              "maxNodes": 4096
+            },
+            "system": {
+              "bytes": 2773732,
+              "reserved": 2773732,
+              "nodes": 112,
+              "maxBytes": 16777216,
+              "maxFileBytes": 16777216,
+              "maxNodes": 2048
+            }
+          },
+          "openFiles": 35,
+          "maxOpenFiles": 512
+        },
+        "hardwareConcurrency": 5,
+        "storageLayout": "volatile",
+        "queue": {
+          "pending": 0,
+          "running": true,
+          "bytes": 0
+        }
+      },
+      {
+        "sqlStarted": true,
+        "sqlPhase": "running",
+        "sqlConnections": 0,
+        "nativeStatements": 0,
+        "preparedSQLReservedBytes": 0,
+        "linearMemoryBytes": 268435456,
+        "allocatorUsedBytes": 79713848,
+        "allocatorFreeBytes": 41079800,
+        "vfs": {
+          "groups": {
+            "project": {
+              "bytes": 22217,
+              "reserved": 22217,
+              "nodes": 19,
+              "maxBytes": 67108864,
+              "maxFileBytes": 16777216,
+              "maxNodes": 2048
+            },
+            "temp": {
+              "bytes": 0,
+              "reserved": 0,
+              "nodes": 5,
+              "maxBytes": 16777216,
+              "maxFileBytes": 16777216,
+              "maxNodes": 256
+            },
+            "sql": {
+              "bytes": 66049542,
+              "reserved": 66113386,
+              "nodes": 107,
+              "maxBytes": 134217728,
+              "maxFileBytes": 67108864,
+              "maxNodes": 4096
+            },
+            "system": {
+              "bytes": 2773732,
+              "reserved": 2773732,
+              "nodes": 112,
+              "maxBytes": 16777216,
+              "maxFileBytes": 16777216,
+              "maxNodes": 2048
+            }
+          },
+          "openFiles": 35,
+          "maxOpenFiles": 512
+        },
+        "hardwareConcurrency": 5,
+        "storageLayout": "volatile",
+        "queue": {
+          "pending": 0,
+          "running": true,
+          "bytes": 0
+        }
+      },
+      {
+        "sqlStarted": true,
+        "sqlPhase": "running",
+        "sqlConnections": 0,
+        "nativeStatements": 0,
+        "preparedSQLReservedBytes": 0,
+        "linearMemoryBytes": 268435456,
+        "allocatorUsedBytes": 79713848,
+        "allocatorFreeBytes": 41079800,
+        "vfs": {
+          "groups": {
+            "project": {
+              "bytes": 22217,
+              "reserved": 22217,
+              "nodes": 19,
+              "maxBytes": 67108864,
+              "maxFileBytes": 16777216,
+              "maxNodes": 2048
+            },
+            "temp": {
+              "bytes": 0,
+              "reserved": 0,
+              "nodes": 5,
+              "maxBytes": 16777216,
+              "maxFileBytes": 16777216,
+              "maxNodes": 256
+            },
+            "sql": {
+              "bytes": 66049542,
+              "reserved": 66113386,
+              "nodes": 107,
+              "maxBytes": 134217728,
+              "maxFileBytes": 67108864,
+              "maxNodes": 4096
+            },
+            "system": {
+              "bytes": 2773732,
+              "reserved": 2773732,
+              "nodes": 112,
+              "maxBytes": 16777216,
+              "maxFileBytes": 16777216,
+              "maxNodes": 2048
+            }
+          },
+          "openFiles": 35,
+          "maxOpenFiles": 512
+        },
+        "hardwareConcurrency": 5,
+        "storageLayout": "volatile",
+        "queue": {
+          "pending": 0,
+          "running": true,
+          "bytes": 0
+        }
+      }
+    ],
+    "rollbackCheck": {
+      "columns": [
+        {
+          "kind": 3,
+          "nativeType": 8,
+          "flags": 32897,
+          "name": "COUNT(*)"
+        }
+      ],
+      "rows": [
+        [
+          "0"
+        ]
+      ],
+      "affectedRows": "1",
+      "insertId": "0"
+    },
+    "systemQuota": {
+      "sqlStarted": true,
+      "sqlPhase": "running",
+      "sqlConnections": 1,
+      "nativeStatements": 0,
+      "preparedSQLReservedBytes": 0,
+      "linearMemoryBytes": 268435456,
+      "allocatorUsedBytes": 79778200,
+      "allocatorFreeBytes": 41015448,
+      "vfs": {
+        "groups": {
+          "project": {
+            "bytes": 22397,
+            "reserved": 22397,
+            "nodes": 20,
+            "maxBytes": 67108864,
+            "maxFileBytes": 16777216,
+            "maxNodes": 2048
+          },
+          "temp": {
+            "bytes": 0,
+            "reserved": 0,
+            "nodes": 5,
+            "maxBytes": 16777216,
+            "maxFileBytes": 16777216,
+            "maxNodes": 256
+          },
+          "sql": {
+            "bytes": 66049542,
+            "reserved": 66113386,
+            "nodes": 107,
+            "maxBytes": 134217728,
+            "maxFileBytes": 67108864,
+            "maxNodes": 4096
+          },
+          "system": {
+            "bytes": 13390564,
+            "reserved": 13390564,
             "nodes": 114,
             "maxBytes": 16777216,
             "maxFileBytes": 16777216,
@@ -682,9 +1486,11 @@
       "sqlStarted": true,
       "sqlPhase": "running",
       "sqlConnections": 0,
+      "nativeStatements": 0,
+      "preparedSQLReservedBytes": 0,
       "linearMemoryBytes": 268435456,
-      "allocatorUsedBytes": 79553560,
-      "allocatorFreeBytes": 2803544,
+      "allocatorUsedBytes": 79552840,
+      "allocatorFreeBytes": 2672872,
       "vfs": {
         "groups": {
           "project": {
@@ -712,8 +1518,8 @@
             "maxNodes": 4096
           },
           "system": {
-            "bytes": 2773736,
-            "reserved": 2773736,
+            "bytes": 2773732,
+            "reserved": 2773732,
             "nodes": 112,
             "maxBytes": 16777216,
             "maxFileBytes": 16777216,
@@ -765,9 +1571,11 @@
       "sqlStarted": true,
       "sqlPhase": "running",
       "sqlConnections": 0,
+      "nativeStatements": 0,
+      "preparedSQLReservedBytes": 0,
       "linearMemoryBytes": 268435456,
-      "allocatorUsedBytes": 79614624,
-      "allocatorFreeBytes": 2742480,
+      "allocatorUsedBytes": 79605224,
+      "allocatorFreeBytes": 2620488,
       "vfs": {
         "groups": {
           "project": {
@@ -795,8 +1603,8 @@
             "maxNodes": 4096
           },
           "system": {
-            "bytes": 2773736,
-            "reserved": 2773736,
+            "bytes": 2773732,
+            "reserved": 2773732,
             "nodes": 112,
             "maxBytes": 16777216,
             "maxFileBytes": 16777216,
@@ -886,15 +1694,17 @@
       "sqlStarted": false,
       "sqlPhase": "stopped",
       "sqlConnections": 0,
+      "nativeStatements": 0,
+      "preparedSQLReservedBytes": 0,
       "linearMemoryBytes": 268435456,
-      "allocatorUsedBytes": 135805768,
-      "allocatorFreeBytes": 91332648,
+      "allocatorUsedBytes": 6224,
+      "allocatorFreeBytes": 120787424,
       "vfs": {
         "groups": {
           "project": {
-            "bytes": 17856,
-            "reserved": 17856,
-            "nodes": 18,
+            "bytes": 22397,
+            "reserved": 22397,
+            "nodes": 20,
             "maxBytes": 67108864,
             "maxFileBytes": 16777216,
             "maxNodes": 2048
@@ -908,16 +1718,16 @@
             "maxNodes": 256
           },
           "sql": {
-            "bytes": 53451058,
-            "reserved": 53514902,
+            "bytes": 53451063,
+            "reserved": 53514907,
             "nodes": 106,
             "maxBytes": 134217728,
             "maxFileBytes": 67108864,
             "maxNodes": 4096
           },
           "system": {
-            "bytes": 13390568,
-            "reserved": 13390568,
+            "bytes": 13390564,
+            "reserved": 13390564,
             "nodes": 114,
             "maxBytes": 16777216,
             "maxFileBytes": 16777216,
@@ -939,15 +1749,17 @@
       "sqlStarted": true,
       "sqlPhase": "running",
       "sqlConnections": 0,
+      "nativeStatements": 0,
+      "preparedSQLReservedBytes": 0,
       "linearMemoryBytes": 268435456,
-      "allocatorUsedBytes": 215509648,
-      "allocatorFreeBytes": 11628768,
+      "allocatorUsedBytes": 79714296,
+      "allocatorFreeBytes": 41079352,
       "vfs": {
         "groups": {
           "project": {
-            "bytes": 17856,
-            "reserved": 17856,
-            "nodes": 18,
+            "bytes": 22397,
+            "reserved": 22397,
+            "nodes": 20,
             "maxBytes": 67108864,
             "maxFileBytes": 16777216,
             "maxNodes": 2048
@@ -969,8 +1781,8 @@
             "maxNodes": 4096
           },
           "system": {
-            "bytes": 13390568,
-            "reserved": 13390568,
+            "bytes": 13390564,
+            "reserved": 13390564,
             "nodes": 114,
             "maxBytes": 16777216,
             "maxFileBytes": 16777216,
@@ -992,15 +1804,17 @@
       "sqlStarted": false,
       "sqlPhase": "stopped",
       "sqlConnections": 0,
+      "nativeStatements": 0,
+      "preparedSQLReservedBytes": 0,
       "linearMemoryBytes": 268435456,
-      "allocatorUsedBytes": 161079776,
-      "allocatorFreeBytes": 66058640,
+      "allocatorUsedBytes": 25280240,
+      "allocatorFreeBytes": 95513408,
       "vfs": {
         "groups": {
           "project": {
-            "bytes": 17856,
-            "reserved": 17856,
-            "nodes": 18,
+            "bytes": 22397,
+            "reserved": 22397,
+            "nodes": 20,
             "maxBytes": 67108864,
             "maxFileBytes": 16777216,
             "maxNodes": 2048
@@ -1014,16 +1828,16 @@
             "maxNodes": 256
           },
           "sql": {
-            "bytes": 53451058,
-            "reserved": 53514902,
+            "bytes": 53451063,
+            "reserved": 53514907,
             "nodes": 106,
             "maxBytes": 134217728,
             "maxFileBytes": 67108864,
             "maxNodes": 4096
           },
           "system": {
-            "bytes": 13390568,
-            "reserved": 13390568,
+            "bytes": 13390564,
+            "reserved": 13390564,
             "nodes": 114,
             "maxBytes": 16777216,
             "maxFileBytes": 16777216,
@@ -1048,9 +1862,11 @@
       "sqlStarted": false,
       "sqlPhase": "dormant",
       "sqlConnections": 0,
+      "nativeStatements": 0,
+      "preparedSQLReservedBytes": 0,
       "linearMemoryBytes": 268435456,
       "allocatorUsedBytes": 3176,
-      "allocatorFreeBytes": 3848,
+      "allocatorFreeBytes": 3528,
       "vfs": {
         "groups": {
           "project": {
@@ -1101,9 +1917,11 @@
       "sqlStarted": false,
       "sqlPhase": "dormant",
       "sqlConnections": 0,
+      "nativeStatements": 0,
+      "preparedSQLReservedBytes": 0,
       "linearMemoryBytes": 268435456,
       "allocatorUsedBytes": 3344,
-      "allocatorFreeBytes": 8007264,
+      "allocatorFreeBytes": 8006944,
       "vfs": {
         "groups": {
           "project": {
@@ -1154,9 +1972,11 @@
       "sqlStarted": false,
       "sqlPhase": "dormant",
       "sqlConnections": 0,
+      "nativeStatements": 0,
+      "preparedSQLReservedBytes": 0,
       "linearMemoryBytes": 268435456,
       "allocatorUsedBytes": 3344,
-      "allocatorFreeBytes": 8007264,
+      "allocatorFreeBytes": 8006944,
       "vfs": {
         "groups": {
           "project": {
@@ -1207,9 +2027,11 @@
       "sqlStarted": false,
       "sqlPhase": "dormant",
       "sqlConnections": 0,
+      "nativeStatements": 0,
+      "preparedSQLReservedBytes": 0,
       "linearMemoryBytes": 268435456,
       "allocatorUsedBytes": 3344,
-      "allocatorFreeBytes": 8007264,
+      "allocatorFreeBytes": 8006944,
       "vfs": {
         "groups": {
           "project": {
@@ -1271,7 +2093,7 @@
   },
   "persistence": {
     "passed": true,
-    "projectKey": "test-a2adb8a6-d1b4-46ec-a0d1-eb04f5797f61",
+    "projectKey": "test-87d64224-75e6-4a29-be80-59766a8650c1",
     "output": "saved-native-project",
     "sql": {
       "columns": [

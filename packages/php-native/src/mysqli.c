@@ -66,7 +66,7 @@ static void connection_info(zval *object)
 static void close_connection(native_connection *connection)
 {
     for (native_statement *stmt=connection->statements;stmt;stmt=stmt->next) {
-        if (stmt->stmt) { mysql_stmt_close(stmt->stmt); stmt->stmt=NULL; }
+        if (stmt->stmt) { pbl_stmt_close(stmt->stmt); stmt->stmt=NULL; }
     }
     if (connection->mysql) { pbl_mysql_close(connection->mysql); connection->mysql=NULL; }
 }
@@ -121,7 +121,7 @@ static void clear_statement_values(native_statement *object)
 }
 static void close_statement(native_statement *object)
 {
-    if(object->stmt) { mysql_stmt_close(object->stmt); object->stmt=NULL; }
+    if(object->stmt) { pbl_stmt_close(object->stmt); object->stmt=NULL; }
     clear_statement_values(object);
 }
 static HashTable *statement_gc(zend_object *std,zval **table,int *count)
@@ -200,7 +200,7 @@ static void query_object(zval *object,const char *sql,size_t length,zval *result
 {
     MYSQL *mysql=require_connection(object); if(!mysql) { ZVAL_FALSE(result); return; }
     if(length>SQL_BYTES) { zend_value_error("SQL exceeds native request byte limit"); ZVAL_FALSE(result); return; }
-    if(mysql_real_query(mysql,sql,length)) { connection_info(object); sql_error(mysql,NULL); ZVAL_FALSE(result); return; }
+    if(pbl_mysql_query(mysql,sql,length)) { connection_info(object); sql_error(mysql,NULL); ZVAL_FALSE(result); return; }
     connection_info(object);
     MYSQL_RES *rows=mysql_store_result(mysql);
     if(!rows) { if(mysql_field_count(mysql)) { sql_error(mysql,NULL); ZVAL_FALSE(result); } else ZVAL_TRUE(result); return; }
@@ -262,7 +262,7 @@ static int initialize_statement(zval *connection,zval *output,int create_object)
 {
     MYSQL *mysql=require_connection(connection); if(!mysql)return 0;
     if(!create_object&&!Z_ISUNDEF(STMT(output)->connection)){zend_throw_error(NULL,"mysqli_stmt is already initialized");return 0;}
-    MYSQL_STMT *stmt=mysql_stmt_init(mysql);
+    MYSQL_STMT *stmt=pbl_stmt_init(mysql);
     if(!stmt){sql_error(mysql,NULL);return 0;}
     if(create_object)object_init_ex(output,statement_ce);
     native_statement *object=STMT(output);object->stmt=stmt;
@@ -274,7 +274,7 @@ static int prepare_statement(zval *object,const char *sql,size_t length)
     MYSQL_STMT *stmt=require_statement(object);if(!stmt)return 0;
     if(length>SQL_BYTES){zend_value_error("SQL exceeds native request byte limit");return 0;}
     clear_statement_values(STMT(object));
-    int failed=mysql_stmt_prepare(stmt,sql,length);
+    int failed=pbl_stmt_prepare(stmt,sql,length);
     zend_update_property_long(statement_ce,Z_OBJ_P(object),"param_count",11,mysql_stmt_param_count(stmt));
     zend_update_property_long(statement_ce,Z_OBJ_P(object),"field_count",11,mysql_stmt_field_count(stmt));
     zend_update_property_long(statement_ce,Z_OBJ_P(object),"num_rows",8,0);
@@ -457,10 +457,10 @@ PHP_FUNCTION(mysqli_insert_id) { zval *object; ZEND_PARSE_PARAMETERS_START(1,1) 
  PHP_FUNCTION(name) { zval *object; ZEND_PARSE_PARAMETERS_START(1,1) Z_PARAM_OBJECT_OF_CLASS(object,connection_ce) ZEND_PARSE_PARAMETERS_END(); MYSQL *m=require_connection(object); if(!m) RETURN_THROWS(); int rc=(expression); if(rc) sql_error(m,NULL); RETURN_BOOL(!rc); }
 #define TRANSACTION_METHOD(name,expression) \
  PHP_METHOD(mysqli,name) { ZEND_PARSE_PARAMETERS_NONE(); MYSQL *m=require_connection(ZEND_THIS); if(!m) RETURN_THROWS(); int rc=(expression); if(rc) sql_error(m,NULL); RETURN_BOOL(!rc); }
-TRANSACTION_FUNCTION(mysqli_begin_transaction,mysql_real_query(m,"START TRANSACTION",17))
+TRANSACTION_FUNCTION(mysqli_begin_transaction,pbl_mysql_query(m,"START TRANSACTION",17))
 TRANSACTION_FUNCTION(mysqli_commit,mysql_commit(m))
 TRANSACTION_FUNCTION(mysqli_rollback,mysql_rollback(m))
-TRANSACTION_METHOD(begin_transaction,mysql_real_query(m,"START TRANSACTION",17))
+TRANSACTION_METHOD(begin_transaction,pbl_mysql_query(m,"START TRANSACTION",17))
 TRANSACTION_METHOD(commit,mysql_commit(m))
 TRANSACTION_METHOD(rollback,mysql_rollback(m))
 

@@ -39,6 +39,11 @@ static bool pbl_result_limit_error()
 '''
 changes=[
 ('#include "../sql/mysqld.cc"', '#include '+json.dumps(str((source.parent/'../sql/mysqld.cc').resolve()))),
+('  mysql->server_status= ei->server_status;\n  my_free(data);', '''  mysql->server_status= ei->server_status;
+  /* Errors may follow a partially collected bounded result. The upstream
+     envelope-only free leaks its MEM_ROOT (up to 16 MiB on each refusal). */
+  if (mysql->fields==ei->fields_list) mysql->fields= NULL;
+  free_rows(data);'''),
 ('bool Protocol::write()\n{',helper+'bool Protocol::write()\n{'),
 ('  *next_field= 0;\n  return false;', '  if (thd->cur_data && thd->cur_data->rows>10000) return pbl_result_limit_error();\n  *next_field= 0;\n  return false;'),
 ('  data->rows++;\n  if (!(cur= (MYSQL_ROWS *)alloc_root(alloc,\n                                      sizeof(MYSQL_ROWS)+packet->length())))', '  if (data->rows>=10000 || !pbl_result_room(alloc,sizeof(MYSQL_ROWS)+packet->length())) return pbl_result_limit_error();\n  data->rows++;\n  if (!(cur= (MYSQL_ROWS *)alloc_root(alloc,\n                                      sizeof(MYSQL_ROWS)+packet->length())))'),
@@ -50,4 +55,4 @@ for old,new in changes:
  after=after.replace(old,new)
 output.mkdir(parents=True,exist_ok=True);p=output/'lib_sql_budget.cc'
 if not p.exists() or p.read_text()!=after:p.write_text(after)
-(output/'result-budget-adapter.json').write_text(json.dumps({'source':str(source),'originalSha256':hashlib.sha256(before.encode()).hexdigest(),'generatedSha256':hashlib.sha256(after.encode()).hexdigest(),'resultBlockBudgetBytes':16*1024*1024,'rowBudget':10000},indent=2)+'\n')
+(output/'result-budget-adapter.json').write_text(json.dumps({'source':str(source),'originalSha256':hashlib.sha256(before.encode()).hexdigest(),'generatedSha256':hashlib.sha256(after.encode()).hexdigest(),'resultBlockBudgetBytes':16*1024*1024,'rowBudget':10000,'partialErrorResultCleanup':'free_rows releases result MEM_ROOT and envelope'},indent=2)+'\n')
