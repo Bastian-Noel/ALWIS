@@ -32,12 +32,12 @@ jobs:
           npm run editor:build
           npm test
           node scripts/package-studio.mjs
-      - name: Verify the actual static package in Chromium
+      - name: Verify the actual static package in Chromium and Firefox
         run: |
           mkdir -p build-work/php
           npm install --prefix build-work/php --no-package-lock --ignore-scripts playwright@1.64.1
-          build-work/php/node_modules/.bin/playwright install --with-deps --only-shell chromium
-          node tests/browser/site-package.mjs chromium
+          build-work/php/node_modules/.bin/playwright install --with-deps --only-shell chromium firefox
+          node tests/browser/site-package.mjs
       - name: Retain the static package even if FTP is unavailable
         uses: actions/upload-artifact@v4
         with:

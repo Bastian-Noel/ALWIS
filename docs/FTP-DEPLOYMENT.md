@@ -2,7 +2,7 @@
 
 Workflow : **Build static studio and publish FTP** (`.github/workflows/publish-ftp.yml`). Lancement manuel depuis Actions → workflow → Run workflow, ou publication de la branche `studio-deploy`.
 
-Le job installe les dépendances npm épinglées, construit les éditeurs, vérifie les tests Node, assemble le site statique et l'ouvre réellement dans Chromium avant l'envoi FTP. Le module PHP/MariaDB provient du dernier build natif validé, conservé sur la branche `studio-native-runtime`. Son hash et les empreintes des sources C doivent correspondre ; une modification native oblige à recompiler/valider avant publication. Ce job court ne prétend pas recompiler MariaDB à chaque publication d'interface.
+Le job installe les dépendances npm épinglées, construit les éditeurs, vérifie les tests Node, assemble le site statique et l'ouvre réellement dans Chromium et Firefox avant l'envoi FTP. Le module PHP/MariaDB provient du dernier build natif validé, conservé sur la branche `studio-native-runtime`. Son hash et les empreintes des sources C doivent correspondre ; une modification native oblige à recompiler/valider avant publication. Ce job court ne prétend pas recompiler MariaDB à chaque publication d'interface.
 
 ## Configuration
 
