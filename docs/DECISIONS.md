@@ -1,6 +1,6 @@
 # Décisions et expériences à mener
 
-> Cadrage actualisé : voir [l’objectif actif](EXECUTION.md). N fenêtres avec sessions indépendantes ou partagées ; WASM unique PHP/MariaDB comme cible principale ; SQL à la demande et déchargement évalué sur mesures. Les scénarios à deux joueurs ci-dessous sont des tests, pas une limite produit.
+> Cadrage actualisé : voir [l’objectif actif](EXECUTION.md). N fenêtres avec sessions indépendantes ou partagées ; WASM unique PHP/MariaDB comme cible principale ; SQL à la demande, conservé jusqu'à la sauvegarde ou la fermeture. Les scénarios à deux joueurs ci-dessous sont des tests, pas une limite produit.
 
 Les décisions de périmètre viennent des demandes utilisateur ; les choix d'implémentation restent à valider par le témoin natif. Voir [le contexte](CONTEXTE.md) pour la chronologie.
 
@@ -10,6 +10,7 @@ Les décisions de périmètre viennent des demandes utilisateur ; les choix d'im
 | Compatibilité | PDO + MySQLi compilés, backend SQL commun | Types, erreurs, prepared, transactions, références PHP |
 | MySQLi | Extension Zend C directe sur l’API embarquée commune, implémentée ; compléter sa compatibilité par inventaire | Fixtures natives et matrice de conformité ; ne pas annoncer la compatibilité complète |
 | Moteurs | Une instance PHP et une MariaDB par projet actif | Verrou, génération, arrêt/reprise |
+| Cycle SQL | PHP seul → activation native PDO/MySQLi/console → PHP + MariaDB ; après arrêt, nouveau WASM, aucun rejeu automatique de requête PHP | [Décision et limites](CYCLE-MOTEUR.md) ; démarrage initial et récupération déjà vérifiés, sélecteur de préchauffage non implémenté |
 | HTTP | Service Worker routeur, studio propriétaire des Workers | Headers, formulaires, redirections, cookies et sessions |
 | Fenêtres clientes | N fenêtres, sessions virtuelles indépendantes ou partagées, même base | Deux joueurs + console sont un scénario, pas une limite ; valider rattachement et déconnexion arbitraires |
 | Connexions | Propriétaires distincts PHP/console | Fin d'une requête sans fermer la console |

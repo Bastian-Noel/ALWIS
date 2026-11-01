@@ -18,7 +18,7 @@ Une étape n'est close qu'avec des tests réels, des commandes reproductibles, d
 ### Sous-lots à traiter au jalon correspondant
 
 - **4 :** modèle de propriétaire par requête/console, rollback et nettoyage ciblés, file bornée, résultats typés, contrôles des buffers, pont C sans JSON/base64.
-- **5 :** MySQLi procédural/objet et prepared, taille de résultat, `mysql_store_result`, profil 16/32/64 Mio, pthreads, stop SQL à chaud seulement si gain navigateur mesuré.
+- **5 :** MySQLi procédural/objet et prepared, taille de résultat, `mysql_store_result`, profil 16/32/64 Mio, pthreads ; [cycle simplifié](CYCLE-MOTEUR.md) : activation SQL au besoin puis nouveau WASM après arrêt, sans redémarrage SQL à chaud.
 - **6 :** HTTP CGI réel et Service Worker, isolation de cookie jar virtuel / origine / sous-domaines à comparer, options de stockage IDBFS/OPFS avec crash recovery, grille SQL paginée et diagramme introspecté.
 - **Après prototype :** accès direct aux dossiers PC, réseau entre appareils, WordPress étendu. Pas de compatibilité affirmée sans test.
 

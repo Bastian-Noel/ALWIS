@@ -261,8 +261,9 @@ async function updateEngine() {
   const state=await hub.runtime.state(),label=$('#engine-state');
   label.dataset.linearMemoryBytes=state.linearMemoryBytes;
   label.dataset.allocatorUsedBytes=state.allocatorUsedBytes??'';
-  label.textContent=`SQL ${state.sqlStarted?'actif':'arrêté'} · ${state.allocatorUsedBytes===null?'':`tas occupé ${(state.allocatorUsedBytes/1048576).toFixed(0)} Mio · `}capacité WASM ${(state.linearMemoryBytes/1048576).toFixed(0)} Mio`;
-  label.title='Le tas occupé et la capacité WASM sont distincts de la RAM résidente du navigateur.';
+  const sqlStatus={dormant:'à la demande',running:'actif',stopped:'arrêté — nouveau moteur requis',failed:'en échec — nouveau moteur requis'}[state.sqlPhase]??(state.sqlStarted?'actif':'à la demande');
+  label.textContent=`SQL ${sqlStatus} · ${state.allocatorUsedBytes===null?'':`tas occupé ${(state.allocatorUsedBytes/1048576).toFixed(0)} Mio · `}capacité WASM ${(state.linearMemoryBytes/1048576).toFixed(0)} Mio`;
+  label.title='MariaDB démarre au premier besoin PDO MySQL, MySQLi ou console SQL et reste active jusqu’à la sauvegarde ou la fermeture. Le tas occupé et la capacité WASM sont distincts de la RAM résidente du navigateur.';
 }
 async function openProject() {
   const key = $('#project').value; if (!/^[A-Za-z0-9_-]{1,64}$/.test(key)) throw Error('Nom de projet : lettres, chiffres, tirets et underscore, 64 caractères maximum.');
