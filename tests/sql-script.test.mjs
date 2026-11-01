@@ -1,0 +1,9 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {splitSQL,encodeSQLScript} from '../apps/studio/sql-script.mjs';
+test('SQL script preserves quotes, escaped/doubled delimiters and comments',()=>{assert.deepEqual(splitSQL("SELECT 'a;b', 'it''s;ok', `semi;name`; -- ; ignored\nSELECT 2; # ; comment\n/* ; */ SELECT 3;"),["SELECT 'a;b', 'it''s;ok', `semi;name`","-- ; ignored\nSELECT 2","# ; comment\n/* ; */ SELECT 3"]);});
+test('MySQL DELIMITER scripts preserve routine bodies',()=>{const sql='-- import\nDELIMITER $$\nCREATE PROCEDURE example() BEGIN SELECT \'$$\'; SELECT 2; END$$\nDELIMITER ;\nCALL example();';const result=splitSQL(sql);assert.equal(result.length,2);assert.match(result[0],/SELECT 2; END$/);assert.equal(result[1],'CALL example()');});
+test('SQL lexer refuses incomplete input and excessive scripts before execution',()=>{for(const sql of ["SELECT 'missing",'SELECT 1; /* missing','SELECT 1\nDELIMITER $$'])assert.throws(()=>splitSQL(sql));assert.throws(()=>splitSQL('SELECT 1;SELECT 2',{maxStatements:1}));assert.deepEqual(splitSQL('-- only comment'),[]);});
+test('Import length framing preserves Unicode and embedded newlines',()=>{const data=encodeSQLScript(["SELECT 'été'",'SELECT 2']),view=new DataView(data.buffer),size=view.getUint32(0,true);assert.equal(new TextDecoder().decode(data.subarray(4,4+size)),"SELECT 'été'");assert.equal(new TextDecoder().decode(data.subarray(8+size)),'SELECT 2');});
+
+test('SQL import preserves executable mysqldump comments',()=>assert.deepEqual(splitSQL('/*!40101 SET NAMES utf8mb4 */; /*M!100100 SET @a=1 */;'),['/*!40101 SET NAMES utf8mb4 */','/*M!100100 SET @a=1 */']));
+
+test('Native SQL routine scripts retain compound statements without DELIMITER',()=>{const routine="CREATE PROCEDURE p() BEGIN IF (1) THEN SELECT IF(1, 'END;', 'x'); END IF; SELECT CASE WHEN 1 THEN 2 END; END";assert.deepEqual(splitSQL(routine+'; CALL p();'),[routine,'CALL p()']);});

@@ -25,7 +25,7 @@ EMSCRIPTEN_KEEPALIVE int pbl_console_open(const char *database)
     if(!console) {
         console=pbl_mysql_init_owner(0);
         if(!console) return fail(pbl_mysql_last_error(),2002,"HY000");
-        if(!mysql_real_connect(console,NULL,"root","",NULL,0,NULL,0)) {
+        if(!mysql_real_connect(console,NULL,"root","",NULL,0,NULL,CLIENT_MULTI_RESULTS)) {
             fail(mysql_error(console),mysql_errno(console),mysql_sqlstate(console)); pbl_mysql_close(console); console=NULL; return 0;
         }
         mysql_set_character_set(console,"utf8mb4");
@@ -64,12 +64,9 @@ static unsigned field_kind(MYSQL_FIELD *field)
         default:return 1;
     }
 }
-EMSCRIPTEN_KEEPALIVE uint8_t *pbl_console_query(const char *sql,size_t length)
+static uint8_t *console_result(void)
 {
-    error_code=0; error_text[0]=0; error_state[0]=0; frame=NULL; used=capacity=frame_length=0;
-    if(!console) { fail("Console is closed",2006,"HY000"); return NULL; }
-    if(length>8u*1024u*1024u) { fail("SQL request exceeds byte limit",0,"HY001"); return NULL; }
-    if(mysql_real_query(console,sql,length)) { fail(mysql_error(console),mysql_errno(console),mysql_sqlstate(console)); return NULL; }
+    error_code=0;error_text[0]=error_state[0]=0;frame=NULL;used=capacity=frame_length=0;
     MYSQL_RES *result=mysql_store_result(console);
     if(!result && mysql_field_count(console)) { fail(mysql_error(console),mysql_errno(console),mysql_sqlstate(console)); return NULL; }
     unsigned columns=result?mysql_num_fields(result):0, rows=0;
@@ -95,4 +92,19 @@ EMSCRIPTEN_KEEPALIVE uint8_t *pbl_console_query(const char *sql,size_t length)
 limit:
     if(result) mysql_free_result(result);
     fail("Console result frame exceeds row/byte limit",0,"HY001"); return NULL;
+}
+
+EMSCRIPTEN_KEEPALIVE uint8_t *pbl_console_query(const char *sql,size_t length)
+{
+ if(!console){fail("Console is closed",2006,"HY000");return NULL;}
+ if(length>8u*1024u*1024u){fail("SQL request exceeds byte limit",0,"HY001");return NULL;}
+ if(mysql_real_query(console,sql,length)){fail(mysql_error(console),mysql_errno(console),mysql_sqlstate(console));return NULL;}
+ return console_result();
+}
+EMSCRIPTEN_KEEPALIVE int pbl_console_more_results(void){return console&&mysql_more_results(console);}
+EMSCRIPTEN_KEEPALIVE uint8_t *pbl_console_next_result(void)
+{
+ if(!console){fail("Console is closed",2006,"HY000");return NULL;}
+ int rc=mysql_next_result(console);if(rc!=0){fail(rc<0?"No more SQL results":mysql_error(console),mysql_errno(console),mysql_sqlstate(console));return NULL;}
+ return console_result();
 }

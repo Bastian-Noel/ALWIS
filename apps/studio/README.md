@@ -3,6 +3,8 @@
 Démarrage après compilation du target `pbl-runtime` :
 
 ```sh
+npm ci
+npm run editor:build
 node scripts/serve-studio.mjs
 ```
 
@@ -10,7 +12,7 @@ Pour un hébergement statique ou un paquet de test autonome, suivre [DEPLOYMENT.
 
 Le serveur de développement fournit uniquement les ressources statiques, les en-têtes COOP/COEP et le module compilé. PHP et MariaDB s'exécutent dans le navigateur. Le studio possède un Worker moteur par projet ; le Service Worker route les requêtes des fenêtres vers ce propriétaire. Fermer le studio coupe donc le service des clients.
 
-La [première interface structurée](../../docs/INTERFACE-STUDIO.md) sépare Code, SQL et données, Schéma, Clients, Ressources et Journal. Les onglets se parcourent au clavier. Le journal local conserve au plus 200 événements bornés, erreurs PHP/SQL et requêtes HTTP, sans corps, cookies ni paramètres d'URL ; il s'exporte en JSON. Un bandeau conserve la dernière erreur avec une piste de récupération jusqu'à sa fermeture explicite. Le textarea reste l'éditeur provisoire ; CodeMirror et les services de langage sont annoncés comme à intégrer.
+La [première interface structurée](../../docs/INTERFACE-STUDIO.md) sépare Code, SQL et données, Schéma, Clients, Ressources et Journal. Les onglets se parcourent au clavier. Le journal local conserve au plus 200 événements bornés, erreurs PHP/SQL et requêtes HTTP, sans corps, cookies ni paramètres d'URL ; il s'exporte en JSON. Un bandeau conserve la dernière erreur avec une piste de récupération jusqu'à sa fermeture explicite. Les [éditeurs CodeMirror et leurs services](editor/README.md) sont maintenant intégrés : PHP LSP Rust/WASM, SuperHTML et SWC avec définitions jQuery internes. La complétion PHP ne lance aucun interpréteur PHP supplémentaire.
 
 Ouvrir un projet, charger l'exemple scolaire dans un projet vide, puis ouvrir plusieurs fenêtres. « Fenêtre dans cette session » partage les cookies/PHPSESSID ; « Nouveau client indépendant » crée une identité distincte. Toutes utilisent la même base. Les requêtes PHP sont sérialisées dans la file bornée du moteur.
 

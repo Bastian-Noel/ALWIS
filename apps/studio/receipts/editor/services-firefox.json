@@ -1,0 +1,762 @@
+{
+  "browser": "firefox",
+  "version": "157.0",
+  "passed": true,
+  "editorUTF8Quota": true,
+  "jquery": [
+    {
+      "label": "add",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.add(selector: JQuery.Selector, context: Element): JQuery<HTMLElement> (+1 overload)"
+    },
+    {
+      "label": "addBack",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.addBack(selector?: JQuery.Selector): JQuery<HTMLElement>"
+    },
+    {
+      "label": "addClass",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.addClass(className_function: JQuery<TElement = HTMLElement>.TypeOrArray<string> | ((this: HTMLElement, index: number, currentClassName: string) => string)): JQuery<...>"
+    },
+    {
+      "label": "after",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.after(...contents: Array<JQuery.htmlString | JQuery.TypeOrArray<JQuery.Node | JQuery<JQuery.Node>>>): JQuery<HTMLElement> (+1 overload)"
+    },
+    {
+      "label": "ajaxComplete",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.ajaxComplete(handler: (this: Document, event: JQuery.TriggeredEvent<Document, undefined, Document, Document>, jqXHR: JQuery.jqXHR, ajaxOptions: JQuery.AjaxSettings) => void | false): JQuery<...>"
+    },
+    {
+      "label": "ajaxError",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.ajaxError(handler: (this: Document, event: JQuery.TriggeredEvent<Document, undefined, Document, Document>, jqXHR: JQuery.jqXHR, ajaxSettings: JQuery.AjaxSettings, thrownError: string) => void | false): JQuery<...>"
+    },
+    {
+      "label": "ajaxSend",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.ajaxSend(handler: (this: Document, event: JQuery.TriggeredEvent<Document, undefined, Document, Document>, jqXHR: JQuery.jqXHR, ajaxOptions: JQuery.AjaxSettings) => void | false): JQuery<...>"
+    },
+    {
+      "label": "ajaxStart",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.ajaxStart(handler: (this: Document) => void | false): JQuery<HTMLElement>"
+    },
+    {
+      "label": "ajaxStop",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.ajaxStop(handler: (this: Document) => void | false): JQuery<HTMLElement>"
+    },
+    {
+      "label": "ajaxSuccess",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.ajaxSuccess(handler: (this: Document, event: JQuery.TriggeredEvent<Document, undefined, Document, Document>, jqXHR: JQuery.jqXHR, ajaxOptions: JQuery.AjaxSettings, data: JQuery.PlainObject) => void | false): JQuery<...>"
+    },
+    {
+      "label": "animate",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.animate(properties: JQuery.PlainObject, duration: JQuery.Duration, easing: string, complete?: (this: HTMLElement) => void): JQuery<HTMLElement> (+3 overloads)"
+    },
+    {
+      "label": "append",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.append(...contents: Array<JQuery.htmlString | JQuery.TypeOrArray<JQuery.Node | JQuery<JQuery.Node>>>): JQuery<HTMLElement> (+1 overload)"
+    },
+    {
+      "label": "appendTo",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.appendTo(target: JQuery.Selector | JQuery.htmlString | JQuery.TypeOrArray<Element | DocumentFragment> | JQuery): JQuery<HTMLElement>"
+    },
+    {
+      "label": "attr",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.attr(attributeName: string, value_function: string | number | ((this: HTMLElement, index: number, attr: string) => string | number | void | undefined)): JQuery<HTMLElement> (+2 overloads)"
+    },
+    {
+      "label": "before",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.before(...contents: Array<JQuery.htmlString | JQuery.TypeOrArray<JQuery.Node | JQuery<JQuery.Node>>>): JQuery<HTMLElement> (+1 overload)"
+    },
+    {
+      "label": "children",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.children<K>(selector: K): JQuery<HTMLElementTagNameMap[K]> (+2 overloads)"
+    },
+    {
+      "label": "clearQueue",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.clearQueue(queueName?: string): JQuery<HTMLElement>"
+    },
+    {
+      "label": "clone",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.clone(withDataAndEvents?: boolean, deepWithDataAndEvents?: boolean): JQuery<HTMLElement>"
+    },
+    {
+      "label": "closest",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.closest<K>(selector: K, context: Element): JQuery<HTMLElementTagNameMap[K]> (+6 overloads)"
+    },
+    {
+      "label": "contents",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.contents(): JQuery<HTMLElement | Text | Comment | Document>"
+    },
+    {
+      "label": "css",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.css(propertyName: string, value_function: string | number | ((this: HTMLElement, index: number, value: string) => string | number | void | undefined)): JQuery<HTMLElement> (+3 overloads)"
+    },
+    {
+      "label": "data",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.data(key: string, value: string | number | boolean | symbol | object | null): JQuery<HTMLElement> (+4 overloads)"
+    },
+    {
+      "label": "delay",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.delay(duration: JQuery.Duration, queueName?: string): JQuery<HTMLElement>"
+    },
+    {
+      "label": "dequeue",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.dequeue(queueName?: string): JQuery<HTMLElement>"
+    },
+    {
+      "label": "detach",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.detach(selector?: JQuery.Selector): JQuery<HTMLElement>"
+    },
+    {
+      "label": "each",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.each(funсtion: (this: HTMLElement, index: number, element: HTMLElement) => void | false): JQuery<HTMLElement>"
+    },
+    {
+      "label": "empty",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.empty(): JQuery<HTMLElement>"
+    },
+    {
+      "label": "end",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.end(): JQuery<HTMLElement>"
+    },
+    {
+      "label": "eq",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.eq(index: number): JQuery<HTMLElement>"
+    },
+    {
+      "label": "even",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.even(): JQuery<HTMLElement>"
+    },
+    {
+      "label": "extend",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.extend(obj: object): JQuery<HTMLElement>"
+    },
+    {
+      "label": "fadeIn",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.fadeIn(duration: JQuery.Duration, easing: string, complete?: (this: HTMLElement) => void): JQuery<HTMLElement> (+2 overloads)"
+    },
+    {
+      "label": "fadeOut",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.fadeOut(duration: JQuery.Duration, easing: string, complete?: (this: HTMLElement) => void): JQuery<HTMLElement> (+2 overloads)"
+    },
+    {
+      "label": "fadeTo",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.fadeTo(duration: JQuery.Duration, opacity: number, easing: string, complete?: (this: HTMLElement) => void): JQuery<HTMLElement> (+1 overload)"
+    },
+    {
+      "label": "fadeToggle",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.fadeToggle(duration: JQuery.Duration, easing: string, complete?: (this: HTMLElement) => void): JQuery<HTMLElement> (+2 overloads)"
+    },
+    {
+      "label": "filter",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.filter(selector_elements_selection_function: string | JQuery<HTMLElement> | JQuery<TElement = HTMLElement>.TypeOrArray<Element> | ((this: HTMLElement, index: number, element: HTMLElement) => boolean)): JQuery<...>"
+    },
+    {
+      "label": "find",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.find<K>(selector_element: K | JQuery<K>): JQuery<HTMLElementTagNameMap[K]> (+3 overloads)"
+    },
+    {
+      "label": "finish",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.finish(queue?: string): JQuery<HTMLElement>"
+    },
+    {
+      "label": "first",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.first(): JQuery<HTMLElement>"
+    },
+    {
+      "label": "get",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.get(index: number): HTMLElement (+1 overload)"
+    },
+    {
+      "label": "has",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.has(selector_contained: string | Element): JQuery<HTMLElement>"
+    },
+    {
+      "label": "hasClass",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.hasClass(className: string): boolean"
+    },
+    {
+      "label": "height",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.height(value_function: string | number | ((this: HTMLElement, index: number, height: number) => string | number)): JQuery<HTMLElement> (+1 overload)"
+    },
+    {
+      "label": "hide",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.hide(duration: JQuery.Duration, easing: string, complete: (this: HTMLElement) => void): JQuery<HTMLElement> (+2 overloads)"
+    },
+    {
+      "label": "html",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.html(htmlString_function: string | JQuery<TElement = HTMLElement>.Node | ((this: HTMLElement, index: number, oldhtml: JQuery.htmlString) => JQuery.htmlString | JQuery.Node)): JQuery<...> (+1 overload)"
+    },
+    {
+      "label": "index",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.index(selector_element?: JQuery.Selector | Element | JQuery): number"
+    },
+    {
+      "label": "innerHeight",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.innerHeight(value_function: string | number | ((this: HTMLElement, index: number, height: number) => string | number)): JQuery<HTMLElement> (+1 overload)"
+    },
+    {
+      "label": "innerWidth",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.innerWidth(value_function: string | number | ((this: HTMLElement, index: number, width: number) => string | number)): JQuery<HTMLElement> (+1 overload)"
+    },
+    {
+      "label": "insertAfter",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.insertAfter(target: JQuery.Selector | JQuery.htmlString | JQuery.TypeOrArray<Node> | JQuery<Node>): JQuery<HTMLElement>"
+    },
+    {
+      "label": "insertBefore",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.insertBefore(target: JQuery.Selector | JQuery.htmlString | JQuery.TypeOrArray<Node> | JQuery<Node>): JQuery<HTMLElement>"
+    },
+    {
+      "label": "is",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.is(selector_function_selection_elements: string | JQuery<HTMLElement> | JQuery<TElement = HTMLElement>.TypeOrArray<Element> | ((this: HTMLElement, index: number, element: HTMLElement) => boolean)): boolean"
+    },
+    {
+      "label": "jquery",
+      "type": "property",
+      "detail": "(property) JQuery<HTMLElement>.jquery: string"
+    },
+    {
+      "label": "last",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.last(): JQuery<HTMLElement>"
+    },
+    {
+      "label": "length",
+      "type": "property",
+      "detail": "(property) JQuery<HTMLElement>.length: number"
+    },
+    {
+      "label": "load",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.load(url: string, data: string | JQuery.PlainObject, complete: (this: HTMLElement, responseText: string, textStatus: JQuery.Ajax.TextStatus, jqXHR: JQuery.jqXHR) => void): JQuery<...> (+1 overload)"
+    },
+    {
+      "label": "map",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.map<TReturn>(callback: (this: HTMLElement, index: number, domElement: HTMLElement) => JQuery<TElement = HTMLElement>.TypeOrArray<TReturn>): JQuery<...>"
+    },
+    {
+      "label": "next",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.next<K>(selector: K): JQuery<HTMLElementTagNameMap[K]> (+2 overloads)"
+    },
+    {
+      "label": "nextAll",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.nextAll<K>(selector: K): JQuery<HTMLElementTagNameMap[K]> (+2 overloads)"
+    },
+    {
+      "label": "nextUntil",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.nextUntil<K>(selector_element: JQuery.Selector | Element | JQuery, filter: K): JQuery<HTMLElementTagNameMap[K]> (+2 overloads)"
+    },
+    {
+      "label": "not",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.not(selector_function_selection: string | JQuery<HTMLElement> | JQuery<TElement = HTMLElement>.TypeOrArray<Element> | ((this: HTMLElement, index: number, element: HTMLElement) => boolean)): JQuery<...>"
+    },
+    {
+      "label": "odd",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.odd(): JQuery<HTMLElement>"
+    },
+    {
+      "label": "off",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.off<TType>(events: TType, selector: JQuery.Selector, handler: false | JQuery<TElement = HTMLElement>.TypeEventHandler<HTMLElement, any, any, any, TType>): JQuery<...> (+3 overloads)"
+    },
+    {
+      "label": "offset",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.offset(coordinates_function: JQuery<TElement = HTMLElement>.CoordinatesPartial | ((this: HTMLElement, index: number, coords: JQuery.Coordinates) => JQuery.CoordinatesPartial)): JQuery<...> (+1 overload)"
+    },
+    {
+      "label": "offsetParent",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.offsetParent(): JQuery"
+    },
+    {
+      "label": "on",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.on<TType, TData>(events: TType, selector: JQuery.Selector, data: TData, handler: JQuery<TElement = HTMLElement>.TypeEventHandler<HTMLElement, TData, any, any, TType>): JQuery<...> (+12 overloads)"
+    },
+    {
+      "label": "one",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.one<TType, TData>(events: TType, selector: JQuery.Selector, data: TData, handler: JQuery<TElement = HTMLElement>.TypeEventHandler<HTMLElement, TData, any, any, TType>): JQuery<...> (+9 overloads)"
+    },
+    {
+      "label": "outerHeight",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.outerHeight(value_function: string | number | ((this: HTMLElement, index: number, height: number) => string | number), includeMargin?: boolean): JQuery<HTMLElement> (+1 overload)"
+    },
+    {
+      "label": "outerWidth",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.outerWidth(value_function: string | number | ((this: HTMLElement, index: number, width: number) => string | number), includeMargin?: boolean): JQuery<HTMLElement> (+1 overload)"
+    },
+    {
+      "label": "parent",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.parent<K>(selector: K): JQuery<HTMLElementTagNameMap[K]> (+2 overloads)"
+    },
+    {
+      "label": "parents",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.parents<K>(selector: K | JQuery<K>): JQuery<HTMLElementTagNameMap[K]> (+2 overloads)"
+    },
+    {
+      "label": "parentsUntil",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.parentsUntil<K>(selector_element: JQuery.Selector | Element | JQuery, filter: K): JQuery<HTMLElementTagNameMap[K]> (+2 overloads)"
+    },
+    {
+      "label": "position",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.position(): JQuery.Coordinates"
+    },
+    {
+      "label": "prepend",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.prepend(...contents: Array<JQuery.htmlString | JQuery.TypeOrArray<JQuery.Node | JQuery<JQuery.Node>>>): JQuery<HTMLElement> (+1 overload)"
+    },
+    {
+      "label": "prependTo",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.prependTo(target: JQuery.Selector | JQuery.htmlString | JQuery.TypeOrArray<Element | DocumentFragment> | JQuery): JQuery<HTMLElement>"
+    },
+    {
+      "label": "prev",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.prev<K>(selector: K): JQuery<HTMLElementTagNameMap[K]> (+2 overloads)"
+    },
+    {
+      "label": "prevAll",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.prevAll<K>(selector: K): JQuery<HTMLElementTagNameMap[K]> (+2 overloads)"
+    },
+    {
+      "label": "prevUntil",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.prevUntil<K>(selector_element: JQuery.Selector | Element | JQuery, filter: K): JQuery<HTMLElementTagNameMap[K]> (+2 overloads)"
+    },
+    {
+      "label": "promise",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.promise<T>(type: string, target: T): T & JQuery<TElement = HTMLElement>.Promise<JQuery<HTMLElement>, any, any> (+2 overloads)"
+    },
+    {
+      "label": "prop",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.prop(propertyName: string, value_function: string | number | boolean | symbol | object | ((this: HTMLElement, index: number, oldPropertyValue: any) => any)): JQuery<...> (+2 overloads)"
+    },
+    {
+      "label": "pushStack",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.pushStack(elements: ArrayLike<Element>, name: string, args: any[]): JQuery<HTMLElement> (+1 overload)"
+    },
+    {
+      "label": "queue",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.queue(queueName: string, newQueue: JQuery.TypeOrArray<JQuery<TElement = HTMLElement>.QueueFunction<HTMLElement>>): JQuery<HTMLElement> (+2 overloads)"
+    },
+    {
+      "label": "remove",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.remove(selector?: string): JQuery<HTMLElement>"
+    },
+    {
+      "label": "removeAttr",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.removeAttr(attributeName: string): JQuery<HTMLElement>"
+    },
+    {
+      "label": "removeClass",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.removeClass(className_function?: JQuery<TElement = HTMLElement>.TypeOrArray<string> | ((this: HTMLElement, index: number, className: string) => string)): JQuery<...>"
+    },
+    {
+      "label": "removeData",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.removeData(name?: JQuery.TypeOrArray<string>): JQuery<HTMLElement>"
+    },
+    {
+      "label": "removeProp",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.removeProp(propertyName: string): JQuery<HTMLElement>"
+    },
+    {
+      "label": "replaceAll",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.replaceAll(target: JQuery.Selector | JQuery | JQuery.TypeOrArray<Element>): JQuery<HTMLElement>"
+    },
+    {
+      "label": "replaceWith",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.replaceWith(newContent_function: string | Element | Text | Comment | Document | DocumentFragment | JQuery<JQuery<TElement = HTMLElement>.Node> | Element[] | ((this: HTMLElement, index: number, oldhtml: JQuery.htmlString) => JQuery.htmlString | JQuery<JQuery.Node> | JQuery.TypeOrArray<Element> | JQuery.Node)): JQuery<...>"
+    },
+    {
+      "label": "scrollLeft",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.scrollLeft(value: number): JQuery<HTMLElement> (+1 overload)"
+    },
+    {
+      "label": "scrollTop",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.scrollTop(value: number): JQuery<HTMLElement> (+1 overload)"
+    },
+    {
+      "label": "serialize",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.serialize(): string"
+    },
+    {
+      "label": "serializeArray",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.serializeArray(): JQuery.NameValuePair[]"
+    },
+    {
+      "label": "show",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.show(duration: JQuery.Duration, easing: string, complete: (this: HTMLElement) => void): JQuery<HTMLElement> (+2 overloads)"
+    },
+    {
+      "label": "siblings",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.siblings<K>(selector: K): JQuery<HTMLElementTagNameMap[K]> (+2 overloads)"
+    },
+    {
+      "label": "slice",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.slice(start: number, end?: number): JQuery<HTMLElement>"
+    },
+    {
+      "label": "slideDown",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.slideDown(duration: JQuery.Duration, easing: string, complete?: (this: HTMLElement) => void): JQuery<HTMLElement> (+2 overloads)"
+    },
+    {
+      "label": "slideToggle",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.slideToggle(duration: JQuery.Duration, easing: string, complete?: (this: HTMLElement) => void): JQuery<HTMLElement> (+2 overloads)"
+    },
+    {
+      "label": "slideUp",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.slideUp(duration: JQuery.Duration, easing: string, complete?: (this: HTMLElement) => void): JQuery<HTMLElement> (+2 overloads)"
+    },
+    {
+      "label": "stop",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.stop(queue: string, clearQueue?: boolean, jumpToEnd?: boolean): JQuery<HTMLElement> (+1 overload)"
+    },
+    {
+      "label": "text",
+      "type": "function",
+      "detail": "(method) JQuery<HTMLElement>.text(text_function: string | number | boolean | ((this: HTMLElement, index: number, text: string) => string | number | boolean)): JQuery<HTMLElement> (+1 overload)"
+    }
+  ],
+  "javascriptDiagnostics": [
+    {
+      "from": 6,
+      "to": 7,
+      "severity": "error",
+      "message": "Variable declaration expected."
+    }
+  ],
+  "swcLinearMemoryBytes": 3211264,
+  "projectDefinitionsOverride": true,
+  "php": {
+    "capabilities": {
+      "textDocumentSync": 1,
+      "completionProvider": {
+        "triggerCharacters": [
+          ">",
+          ":",
+          "$",
+          "\\"
+        ],
+        "resolveProvider": true
+      },
+      "hoverProvider": true,
+      "definitionProvider": true,
+      "documentHighlightProvider": true,
+      "renameProvider": true,
+      "signatureHelpProvider": {
+        "triggerCharacters": [
+          "(",
+          ","
+        ]
+      }
+    },
+    "diagnostics": [],
+    "linearMemoryBytes": 12320768,
+    "completion": [
+      {
+        "label": "beginTransaction()",
+        "type": "function",
+        "detail": "bool",
+        "apply": "beginTransaction()"
+      },
+      {
+        "label": "commit()",
+        "type": "function",
+        "detail": "bool",
+        "apply": "commit()"
+      },
+      {
+        "label": "connect($dsn, $username = ..., $password = ..., $options = ...)",
+        "type": "function",
+        "detail": "static",
+        "apply": "connect($dsn, $username = ..., $password = ..., $options = ...)"
+      },
+      {
+        "label": "errorCode()",
+        "type": "function",
+        "detail": "?string",
+        "apply": "errorCode()"
+      },
+      {
+        "label": "errorInfo()",
+        "type": "function",
+        "detail": "array<b>",
+        "apply": "errorInfo()"
+      },
+      {
+        "label": "exec($statement)",
+        "type": "function",
+        "detail": "int|false",
+        "apply": "exec($statement)"
+      },
+      {
+        "label": "getAttribute($attribute)",
+        "type": "function",
+        "detail": "mixed",
+        "apply": "getAttribute($attribute)"
+      },
+      {
+        "label": "getAvailableDrivers()",
+        "type": "function",
+        "detail": "array<b>",
+        "apply": "getAvailableDrivers()"
+      },
+      {
+        "label": "inTransaction()",
+        "type": "function",
+        "detail": "bool",
+        "apply": "inTransaction()"
+      },
+      {
+        "label": "lastInsertId($name = ...)",
+        "type": "function",
+        "detail": "string|false",
+        "apply": "lastInsertId($name = ...)"
+      },
+      {
+        "label": "pgsqlCopyFromArray($tableName, $rows, $separator = ..., $nullAs = ..., $fields = ...)",
+        "type": "function",
+        "detail": "bool",
+        "apply": "pgsqlCopyFromArray($tableName, $rows, $separator = ..., $nullAs = ..., $fields = ...)"
+      },
+      {
+        "label": "pgsqlCopyFromFile($tableName, $filename, $separator = ..., $nullAs = ..., $fields = ...)",
+        "type": "function",
+        "detail": "bool",
+        "apply": "pgsqlCopyFromFile($tableName, $filename, $separator = ..., $nullAs = ..., $fields = ...)"
+      },
+      {
+        "label": "pgsqlCopyToArray($tableName, $separator = ..., $nullAs = ..., $fields = ...)",
+        "type": "function",
+        "detail": "array|false",
+        "apply": "pgsqlCopyToArray($tableName, $separator = ..., $nullAs = ..., $fields = ...)"
+      },
+      {
+        "label": "pgsqlCopyToFile($tableName, $filename, $separator = ..., $nullAs = ..., $fields = ...)",
+        "type": "function",
+        "detail": "bool",
+        "apply": "pgsqlCopyToFile($tableName, $filename, $separator = ..., $nullAs = ..., $fields = ...)"
+      },
+      {
+        "label": "pgsqlGetNotify($fetchMode = ..., $timeoutMilliseconds = ...)",
+        "type": "function",
+        "detail": "array|false",
+        "apply": "pgsqlGetNotify($fetchMode = ..., $timeoutMilliseconds = ...)"
+      },
+      {
+        "label": "pgsqlGetPid()",
+        "type": "function",
+        "detail": "int",
+        "apply": "pgsqlGetPid()"
+      },
+      {
+        "label": "pgsqlLOBCreate()",
+        "type": "function",
+        "detail": "string|false",
+        "apply": "pgsqlLOBCreate()"
+      },
+      {
+        "label": "pgsqlLOBOpen($oid, $mode = ...)",
+        "type": "function",
+        "detail": "resource|false",
+        "apply": "pgsqlLOBOpen($oid, $mode = ...)"
+      },
+      {
+        "label": "pgsqlLOBUnlink($oid)",
+        "type": "function",
+        "detail": "bool",
+        "apply": "pgsqlLOBUnlink($oid)"
+      },
+      {
+        "label": "prepare($query, $options = ...)",
+        "type": "function",
+        "detail": "PDOStatement|false",
+        "apply": "prepare($query, $options = ...)"
+      },
+      {
+        "label": "query($query, $fetchMode = ..., ...$fetchModeArgs, $fetch_mode_args = ...)",
+        "type": "function",
+        "detail": "PDOStatement|false",
+        "apply": "query($query, $fetchMode = ..., ...$fetchModeArgs, $fetch_mode_args = ...)"
+      },
+      {
+        "label": "quote($string, $type = ...)",
+        "type": "function",
+        "detail": "string|false",
+        "apply": "quote($string, $type = ...)"
+      },
+      {
+        "label": "rollBack()",
+        "type": "function",
+        "detail": "bool",
+        "apply": "rollBack()"
+      },
+      {
+        "label": "setAttribute($attribute, $value)",
+        "type": "function",
+        "detail": "bool",
+        "apply": "setAttribute($attribute, $value)"
+      },
+      {
+        "label": "sqliteCreateAggregate($function_name, $step_func, $finalize_func, $num_args = ...)",
+        "type": "function",
+        "detail": "bool",
+        "apply": "sqliteCreateAggregate($function_name, $step_func, $finalize_func, $num_args = ...)"
+      },
+      {
+        "label": "sqliteCreateCollation($name, $callback)",
+        "type": "function",
+        "detail": "bool",
+        "apply": "sqliteCreateCollation($name, $callback)"
+      },
+      {
+        "label": "sqliteCreateFunction($function_name, $callback, $num_args = ..., $flags = ...)",
+        "type": "function",
+        "detail": "bool",
+        "apply": "sqliteCreateFunction($function_name, $callback, $num_args = ..., $flags = ...)"
+      },
+      {
+        "label": "__sleep()",
+        "type": "function",
+        "detail": "",
+        "apply": "__sleep()"
+      },
+      {
+        "label": "__wakeup()",
+        "type": "function",
+        "detail": "",
+        "apply": "__wakeup()"
+      }
+    ],
+    "linearMemoryAfterCompletionBytes": 22478848,
+    "projectClassCompletion": true
+  },
+  "html": {
+    "capabilities": {
+      "positionEncoding": "utf-16",
+      "textDocumentSync": {
+        "openClose": true,
+        "change": 1
+      },
+      "completionProvider": {
+        "triggerCharacters": [
+          "<",
+          "/",
+          " ",
+          "\n",
+          "'",
+          "\"",
+          "=",
+          ",",
+          "-"
+        ]
+      },
+      "hoverProvider": true,
+      "referencesProvider": true,
+      "documentHighlightProvider": true,
+      "codeActionProvider": true,
+      "documentFormattingProvider": true,
+      "renameProvider": {
+        "prepareProvider": true
+      },
+      "linkedEditingRangeProvider": true
+    },
+    "diagnostics": [
+      {
+        "from": 63,
+        "to": 66,
+        "severity": "error",
+        "message": "missing end tag"
+      }
+    ],
+    "linearMemoryBytes": 17760256
+  }
+}

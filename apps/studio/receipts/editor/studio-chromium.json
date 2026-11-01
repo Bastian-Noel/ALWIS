@@ -1,0 +1,32 @@
+{
+  "browser": "chromium",
+  "version": "156.0.8078.4",
+  "passed": true,
+  "project": "studio-a77d9382-f301-4ee7-aedb-8d777aebfaf6",
+  "windowCount": 4,
+  "sessionCount": 3,
+  "checks": [
+    "shared/independent PHP sessions",
+    "shared SQL",
+    "virtual cookies/storage",
+    "POST",
+    "redirect",
+    "multipart upload",
+    "SQL cell editing",
+    "server pagination",
+    "NULL/binary editing",
+    "BIGINT/DECIMAL grid fidelity",
+    "concurrent edit refusal",
+    "structure and indexes",
+    "insert/delete row form",
+    "schema and FK column introspection",
+    "create foreign key from catalog",
+    "tool unload/restore",
+    "project save/reopen",
+    "logical SQL export/restore in a distinct project",
+    "dependent views",
+    "function/procedure/trigger preservation",
+    "geometry/BIT preservation"
+  ],
+  "wasmSha256": "f9cadc7e93df0f80c60783a02d26d3318b0d973ad1e6d85c4436a45b9d8cf2de"
+}

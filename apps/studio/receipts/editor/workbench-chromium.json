@@ -1,0 +1,18 @@
+{
+  "passed": true,
+  "browser": "chromium",
+  "version": "156.0.8078.4",
+  "checks": [
+    "CodeMirror file creation/write/rename/delete",
+    "jQuery semantic completion without runtime injection",
+    "internal types absent from files and actual exported ZIP",
+    "unload and draft restore",
+    "search panel",
+    "SQL script and routine multiple results",
+    "real catalog completion",
+    "320/768/1440 no page overflow",
+    "external PHP file write conflict preserves draft",
+    "binary refusal preserves previous document"
+  ],
+  "pageErrors": []
+}

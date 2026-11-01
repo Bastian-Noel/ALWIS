@@ -9,12 +9,24 @@ helper='''/* WASM prototype result budget: conservative MEM_ROOT block forecast.
  * This matches the pinned my_alloc.c (256-byte blocks, <=16-byte alignment).
  * It bounds collected result blocks, not every server working allocation.
  */
-static bool pbl_result_room(MEM_ROOT *root, size_t length)
+static bool pbl_result_room(THD *thd, MEM_ROOT *root, size_t length, bool next_row=false)
 {
   const size_t limit=16U*1024U*1024U;
   if (length>limit) return false;
   const size_t aligned=MY_ALIGN(length,16)+64;
-  size_t allocated=0; bool fits=false;
+  size_t allocated=0; bool fits=false; my_ulonglong rows=0; unsigned sets=0;
+  for (MYSQL_DATA *data=thd->first_data;data;data=data->embedded_info->next) {
+    if (++sets>32 || data->rows>10000-rows) return false;
+    rows+=data->rows;
+    if (&data->alloc==root) continue;
+    for (USED_MEM *block=data->alloc.free;block;block=block->next) {
+      if (block->size>limit-allocated) return false; allocated+=block->size;
+    }
+    for (USED_MEM *block=data->alloc.used;block;block=block->next) {
+      if (block->size>limit-allocated) return false; allocated+=block->size;
+    }
+  }
+  if (next_row && rows>=10000) return false;
   for (USED_MEM *block=root->free;block;block=block->next) {
     if (block->size>limit-allocated) return false;
     allocated+=block->size; if (block->left>=aligned) fits=true;
@@ -38,6 +50,25 @@ static bool pbl_result_limit_error()
 
 '''
 changes=[
+('  if (!skip_check)\n    result= thd->is_error() ? -1 : 0;', """  if (!skip_check) {
+    result= thd->is_error() ? -1 : 0;
+    /* COM_INIT_DB / CHANGE_USER / admin errors have no text result reader
+       to transfer their diagnostics. Preserve the real server error. */
+    if (thd->is_error()) {
+      net->last_errno= thd->get_stmt_da()->sql_errno();
+      strmake_buf(net->last_error, thd->get_stmt_da()->message());
+      memcpy(net->sqlstate,thd->get_stmt_da()->get_sqlstate(),sizeof(net->sqlstate));
+    }
+  }"""),
+('MYSQL_DATA *THD::alloc_new_dataset()\n{', """MYSQL_DATA *THD::alloc_new_dataset()
+{
+  unsigned pbl_sets=0;
+  for (MYSQL_DATA *data=first_data;data;data=data->embedded_info->next) {
+    if (++pbl_sets>=32) {
+      my_printf_error(ER_OUT_OF_RESOURCES,"WASM result exceeds 32 result-set budget",MYF(0));
+      return NULL;
+    }
+  }"""),
 ('#include "../sql/mysqld.cc"', '#include '+json.dumps(str((source.parent/'../sql/mysqld.cc').resolve()))),
 ('  mysql->server_status= ei->server_status;\n  my_free(data);', '''  mysql->server_status= ei->server_status;
   /* Errors may follow a partially collected bounded result. The upstream
@@ -46,13 +77,13 @@ changes=[
   free_rows(data);'''),
 ('bool Protocol::write()\n{',helper+'bool Protocol::write()\n{'),
 ('  *next_field= 0;\n  return false;', '  if (thd->cur_data && thd->cur_data->rows>10000) return pbl_result_limit_error();\n  *next_field= 0;\n  return false;'),
-('  data->rows++;\n  if (!(cur= (MYSQL_ROWS *)alloc_root(alloc,\n                                      sizeof(MYSQL_ROWS)+packet->length())))', '  if (data->rows>=10000 || !pbl_result_room(alloc,sizeof(MYSQL_ROWS)+packet->length())) return pbl_result_limit_error();\n  data->rows++;\n  if (!(cur= (MYSQL_ROWS *)alloc_root(alloc,\n                                      sizeof(MYSQL_ROWS)+packet->length())))'),
-('  if (!(field_buf= (char*) alloc_root(alloc, length + sizeof(uint) + 1)))', '  if (thd->cur_data->rows>10000 || !pbl_result_room(alloc,length+sizeof(uint)+1)) return pbl_result_limit_error();\n  if (!(field_buf= (char*) alloc_root(alloc, length + sizeof(uint) + 1)))'),
-('  if (!(field_buf= (char*) alloc_root(alloc, conv_length + sizeof(uint) + 1)))', '  if (thd->cur_data->rows>10000 || !pbl_result_room(alloc,conv_length+sizeof(uint)+1)) return pbl_result_limit_error();\n  if (!(field_buf= (char*) alloc_root(alloc, conv_length + sizeof(uint) + 1)))')
+('  data->rows++;\n  if (!(cur= (MYSQL_ROWS *)alloc_root(alloc,\n                                      sizeof(MYSQL_ROWS)+packet->length())))', '  if (data->rows>=10000 || !pbl_result_room(thd,alloc,sizeof(MYSQL_ROWS)+packet->length(),true)) return pbl_result_limit_error();\n  data->rows++;\n  if (!(cur= (MYSQL_ROWS *)alloc_root(alloc,\n                                      sizeof(MYSQL_ROWS)+packet->length())))'),
+('  if (!(field_buf= (char*) alloc_root(alloc, length + sizeof(uint) + 1)))', '  if (thd->cur_data->rows>10000 || !pbl_result_room(thd,alloc,length+sizeof(uint)+1)) return pbl_result_limit_error();\n  if (!(field_buf= (char*) alloc_root(alloc, length + sizeof(uint) + 1)))'),
+('  if (!(field_buf= (char*) alloc_root(alloc, conv_length + sizeof(uint) + 1)))', '  if (thd->cur_data->rows>10000 || !pbl_result_room(thd,alloc,conv_length+sizeof(uint)+1)) return pbl_result_limit_error();\n  if (!(field_buf= (char*) alloc_root(alloc, conv_length + sizeof(uint) + 1)))')
 ]
 for old,new in changes:
  if after.count(old)!=1:raise SystemExit('Embedded result adapter anchor changed: '+old[:100])
  after=after.replace(old,new)
 output.mkdir(parents=True,exist_ok=True);p=output/'lib_sql_budget.cc'
 if not p.exists() or p.read_text()!=after:p.write_text(after)
-(output/'result-budget-adapter.json').write_text(json.dumps({'source':str(source),'originalSha256':hashlib.sha256(before.encode()).hexdigest(),'generatedSha256':hashlib.sha256(after.encode()).hexdigest(),'resultBlockBudgetBytes':16*1024*1024,'rowBudget':10000,'partialErrorResultCleanup':'free_rows releases result MEM_ROOT and envelope'},indent=2)+'\n')
+(output/'result-budget-adapter.json').write_text(json.dumps({'source':str(source),'originalSha256':hashlib.sha256(before.encode()).hexdigest(),'generatedSha256':hashlib.sha256(after.encode()).hexdigest(),'resultBlockBudgetBytes':16*1024*1024,'rowBudget':10000,'queuedResultSets':32,'aggregateQueuedResultBudgetBytes':16*1024*1024,'partialErrorResultCleanup':'free_rows releases result MEM_ROOT and envelope'},indent=2)+'\n')

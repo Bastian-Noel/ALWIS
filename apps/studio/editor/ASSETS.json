@@ -1,0 +1,48 @@
+{
+  "sources": {
+    "phpLsp": "https://github.com/PHPantom-dev/phpantom_lsp/releases/tag/0.11.1",
+    "superhtml": "https://github.com/kristoff-it/superhtml/releases/tag/v0.7.1"
+  },
+  "files": [
+    {
+      "name": "THIRD-PARTY.txt",
+      "bytes": 40655,
+      "sha256": "cfc77f7fcc8a3807d9bb56bba5273f3440e12b9726d18e2650143f0ce509c0e8"
+    },
+    {
+      "name": "codemirror.mjs",
+      "bytes": 710732,
+      "sha256": "05c7db3cfb0512869968d08f8500f9130e4b8f858c696d1c20f978e984b0906b"
+    },
+    {
+      "name": "definitions.json",
+      "bytes": 3575366,
+      "sha256": "5ace2d9103eb38bfdc5ea9953348a2468f5a398b62c927aa647433b645f50ba1"
+    },
+    {
+      "name": "javascript-worker.mjs",
+      "bytes": 3576268,
+      "sha256": "79dfa6a1a25a12e5cd081cf4c98ab8ea43970410291f5c7998afcef0296ad8b9"
+    },
+    {
+      "name": "lsp-worker.mjs",
+      "bytes": 30749,
+      "sha256": "99f77c5dbca5c8bdfb1bcae489cb18ea1dbf64d14e472fac05fe4e692cd701f8"
+    },
+    {
+      "name": "php-lsp.wasm",
+      "bytes": 17424132,
+      "sha256": "b591013fd512d0f5b815a0074f9646a4742a8af4b90173ff617215356e8444c0"
+    },
+    {
+      "name": "superhtml.wasm",
+      "bytes": 1526976,
+      "sha256": "0685b2bcb16db99bdb5383be6d38f1cb1039f1c92a6599ebae662e2f59bcd5a5"
+    },
+    {
+      "name": "swc.wasm",
+      "bytes": 18029480,
+      "sha256": "6f5bdba732587254a2e5b563380a3195bf42791ac44953f2318d70054e86b8d4"
+    }
+  ]
+}

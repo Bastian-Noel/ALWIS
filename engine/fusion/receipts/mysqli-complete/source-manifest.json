@@ -1,0 +1,73 @@
+{
+  "base": "d9be0ec06980c315af9eeae379b83a3edc3db0dc",
+  "scope": "106 registered entry points, native additions and explicit policies. Browser regression receipts identify the same C binary; editor-specific worker/file protections have separate targeted browser checks.",
+  "files": [
+    {
+      "path": "packages/php-native/src/mysqli.c",
+      "bytes": 89110,
+      "sha256": "e2ac6e4e0af4deca180d96e2e55c188376122b03a4ed9b66859cb7e30317a68f"
+    },
+    {
+      "path": "packages/php-native/src/mysqli-extended.c",
+      "bytes": 15712,
+      "sha256": "b5b92905ef3ade87c6c0e7b48b4ab7fbe92756c5745c0d2dc870b5afc11588da"
+    },
+    {
+      "path": "packages/php-native/src/module.c",
+      "bytes": 4091,
+      "sha256": "fdae713d6577d413fba765f50c2d724e37b2d2041144980845dfc2dc2588e268"
+    },
+    {
+      "path": "packages/sql-native/src/console.c",
+      "bytes": 5729,
+      "sha256": "5e3140dda641fc7c6a1bad32e7539e5d874ae00f17fbdb47d2bb0748a2531b8a"
+    },
+    {
+      "path": "packages/runtime/src/native-worker.mjs",
+      "bytes": 17162,
+      "sha256": "425daa8e893b856dd9927b1d278ce67d54d879c59675356d9c6fe550e51b7746"
+    },
+    {
+      "path": "packages/runtime/src/native-runtime.mjs",
+      "bytes": 3645,
+      "sha256": "3df35ae812541577c9f63e2901001cef77950eed6aff29c6a1c0fb61ca3dccc5"
+    },
+    {
+      "path": "scripts/prepare-native-result-budget.py",
+      "bytes": 5432,
+      "sha256": "b45b7eddd593223580295771c90c9ad877f017ab273f6edfb0c2661904387b35"
+    },
+    {
+      "path": "engine/fusion/spike/runtime-target.cmake",
+      "bytes": 4744,
+      "sha256": "33b52a755b222c1089c9fb53b9d6f35c1cffde2b7583f5bddfe73d75703153b2"
+    },
+    {
+      "path": "scripts/inventory-mysqli.py",
+      "bytes": 1667,
+      "sha256": "4475611201fe7712dfe2c26161637400363a23bfc7507238462eb8d4675eca9c"
+    },
+    {
+      "path": "fixtures/compatibility/mysqli-complete.php",
+      "bytes": 7312,
+      "sha256": "447c244f33cde1a23fbe815ff03e9729e3c818f0ac2c57ed291a5b023ddf03b2"
+    },
+    {
+      "path": "tests/browser/mysqli-complete.mjs",
+      "bytes": 2504,
+      "sha256": "0498c43925ef016ca508cbb7bcb6992defb743b4390a48cdcb4da5b06d12fc7f"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "build-work/bridge/.native-build/engine/wasm/runtime-dist/pbl-runtime.mjs",
+      "bytes": 469394,
+      "sha256": "5c68631f5096743a5958452dbf84b4d6e3b6420fefcebed732027e956cffd8ad"
+    },
+    {
+      "path": "build-work/bridge/.native-build/engine/wasm/runtime-dist/pbl-runtime.wasm",
+      "bytes": 38249873,
+      "sha256": "f9cadc7e93df0f80c60783a02d26d3318b0d973ad1e6d85c4436a45b9d8cf2de"
+    }
+  ]
+}

@@ -146,7 +146,15 @@ async function dispatch(message) {
   if (!module || poisoned) throw Error(poisoned ? 'Native runtime is poisoned; discard it' : 'Runtime is not initialized');
   switch (message.operation) {
     case 'write': {
-      const data = bytes(message.data); const pointer = module._malloc(data.byteLength || 1);
+      const data = bytes(message.data);
+      if('expected' in message){
+        if(message.expected!==null&&typeof message.expected!=='string')throw Error('Invalid expected file content');
+        const filename=path(message.path),exists=module.FS.analyzePath(filename).exists;
+        const equal=(a,b)=>a.length===b.length&&a.every((value,index)=>value===b[index]);
+        if(message.expected===null&&exists)throw Error('Ce fichier existe déjà. Chargez-le avant de l’écrire.');
+        if(message.expected!==null){if(!exists)throw Error('Le fichier a été supprimé. Choisissez un nouveau chemin.');const current=module.FS.readFile(filename);if(!equal(current,bytes(message.expected))&&!equal(current,data))throw Error('Le fichier a changé dans le projet. Rechargez-le avant de l’écraser.');}
+      }
+      const pointer = module._malloc(data.byteLength || 1);
       if (!pointer) throw Error('Native allocation failed');
       try {
         module.HEAPU8.set(data, pointer);
@@ -163,6 +171,7 @@ async function dispatch(message) {
     case 'stat': { const info = module.FS.stat(message.path === '/workspace' ? '/workspace' : path(message.path)); return { directory: module.FS.isDir(info.mode), size: info.size }; }
     case 'list': return module.FS.readdir(message.path === '/workspace' ? '/workspace' : path(message.path));
     case 'remove': case 'rename': {
+      if(message.operation==='rename'&&message.exclusive&&module.FS.analyzePath(path(message.target)).exists)throw Error('Ce fichier existe déjà. Choisissez un autre chemin.');
       const status = message.operation === 'remove'
         ? await module.ccall('pbl_fs_remove', 'number', ['string'], [path(message.path)], { async: true })
         : await module.ccall('pbl_fs_rename', 'number', ['string', 'string'], [path(message.path), path(message.target)], { async: true });
@@ -188,6 +197,26 @@ async function dispatch(message) {
         if (!result) throw Object.assign(new Error(module.UTF8ToString(module._pbl_console_error())), { sqlstate: module.UTF8ToString(module._pbl_console_sqlstate()), errno: module._pbl_console_errno() });
         return decodeSqlFrame(module.HEAPU8.slice(result, result + module._pbl_console_length()));
       } finally { if (result) module._free(result); module._free(allocation); }
+    }
+    case 'sqlScript': {
+      if(!Array.isArray(message.statements)||!message.statements.length||message.statements.length>256||message.statements.some(s=>typeof s!=='string'||s.includes('\0')))throw Error('SQL script requires 1–256 statements without null bytes');
+      if(message.database!==undefined&&(typeof message.database!=='string'||message.database.includes('\0')))throw Error('Invalid database');
+      const results=[];let transferred=0,totalRows=0,completed=0;
+      const failure=()=>Object.assign(Error(module.UTF8ToString(module._pbl_console_error())),{errno:module._pbl_console_errno(),sqlstate:module.UTF8ToString(module._pbl_console_sqlstate())});
+      if(!await module.ccall('pbl_console_open','number',['string'],[message.database??''],{async:true}))throw failure();
+      try{
+        for(const statement of message.statements){
+          const sql=bytes(statement),allocation=module._malloc(sql.length||1);if(!allocation)throw Error('SQL input allocation failed');let pointer=0;
+          try{
+            module.HEAPU8.set(sql,allocation);pointer=await module.ccall('pbl_console_query','number',['number','number'],[allocation,sql.length],{async:true});
+            for(;;){if(!pointer)throw failure();const length=module._pbl_console_length();if(transferred+length>16*1024*1024||results.length>=256)throw Error('Script result exceeds 16 MiB / 256 result sets');transferred+=length;
+              const result=decodeSqlFrame(module.HEAPU8.slice(pointer,pointer+length));totalRows+=result.rows.length;if(totalRows>10000)throw Error('Script result exceeds 10000 rows');results.push(result);module._free(pointer);pointer=0;
+              if(!module._pbl_console_more_results())break;pointer=await module.ccall('pbl_console_next_result','number',[],[],{async:true});
+            }
+          }finally{if(pointer)module._free(pointer);module._free(allocation);}completed++;
+        }
+        return results;
+      }catch(error){await module.ccall('pbl_console_close',null,[],[],{async:true});throw Object.assign(Error(`Script interrompu après ${completed} instruction(s). Les instructions déjà validées peuvent être appliquées. ${error.message}`),{errno:error.errno,sqlstate:error.sqlstate});}
     }
     case 'state': return state();
     case 'stopSQL': { const status = await module.ccall('pbl_mysql_stop', 'number', [], [], { async: true }); if (status !== 0) throw Error('SQL has active connections'); return state(); }

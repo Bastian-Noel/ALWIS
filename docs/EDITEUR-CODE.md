@@ -1,6 +1,6 @@
 # Édition du code web — orientation retenue
 
-Recommandation explicite de l'utilisateur, enregistrée le 31 octobre 2026. Elle complète l'objectif actif ; le studio actuel utilise encore un textarea et ne doit pas être présenté comme ayant déjà ces services.
+Recommandation explicite de l’utilisateur, enregistrée le 31 octobre 2026. Le [prototype intégré du 1 novembre](../apps/studio/editor/README.md) utilise CodeMirror 6, PHPantom LSP en Rust/WASI, SuperHTML et SWC avec un service TypeScript pour les définitions jQuery. La complétion PHP ne doit jamais nécessiter un interpréteur PHP supplémentaire. Les paragraphes suivants conservent les exigences et la méthode de validation ; leur état actuel est dans le reçu lié.
 
 ## Composants demandés
 
@@ -39,4 +39,4 @@ Au déchargement, conserver texte, sélection, position et état utile, puis lib
 5. Vérifier les documents PHP/HTML avec CSS et JS intégrés, les changements rapides de fichier et les analyses annulées.
 6. Mesurer édition seule, services actifs, déchargement et restauration. Choisir les réglages avec ces résultats.
 
-L'orientation est enregistrée ; l'intégration CodeMirror/LSP/WASM et la complétion jQuery restent à implémenter et à valider.
+La première intégration et la complétion jQuery ont maintenant leurs preuves navigateur. Les diagnostics PHP sémantiques complets, l’endurance et une matrice approfondie des documents mixtes restent à finaliser.

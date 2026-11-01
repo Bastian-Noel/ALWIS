@@ -17,10 +17,16 @@
 static zend_class_entry *connection_ce, *result_ce, *statement_ce, *sql_exception_ce;
 static zend_object_handlers connection_handlers, result_handlers, statement_handlers;
 static zend_long report_mode = 3;
+static unsigned last_connect_errno, mysqli_links;
+static char last_connect_error[MYSQL_ERRMSG_SIZE];
+static size_t long_data_reserved;
+static zend_class_entry *warning_ce;
 typedef struct native_statement native_statement;
-typedef struct { MYSQL *mysql; native_statement *statements; zend_object std; } native_connection;
-typedef struct { zval rows, fields, metadata; zend_ulong position, field_position; zend_object std; } native_result;
-struct native_statement { MYSQL_STMT *stmt; zval connection, result; zval *outputs; size_t output_count; zval *parameters; char *types; size_t count; native_statement *next; zend_object std; };
+typedef struct native_result native_result;
+static void prepared_cell(zval *,const char *,size_t,enum enum_field_types);
+typedef struct { MYSQL *mysql; HashTable *options; bool native_numbers; native_result *streams; native_statement *statements; zend_object std; } native_connection;
+struct native_result { zval rows, fields, metadata; zend_ulong position, field_position; MYSQL_RES *stream; zval connection; size_t copied_bytes; bool unbuffered, exhausted, cancelled, native_numbers; native_result *next; zend_object std; };
+struct native_statement { MYSQL_STMT *stmt; zval connection, result; zval *outputs; size_t output_count; zval *parameters; char *types; size_t count; native_statement *next; HashTable *long_data; size_t long_bytes; zend_object std; };
 #define CONN(v) ((native_connection *)((char *)Z_OBJ_P(v)-XtOffsetOf(native_connection,std)))
 #define RES(v) ((native_result *)((char *)Z_OBJ_P(v)-XtOffsetOf(native_result,std)))
 #define STMT(v) ((native_statement *)((char *)Z_OBJ_P(v)-XtOffsetOf(native_statement,std)))
@@ -65,10 +71,11 @@ static void connection_info(zval *object)
 }
 static void close_connection(native_connection *connection)
 {
+    for(native_result *result=connection->streams;result;result=result->next){if(result->stream)mysql_free_result(result->stream);result->stream=NULL;result->cancelled=true;}
     for (native_statement *stmt=connection->statements;stmt;stmt=stmt->next) {
         if (stmt->stmt) { pbl_stmt_close(stmt->stmt); stmt->stmt=NULL; }
     }
-    if (connection->mysql) { pbl_mysql_close(connection->mysql); connection->mysql=NULL; }
+    if (connection->mysql) { pbl_mysql_close(connection->mysql); connection->mysql=NULL; if(mysqli_links)mysqli_links--; }
 }
 static zend_object *new_connection(zend_class_entry *ce)
 {
@@ -79,20 +86,26 @@ static zend_object *new_connection(zend_class_entry *ce)
 static void free_connection(zend_object *std)
 {
     native_connection *object=(native_connection *)((char *)std-XtOffsetOf(native_connection,std));
-    close_connection(object); zend_object_std_dtor(std);
+    close_connection(object); if(object->options)zend_array_release(object->options); zend_object_std_dtor(std);
 }
 static zend_object *new_result(zend_class_entry *ce)
 {
     native_result *object=zend_object_alloc(sizeof(*object),ce);
     zend_object_std_init(&object->std,ce); object_properties_init(&object->std,ce);
-    ZVAL_UNDEF(&object->rows); ZVAL_UNDEF(&object->fields); ZVAL_UNDEF(&object->metadata);
+    ZVAL_UNDEF(&object->rows); ZVAL_UNDEF(&object->fields); ZVAL_UNDEF(&object->metadata); ZVAL_UNDEF(&object->connection);
     object->std.handlers=&result_handlers; return &object->std;
 }
 static void clear_result(native_result *object)
 {
+    if(object->stream){mysql_free_result(object->stream);object->stream=NULL;}
+    if(!Z_ISUNDEF(object->connection)){
+        native_result **link=&CONN(&object->connection)->streams;while(*link&&*link!=object)link=&(*link)->next;if(*link)*link=object->next;object->next=NULL;
+        zval_ptr_dtor(&object->connection);ZVAL_UNDEF(&object->connection);
+    }
     zval_ptr_dtor(&object->rows); zval_ptr_dtor(&object->fields); zval_ptr_dtor(&object->metadata);
-    ZVAL_UNDEF(&object->rows); ZVAL_UNDEF(&object->fields); ZVAL_UNDEF(&object->metadata);
+    ZVAL_UNDEF(&object->rows); ZVAL_UNDEF(&object->fields); ZVAL_UNDEF(&object->metadata); ZVAL_UNDEF(&object->connection);
 }
+static HashTable *result_gc(zend_object *std,zval **table,int *count){native_result *object=(native_result*)((char*)std-XtOffsetOf(native_result,std));*table=&object->connection;*count=1;return zend_std_get_properties(std);}
 static void free_result(zend_object *std)
 {
     native_result *object=(native_result *)((char *)std-XtOffsetOf(native_result,std));
@@ -104,8 +117,13 @@ static zend_object *new_statement(zend_class_entry *ce)
     zend_object_std_init(&object->std,ce); object_properties_init(&object->std,ce);
     ZVAL_UNDEF(&object->connection); ZVAL_UNDEF(&object->result); object->std.handlers=&statement_handlers; return &object->std;
 }
+static void clear_long_data(native_statement *object) {
+ if(object->long_data){zend_array_release(object->long_data);object->long_data=NULL;}
+ long_data_reserved-=object->long_bytes;object->long_bytes=0;
+}
 static void clear_parameters(native_statement *object)
 {
+    clear_long_data(object);
     for(size_t i=0;i<object->count;i++) zval_ptr_dtor(&object->parameters[i]);
     if(object->parameters) efree(object->parameters);
     if(object->types) efree(object->types);
@@ -151,15 +169,33 @@ static int connect_object(zval *object,const char *host,const char *user,const c
     if(connection->mysql) { zend_throw_error(NULL,"mysqli object is already connected"); return 0; }
     if(host && strcmp(host,"localhost") && strcmp(host,"127.0.0.1")) { zend_value_error("Only the local embedded SQL host is supported"); return 0; }
     connection->mysql=pbl_mysql_init(NULL);
-    if(!connection->mysql) { sql_error(NULL,NULL); return 0; }
-    if(!mysql_real_connect(connection->mysql,NULL,user?user:"root",password?password:"",database,0,NULL,0)) {
+    if(!connection->mysql) { last_connect_errno=2002;snprintf(last_connect_error,sizeof(last_connect_error),"%s",pbl_mysql_last_error());sql_error(NULL,NULL); return 0; }
+    if(connection->options) {
+        zend_ulong option;zval *value;
+        ZEND_HASH_FOREACH_NUM_KEY_VAL(connection->options,option,value) {
+            if(option==MYSQL_INIT_COMMAND||option==201)continue;
+            unsigned int number=(unsigned int)zval_get_long(value);
+            if(mysql_options(connection->mysql,(enum mysql_option)option,Z_TYPE_P(value)==IS_STRING?Z_STRVAL_P(value):(char*)&number)) {
+                sql_error(connection->mysql,NULL);pbl_mysql_close(connection->mysql);connection->mysql=NULL;return 0;
+            }
+        } ZEND_HASH_FOREACH_END();
+    }
+    last_connect_errno=0;last_connect_error[0]=0;
+    if(!mysql_real_connect(connection->mysql,NULL,user?user:"root",password?password:"",NULL,0,NULL,CLIENT_MULTI_RESULTS|CLIENT_PS_MULTI_RESULTS) || (database&&mysql_select_db(connection->mysql,database))) {
+        last_connect_errno=mysql_errno(connection->mysql);snprintf(last_connect_error,sizeof(last_connect_error),"%s",mysql_error(connection->mysql));
         zend_update_property_long(connection_ce,Z_OBJ_P(object),"connect_errno",13,mysql_errno(connection->mysql));
         zend_update_property_string(connection_ce,Z_OBJ_P(object),"connect_error",13,mysql_error(connection->mysql));
         sql_error(connection->mysql,NULL); pbl_mysql_close(connection->mysql); connection->mysql=NULL; return 0;
     }
+    zval *command=connection->options?zend_hash_index_find(connection->options,MYSQL_INIT_COMMAND):NULL;
+    if(command){
+        int rc=pbl_mysql_query(connection->mysql,Z_STRVAL_P(command),Z_STRLEN_P(command));
+        if(!rc){do{MYSQL_RES *result=mysql_store_result(connection->mysql);if(result)mysql_free_result(result);if(!mysql_more_results(connection->mysql))break;rc=mysql_next_result(connection->mysql);}while(rc==0);}
+        if(rc>0){sql_error(connection->mysql,NULL);pbl_mysql_close(connection->mysql);connection->mysql=NULL;return 0;}
+    }
     zend_update_property_string(connection_ce,Z_OBJ_P(object),"server_info",11,mysql_get_server_info(connection->mysql));
     zend_update_property_long(connection_ce,Z_OBJ_P(object),"server_version",14,mysql_get_server_version(connection->mysql));
-    connection_info(object); return 1;
+    mysqli_links++;connection_info(object); return 1;
 }
 #define PARSE_CONNECT() \
     char *host=NULL,*user=NULL,*password=NULL,*database=NULL,*socket=NULL; \
@@ -175,7 +211,7 @@ PHP_METHOD(mysqli_sql_exception,getSqlState) { ZEND_PARSE_PARAMETERS_NONE(); zva
 
 static void result_init(zval *value,MYSQL_RES *metadata)
 {
-    object_init_ex(value,result_ce); native_result *result=RES(value);
+    if(Z_TYPE_P(value)!=IS_OBJECT)object_init_ex(value,result_ce); native_result *result=RES(value);
     array_init(&result->rows); array_init(&result->fields); array_init(&result->metadata);
     MYSQL_FIELD *fields=mysql_fetch_fields(metadata);
     for(unsigned i=0;i<mysql_num_fields(metadata);i++) {
@@ -196,32 +232,52 @@ static int result_limit(size_t bytes,size_t rows)
     if(bytes>RESULT_BYTES || rows>=RESULT_ROWS) { zend_throw_exception(sql_exception_ce,"Native result copy limit exceeded",0); return 0; }
     return 1;
 }
-static void query_object(zval *object,const char *sql,size_t length,zval *result)
+static void acquire_result(zval *object,zval *result,int mode)
 {
-    MYSQL *mysql=require_connection(object); if(!mysql) { ZVAL_FALSE(result); return; }
-    if(length>SQL_BYTES) { zend_value_error("SQL exceeds native request byte limit"); ZVAL_FALSE(result); return; }
-    if(pbl_mysql_query(mysql,sql,length)) { connection_info(object); sql_error(mysql,NULL); ZVAL_FALSE(result); return; }
-    connection_info(object);
-    MYSQL_RES *rows=mysql_store_result(mysql);
-    if(!rows) { if(mysql_field_count(mysql)) { sql_error(mysql,NULL); ZVAL_FALSE(result); } else ZVAL_TRUE(result); return; }
-    result_init(result,rows); native_result *data=RES(result); MYSQL_ROW row; size_t total=0,count=0;
+    MYSQL *mysql=require_connection(object);if(!mysql){ZVAL_FALSE(result);return;}
+    MYSQL_RES *rows=mode==1?mysql_use_result(mysql):mysql_store_result(mysql);
+    if(!rows){if(mysql_errno(mysql))sql_error(mysql,NULL);ZVAL_FALSE(result);return;}
+    result_init(result,rows);native_result *data=RES(result);data->native_numbers=CONN(object)->native_numbers;
+    if(mode==1){data->stream=rows;data->unbuffered=true;ZVAL_COPY(&data->connection,object);data->next=CONN(object)->streams;CONN(object)->streams=data;return;}
+    MYSQL_ROW row; size_t total=0,count=0;
     while((row=mysql_fetch_row(rows))) {
         unsigned long *lengths=mysql_fetch_lengths(rows); zval record; array_init(&record);
         for(unsigned i=0;i<mysql_num_fields(rows);i++) {
             total+=row[i]?lengths[i]:0;
             if(!result_limit(total,count)) { zval_ptr_dtor(&record); mysql_free_result(rows); zval_ptr_dtor(result); ZVAL_FALSE(result); return; }
-            if(row[i]) add_next_index_stringl(&record,row[i],lengths[i]); else add_next_index_null(&record);
+            if(row[i]) {if(data->native_numbers)prepared_cell(&record,row[i],lengths[i],mysql_fetch_fields(rows)[i].type);else add_next_index_stringl(&record,row[i],lengths[i]);} else add_next_index_null(&record);
         }
         add_next_index_zval(&data->rows,&record); ++count;
     }
     mysql_free_result(rows); zend_update_property_long(result_ce,Z_OBJ_P(result),"num_rows",8,count);
 }
-PHP_FUNCTION(mysqli_query) { zval *object; char *sql; size_t length; zend_long mode=0; ZEND_PARSE_PARAMETERS_START(2,3) Z_PARAM_OBJECT_OF_CLASS(object,connection_ce) Z_PARAM_STRING(sql,length) Z_PARAM_OPTIONAL Z_PARAM_LONG(mode) ZEND_PARSE_PARAMETERS_END(); if(mode!=0){zend_value_error("Only MYSQLI_STORE_RESULT is supported"); RETURN_THROWS();} query_object(object,sql,length,return_value); }
-PHP_METHOD(mysqli,query) { char *sql; size_t length; zend_long mode=0; ZEND_PARSE_PARAMETERS_START(1,2) Z_PARAM_STRING(sql,length) Z_PARAM_OPTIONAL Z_PARAM_LONG(mode) ZEND_PARSE_PARAMETERS_END(); if(mode!=0){zend_value_error("Only MYSQLI_STORE_RESULT is supported"); RETURN_THROWS();} query_object(ZEND_THIS,sql,length,return_value); }
+static void query_object(zval *object,const char *sql,size_t length,int mode,zval *result)
+{
+ MYSQL *mysql=require_connection(object);if(!mysql){ZVAL_FALSE(result);return;}
+ mysql_set_server_option(mysql,MYSQL_OPTION_MULTI_STATEMENTS_OFF);
+ if(pbl_mysql_query(mysql,sql,length)){connection_info(object);sql_error(mysql,NULL);ZVAL_FALSE(result);return;}
+ connection_info(object);if(!mysql_field_count(mysql)){ZVAL_TRUE(result);return;}acquire_result(object,result,mode);
+}
+
+PHP_FUNCTION(mysqli_query) { zval *object; char *sql; size_t length; zend_long mode=0; ZEND_PARSE_PARAMETERS_START(2,3) Z_PARAM_OBJECT_OF_CLASS(object,connection_ce) Z_PARAM_STRING(sql,length) Z_PARAM_OPTIONAL Z_PARAM_LONG(mode) ZEND_PARSE_PARAMETERS_END(); if(mode!=0&&mode!=1){zend_value_error("Use MYSQLI_STORE_RESULT or MYSQLI_USE_RESULT; async SQL is unavailable in the embedded engine"); RETURN_THROWS();} query_object(object,sql,length,mode,return_value); }
+PHP_METHOD(mysqli,query) { char *sql; size_t length; zend_long mode=0; ZEND_PARSE_PARAMETERS_START(1,2) Z_PARAM_STRING(sql,length) Z_PARAM_OPTIONAL Z_PARAM_LONG(mode) ZEND_PARSE_PARAMETERS_END(); if(mode!=0&&mode!=1){zend_value_error("Use MYSQLI_STORE_RESULT or MYSQLI_USE_RESULT; async SQL is unavailable in the embedded engine"); RETURN_THROWS();} query_object(ZEND_THIS,sql,length,mode,return_value); }
 static void fetch_result(zval *object,zval *output,int assoc)
 {
     native_result *result=RES(object);
     if(Z_ISUNDEF(result->rows)) { zend_throw_error(NULL,"mysqli_result is closed"); ZVAL_NULL(output); return; }
+    if(result->cancelled){zend_throw_error(NULL,"Unbuffered result connection is closed");ZVAL_NULL(output);return;}
+    if(result->unbuffered) {
+        if(result->exhausted){ZVAL_NULL(output);return;}
+        MYSQL_ROW raw=mysql_fetch_row(result->stream);
+        if(!raw){result->exhausted=true;zend_update_property_long(result_ce,Z_OBJ_P(object),"num_rows",8,result->position);ZVAL_NULL(output);return;}
+        unsigned long *lengths=mysql_fetch_lengths(result->stream);zval record;array_init(&record);
+        for(unsigned i=0;i<mysql_num_fields(result->stream);i++){
+            result->copied_bytes+=raw[i]?lengths[i]:0;
+            if(!result_limit(result->copied_bytes,result->position)){zval_ptr_dtor(&record);ZVAL_NULL(output);return;}
+            if(raw[i]){if(result->native_numbers)prepared_cell(&record,raw[i],lengths[i],mysql_fetch_fields(result->stream)[i].type);else add_next_index_stringl(&record,raw[i],lengths[i]);}else add_next_index_null(&record);
+        }
+        zend_hash_clean(Z_ARRVAL(result->rows));zend_hash_index_update(Z_ARRVAL(result->rows),result->position,&record);
+    }
     zval *row=zend_hash_index_find(Z_ARRVAL(result->rows),result->position++);
     if(!row) { ZVAL_NULL(output); return; }
     if(!assoc || assoc==2) { ZVAL_COPY(output,row); return; }
@@ -340,12 +396,18 @@ static int execute_statement(zval *object)
     for(size_t i=0;i<count;i++) {
         zval *value=&data->parameters[i]; ZVAL_DEREF(value);
         bind[i].is_null=&nulls[i]; bind[i].length=&lengths[i];
-        if(Z_TYPE_P(value)==IS_NULL) { nulls[i]=1; bind[i].buffer_type=MYSQL_TYPE_NULL; }
+        if(data->long_data&&zend_hash_index_exists(data->long_data,i)){bind[i].buffer_type=MYSQL_TYPE_BLOB;}
+        else if(Z_TYPE_P(value)==IS_NULL) { nulls[i]=1; bind[i].buffer_type=MYSQL_TYPE_NULL; }
         else if(data->types[i]=='i') { integers[i]=zval_get_long(value); bind[i].buffer_type=MYSQL_TYPE_LONGLONG; bind[i].buffer=&integers[i]; }
         else if(data->types[i]=='d') { numbers[i]=zval_get_double(value); bind[i].buffer_type=MYSQL_TYPE_DOUBLE; bind[i].buffer=&numbers[i]; }
         else { strings[i]=zval_get_string(value); if(EG(exception)){conversion_failed=1;break;} lengths[i]=ZSTR_LEN(strings[i]); bind[i].buffer_type=data->types[i]=='b'?MYSQL_TYPE_BLOB:MYSQL_TYPE_STRING; bind[i].buffer=ZSTR_VAL(strings[i]); bind[i].buffer_length=lengths[i]; }
     }
-    int status=conversion_failed || (count && mysql_stmt_bind_param(stmt,bind)) || mysql_stmt_execute(stmt);
+    int status=conversion_failed || (count && mysql_stmt_bind_param(stmt,bind));
+    if(!status&&data->long_data){zend_ulong index;zval *chunk;ZEND_HASH_FOREACH_NUM_KEY_VAL(data->long_data,index,chunk){
+        if(mysql_stmt_send_long_data(stmt,index,Z_STRVAL_P(chunk),Z_STRLEN_P(chunk))){status=1;break;}
+    }ZEND_HASH_FOREACH_END();}
+    if(!status)status=mysql_stmt_execute(stmt);
+    clear_long_data(data);
     for(size_t i=0;i<count;i++) if(strings[i]) zend_string_release(strings[i]);
     efree(strings); efree(numbers); efree(integers); efree(lengths); efree(nulls); efree(bind);
     connection_info(&data->connection);
@@ -535,7 +597,7 @@ static void all_rows(zval *object,zend_long mode,zval *output)
     if(mode<1 || mode>3) { zend_value_error("Invalid result mode"); ZVAL_FALSE(output); return; }
     array_init(output); native_result *data=RES(object);
     if(Z_ISUNDEF(data->rows)) { zend_throw_error(NULL,"mysqli_result is closed"); return; }
-    while(data->position<zend_hash_num_elements(Z_ARRVAL(data->rows))) { zval row; fetch_result(object,&row,(int)mode); add_next_index_zval(output,&row); }
+    while(data->unbuffered||data->position<zend_hash_num_elements(Z_ARRVAL(data->rows))) { zval row; fetch_result(object,&row,(int)mode); if(EG(exception)){zval_ptr_dtor(&row);return;}if(Z_TYPE(row)==IS_NULL)break;add_next_index_zval(output,&row); }
 }
 PHP_FUNCTION(mysqli_fetch_all) { zval *object; zend_long mode=2; ZEND_PARSE_PARAMETERS_START(1,2) Z_PARAM_OBJECT_OF_CLASS(object,result_ce) Z_PARAM_OPTIONAL Z_PARAM_LONG(mode) ZEND_PARSE_PARAMETERS_END(); all_rows(object,mode,return_value); }
 PHP_METHOD(mysqli_result,fetch_all) { zend_long mode=2; ZEND_PARSE_PARAMETERS_START(0,1) Z_PARAM_OPTIONAL Z_PARAM_LONG(mode) ZEND_PARSE_PARAMETERS_END(); all_rows(ZEND_THIS,mode,return_value); }
@@ -545,12 +607,13 @@ static int seek_result(zval *object,zend_long offset)
 {
     native_result *data=RES(object);
     if(Z_ISUNDEF(data->rows)) { zend_throw_error(NULL,"mysqli_result is closed"); return 0; }
+    if(data->unbuffered){zend_throw_error(NULL,"Cannot seek an unbuffered result");return 0;}
     if(offset<0 || (zend_ulong)offset>=zend_hash_num_elements(Z_ARRVAL(data->rows))) return 0;
     data->position=offset; return 1;
 }
 PHP_FUNCTION(mysqli_data_seek) { zval *object; zend_long offset; ZEND_PARSE_PARAMETERS_START(2,2) Z_PARAM_OBJECT_OF_CLASS(object,result_ce) Z_PARAM_LONG(offset) ZEND_PARSE_PARAMETERS_END(); RETURN_BOOL(seek_result(object,offset)); }
 PHP_METHOD(mysqli_result,data_seek) { zend_long offset; ZEND_PARSE_PARAMETERS_START(1,1) Z_PARAM_LONG(offset) ZEND_PARSE_PARAMETERS_END(); RETURN_BOOL(seek_result(ZEND_THIS,offset)); }
-PHP_FUNCTION(mysqli_num_rows) { zval *object; ZEND_PARSE_PARAMETERS_START(1,1) Z_PARAM_OBJECT_OF_CLASS(object,result_ce) ZEND_PARSE_PARAMETERS_END(); if(Z_ISUNDEF(RES(object)->rows)){zend_throw_error(NULL,"mysqli_result is closed");RETURN_THROWS();} RETURN_LONG(zend_hash_num_elements(Z_ARRVAL(RES(object)->rows))); }
+PHP_FUNCTION(mysqli_num_rows) { zval *object; ZEND_PARSE_PARAMETERS_START(1,1) Z_PARAM_OBJECT_OF_CLASS(object,result_ce) ZEND_PARSE_PARAMETERS_END(); if(Z_ISUNDEF(RES(object)->rows)){zend_throw_error(NULL,"mysqli_result is closed");RETURN_THROWS();} RETURN_LONG(RES(object)->unbuffered?(RES(object)->exhausted?RES(object)->position:0):zend_hash_num_elements(Z_ARRVAL(RES(object)->rows))); }
 
 static void field_object(native_result *data,zend_long index,zval *output)
 {
@@ -612,7 +675,7 @@ static zend_result cursor_valid(zend_object_iterator *iterator) { return Z_TYPE(
 static zval *cursor_current(zend_object_iterator *iterator) { return &((result_cursor*)iterator)->current; }
 static void cursor_key(zend_object_iterator *iterator,zval *output) {ZVAL_LONG(output,((result_cursor*)iterator)->key);}
 static void cursor_next(zend_object_iterator *iterator) {result_cursor *c=(result_cursor*)iterator;zval_ptr_dtor(&c->current);fetch_result(&iterator->data,&c->current,1);c->key++;}
-static void cursor_rewind(zend_object_iterator *iterator) {RES(&iterator->data)->position=0;((result_cursor*)iterator)->key=-1;cursor_next(iterator);}
+static void cursor_rewind(zend_object_iterator *iterator) {if(RES(&iterator->data)->unbuffered&&RES(&iterator->data)->position){zend_throw_error(NULL,"Cannot rewind an unbuffered result");return;}RES(&iterator->data)->position=0;((result_cursor*)iterator)->key=-1;cursor_next(iterator);}
 static HashTable *cursor_gc(zend_object_iterator *iterator,zval **table,int *count) {result_cursor *c=(result_cursor*)iterator;zend_get_gc_buffer *buffer=zend_get_gc_buffer_create();zend_get_gc_buffer_add_zval(buffer,&iterator->data);zend_get_gc_buffer_add_zval(buffer,&c->current);zend_get_gc_buffer_use(buffer,table,count);return NULL;}
 static const zend_object_iterator_funcs cursor_functions={cursor_dtor,cursor_valid,cursor_current,cursor_key,cursor_next,cursor_rewind,NULL,cursor_gc};
 static zend_object_iterator *result_iterator(zend_class_entry *ce,zval *object,int by_ref) {
@@ -624,7 +687,7 @@ PHP_METHOD(mysqli_result,getIterator) {ZEND_PARSE_PARAMETERS_NONE();zend_create_
 static void fetch_column_value(zval *object,zend_long index,zval *output) {
  native_result *data=RES(object);if(Z_ISUNDEF(data->rows)){zend_throw_error(NULL,"mysqli_result is closed");ZVAL_FALSE(output);return;}
  if(index<0||(zend_ulong)index>=zend_hash_num_elements(Z_ARRVAL(data->fields))){zend_value_error("Column offset must refer to an existing field");ZVAL_FALSE(output);return;}
- zval *row=zend_hash_index_find(Z_ARRVAL(data->rows),data->position++);if(!row){ZVAL_FALSE(output);return;}ZVAL_COPY(output,zend_hash_index_find(Z_ARRVAL_P(row),index));
+ zval row;fetch_result(object,&row,0);if(Z_TYPE(row)!=IS_ARRAY){zval_ptr_dtor(&row);ZVAL_FALSE(output);return;}ZVAL_COPY(output,zend_hash_index_find(Z_ARRVAL(row),index));zval_ptr_dtor(&row);
 }
 PHP_FUNCTION(mysqli_fetch_column) {zval *object;zend_long index=0;ZEND_PARSE_PARAMETERS_START(1,2) Z_PARAM_OBJECT_OF_CLASS(object,result_ce) Z_PARAM_OPTIONAL Z_PARAM_LONG(index) ZEND_PARSE_PARAMETERS_END();fetch_column_value(object,index,return_value);}
 PHP_METHOD(mysqli_result,fetch_column) {zend_long index=0;ZEND_PARSE_PARAMETERS_START(0,1) Z_PARAM_OPTIONAL Z_PARAM_LONG(index) ZEND_PARSE_PARAMETERS_END();fetch_column_value(ZEND_THIS,index,return_value);}
@@ -637,7 +700,7 @@ PHP_FUNCTION(mysqli_fetch_lengths) {zval *object;ZEND_PARSE_PARAMETERS_START(1,1
 static void stmt_free_result(zval *object) {MYSQL_STMT *stmt=require_statement(object);if(!stmt)return;mysql_stmt_free_result(stmt);native_statement *data=STMT(object);zval_ptr_dtor(&data->result);ZVAL_UNDEF(&data->result);zend_update_property_long(statement_ce,Z_OBJ_P(object),"num_rows",8,0);}
 PHP_FUNCTION(mysqli_stmt_free_result) {zval *object;ZEND_PARSE_PARAMETERS_START(1,1) Z_PARAM_OBJECT_OF_CLASS(object,statement_ce) ZEND_PARSE_PARAMETERS_END();stmt_free_result(object);}
 PHP_METHOD(mysqli_stmt,free_result) {ZEND_PARSE_PARAMETERS_NONE();stmt_free_result(ZEND_THIS);}
-static int stmt_reset(zval *object) {MYSQL_STMT *stmt=require_statement(object);if(!stmt)return 0;int rc=mysql_stmt_reset(stmt);if(rc)sql_error(NULL,stmt);else stmt_free_result(object);return !rc;}
+static int stmt_reset(zval *object) {MYSQL_STMT *stmt=require_statement(object);if(!stmt)return 0;clear_long_data(STMT(object));int rc=mysql_stmt_reset(stmt);if(rc)sql_error(NULL,stmt);else stmt_free_result(object);return !rc;}
 PHP_FUNCTION(mysqli_stmt_reset) {zval *object;ZEND_PARSE_PARAMETERS_START(1,1) Z_PARAM_OBJECT_OF_CLASS(object,statement_ce) ZEND_PARSE_PARAMETERS_END();RETURN_BOOL(stmt_reset(object));}
 PHP_METHOD(mysqli_stmt,reset) {ZEND_PARSE_PARAMETERS_NONE();RETURN_BOOL(stmt_reset(ZEND_THIS));}
 static void stmt_seek(zval *object,zend_long offset) {zval result;statement_result(object,&result);if(Z_TYPE(result)==IS_OBJECT)seek_result(&result,offset);zval_ptr_dtor(&result);}
@@ -658,6 +721,8 @@ PBL_GETTER(mysqli_get_proto_info,RETURN_LONG(mysql_get_proto_info(m)))
 PBL_GETTER(mysqli_get_host_info,RETURN_STRING(mysql_get_host_info(m)))
 PBL_GETTER(mysqli_info,{const char *info=mysql_info(m);if(info)RETURN_STRING(info);RETURN_NULL();})
 PHP_FUNCTION(mysqli_thread_safe) {ZEND_PARSE_PARAMETERS_NONE();RETURN_BOOL(mysql_thread_safe());}
+#include "mysqli-extended.c"
+
 ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(ai_get_iterator,0,0,Iterator,0) ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO_EX(ai_column,0,0,1) ZEND_ARG_INFO(0,result) ZEND_ARG_INFO(0,column) ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO_EX(ai_method_column,0,0,0) ZEND_ARG_INFO(0,column) ZEND_END_ARG_INFO()
@@ -685,7 +750,104 @@ ZEND_BEGIN_ARG_INFO_EX(ai_bind_output,0,0,2) ZEND_ARG_INFO(0,statement) ZEND_ARG
 ZEND_BEGIN_ARG_INFO_EX(ai_method_bind_output,0,0,1) ZEND_ARG_VARIADIC_INFO(1,vars) ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO_EX(ai_result_mode,0,0,1) ZEND_ARG_INFO(0,result) ZEND_ARG_INFO(0,mode) ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO_EX(ai_method_mode,0,0,0) ZEND_ARG_INFO(0,mode) ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_mysqli_change_user,0,0,4) ZEND_ARG_INFO(0,mysql) ZEND_ARG_INFO(0,username) ZEND_ARG_INFO(0,password) ZEND_ARG_INFO(0,database) ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_method_mysqli_change_user,0,0,3) ZEND_ARG_INFO(0,username) ZEND_ARG_INFO(0,password) ZEND_ARG_INFO(0,database) ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_mysqli_connect_errno,0,0,0)  ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_method_mysqli_connect_errno,0,0,0)  ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_mysqli_connect_error,0,0,0)  ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_method_mysqli_connect_error,0,0,0)  ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_mysqli_debug,0,0,1) ZEND_ARG_INFO(0,options) ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_method_mysqli_debug,0,0,1) ZEND_ARG_INFO(0,options) ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_mysqli_dump_debug_info,0,0,1) ZEND_ARG_INFO(0,mysql) ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_method_mysqli_dump_debug_info,0,0,0)  ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_mysqli_error_list,0,0,1) ZEND_ARG_INFO(0,mysql) ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_method_mysqli_error_list,0,0,0)  ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_mysqli_get_charset,0,0,1) ZEND_ARG_INFO(0,mysql) ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_method_mysqli_get_charset,0,0,0)  ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_mysqli_get_client_stats,0,0,0)  ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_method_mysqli_get_client_stats,0,0,0)  ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_mysqli_get_connection_stats,0,0,1) ZEND_ARG_INFO(0,mysql) ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_method_mysqli_get_connection_stats,0,0,0)  ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_mysqli_get_links_stats,0,0,0)  ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_method_mysqli_get_links_stats,0,0,0)  ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_mysqli_get_warnings,0,0,1) ZEND_ARG_INFO(0,mysql) ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_method_mysqli_get_warnings,0,0,0)  ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_mysqli_kill,0,0,2) ZEND_ARG_INFO(0,mysql) ZEND_ARG_INFO(0,process_id) ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_method_mysqli_kill,0,0,1) ZEND_ARG_INFO(0,process_id) ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_mysqli_more_results,0,0,1) ZEND_ARG_INFO(0,mysql) ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_method_mysqli_more_results,0,0,0)  ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_mysqli_multi_query,0,0,2) ZEND_ARG_INFO(0,mysql) ZEND_ARG_INFO(0,query) ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_method_mysqli_multi_query,0,0,1) ZEND_ARG_INFO(0,query) ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_mysqli_next_result,0,0,1) ZEND_ARG_INFO(0,mysql) ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_method_mysqli_next_result,0,0,0)  ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_mysqli_options,0,0,3) ZEND_ARG_INFO(0,mysql) ZEND_ARG_INFO(0,option) ZEND_ARG_INFO(0,value) ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_method_mysqli_options,0,0,2) ZEND_ARG_INFO(0,option) ZEND_ARG_INFO(0,value) ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_mysqli_poll,0,0,4) ZEND_ARG_INFO(1,read) ZEND_ARG_INFO(1,error) ZEND_ARG_INFO(1,reject) ZEND_ARG_INFO(0,seconds) ZEND_ARG_INFO(0,microseconds) ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_method_mysqli_poll,0,0,4) ZEND_ARG_INFO(1,read) ZEND_ARG_INFO(1,error) ZEND_ARG_INFO(1,reject) ZEND_ARG_INFO(0,seconds) ZEND_ARG_INFO(0,microseconds) ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_mysqli_real_query,0,0,2) ZEND_ARG_INFO(0,mysql) ZEND_ARG_INFO(0,query) ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_method_mysqli_real_query,0,0,1) ZEND_ARG_INFO(0,query) ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_mysqli_reap_async_query,0,0,1) ZEND_ARG_INFO(0,mysql) ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_method_mysqli_reap_async_query,0,0,0)  ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_mysqli_refresh,0,0,2) ZEND_ARG_INFO(0,mysql) ZEND_ARG_INFO(0,flags) ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_method_mysqli_refresh,0,0,1) ZEND_ARG_INFO(0,flags) ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_mysqli_set_opt,0,0,3) ZEND_ARG_INFO(0,mysql) ZEND_ARG_INFO(0,option) ZEND_ARG_INFO(0,value) ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_method_mysqli_set_opt,0,0,2) ZEND_ARG_INFO(0,option) ZEND_ARG_INFO(0,value) ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_mysqli_ssl_set,0,0,6) ZEND_ARG_INFO(0,mysql) ZEND_ARG_INFO(0,key) ZEND_ARG_INFO(0,certificate) ZEND_ARG_INFO(0,ca_certificate) ZEND_ARG_INFO(0,ca_path) ZEND_ARG_INFO(0,cipher_algos) ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_method_mysqli_ssl_set,0,0,5) ZEND_ARG_INFO(0,key) ZEND_ARG_INFO(0,certificate) ZEND_ARG_INFO(0,ca_certificate) ZEND_ARG_INFO(0,ca_path) ZEND_ARG_INFO(0,cipher_algos) ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_mysqli_stat,0,0,1) ZEND_ARG_INFO(0,mysql) ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_method_mysqli_stat,0,0,0)  ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_mysqli_stmt_attr_get,0,0,2) ZEND_ARG_INFO(0,statement) ZEND_ARG_INFO(0,attribute) ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_method_mysqli_stmt_attr_get,0,0,1) ZEND_ARG_INFO(0,attribute) ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_mysqli_stmt_attr_set,0,0,3) ZEND_ARG_INFO(0,statement) ZEND_ARG_INFO(0,attribute) ZEND_ARG_INFO(0,value) ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_method_mysqli_stmt_attr_set,0,0,2) ZEND_ARG_INFO(0,attribute) ZEND_ARG_INFO(0,value) ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_mysqli_stmt_error_list,0,0,1) ZEND_ARG_INFO(0,statement) ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_method_mysqli_stmt_error_list,0,0,0)  ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_mysqli_stmt_get_warnings,0,0,1) ZEND_ARG_INFO(0,statement) ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_method_mysqli_stmt_get_warnings,0,0,0)  ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_mysqli_stmt_more_results,0,0,1) ZEND_ARG_INFO(0,statement) ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_method_mysqli_stmt_more_results,0,0,0)  ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_mysqli_stmt_next_result,0,0,1) ZEND_ARG_INFO(0,statement) ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_method_mysqli_stmt_next_result,0,0,0)  ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_mysqli_stmt_send_long_data,0,0,3) ZEND_ARG_INFO(0,statement) ZEND_ARG_INFO(0,param_num) ZEND_ARG_INFO(0,data) ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_method_mysqli_stmt_send_long_data,0,0,2) ZEND_ARG_INFO(0,param_num) ZEND_ARG_INFO(0,data) ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_mysqli_store_result,0,0,1) ZEND_ARG_INFO(0,mysql) ZEND_ARG_INFO(0,mode) ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_method_mysqli_store_result,0,0,0) ZEND_ARG_INFO(0,mode) ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_mysqli_use_result,0,0,1) ZEND_ARG_INFO(0,mysql) ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_ext_method_mysqli_use_result,0,0,0)  ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(ai_result_construct,0,0,1) ZEND_ARG_INFO(0,mysql) ZEND_ARG_INFO(0,result_mode) ZEND_END_ARG_INFO()
 const zend_function_entry pbl_mysqli_functions[]={
+ PHP_FE(mysqli_change_user,ai_ext_mysqli_change_user)
+ PHP_FE(mysqli_connect_errno,ai_ext_mysqli_connect_errno)
+ PHP_FE(mysqli_connect_error,ai_ext_mysqli_connect_error)
+ PHP_FE(mysqli_debug,ai_ext_mysqli_debug)
+ PHP_FE(mysqli_dump_debug_info,ai_ext_mysqli_dump_debug_info)
+ PHP_FE(mysqli_error_list,ai_ext_mysqli_error_list)
+ PHP_FE(mysqli_get_charset,ai_ext_mysqli_get_charset)
+ PHP_FE(mysqli_get_client_stats,ai_ext_mysqli_get_client_stats)
+ PHP_FE(mysqli_get_connection_stats,ai_ext_mysqli_get_connection_stats)
+ PHP_FE(mysqli_get_links_stats,ai_ext_mysqli_get_links_stats)
+ PHP_FE(mysqli_get_warnings,ai_ext_mysqli_get_warnings)
+ PHP_FE(mysqli_kill,ai_ext_mysqli_kill)
+ PHP_FE(mysqli_more_results,ai_ext_mysqli_more_results)
+ PHP_FE(mysqli_multi_query,ai_ext_mysqli_multi_query)
+ PHP_FE(mysqli_next_result,ai_ext_mysqli_next_result)
+ PHP_FE(mysqli_options,ai_ext_mysqli_options)
+ PHP_FE(mysqli_poll,ai_ext_mysqli_poll)
+ PHP_FE(mysqli_real_query,ai_ext_mysqli_real_query)
+ PHP_FE(mysqli_reap_async_query,ai_ext_mysqli_reap_async_query)
+ PHP_FE(mysqli_refresh,ai_ext_mysqli_refresh)
+ ZEND_FALIAS(mysqli_set_opt,mysqli_options,ai_ext_mysqli_set_opt)
+ PHP_FE(mysqli_ssl_set,ai_ext_mysqli_ssl_set)
+ PHP_FE(mysqli_stat,ai_ext_mysqli_stat)
+ PHP_FE(mysqli_stmt_attr_get,ai_ext_mysqli_stmt_attr_get)
+ PHP_FE(mysqli_stmt_attr_set,ai_ext_mysqli_stmt_attr_set)
+ PHP_FE(mysqli_stmt_error_list,ai_ext_mysqli_stmt_error_list)
+ PHP_FE(mysqli_stmt_get_warnings,ai_ext_mysqli_stmt_get_warnings)
+ PHP_FE(mysqli_stmt_more_results,ai_ext_mysqli_stmt_more_results)
+ PHP_FE(mysqli_stmt_next_result,ai_ext_mysqli_stmt_next_result)
+ PHP_FE(mysqli_stmt_send_long_data,ai_ext_mysqli_stmt_send_long_data)
+ PHP_FE(mysqli_store_result,ai_ext_mysqli_store_result)
+ PHP_FE(mysqli_use_result,ai_ext_mysqli_use_result)
  PHP_FE(mysqli_savepoint,ai_savepoint) PHP_FE(mysqli_release_savepoint,ai_savepoint)
  PHP_FE(mysqli_fetch_object,ai_fetch_object) PHP_FE(mysqli_execute_query,ai_execute_query) PHP_FE(mysqli_stmt_init,ai_stmt_init) PHP_FE(mysqli_stmt_prepare,ai_stmt_prepare)
  PHP_FE(mysqli_fetch_column,ai_column) PHP_FE(mysqli_fetch_lengths,ai_one) PHP_FE(mysqli_num_fields,ai_one) PHP_FE(mysqli_field_seek,ai_two) PHP_FE(mysqli_field_tell,ai_one)
@@ -703,27 +865,61 @@ const zend_function_entry pbl_mysqli_functions[]={
  PHP_FE(mysqli_stmt_close,ai_one) PHP_FE(mysqli_insert_id,ai_one) PHP_FE(mysqli_close,ai_one)
  PHP_FE(mysqli_fetch_assoc,ai_one) PHP_FE(mysqli_fetch_row,ai_one) PHP_FE(mysqli_free_result,ai_one) PHP_FE_END
 };
-static const zend_function_entry connection_methods[]={ PHP_ME(mysqli,savepoint,ai_method_savepoint,ZEND_ACC_PUBLIC) PHP_ME(mysqli,release_savepoint,ai_method_savepoint,ZEND_ACC_PUBLIC) PHP_ME(mysqli,real_connect,ai_method_real_connect,ZEND_ACC_PUBLIC) PHP_ME(mysqli,autocommit,ai_one,ZEND_ACC_PUBLIC) PHP_ME(mysqli,select_db,ai_one,ZEND_ACC_PUBLIC) PHP_ME(mysqli,real_escape_string,ai_one,ZEND_ACC_PUBLIC)
+static const zend_function_entry connection_methods[]={
+ ZEND_ME_MAPPING(change_user,mysqli_change_user,ai_ext_method_mysqli_change_user,ZEND_ACC_PUBLIC)
+ ZEND_ME_MAPPING(debug,mysqli_debug,ai_ext_method_mysqli_debug,ZEND_ACC_PUBLIC)
+ ZEND_ME_MAPPING(dump_debug_info,mysqli_dump_debug_info,ai_ext_method_mysqli_dump_debug_info,ZEND_ACC_PUBLIC)
+ ZEND_ME_MAPPING(error_list,mysqli_error_list,ai_ext_method_mysqli_error_list,ZEND_ACC_PUBLIC)
+ ZEND_ME_MAPPING(get_charset,mysqli_get_charset,ai_ext_method_mysqli_get_charset,ZEND_ACC_PUBLIC)
+ ZEND_ME_MAPPING(get_connection_stats,mysqli_get_connection_stats,ai_ext_method_mysqli_get_connection_stats,ZEND_ACC_PUBLIC)
+ ZEND_ME_MAPPING(get_warnings,mysqli_get_warnings,ai_ext_method_mysqli_get_warnings,ZEND_ACC_PUBLIC)
+ ZEND_ME_MAPPING(kill,mysqli_kill,ai_ext_method_mysqli_kill,ZEND_ACC_PUBLIC)
+ ZEND_ME_MAPPING(more_results,mysqli_more_results,ai_ext_method_mysqli_more_results,ZEND_ACC_PUBLIC)
+ ZEND_ME_MAPPING(multi_query,mysqli_multi_query,ai_ext_method_mysqli_multi_query,ZEND_ACC_PUBLIC)
+ ZEND_ME_MAPPING(next_result,mysqli_next_result,ai_ext_method_mysqli_next_result,ZEND_ACC_PUBLIC)
+ ZEND_ME_MAPPING(options,mysqli_options,ai_ext_method_mysqli_options,ZEND_ACC_PUBLIC)
+ ZEND_ME_MAPPING(poll,mysqli_poll,ai_ext_method_mysqli_poll,ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+ ZEND_ME_MAPPING(real_query,mysqli_real_query,ai_ext_method_mysqli_real_query,ZEND_ACC_PUBLIC)
+ ZEND_ME_MAPPING(reap_async_query,mysqli_reap_async_query,ai_ext_method_mysqli_reap_async_query,ZEND_ACC_PUBLIC)
+ ZEND_ME_MAPPING(refresh,mysqli_refresh,ai_ext_method_mysqli_refresh,ZEND_ACC_PUBLIC)
+ ZEND_ME_MAPPING(set_opt,mysqli_options,ai_ext_method_mysqli_set_opt,ZEND_ACC_PUBLIC)
+ ZEND_ME_MAPPING(ssl_set,mysqli_ssl_set,ai_ext_method_mysqli_ssl_set,ZEND_ACC_PUBLIC)
+ ZEND_ME_MAPPING(stat,mysqli_stat,ai_ext_method_mysqli_stat,ZEND_ACC_PUBLIC)
+ ZEND_ME_MAPPING(store_result,mysqli_store_result,ai_ext_method_mysqli_store_result,ZEND_ACC_PUBLIC)
+ ZEND_ME_MAPPING(use_result,mysqli_use_result,ai_ext_method_mysqli_use_result,ZEND_ACC_PUBLIC)
+ PHP_ME(mysqli,savepoint,ai_method_savepoint,ZEND_ACC_PUBLIC) PHP_ME(mysqli,release_savepoint,ai_method_savepoint,ZEND_ACC_PUBLIC) PHP_ME(mysqli,real_connect,ai_method_real_connect,ZEND_ACC_PUBLIC) PHP_ME(mysqli,autocommit,ai_one,ZEND_ACC_PUBLIC) PHP_ME(mysqli,select_db,ai_one,ZEND_ACC_PUBLIC) PHP_ME(mysqli,real_escape_string,ai_one,ZEND_ACC_PUBLIC)
  PHP_ME(mysqli,execute_query,ai_method_execute_query,ZEND_ACC_PUBLIC) PHP_ME(mysqli,stmt_init,ai_none,ZEND_ACC_PUBLIC)
  PHP_ME(mysqli,__construct,ai_connect,ZEND_ACC_PUBLIC) PHP_ME(mysqli,query,ai_method_query,ZEND_ACC_PUBLIC)
  PHP_ME(mysqli,prepare,ai_one,ZEND_ACC_PUBLIC) PHP_ME(mysqli,set_charset,ai_one,ZEND_ACC_PUBLIC)
  PHP_ME(mysqli,begin_transaction,ai_none,ZEND_ACC_PUBLIC) PHP_ME(mysqli,commit,ai_none,ZEND_ACC_PUBLIC)
  PHP_ME(mysqli,rollback,ai_none,ZEND_ACC_PUBLIC) PHP_ME(mysqli,close,ai_none,ZEND_ACC_PUBLIC) PHP_FE_END
 };
-static const zend_function_entry result_methods[]={ PHP_ME(mysqli_result,fetch_object,ai_method_fetch_object,ZEND_ACC_PUBLIC) PHP_ME(mysqli_result,getIterator,ai_get_iterator,ZEND_ACC_PUBLIC) PHP_ME(mysqli_result,fetch_column,ai_method_column,ZEND_ACC_PUBLIC) PHP_ME(mysqli_result,field_seek,ai_one,ZEND_ACC_PUBLIC) ZEND_MALIAS(mysqli_result,free_result,free,ai_none,ZEND_ACC_PUBLIC) ZEND_MALIAS(mysqli_result,close,free,ai_none,ZEND_ACC_PUBLIC) PHP_ME(mysqli_result,fetch_fields,ai_none,ZEND_ACC_PUBLIC) PHP_ME(mysqli_result,fetch_field,ai_none,ZEND_ACC_PUBLIC) PHP_ME(mysqli_result,fetch_field_direct,ai_one,ZEND_ACC_PUBLIC) PHP_ME(mysqli_result,fetch_all,ai_method_mode,ZEND_ACC_PUBLIC) PHP_ME(mysqli_result,fetch_array,ai_method_mode,ZEND_ACC_PUBLIC) PHP_ME(mysqli_result,data_seek,ai_one,ZEND_ACC_PUBLIC) PHP_ME(mysqli_result,fetch_assoc,ai_none,ZEND_ACC_PUBLIC) PHP_ME(mysqli_result,fetch_row,ai_none,ZEND_ACC_PUBLIC) PHP_ME(mysqli_result,free,ai_none,ZEND_ACC_PUBLIC) PHP_FE_END };
-static const zend_function_entry statement_methods[]={ PHP_ME(mysqli_stmt,__construct,ai_stmt_construct,ZEND_ACC_PUBLIC) PHP_ME(mysqli_stmt,prepare,ai_method_prepare,ZEND_ACC_PUBLIC) PHP_ME(mysqli_stmt,free_result,ai_none,ZEND_ACC_PUBLIC) PHP_ME(mysqli_stmt,reset,ai_none,ZEND_ACC_PUBLIC) PHP_ME(mysqli_stmt,data_seek,ai_one,ZEND_ACC_PUBLIC) PHP_ME(mysqli_stmt,result_metadata,ai_none,ZEND_ACC_PUBLIC) PHP_ME(mysqli_stmt,bind_result,ai_method_bind_output,ZEND_ACC_PUBLIC) PHP_ME(mysqli_stmt,fetch,ai_none,ZEND_ACC_PUBLIC) PHP_ME(mysqli_stmt,store_result,ai_none,ZEND_ACC_PUBLIC) PHP_ME(mysqli_stmt,bind_param,ai_method_bind,ZEND_ACC_PUBLIC) PHP_ME(mysqli_stmt,execute,ai_method_execute,ZEND_ACC_PUBLIC) PHP_ME(mysqli_stmt,get_result,ai_none,ZEND_ACC_PUBLIC) PHP_ME(mysqli_stmt,close,ai_none,ZEND_ACC_PUBLIC) PHP_FE_END };
+static const zend_function_entry result_methods[]={ PHP_ME(mysqli_result,__construct,ai_result_construct,ZEND_ACC_PUBLIC)  PHP_ME(mysqli_result,fetch_object,ai_method_fetch_object,ZEND_ACC_PUBLIC) PHP_ME(mysqli_result,getIterator,ai_get_iterator,ZEND_ACC_PUBLIC) PHP_ME(mysqli_result,fetch_column,ai_method_column,ZEND_ACC_PUBLIC) PHP_ME(mysqli_result,field_seek,ai_one,ZEND_ACC_PUBLIC) ZEND_MALIAS(mysqli_result,free_result,free,ai_none,ZEND_ACC_PUBLIC) ZEND_MALIAS(mysqli_result,close,free,ai_none,ZEND_ACC_PUBLIC) PHP_ME(mysqli_result,fetch_fields,ai_none,ZEND_ACC_PUBLIC) PHP_ME(mysqli_result,fetch_field,ai_none,ZEND_ACC_PUBLIC) PHP_ME(mysqli_result,fetch_field_direct,ai_one,ZEND_ACC_PUBLIC) PHP_ME(mysqli_result,fetch_all,ai_method_mode,ZEND_ACC_PUBLIC) PHP_ME(mysqli_result,fetch_array,ai_method_mode,ZEND_ACC_PUBLIC) PHP_ME(mysqli_result,data_seek,ai_one,ZEND_ACC_PUBLIC) PHP_ME(mysqli_result,fetch_assoc,ai_none,ZEND_ACC_PUBLIC) PHP_ME(mysqli_result,fetch_row,ai_none,ZEND_ACC_PUBLIC) PHP_ME(mysqli_result,free,ai_none,ZEND_ACC_PUBLIC) PHP_FE_END };
+static const zend_function_entry statement_methods[]={
+ ZEND_ME_MAPPING(attr_get,mysqli_stmt_attr_get,ai_ext_method_mysqli_stmt_attr_get,ZEND_ACC_PUBLIC)
+ ZEND_ME_MAPPING(attr_set,mysqli_stmt_attr_set,ai_ext_method_mysqli_stmt_attr_set,ZEND_ACC_PUBLIC)
+ ZEND_ME_MAPPING(error_list,mysqli_stmt_error_list,ai_ext_method_mysqli_stmt_error_list,ZEND_ACC_PUBLIC)
+ ZEND_ME_MAPPING(get_warnings,mysqli_stmt_get_warnings,ai_ext_method_mysqli_stmt_get_warnings,ZEND_ACC_PUBLIC)
+ ZEND_ME_MAPPING(more_results,mysqli_stmt_more_results,ai_ext_method_mysqli_stmt_more_results,ZEND_ACC_PUBLIC)
+ ZEND_ME_MAPPING(next_result,mysqli_stmt_next_result,ai_ext_method_mysqli_stmt_next_result,ZEND_ACC_PUBLIC)
+ ZEND_ME_MAPPING(send_long_data,mysqli_stmt_send_long_data,ai_ext_method_mysqli_stmt_send_long_data,ZEND_ACC_PUBLIC)
+ PHP_ME(mysqli_stmt,__construct,ai_stmt_construct,ZEND_ACC_PUBLIC) PHP_ME(mysqli_stmt,prepare,ai_method_prepare,ZEND_ACC_PUBLIC) PHP_ME(mysqli_stmt,free_result,ai_none,ZEND_ACC_PUBLIC) PHP_ME(mysqli_stmt,reset,ai_none,ZEND_ACC_PUBLIC) PHP_ME(mysqli_stmt,data_seek,ai_one,ZEND_ACC_PUBLIC) PHP_ME(mysqli_stmt,result_metadata,ai_none,ZEND_ACC_PUBLIC) PHP_ME(mysqli_stmt,bind_result,ai_method_bind_output,ZEND_ACC_PUBLIC) PHP_ME(mysqli_stmt,fetch,ai_none,ZEND_ACC_PUBLIC) PHP_ME(mysqli_stmt,store_result,ai_none,ZEND_ACC_PUBLIC) PHP_ME(mysqli_stmt,bind_param,ai_method_bind,ZEND_ACC_PUBLIC) PHP_ME(mysqli_stmt,execute,ai_method_execute,ZEND_ACC_PUBLIC) PHP_ME(mysqli_stmt,get_result,ai_none,ZEND_ACC_PUBLIC) PHP_ME(mysqli_stmt,close,ai_none,ZEND_ACC_PUBLIC) PHP_FE_END };
+static const zend_function_entry warning_methods[]={PHP_ME(mysqli_warning,__construct,ai_none,ZEND_ACC_PRIVATE) PHP_ME(mysqli_warning,next,ai_none,ZEND_ACC_PUBLIC) PHP_FE_END};
 static const zend_function_entry exception_methods[]={ PHP_ME(mysqli_sql_exception,getSqlState,ai_none,ZEND_ACC_PUBLIC) PHP_FE_END };
 int pbl_mysqli_register(void)
 {
-    report_mode=3;
+    report_mode=3;last_connect_errno=0;last_connect_error[0]=0;mysqli_links=0;long_data_reserved=0;
     zend_class_entry entry;
     INIT_CLASS_ENTRY(entry,"mysqli",connection_methods); connection_ce=zend_register_internal_class(&entry); connection_ce->create_object=new_connection;
     INIT_CLASS_ENTRY(entry,"mysqli_result",result_methods); result_ce=zend_register_internal_class(&entry); result_ce->create_object=new_result; result_ce->get_iterator=result_iterator; zend_class_implements(result_ce,1,zend_ce_aggregate);
     INIT_CLASS_ENTRY(entry,"mysqli_stmt",statement_methods); statement_ce=zend_register_internal_class(&entry); statement_ce->create_object=new_statement;
+    INIT_CLASS_ENTRY(entry,"mysqli_warning",warning_methods);warning_ce=zend_register_internal_class(&entry);
+    zend_declare_property_null(warning_ce,"messages",8,ZEND_ACC_PRIVATE);zend_declare_property_long(warning_ce,"position",8,0,ZEND_ACC_PRIVATE);
+    zend_declare_property_long(warning_ce,"errno",5,0,ZEND_ACC_PUBLIC);zend_declare_property_string(warning_ce,"sqlstate",8,"HY000",ZEND_ACC_PUBLIC);zend_declare_property_string(warning_ce,"message",7,"",ZEND_ACC_PUBLIC);
     INIT_CLASS_ENTRY(entry,"mysqli_sql_exception",exception_methods); sql_exception_ce=zend_register_internal_class_ex(&entry,spl_ce_RuntimeException);
     zend_declare_property_string(sql_exception_ce,"sqlstate",8,"HY000",ZEND_ACC_PROTECTED);
     memcpy(&connection_handlers,zend_get_std_object_handlers(),sizeof(connection_handlers)); connection_handlers.offset=XtOffsetOf(native_connection,std); connection_handlers.free_obj=free_connection; connection_handlers.clone_obj=NULL;
-    memcpy(&result_handlers,zend_get_std_object_handlers(),sizeof(result_handlers)); result_handlers.offset=XtOffsetOf(native_result,std); result_handlers.free_obj=free_result; result_handlers.clone_obj=NULL;
+    memcpy(&result_handlers,zend_get_std_object_handlers(),sizeof(result_handlers)); result_handlers.offset=XtOffsetOf(native_result,std); result_handlers.free_obj=free_result; result_handlers.get_gc=result_gc; result_handlers.clone_obj=NULL;
     memcpy(&statement_handlers,zend_get_std_object_handlers(),sizeof(statement_handlers)); statement_handlers.offset=XtOffsetOf(native_statement,std); statement_handlers.free_obj=free_statement; statement_handlers.get_gc=statement_gc; statement_handlers.clone_obj=NULL;
     const char *properties[]={"errno","insert_id","affected_rows","connect_errno"};
     for(unsigned i=0;i<4;i++) zend_declare_property_long(connection_ce,properties[i],strlen(properties[i]),0,ZEND_ACC_PUBLIC);

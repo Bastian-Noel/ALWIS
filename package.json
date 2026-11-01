@@ -1,11 +1,42 @@
 {
-  "name": "php-browser-lab", "version": "0.1.0-reconstructed", "private": true,
-  "type": "module", "engines": {"node": ">=20"},
+  "name": "php-browser-lab",
+  "version": "0.1.0-reconstructed",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "test": "node --test tests/*.test.mjs",
     "sources:fetch": "python3 scripts/fetch-upstream.py",
     "sources:verify": "python3 scripts/fetch-upstream.py --verify-only",
     "map": "python3 scripts/map-upstream.py",
-    "doctor": "python3 scripts/doctor.py"
+    "doctor": "python3 scripts/doctor.py",
+    "editor:build": "node scripts/build-editor.mjs"
+  },
+  "dependencies": {
+    "@bjorn3/browser_wasi_shim": "0.4.2",
+    "@codemirror/autocomplete": "6.20.4",
+    "@codemirror/commands": "6.11.1",
+    "@codemirror/lang-css": "6.3.1",
+    "@codemirror/lang-html": "6.4.12",
+    "@codemirror/lang-javascript": "6.2.5",
+    "@codemirror/lang-json": "6.0.2",
+    "@codemirror/lang-php": "6.0.2",
+    "@codemirror/lang-sql": "6.10.0",
+    "@codemirror/language": "6.13.1",
+    "@codemirror/lint": "6.9.7",
+    "@codemirror/search": "6.7.2",
+    "@codemirror/state": "6.7.6",
+    "@codemirror/view": "6.43.15",
+    "@lezer/highlight": "1.2.5",
+    "@swc/wasm-web": "1.16.21",
+    "@types/jquery": "3.5.33",
+    "@types/sizzle": "2.3.10",
+    "typescript": "5.9.3"
+  },
+  "devDependencies": {
+    "axe-core": "4.11.1",
+    "esbuild": "0.28.2"
   }
 }

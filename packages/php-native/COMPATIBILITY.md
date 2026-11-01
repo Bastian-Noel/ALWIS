@@ -1,6 +1,6 @@
 # Couverture PDO et MySQLi
 
-Le prototype vise les appels usuels sans réécriture ; la compatibilité complète n'est pas acquise. La version de référence est PHP 8.4.27. `compatibility-inventory.json`, généré par `python3 scripts/inventory-mysqli.py`, compare les entrées **enregistrées** aux stubs de cette version. Il ne transforme pas une présence en preuve de conformité. À ce jalon, 74/106 fonctions procédurales sont enregistrées.
+Le prototype vise les appels usuels sans réécriture ; la compatibilité complète n'est pas acquise. La version de référence est PHP 8.4.27. `compatibility-inventory.json`, généré par `python3 scripts/inventory-mysqli.py`, compare les entrées **enregistrées** aux stubs de cette version. Il ne transforme pas une présence en preuve de conformité. À ce jalon, 106/106 fonctions procédurales sont enregistrées.
 
 ## Nouveau parcours réel
 
@@ -17,7 +17,7 @@ Le parcours existant conserve transactions, paramètres préparés, bind_result/
 
 ## Travail restant
 
-Priorités de conformité : options de connexion et classes/propriétés, long-data, options avancées et attributs des statements, multi-query/multi-résultats (dont routines), erreurs/report modes, métadonnées complètes et alias. Les voies asynchrones, sockets distants, réplication et fonctions dépendant de mysqlnd doivent avoir une politique explicite ; leur absence ne doit pas être masquée par des fonctions qui simulent une réussite.
+Les nouveaux chemins natifs et les restrictions des 106 fonctions sont décrits dans [le reçu actuel](../../engine/fusion/MYSQLI-106-RECEIPT.md). Priorités restantes : classes/propriétés et anciens alias objet, variantes avancées des options/attributs, transactions à flags, erreurs/report modes, métadonnées complètes et conformité sur davantage d’applications. Les voies asynchrones, sockets distants, réplication et fonctions dépendant de mysqlnd doivent avoir une politique explicite ; leur absence ne doit pas être masquée par des fonctions qui simulent une réussite.
 
 `fetch_object`, `execute_query` et l'initialisation/préparation séparée des statements ont leur parcours vérifié ci-dessous ; leurs variantes et cas limites restent à compléter. L'adaptateur PDO externe convertit maintenant les colonnes SQL entières dans la plage `zend_long` et les flottants ; `ATTR_STRINGIFY_FETCHES` permet de conserver du texte. DECIMAL, entiers hors plage, VARCHAR numérique, binaire et NULL restent exacts. Ce premier lot de types, vérifié avec préparation native et émulée, ne vaut pas parité complète mysqlnd.
 

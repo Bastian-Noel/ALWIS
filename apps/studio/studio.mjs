@@ -1,3 +1,5 @@
+import {splitSQL,encodeSQLScript} from './sql-script.mjs';
+import {createCodeEditor} from './editor/dist/codemirror.mjs';
 import { identifier, literal, editValue, sameValue } from './sql-values.mjs';
 import { ProjectHub } from './project-hub.mjs';
 import { readState, writeState } from './state.mjs';
@@ -38,36 +40,78 @@ async function files(path = '/workspace', depth = 0) {
 async function renderEditor(container, saved) {
   container.append($('#editor-template').content.cloneNode(true));
   const source = container.querySelector('.source'), filename = container.querySelector('.filename'), list = container.querySelector('.files'), message = container.querySelector('.message');
+  const serviceStatus=container.querySelector('.language-status');
+  const code=createCodeEditor(source,{path:saved?.path??'/index.php',label:'Code source',onSave:()=>action(write),onStatus:text=>serviceStatus.textContent=text});
   let base = saved?.base;
+  const decodeText=bytes=>{if(bytes.byteLength>1024*1024)throw Error('Fichier supérieur à 1 Mio : découpez-le avant de l’éditer.');if(bytes.includes(0))throw Error('Fichier binaire : utilisez l’export pour le télécharger.');try{return new TextDecoder('utf-8',{fatal:true}).decode(bytes);}catch{throw Error('Encodage non UTF-8 : convertissez le fichier avant de l’éditer.');}};
+  const validPath=value=>{const normalized=value.startsWith('/')?value:'/'+value;if(normalized.length>512||normalized.split('/').slice(1).some(p=>!p||p==='.'||p==='..'||p==='.sessions'||p.startsWith('.pbl-')))throw Error('Utilisez un chemin de projet sans segment vide, point ou dossier interne.');return normalized;};
   filename.value = saved?.path ?? '/index.php'; source.value = saved?.text ?? '';
   source.selectionStart = saved?.start ?? 0; source.selectionEnd = saved?.end ?? 0;
-  const snapshot = () => ({ path: filename.value, text: source.value, base, dirty: base === undefined ? source.value !== '' : source.value !== base, start: source.selectionStart, end: source.selectionEnd });
-  filename.oninput = () => { base = undefined; };
-  const refresh = async () => { const names = await files(); list.replaceChildren(...names.map(name => Object.assign(document.createElement('option'), { value: name, textContent: name }))); };
+  const snapshot = () => ({ path: filename.value, text: source.value, base, dirty: base === undefined ? source.value !== '' : source.value !== base, start: source.selectionStart, end: source.selectionEnd,scrollTop:code.view.scrollDOM.scrollTop,scrollLeft:code.view.scrollDOM.scrollLeft });
+  filename.oninput = () => { base = undefined;code.setPath(filename.value); };
+  const refresh = async () => {const names=await files();list.replaceChildren(Object.assign(document.createElement('option'),{value:'',textContent:'Choisir un fichier…'}),...names.map(name=>Object.assign(document.createElement('option'),{value:name,textContent:name})));list.value=names.includes(filename.value)?filename.value:'';
+    const tree=container.querySelector('.file-tree'),root={folders:new Map(),files:[]};
+    for(const name of names){let current=root;const parts=name.slice(1).split('/');for(const part of parts.slice(0,-1)){if(!current.folders.has(part))current.folders.set(part,{folders:new Map(),files:[]});current=current.folders.get(part);}current.files.push({name:parts.at(-1),path:name});}
+    const drawTree=node=>{const ul=document.createElement('ul');for(const [name,folder]of [...node.folders].sort(([a],[b])=>a.localeCompare(b))){const li=document.createElement('li'),details=document.createElement('details'),summary=document.createElement('summary');summary.textContent=name;details.append(summary,drawTree(folder));li.append(details);ul.append(li);}for(const file of node.files.sort((a,b)=>a.name.localeCompare(b.name))){const li=document.createElement('li'),button=document.createElement('button');button.textContent=file.name;button.setAttribute('aria-label','Charger '+file.path);if(file.path===filename.value)button.setAttribute('aria-current','true');button.onclick=()=>{list.value=file.path;list.dispatchEvent(new Event('change'));};li.append(button);ul.append(li);}return ul;};tree.replaceChildren(drawTree(root));if(!names.length)tree.textContent='Aucun fichier. Utilisez « Nouveau fichier » pour commencer.';
+  };
   const load = async () => {
-    source.value = decoder.decode(await hub.runtime.read('/workspace' + filename.value)); base = source.value; message.textContent = 'Fichier chargé.';
+    const info=await hub.runtime.call('stat',{path:'/workspace'+validPath(filename.value)});if(info.size>1024*1024)throw Error('Fichier supérieur à 1 Mio : découpez-le avant de l’éditer.');
+    const text=decodeText(await hub.runtime.read('/workspace' + validPath(filename.value)));source.value=text;base=text;code.resetHistory();source.selectionStart=0;source.selectionEnd=0;code.setReadOnly(false);code.setPath(filename.value);message.textContent='Fichier chargé.';
   };
   const write = async () => {
-    if (!filename.value.startsWith('/')) filename.value = '/' + filename.value;
-    if (base !== undefined) { const current = decoder.decode(await hub.runtime.read('/workspace' + filename.value)); if (current !== base && current !== source.value) throw Error('Le fichier a changé dans le projet. Rechargez-le avant de l’écraser.'); }
-    await hub.runtime.write('/workspace' + filename.value, source.value); base = source.value; dirty = true; message.textContent = 'Fichier écrit ; sauvegardez le projet pour le conserver.'; await refresh();
+    filename.value=validPath(filename.value);
+    if(base===undefined&&(await files()).includes(filename.value))throw Error('Chargez le fichier existant avant de le modifier.');
+    if (base !== undefined) { const current = decodeText(await hub.runtime.read('/workspace' + filename.value)); if (current !== base && current !== source.value) throw Error('Le fichier a changé dans le projet. Rechargez-le avant de l’écraser.'); }
+    await hub.runtime.call('write',{path:'/workspace'+filename.value,data:source.value,expected:base??null}); base = source.value; dirty = true; message.textContent = 'Fichier écrit ; sauvegardez le projet pour le conserver.'; await refresh();
   };
   container.querySelector('.load').onclick = () => action(load);
   container.querySelector('.write').onclick = () => action(write);
   container.querySelector('.refresh').onclick = () => action(refresh);
-  list.onchange = () => action(async () => { await writeState('draft:' + hub.key + ':' + filename.value, snapshot()); filename.value = list.value; const draft = await readState('draft:' + hub.key + ':' + filename.value); if (draft) { source.value = draft.text; base = undefined; } else await load(); });
+  list.onchange = () => {if(!list.value)return;return action(async () => {const previous=snapshot(),readOnly=code.view.state.readOnly;
+    await writeState('draft:'+hub.key+':'+previous.path,previous);filename.value=list.value;
+    try{const draft=await readState('draft:'+hub.key+':'+filename.value);if(draft){source.value=draft.text;base=draft.base;source.selectionStart=draft.start??0;source.selectionEnd=draft.end??0;code.setReadOnly(false);code.setPath(filename.value);requestAnimationFrame(()=>{if(source.isConnected){code.view.scrollDOM.scrollTop=draft.scrollTop??0;code.view.scrollDOM.scrollLeft=draft.scrollLeft??0;}});}else await load();}
+    catch(error){filename.value=previous.path;list.value=previous.path;source.value=previous.text;base=previous.base;source.selectionStart=previous.start;source.selectionEnd=previous.end;code.setReadOnly(readOnly);code.setPath(previous.path);throw error;}
+  });};
   const footer=document.createElement('div');footer.className='editor-footer';const position=document.createElement('span'),language=document.createElement('span');footer.append(position,language);source.after(footer);
   const updatePosition=()=>{const text=source.value,cursor=source.selectionStart;let line=1,last=-1,next=text.indexOf('\n');if(text.length<=1048576){while(next>=0&&next<cursor){line++;last=next;next=text.indexOf('\n',next+1);}position.textContent=`Ligne ${line}, colonne ${cursor-last}`;}else position.textContent=`Position ${new Intl.NumberFormat('fr').format(cursor)}`;language.textContent=({php:'PHP',html:'HTML',css:'CSS',js:'JavaScript',json:'JSON',sql:'SQL'})[filename.value.split('.').pop()]??'Texte';};
   for(const event of ['click','keyup','select'])source.addEventListener(event,updatePosition);
   source.oninput = () => { dirty = true; message.textContent = 'Brouillon modifié.'; shell.update();updatePosition(); };
+  container.querySelector('.search-code').onclick=()=>code.search();
+  const fileDialog=container.querySelector('.file-dialog'),target=fileDialog.querySelector('.file-target'),fileError=fileDialog.querySelector('.file-error'),confirm=fileDialog.querySelector('.file-confirm');let fileAction;
+  const openFileDialog=mode=>{fileAction=mode;target.removeAttribute('aria-invalid');fileError.textContent=mode==='delete'?'Le fichier et son brouillon seront supprimés. Annulez pour les conserver.':'';fileDialog.querySelector('.file-dialog-title').textContent=mode==='new'?'Nouveau fichier':mode==='rename'?'Renommer '+filename.value:'Supprimer '+filename.value;target.closest('label').hidden=mode==='delete';target.value=mode==='new'?'/nouveau.php':filename.value;confirm.textContent=mode==='new'?'Créer le fichier':mode==='rename'?'Renommer le fichier':'Supprimer le fichier';confirm.classList.toggle('danger',mode==='delete');fileDialog.showModal();};
+  container.querySelector('.new-file').onclick=()=>openFileDialog('new');container.querySelector('.rename-file').onclick=()=>openFileDialog('rename');container.querySelector('.delete-file').onclick=()=>openFileDialog('delete');
+  target.oninput=()=>target.removeAttribute('aria-invalid');target.onkeydown=event=>{if(event.key==='Enter'){event.preventDefault();confirm.click();}};
+  confirm.onclick=()=>{if(confirm.disabled)return;confirm.disabled=true;return action(async()=>{try{
+    if(snapshot().dirty&&fileAction!=='delete')throw Error('Écrivez le brouillon avant de créer ou renommer un fichier.');
+    const next=validPath(target.value),old=filename.value,names=await files();
+    if(fileAction!=='delete'&&names.includes(next))throw Error('Ce fichier existe déjà. Choisissez un autre chemin.');
+    if(fileAction==='new'){await hub.runtime.call('write',{path:'/workspace'+next,data:'',expected:null});filename.value=next;source.value='';base='';}
+    if(fileAction==='rename'){await hub.runtime.call('rename',{path:'/workspace'+validPath(old),target:'/workspace'+next,exclusive:true});filename.value=next;await writeState('draft:'+hub.key+':'+old,null);}
+    if(fileAction==='delete'){await hub.runtime.remove('/workspace'+validPath(old));await writeState('draft:'+hub.key+':'+old,null);filename.value='/nouveau.php';source.value='';base=undefined;}
+    code.setReadOnly(false);code.setPath(filename.value);dirty=true;fileDialog.close();await refresh();message.textContent='Fichiers modifiés ; sauvegardez le projet.';
+   }catch(error){fileError.textContent=error.message;if(fileAction!=='delete'&&/chemin|existe|segment|dossier/i.test(error.message)){target.setAttribute('aria-invalid','true');target.focus();}throw error;}finally{confirm.disabled=false;}});};
   await refresh();
-  if (!saved?.dirty) { try { await load(); } catch { message.textContent = 'Nouveau fichier : écrivez du code puis enregistrez.'; } }
-  updatePosition();return { snapshot, write };
+  if (!saved?.dirty) { try { await load(); } catch(error) { if((await files()).includes(filename.value)){code.setReadOnly(true);message.textContent=error.message;}else message.textContent='Nouveau fichier : écrivez du code puis enregistrez.'; } }
+  const projectFiles={},projectDefinitions={};let contextBytes=0;
+  for(const name of (await files()).filter(name=>/\.(?:php|html?|d\.ts)$/.test(name)).slice(0,64)){
+    try{const bytes=await hub.runtime.read('/workspace'+name);if(bytes.length>65536||contextBytes+bytes.length>1024*1024)continue;const text=decodeText(bytes);projectFiles[name]=text;if(name.endsWith('.d.ts'))projectDefinitions[name]=text;contextBytes+=bytes.length;}catch{/* Binary/unsupported files are not indexed. */}
+  }
+  code.setProjectContext({files:projectFiles,projectDefinitions});
+  if(saved){source.selectionStart=saved.start??0;source.selectionEnd=saved.end??0;requestAnimationFrame(()=>{if(source.isConnected){code.view.scrollDOM.scrollTop=saved.scrollTop??0;code.view.scrollDOM.scrollLeft=saved.scrollLeft??0;}});}
+  updatePosition();return { snapshot, write, dispose:()=>code.destroy(),setReadOnly:value=>code.setReadOnly(value) };
 }
 async function renderSQL(container, saved) {
   container.append($('#sql-template').content.cloneNode(true));
   const query = container.querySelector('.query'), database = container.querySelector('.database'), grid = container.querySelector('.grid'), tableSelect = container.querySelector('.table'), message = container.querySelector('.message');
+  const code=createCodeEditor(query,{path:'/console.sql',label:'Requête SQL',onRun:()=>action(execute)});
+  container.querySelector('.search-sql').onclick=()=>code.search();
   query.value = saved?.query ?? 'SHOW TABLES'; database.value = saved?.database ?? 'test';
+  let history=(saved?.history??[]).filter(text=>typeof text==='string'&&text.length<=4096).slice(0,20);
+  const historySelect=container.querySelector('.query-history');
+  const drawHistory=()=>historySelect.replaceChildren(Object.assign(document.createElement('option'),{value:'',textContent:'Requêtes récentes'}),...history.map((text,i)=>Object.assign(document.createElement('option'),{value:String(i),textContent:text.slice(0,100)})));
+  drawHistory();historySelect.onchange=()=>{if(historySelect.value!=='')query.value=history[Number(historySelect.value)];};
+  container.querySelector('.clear-history').onclick=()=>{history=[];drawHistory();};
+  let resultSets=[];const resultSelect=container.querySelector('.result-sets');resultSelect.onchange=()=>{result=resultSets[Number(resultSelect.value)];page=0;editingTable=undefined;draw();};
   let result, page = saved?.page??0, editingTable, primaryKeys = [], totalRows = 0, viewDatabase;
   const rowCondition=(columns,row)=>columns.map((column,i)=>`${column.kind===1?'BINARY ':''}${identifier(column.name)} <=> ${literal(row[i],column)}`).join(' AND ');
   const draw = () => {
@@ -118,10 +162,10 @@ async function renderSQL(container, saved) {
     grid.append(table); container.querySelector('.page').textContent = `${page + 1} / ${Math.max(1, Math.ceil((editingTable ? totalRows : result.rows.length) / 100))}`;
     container.querySelector('.previous').disabled = page === 0; container.querySelector('.next').disabled = (page + 1) * 100 >= (editingTable ? totalRows : result.rows.length);
   };
-  const execute = async () => { editingTable = undefined;viewDatabase=database.value; result = await rows(query.value, database.value); dirty = true; page = 0; message.textContent = `${result.rows.length} lignes · ${result.affectedRows} lignes affectées`; draw(); await updateEngine(); };
-  const tables = async () => { const data = await rows('SHOW TABLES', database.value); tableSelect.replaceChildren(...data.rows.map(row => Object.assign(document.createElement('option'), { value: row[0], textContent: row[0] })));if(!data.rows.length)message.textContent='Aucune table dans cette base. Créez une table avec SQL ou importez un fichier SQL.'; };
+  const execute = async () => { const executed=code.getSelection()||query.value;if(executed.length<=4096){history=[executed,...history.filter(text=>text!==executed)].slice(0,20);drawHistory();}editingTable = undefined;viewDatabase=database.value; const statements=splitSQL(executed);if(!statements.length)throw Error('Écrivez une instruction SQL avant de l’exécuter.');resultSets=await hub.runtime.sqlScript(statements,database.value);result=resultSets.findLast(set=>set.columns.length)||resultSets.at(-1);resultSelect.hidden=resultSets.length<2;resultSelect.replaceChildren(...resultSets.map((set,i)=>Object.assign(document.createElement('option'),{value:String(i),textContent:`Résultat ${i+1} · ${set.rows.length} lignes · ${set.affectedRows} affectées` })));resultSelect.value=String(resultSets.indexOf(result));dirty = true; page = 0; message.textContent = `${result.rows.length} lignes · ${result.affectedRows} lignes affectées`; draw(); await updateEngine(); };
+  const tables = async () => { const data = await rows('SHOW TABLES', database.value); tableSelect.replaceChildren(...data.rows.map(row => Object.assign(document.createElement('option'), { value: row[0], textContent: row[0] })));if(!data.rows.length)message.textContent='Aucune table dans cette base. Créez une table avec SQL ou importez un fichier SQL.';const columns=await rows(`SELECT TABLE_NAME,COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=${literal(database.value)} ORDER BY TABLE_NAME,ORDINAL_POSITION LIMIT 2048`,database.value);const schema=Object.create(null);for(const [table,column]of columns.rows)(schema[table]??=[]).push(column);code.setSQLSchema({[database.value]:schema},database.value); };
   const browse = async (reset = true) => {
-    const name = tableSelect.value; if (!name) return;
+    const name = tableSelect.value; if (!name) return;resultSelect.hidden=true;resultSets=[];
     const keys = await rows(`SELECT COLUMN_NAME FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA=${literal(database.value)} AND TABLE_NAME=${literal(name)} AND CONSTRAINT_NAME='PRIMARY' ORDER BY ORDINAL_POSITION`, database.value);
     primaryKeys = keys.rows.map(row => row[0]); editingTable = name;viewDatabase=database.value; if(reset)page=0;
     const count=await rows(`SELECT COUNT(*) FROM ${identifier(name)}`,database.value);
@@ -181,8 +225,9 @@ async function renderSQL(container, saved) {
     if (file.size > 8 * 1024 * 1024) throw Error('Import SQL limité à 8 Mio.');
     const tool = '/workspace/.pbl-import-' + crypto.randomUUID();
     try {
-      await hub.runtime.write(tool+'.php.sql',new Uint8Array(await file.arrayBuffer()));
-      await hub.runtime.write(tool+'.php',`<?php $db=new PDO('mysql:charset=utf8mb4','root','');$name=$_GET['database']??'test';$db->exec('USE '.chr(96).str_replace(chr(96),chr(96).chr(96),$name).chr(96));$db->exec(file_get_contents(__FILE__.'.sql'));echo 'ok';`);
+      const statements=splitSQL(await file.text(),{maxStatements:4096});if(!statements.length)throw Error('Le fichier ne contient aucune instruction SQL.');
+      await hub.runtime.write(tool+'.php.sql',encodeSQLScript(statements));
+      await hub.runtime.write(tool+'.php',`<?php $db=new PDO('mysql:charset=utf8mb4','root','');$name=$_GET['database']??'test';$db->exec('USE '.chr(96).str_replace(chr(96),chr(96).chr(96),$name).chr(96));$stream=fopen(__FILE__.'.sql','rb');$count=0;while(!feof($stream)){$head=fread($stream,4);if($head==='')break;if(strlen($head)!==4)throw new RuntimeException('En-tête SQL incomplet');$length=unpack('V',$head)[1];$sql='';while(strlen($sql)<$length){$chunk=fread($stream,$length-strlen($sql));if($chunk==='')throw new RuntimeException('Instruction SQL incomplète');$sql.=$chunk;}try{$db->exec($sql);$count++;}catch(Throwable $error){throw new RuntimeException('Import interrompu après '.$count.' instructions. Les instructions précédentes peuvent être appliquées. '.$error->getMessage());}}fclose($stream);echo 'ok';`);
       const response=await hub.runtime.request({script:tool+'.php',url:new URL('/import.php?database='+encodeURIComponent(database.value),location.href).href});
       if(response.exitCode!==0)throw Error(decoder.decode(response.stderr));message.textContent='Import SQL terminé.';dirty=true;
     } finally {for(const suffix of ['.php','.php.sql'])try{await hub.runtime.remove(tool+suffix);}catch{/* Preserve the original import error. */}}
@@ -191,7 +236,7 @@ async function renderSQL(container, saved) {
     try{await tables();if([...tableSelect.options].some(option=>option.value===saved.table)){tableSelect.value=saved.table;await browse(false);}}
     catch(error){message.textContent='Vue SQL non restaurée : '+error.message;}
   }
-  return { snapshot: () => ({ query: query.value, database: database.value, table:editingTable, viewDatabase, page }) };
+  return { snapshot: () => ({ query: query.value, database: database.value, table:editingTable, viewDatabase, page, history }),dispose:()=>code.destroy(),setReadOnly:value=>code.setReadOnly(value) };
 }
 async function renderSchema(container, saved) {
   container.append($('#schema-template').content.cloneNode(true));
@@ -272,10 +317,12 @@ async function setTool(name, mode) {
   if (!hub) { container.textContent = 'Ouvrez un projet.'; return; }
   if (mode === 'unloaded') {
     if (tool.view) await writeState('tool:' + hub.key + ':' + name, tool.view.snapshot());
+    tool.view?.dispose?.();
     if (name === 'sql') await hub.runtime.closeConsole();
     container.replaceChildren(Object.assign(document.createElement('p'), { className: 'unloaded', textContent: 'Outil déchargé — brouillon conservé.' })); tool.view = null;
   } else {
     if (!tool.view) { container.replaceChildren(); tool.view = await renderers[name](container, await readState('tool:' + hub.key + ':' + name)); }
+    tool.view?.setReadOnly?.(mode==='idle');
     container.classList.toggle('idle', mode === 'idle'); container.querySelectorAll('input,select,textarea,button').forEach(element => { element.disabled = mode === 'idle'; });
   }
   tool.mode = mode;

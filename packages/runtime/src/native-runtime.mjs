@@ -42,6 +42,7 @@ export class NativeRuntime {
   request(options) { return this.call('request', options); }
   state() { return this.call('state'); }
   sql(sql, database) { return this.call('sql', { sql, database }); }
+  sqlScript(statements,database) {return this.call('sqlScript',{statements,database});}
   closeConsole() { return this.call('closeConsole'); }
   get closed() { return this.#closed; }
   metadata() { return this.call('metadata'); }

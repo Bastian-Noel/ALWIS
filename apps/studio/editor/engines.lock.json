@@ -1,0 +1,4 @@
+[
+  {"name":"PHPantom LSP","version":"0.11.1","source":"https://github.com/PHPantom-dev/phpantom_lsp","url":"https://github.com/PHPantom-dev/phpantom_lsp/releases/download/0.11.1/phpantom_lsp-wasm32-wasip1.tar.gz","file":"phpantom_lsp.wasm","archiveSha256":"611d56ee95368d10562fa2bc2e7ea145a6a02f849b2bc2950e201cfbd3c75e2b","wasmSha256":"b591013fd512d0f5b815a0074f9646a4742a8af4b90173ff617215356e8444c0"},
+  {"name":"SuperHTML","version":"0.7.1","source":"https://github.com/kristoff-it/superhtml","url":"https://github.com/kristoff-it/superhtml/releases/download/v0.7.1/wasm32-wasi-lsponly.tar.xz","file":"superhtml.wasm","archiveSha256":"96fc75ca083e16fe8028757f692e58bf86197edd12171e3821565cec58a27baa","wasmSha256":"0685b2bcb16db99bdb5383be6d38f1cb1039f1c92a6599ebae662e2f59bcd5a5"}
+]

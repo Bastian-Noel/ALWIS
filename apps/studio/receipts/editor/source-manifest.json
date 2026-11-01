@@ -1,0 +1,108 @@
+{
+  "base": "d9be0ec06980c315af9eeae379b83a3edc3db0dc",
+  "scope": "Actual CodeMirror components and separately loaded language engines. ASSETS.json identifies the generated bundles and official upstream WASM; no PHP interpreter is used for language services.",
+  "files": [
+    {
+      "path": "apps/studio/studio.mjs",
+      "bytes": 47570,
+      "sha256": "2aa57c256dc6d14fad8485ed1bd4f850bfb56cea50e65694a0694621e947fc5f"
+    },
+    {
+      "path": "apps/studio/index.html",
+      "bytes": 14117,
+      "sha256": "be8f128d85808af7021d37be9335e80a7cfdffcf2b5e6e25348f8e2d8cd16fd1"
+    },
+    {
+      "path": "apps/studio/studio.css",
+      "bytes": 19516,
+      "sha256": "7c8ddfaa96c3f4f28116056831662870c4d3943b38dd1e91e2bffbc182aeb5d2"
+    },
+    {
+      "path": "apps/studio/sql-script.mjs",
+      "bytes": 3936,
+      "sha256": "b1e743d9b1d8f8d3246b3f1bcc85eac478acf82990a6ffc8ca94417812d1703b"
+    },
+    {
+      "path": "scripts/build-editor.mjs",
+      "bytes": 2740,
+      "sha256": "0db45666a19d8736cbd929a8cee7ff1c5a7b8c93376b41f0a6ba251f554ccc01"
+    },
+    {
+      "path": "scripts/fetch-editor-engines.py",
+      "bytes": 1044,
+      "sha256": "9bbfed4d3e50eded381809be7028ee25fcb8d6d5c4c48815dea337d16f122e4f"
+    },
+    {
+      "path": "scripts/package-studio.mjs",
+      "bytes": 4019,
+      "sha256": "be2bb7605d34228d5e77bda71e9ffea41ace9e25a4b6db40edcd086e8f3581d0"
+    },
+    {
+      "path": "package.json",
+      "bytes": 1268,
+      "sha256": "a3f19c8691c6a7eaa5fc5b033ba202421676df36fd295ef3d0719121fb0a94d3"
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 28791,
+      "sha256": "c7757ded3466110a99ca32abef40ede0dbe8c77171eea79407387f7f8a18bbbb"
+    },
+    {
+      "path": "tests/browser/editor-services.mjs",
+      "bytes": 4550,
+      "sha256": "8622d561d005555be79999c4cee6e5ed9a8a0f0fea6d3e3578128697a0eaf137"
+    },
+    {
+      "path": "tests/browser/editor-workbench.mjs",
+      "bytes": 8559,
+      "sha256": "4e2a99c2ed8f86b56ea3f962142e12accd7f46cd26bdf9955ec3c1acb2f6ae00"
+    },
+    {
+      "path": "tests/browser/editor-accessibility.mjs",
+      "bytes": 3360,
+      "sha256": "16044539a0eeb823ab6763b10dab03281360a596a820ac4b771a0957f1b694fd"
+    },
+    {
+      "path": "apps/studio/editor/ASSETS.json",
+      "bytes": 1417,
+      "sha256": "0bb96158a120e913c97efd91faf3f85eb88f624d145a44a09be8d1a859559c0f"
+    },
+    {
+      "path": "apps/studio/editor/engines.lock.json",
+      "bytes": 789,
+      "sha256": "1a4d02f3fbc958c8f92b2e5b0a9fe9e31b01b5a05f093a4a312cd7c60d7f4bbf"
+    },
+    {
+      "path": "apps/studio/editor/lsp-worker.mjs",
+      "bytes": 5080,
+      "sha256": "fe3017e6737f1cfb858324be61e4317cb403f2b5e1785b2a0942eafbf1e41409"
+    },
+    {
+      "path": "apps/studio/editor/services.mjs",
+      "bytes": 7764,
+      "sha256": "299f41c76e07edc60f7b14a4afae20097554c03829573dd40c24ad04bae8c043"
+    },
+    {
+      "path": "apps/studio/editor/javascript-worker.mjs",
+      "bytes": 3940,
+      "sha256": "678af186f0e647d2143d81a983489a7b3e6e17d21a89a7d427945570f13618e3"
+    },
+    {
+      "path": "apps/studio/editor/codemirror.mjs",
+      "bytes": 9058,
+      "sha256": "c4cafecb7fb3d48124044cea84050efb454f1eb4d7baccd55e32cf9d629543da"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "build-work/bridge/.native-build/engine/wasm/runtime-dist/pbl-runtime.mjs",
+      "bytes": 469394,
+      "sha256": "5c68631f5096743a5958452dbf84b4d6e3b6420fefcebed732027e956cffd8ad"
+    },
+    {
+      "path": "build-work/bridge/.native-build/engine/wasm/runtime-dist/pbl-runtime.wasm",
+      "bytes": 38249873,
+      "sha256": "f9cadc7e93df0f80c60783a02d26d3318b0d973ad1e6d85c4436a45b9d8cf2de"
+    }
+  ]
+}

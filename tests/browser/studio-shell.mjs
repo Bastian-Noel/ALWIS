@@ -23,10 +23,10 @@ try{
    await page.locator('#dismiss-error').click();
    const project='shell-'+crypto.randomUUID();await page.locator('#project').fill(project);await page.locator('#open').click();await page.locator('#status').filter({hasText:'Projet prêt.'}).waitFor();
    await page.locator('#demo').click();await page.locator('#status').filter({hasText:'Exemple chargé.'}).waitFor();
-   await page.locator('#tab-editor').click();assert.match(await page.locator('#editor-tool .source').inputValue(),/session_start/);
+   await page.locator('#tab-editor').click();assert.match(await page.locator('#editor-tool .source').evaluate(e=>e.value),/session_start/);
    await page.screenshot({path:resolve(output,name+'-editor.png'),fullPage:true});
    await page.locator('#tab-resources').click();await page.locator('#refresh-resources').click();await page.locator('#sql-phase').filter({hasText:'À la demande'}).waitFor();assert.notEqual(await page.locator('#memory-used').textContent(),'—');
-   await page.locator('#tab-sql').click();await page.locator('#sql-tool .query').fill('SELECT missing_column');await page.locator('#sql-tool .run').click();await page.locator('#status[data-error]').filter({hasText:'42S22'}).waitFor();assert.match(await page.locator('#error-recovery').textContent(),/Corrigez le SQL/);
+   await page.locator('#tab-sql').click();await page.locator('#sql-tool .query .cm-content').fill('SELECT missing_column');await page.locator('#sql-tool .run').click();await page.locator('#status[data-error]').filter({hasText:'42S22'}).waitFor();assert.match(await page.locator('#error-recovery').textContent(),/Corrigez le SQL/);
    await page.locator('#show-error').click();await page.locator('#journal-entries .diagnostic-entry[data-level=error]').first().locator('summary').click();
    await page.screenshot({path:resolve(output,name+'-error.png'),fullPage:true});await page.locator('#dismiss-error').click();
    await page.locator('#import-files').setInputFiles({name:'failure.php',mimeType:'text/plain',buffer:Buffer.from('<?php throw new RuntimeException("real-php-diagnostic");')});await page.locator('#status').filter({hasText:'Fichiers importés.'}).waitFor();

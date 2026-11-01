@@ -1,0 +1,113 @@
+{
+  "passed": true,
+  "browser": "chromium",
+  "version": "156.0.8078.4",
+  "project": "shell-7657d4da-20b6-4e1d-a75b-5816f8d2bfff",
+  "layouts": [
+    {
+      "viewport": 320,
+      "scroll": 320,
+      "panel": "editor"
+    },
+    {
+      "viewport": 320,
+      "scroll": 320,
+      "panel": "sql"
+    },
+    {
+      "viewport": 320,
+      "scroll": 320,
+      "panel": "schema"
+    },
+    {
+      "viewport": 320,
+      "scroll": 320,
+      "panel": "clients"
+    },
+    {
+      "viewport": 320,
+      "scroll": 320,
+      "panel": "resources"
+    },
+    {
+      "viewport": 320,
+      "scroll": 320,
+      "panel": "journal"
+    },
+    {
+      "viewport": 768,
+      "scroll": 768,
+      "panel": "editor"
+    },
+    {
+      "viewport": 768,
+      "scroll": 768,
+      "panel": "sql"
+    },
+    {
+      "viewport": 768,
+      "scroll": 768,
+      "panel": "schema"
+    },
+    {
+      "viewport": 768,
+      "scroll": 768,
+      "panel": "clients"
+    },
+    {
+      "viewport": 768,
+      "scroll": 768,
+      "panel": "resources"
+    },
+    {
+      "viewport": 768,
+      "scroll": 768,
+      "panel": "journal"
+    },
+    {
+      "viewport": 1440,
+      "scroll": 1440,
+      "panel": "editor"
+    },
+    {
+      "viewport": 1440,
+      "scroll": 1440,
+      "panel": "sql"
+    },
+    {
+      "viewport": 1440,
+      "scroll": 1440,
+      "panel": "schema"
+    },
+    {
+      "viewport": 1440,
+      "scroll": 1440,
+      "panel": "clients"
+    },
+    {
+      "viewport": 1440,
+      "scroll": 1440,
+      "panel": "resources"
+    },
+    {
+      "viewport": 1440,
+      "scroll": 1440,
+      "panel": "journal"
+    }
+  ],
+  "checks": [
+    "six keyboard tabs",
+    "empty state",
+    "project validation and recovery",
+    "JSON diagnostic export",
+    "real engine measurements",
+    "real SQL error and SQLSTATE",
+    "real PHP error diagnostics",
+    "log entries keep expansion and keyboard focus on incoming HTTP",
+    "320/768/1440 no page overflow",
+    "200% text resize",
+    "close clears measurements",
+    "diagnostic stress page rendered"
+  ],
+  "pageErrors": []
+}

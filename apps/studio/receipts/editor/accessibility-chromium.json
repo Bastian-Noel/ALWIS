@@ -1,0 +1,48 @@
+{
+  "browser": "156.0.8078.4",
+  "axe": "4.11.1",
+  "passed": true,
+  "scope": "Editor and SQL automated checks; screen reader and Safari not verified",
+  "states": [
+    {
+      "name": "empty editor",
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "name": "file dialog",
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "name": "PHP editor",
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "name": "search panel",
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "name": "SQL result",
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "name": "editor at 320",
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "name": "sql at 320",
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "name": "editor text 200%",
+      "violations": [],
+      "incomplete": []
+    }
+  ]
+}
