@@ -3,15 +3,15 @@
   "files": [
     {
       "path": "apps/studio/client-bootstrap.js",
-      "sha256": "affc933baaa6bd7c596d9d0215ec7833db20345d33d8df2aa7b2b789550f61de"
+      "sha256": "f3540dca8bcf7852c3dc67a34b55133cfefc8687f4277465d8506098b0afd96b"
     },
     {
       "path": "apps/studio/index.html",
-      "sha256": "7c2e674951629e430e73c3e9bb8d1c29850dc35e8265172a893f75722590942e"
+      "sha256": "e00f69b47bb84eea4023dadb04d5284696c31bba6c26dedabf90e47a67e521ac"
     },
     {
       "path": "apps/studio/project-hub.mjs",
-      "sha256": "6de71b48a39ccf21719cd1eb8082871420a14ca2c7d121a3ae41677f84864aae"
+      "sha256": "1544a242d5540cbf7a73ba709ecba7e0c7faa58d11f9251f80ba220961de5a04"
     },
     {
       "path": "apps/studio/school-demo.mjs",
@@ -31,7 +31,7 @@
     },
     {
       "path": "apps/studio/studio.mjs",
-      "sha256": "1bd6688335eaab593bcfbb07906ddda46f8ca388f368b85e239d754e29aeaae7"
+      "sha256": "ca2d703472b027dcc322cdc6d66e6514eefcb76319db3054f6a141df25b45dc7"
     },
     {
       "path": "apps/studio/zip.mjs",
@@ -39,7 +39,7 @@
     },
     {
       "path": "packages/runtime/src/client-sessions.mjs",
-      "sha256": "da39357436caf41f3619edc22652a08356a68daf41519413e1bba72d9d133fc5"
+      "sha256": "3cc72d9cdc90084c46edc1f7fdb8338385b3b8674d596d2d6192ef06c8ee479b"
     },
     {
       "path": "scripts/serve-studio.mjs",
@@ -63,7 +63,11 @@
     },
     {
       "path": "packages/runtime/src/vfs-quota.mjs",
-      "sha256": "262f63f5c021f7849f1b265c05fb5805f6ce149ecb2d7386efe2392d239bfa2f"
+      "sha256": "16490fbf925b90c55bc3b88d78f2d6bfa3e78201abd2851e9ec25ef719b9981a"
+    },
+    {
+      "path": "packages/runtime/src/idbfs-atomic.mjs",
+      "sha256": "f5d10d162adbcbf9696ee1eca6e6cfb61c1d1e8d88a83bb768be99b1d9f8f7cb"
     }
   ]
 }

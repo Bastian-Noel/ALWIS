@@ -10,7 +10,14 @@ typedef struct connection_record {
 } connection_record;
 static connection_record *connections;
 static uint64_t owner_counter, current_owner;
-static int started;
+static int started,phase;
+static const char *initialization_error="Embedded SQL initialization, allocation or connection limit failure";
+int pbl_mysql_phase(void) { return phase; } /* 0 dormant, 1 running, 2 stopped, 3 failed */
+const char *pbl_mysql_last_error(void) {
+    if(phase==2) return "SQL is stopped; save the project and create a fresh runtime before using SQL";
+    if(phase==3) return "SQL initialization failed; create a fresh runtime; the previous persistent snapshot was not overwritten";
+    return initialization_error;
+}
 
 uint64_t pbl_mysql_owner_begin(void) { current_owner = ++owner_counter; return current_owner; }
 uint64_t pbl_mysql_owner_current(void) { return current_owner; }
@@ -23,10 +30,11 @@ unsigned pbl_mysql_connection_count(void)
 }
 MYSQL *pbl_mysql_init_owner(uint64_t owner)
 {
-    if (pbl_mysql_connection_count() >= 32) return NULL;
+    if(phase>=2) return NULL;
+    if (pbl_mysql_connection_count() >= 32) {initialization_error="Native SQL caller connection limit reached";return NULL;}
     if (!started) {
-        if (l4m_open() != 0) return NULL;
-        started = 1;
+        if (l4m_open() != 0) {phase=3;return NULL;}
+        started = 1;phase=1;
     }
     connection_record *record = calloc(1, sizeof(*record));
     if (!record) return NULL;
@@ -70,6 +78,7 @@ void pbl_mysql_owner_cleanup(uint64_t owner)
 int pbl_mysql_stop(void)
 {
     if (connections) return -1;
-    if (started) { l4m_close(); started = 0; }
+    if(phase==3)return -2;
+    if (started) { l4m_close(); started = 0;phase=2; }
     return 0;
 }

@@ -12,6 +12,8 @@ MYSQL *pbl_mysql_init(MYSQL *unused);
 void pbl_mysql_close(MYSQL *connection);
 void pbl_mysql_owner_cleanup(uint64_t owner);
 int pbl_mysql_started(void);
+int pbl_mysql_phase(void);
+const char *pbl_mysql_last_error(void);
 int pbl_mysql_stop(void); /* Refuses while live caller connections remain. */
 unsigned pbl_mysql_connection_count(void);
 #endif

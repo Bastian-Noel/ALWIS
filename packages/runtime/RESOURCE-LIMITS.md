@@ -26,7 +26,7 @@ Autres limites déjà appliquées : RPC en attente avant copie 8 Mio/64 appels ;
 ## À consolider
 
 - Erreurs de disque plein pendant agrandissement InnoDB, initialisation SQL incomplète et récupération après interruption.
-- Atomicité des magasins fichiers/SQL actuellement séparés et quotas réels du stockage navigateur lors de syncfs.
+- Les nouveaux projets ont maintenant un snapshot atomique unique et les échecs de transaction sont exercés ; restent le mode historique à magasins séparés, la migration et les quotas réels du stockage navigateur. Voir `engine/fusion/STORAGE-RECOVERY-RECEIPT.md`.
 - Réponses HTTP sortantes : le wrapper XHR actuel reçoit encore le corps avant sa limite de copie ; remplacer ce comportement par une lecture avec limite pendant la réception.
 - Longues sessions et mesures continues des pics, en séparant allocateur C, VFS, JS/JIT et PSS navigateur.
 

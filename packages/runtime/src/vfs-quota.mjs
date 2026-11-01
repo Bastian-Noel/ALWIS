@@ -5,7 +5,7 @@ const MiB=1024*1024;
 export function installVfsQuota(FS,{projectRoot='/workspace',sqlRoot='/mariadb/data',limits={}}={}) {
   const defaults={projectBytes:64*MiB,projectFileBytes:16*MiB,projectNodes:2048,tempBytes:16*MiB,tempFileBytes:16*MiB,tempNodes:256,sqlBytes:128*MiB,sqlFileBytes:64*MiB,sqlNodes:4096,systemBytes:16*MiB,systemFileBytes:16*MiB,systemNodes:2048,openFiles:512};
   for(const [key,value] of Object.entries(limits))if(!Object.hasOwn(defaults,key)||!Number.isSafeInteger(value)||value<1||value>defaults[key])throw Error('Invalid VFS limit: '+key);
-  const policy={...defaults,...limits},records=new WeakMap();
+  const policy={...defaults,...limits},records=new WeakMap();let dirty=new WeakSet();
   const groups=Object.fromEntries(['project','temp','sql','system'].map(name=>[name,{bytes:0,reserved:0,nodes:0,maxBytes:policy[name+'Bytes'],maxFileBytes:policy[name+'FileBytes'],maxNodes:policy[name+'Nodes']} ]));
   const under=(path,root)=>path===root||path.startsWith(root+'/');
   const groupFor=path=>under(path,projectRoot)||under(path,'/workspace')?'project':under(path,sqlRoot)||under(path,'/mariadb/data')?'sql':under(path,'/tmp')?'temp':'system';
@@ -23,6 +23,7 @@ export function installVfsQuota(FS,{projectRoot='/workspace',sqlRoot='/mariadb/d
     if(group){groups[group].bytes+=bytes;groups[group].reserved+=capacity;groups[group].nodes++;}return rec;
   }
   function refresh(node){
+    dirty.add(node);
     const rec=record(node),bytes=size(node),capacity=reserved(node);
     if(rec.group){groups[rec.group].bytes+=bytes-rec.bytes;groups[rec.group].reserved+=capacity-rec.reserved;}
     rec.bytes=bytes;rec.reserved=capacity;
@@ -43,7 +44,7 @@ export function installVfsQuota(FS,{projectRoot='/workspace',sqlRoot='/mariadb/d
   for(const root of new Set(['/',projectRoot,sqlRoot,'/tmp']))scan(root);
   wrap('createNode',(fn,parent,name,mode,dev)=>{
     if(parent){if(name.length>255||new TextEncoder().encode(name).length>255)fail(37);check(groupFor(FS.getPath(parent).replace(/\/$/,'')+'/'+name),0,1);}
-    const node=fn.call(FS,parent,name,mode,dev);if(parent)record(node);return node;
+    const node=fn.call(FS,parent,name,mode,dev);if(parent){record(node);dirty.add(node);}return node;
   });
   wrap('write',(fn,stream,buffer,offset,length,position,canOwn)=>{
     if(FS.isFile(stream.node.mode)&&length>=0){const at=position??((stream.flags&1024)?size(stream.node):stream.position);growth(stream.node,Math.max(size(stream.node),at+length));}
@@ -51,7 +52,7 @@ export function installVfsQuota(FS,{projectRoot='/workspace',sqlRoot='/mariadb/d
   });
   wrap('doSetAttr',(fn,stream,node,attr)=>{
     if(attr.size!==undefined)growth(node,attr.size);
-    try{return fn.call(FS,stream,node,attr);}finally{if(attr.size!==undefined)refresh(node);}
+    try{return fn.call(FS,stream,node,attr);}finally{dirty.add(node);if(attr.size!==undefined)refresh(node);}
   });
   wrap('msync',(fn,stream,buffer,offset,length,flags)=>{
     // MAP_PRIVATE (2) does not alter the file.
@@ -75,11 +76,11 @@ export function installVfsQuota(FS,{projectRoot='/workspace',sqlRoot='/mariadb/d
     const split=to.lastIndexOf('/'),parent=FS.lookupPath(to.slice(0,split)||'/',{follow:true}).node;
     visit(node,FS.getPath(parent).replace(/\/$/,'')+'/'+to.slice(split+1));
     for(const [group,delta] of Object.entries(deltas))check(group,delta.bytes,delta.nodes);
-    const result=fn.call(FS,from,to);
+    const result=fn.call(FS,from,to);for(const move of moves)dirty.add(move.node);
     if(destination&&destination!==node)release(destination);
     for(const {rec,group} of moves)if(rec.group!==group){if(rec.group){groups[rec.group].bytes-=rec.bytes;groups[rec.group].reserved-=rec.reserved;groups[rec.group].nodes--;}
       if(group){groups[group].bytes+=rec.bytes;groups[group].reserved+=rec.reserved;groups[group].nodes++;}rec.group=group;}
     return result;
   });
-  return {scan,stats:()=>({groups:Object.fromEntries(Object.entries(groups).map(([name,value])=>[name,{...value}])),openFiles:FS.streams.filter(Boolean).length,maxOpenFiles:policy.openFiles})};
+  return {scan,isDirty(path){try{return dirty.has(FS.lookupPath(path,{follow:false}).node);}catch{return false;}},clearDirty(){dirty=new WeakSet();},stats:()=>({groups:Object.fromEntries(Object.entries(groups).map(([name,value])=>[name,{...value}])),openFiles:FS.streams.filter(Boolean).length,maxOpenFiles:policy.openFiles})};
 }

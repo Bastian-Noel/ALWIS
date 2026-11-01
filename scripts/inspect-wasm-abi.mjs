@@ -60,7 +60,7 @@ function inspect(bytes, filename) {
     file: filename, sha256: createHash('sha256').update(bytes).digest('hex'), bytes: bytes.length,
     memoryImports, definedMemories, importedFunctions: imports.filter(x => x.kind === 'function').length,
     exportedMemories: exports.filter(x => x.kind === 'memory').map(x => x.name),
-    interfaceExports: exports.filter(x => /^(php_wasm_|l4m_)/.test(x.name)).map(x => x.name),
+    interfaceExports: exports.filter(x => /^(php_wasm_|l4m_|pbl_)/.test(x.name)).map(x => x.name),
     asyncifyExports: exports.filter(x => x.name.startsWith('asyncify_')).map(x => x.name),
     pthreadExports: exports.filter(x => /pthread|_emscripten_thread/.test(x.name)).map(x => x.name),
     hostCallImports: imports.filter(x => /host_call/i.test(x.name)).map(x => x.name),

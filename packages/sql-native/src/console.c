@@ -24,7 +24,7 @@ EMSCRIPTEN_KEEPALIVE int pbl_console_open(const char *database)
 {
     if(!console) {
         console=pbl_mysql_init_owner(0);
-        if(!console) return fail("Embedded console initialization/limit failure",2002,"HY000");
+        if(!console) return fail(pbl_mysql_last_error(),2002,"HY000");
         if(!mysql_real_connect(console,NULL,"root","",NULL,0,NULL,0)) {
             fail(mysql_error(console),mysql_errno(console),mysql_sqlstate(console)); pbl_mysql_close(console); console=NULL; return 0;
         }

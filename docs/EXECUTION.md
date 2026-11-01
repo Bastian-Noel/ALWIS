@@ -30,3 +30,7 @@ Le [receipt du 31 octobre](../benchmarks/REPRISE-2026-10-31.md) décrit les corr
 ## Tranche fonctionnelle custom C
 
 Le [receipt du runtime C](../engine/fusion/NATIVE-RUNTIME-RECEIPT.md) atteste les fixtures PDO/MySQLi inchangées, fichiers, CGI, HTTP navigateur, console indépendante et reprise après sauvegarde/nouveau propriétaire sur les deux navigateurs. Le [studio](../apps/studio/README.md) apporte maintenant les fenêtres/sessions et outils ; les reçus sont dans `apps/studio/receipts/`. La compatibilité complète et l’isolation par véritables origines restent ouvertes. Le [profil mémoire natif](../benchmarks/native/README.md) et la charge courte sont maintenant mesurés ; les quotas VFS sont maintenant appliqués et vérifiés ; l’endurance et la reprise en panne restent à approfondir. Ne pas relancer les témoins amont pour une simple modification du runtime custom.
+
+### Snapshot et cycle SQL consolidés (1 novembre)
+
+Les [preuves de récupération](../engine/fusion/STORAGE-RECOVERY-RECEIPT.md) couvrent maintenant snapshot atomique, échec après écriture, réessai, timestamps inchangés et vrai redémarrage/SIGKILL du navigateur sur les deux moteurs. Le redémarrage SQL dans un WASM déjà arrêté a été abandonné après un abort reproduit ; l’interface recrée le runtime. L’endurance, les erreurs de disque InnoDB et la réception réseau bornée restent ouvertes.

@@ -1,3 +1,4 @@
+import { enforceAtomicIdbfs } from './idbfs-atomic.mjs';
 import { installVfsQuota } from './vfs-quota.mjs';
 /** Project-owner worker: one native PHP/MariaDB instance, one bounded request queue.
  * Browser HTTP input/output and filesystem RPC use JS; SQL stays entirely in C.
@@ -10,8 +11,17 @@ let module;
 let vfsQuota;
 let poisoned = false;
 let projectKey;
-let releaseLock;
-const syncFilesystem = populate => new Promise((resolve, reject) => module.FS.syncfs(populate, error => error ? reject(error) : resolve()));
+let storageLayout='volatile',metadataPath;
+let releaseLock;let explicitSync=false;
+const syncFilesystem=populate=>new Promise((resolve,reject)=>{
+  explicitSync=true;module.FS.syncfs(populate,error=>{explicitSync=false;error?reject(error):resolve();});
+});
+function projectStore(){
+  return {...module.IDBFS,syncfs(mount,populate,callback){
+    // SDK fd_sync also calls mount.syncfs: it must not publish a live/partial DB.
+    if(populate||explicitSync)module.IDBFS.syncfs(mount,populate,callback);else callback(null);
+  }};
+}
 async function mountProject(key,limits) {
   if (typeof key !== 'string' || !/^[a-zA-Z0-9_-]{1,64}$/.test(key)) throw Error('Invalid persistent project key');
   if (!navigator.locks) throw Error('Persistent project ownership requires navigator.locks');
@@ -21,21 +31,39 @@ async function mountProject(key,limits) {
       resolve(); return new Promise(release => { releaseLock = release; });
     }).catch(reject);
   });
-  const files = '/.pbl/projects/' + key, sql = '/.pbl/sql/' + key;
-  module.FS.mkdirTree(files); module.FS.mkdirTree(sql); module.FS.mkdirTree('/mariadb');
-  module.FS.mount(module.IDBFS, {}, files); module.FS.mount(module.IDBFS, {}, sql);
+  const oldFiles='/.pbl/projects/'+key,oldSql='/.pbl/sql/'+key,root='/.pbl/projects/@v2/'+key;
+  let names;
+  try{if(indexedDB.databases)names=new Set((await indexedDB.databases()).map(database=>database.name));}catch{/* Preserve legacy access if enumeration is unavailable. */}
+  const legacy=!names||(!names.has(root)&&(names.has(oldFiles)||names.has(oldSql)));
+  const files=legacy?oldFiles:root+'/files',sql=legacy?oldSql:root+'/sql';
+  storageLayout=legacy?'legacy-split':'atomic-v2';
+  module.FS.mkdirTree('/mariadb');
+  if(legacy){module.FS.mkdirTree(files);module.FS.mkdirTree(sql);module.FS.mount(projectStore(),{},files);module.FS.mount(projectStore(),{},sql);}
+  else{module.FS.mkdirTree(root);module.FS.mount(projectStore(),{},root);}
   vfsQuota=installVfsQuota(module.FS,{projectRoot:files,sqlRoot:sql,limits});
-  vfsQuota.scan(files);vfsQuota.scan(sql);
-  await syncFilesystem(true);
-  module.FS.symlink(files, '/workspace'); module.FS.symlink(sql, '/mariadb/data');
-  projectKey = key;
+  await syncFilesystem(true);vfsQuota.clearDirty();
+  module.FS.mkdirTree(files);module.FS.mkdirTree(sql);
+  module.FS.symlink(files,'/workspace');module.FS.symlink(sql,'/mariadb/data');
+  metadataPath=legacy?files+'/.pbl-studio-state.json':root+'/.pbl-studio-state.json';
+  projectKey=key;
 }
-async function saveProject() {
+async function saveProject(metadata) {
   if (!projectKey) throw Error('This runtime uses volatile files; no persistent project key was selected');
   await module.ccall('pbl_console_close', null, [], [], { async: true });
-  if (await module.ccall('pbl_mysql_stop', 'number', [], [], { async: true })) throw Error('Cannot save while caller SQL connections are active');
-  await syncFilesystem(false);
-  return { projectKey, persisted: true, sqlStopped: true };
+  const stopped=await module.ccall('pbl_mysql_stop','number',[],[],{async:true});
+  if(stopped)throw Error(stopped===-2?'SQL initialization failed; export project files before discarding this runtime. The persistent snapshot was not overwritten.':'Cannot save while caller SQL connections are active');
+  if(metadata!==undefined){
+    const data=JSON.stringify(metadata);if(encoder.encode(data).byteLength>8*1024*1024)throw Error('Project metadata exceeds byte limit');
+    const temporary=metadataPath+'.tmp';
+    try{module.FS.writeFile(temporary,data);module.FS.rename(temporary,metadataPath);}catch(error){try{module.FS.unlink(temporary);}catch{}throw error;}
+  }
+  await syncFilesystem(false);vfsQuota.clearDirty();
+  return { projectKey, persisted: true, sqlStopped: true,storageLayout };
+}
+function projectMetadata(){
+  if(!metadataPath)return null;
+  try{if(module.FS.stat(metadataPath).size>8*1024*1024)throw Error('Project metadata exceeds byte limit');return JSON.parse(module.FS.readFile(metadataPath,{encoding:'utf8'}));}
+  catch(error){if(error.errno===44)return null;throw error;}
 }
 function path(value) {
   if (typeof value !== 'string' || !value.startsWith('/workspace/') || value.includes('\0') || value.split('/').includes('..') || value.length > 4000) throw Error('Invalid project path');
@@ -53,7 +81,7 @@ function copyChunks(chunks) {
   for (const chunk of chunks) { output.set(chunk, offset); offset += chunk.byteLength; }
   return output;
 }
-function state() { return { sqlStarted: module._pbl_mysql_started() !== 0, sqlConnections: module._pbl_mysql_connection_count(), linearMemoryBytes: module.HEAPU8.buffer.byteLength, allocatorUsedBytes: module._pbl_heap_used?.() ?? null, allocatorFreeBytes: module._pbl_heap_free?.() ?? null, vfs:vfsQuota?.stats(), hardwareConcurrency: navigator.hardwareConcurrency, projectKey, queue: queue.stats }; }
+function state() { return { sqlStarted: module._pbl_mysql_started() !== 0,sqlPhase:['dormant','running','stopped','failed'][module._pbl_mysql_phase?.()??(module._pbl_mysql_started()?1:0)], sqlConnections: module._pbl_mysql_connection_count(), linearMemoryBytes: module.HEAPU8.buffer.byteLength, allocatorUsedBytes: module._pbl_heap_used?.() ?? null, allocatorFreeBytes: module._pbl_heap_free?.() ?? null, vfs:vfsQuota?.stats(), hardwareConcurrency: navigator.hardwareConcurrency, projectKey, storageLayout, queue: queue.stats }; }
 async function request(input) {
   const script = path(input.script);
   const url = new URL(input.url ?? 'https://project.local' + script.slice('/workspace'.length));
@@ -109,6 +137,7 @@ async function dispatch(message) {
     if (url.origin !== self.location.origin) throw Error('Native engine must have the same origin');
     const { default: createRuntime } = await import(url.href);
     module = await createRuntime({ noInitialRun: true });
+    enforceAtomicIdbfs(module.IDBFS,path=>vfsQuota?.isDirty(path));
     if (message.projectKey !== undefined) await mountProject(message.projectKey,message.vfsLimits);
     if(!vfsQuota)vfsQuota=installVfsQuota(module.FS,{limits:message.vfsLimits});
     module.FS.mkdirTree('/workspace/.sessions');
@@ -129,7 +158,7 @@ async function dispatch(message) {
     case 'read': {
       const filename = path(message.path);
       if (module.FS.stat(filename).size > 16 * 1024 * 1024) throw Error('File exceeds read limit');
-      return module.FS.readFile(filename).slice();
+      return module.FS.readFile(filename);
     }
     case 'stat': { const info = module.FS.stat(message.path === '/workspace' ? '/workspace' : path(message.path)); return { directory: module.FS.isDir(info.mode), size: info.size }; }
     case 'list': return module.FS.readdir(message.path === '/workspace' ? '/workspace' : path(message.path));
@@ -141,13 +170,14 @@ async function dispatch(message) {
       return true;
     }
     case 'request': return request(message);
-    case 'save': return saveProject();
+    case 'metadata': return projectMetadata();
+    case 'save': return saveProject(message.metadata);
     case 'release': releaseLock?.(); releaseLock = undefined; poisoned = true; return true;
     case 'closeConsole': await module.ccall('pbl_console_close', null, [], [], { async: true }); return state();
     case 'sql': {
       if (message.database !== undefined && (typeof message.database !== 'string' || message.database.includes('\0'))) throw Error('Invalid database name');
       const opened = await module.ccall('pbl_console_open', 'number', ['string'], [message.database ?? ''], { async: true });
-      if (!opened) throw Error(module.UTF8ToString(module._pbl_console_error()));
+      if (!opened) throw Object.assign(Error(module.UTF8ToString(module._pbl_console_error())),{sqlstate:module.UTF8ToString(module._pbl_console_sqlstate()),errno:module._pbl_console_errno()});
       const sql = bytes(message.sql);
       const allocation = module._malloc(sql.length || 1);
       if (!allocation) throw Error('SQL input allocation failed');

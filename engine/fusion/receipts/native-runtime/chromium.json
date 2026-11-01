@@ -2,13 +2,15 @@
   "browser": "chromium",
   "version": "156.0.8078.4",
   "passed": true,
+  "scope": "all-native",
   "results": {
     "initial": {
       "sqlStarted": false,
+      "sqlPhase": "dormant",
       "sqlConnections": 0,
       "linearMemoryBytes": 268435456,
       "allocatorUsedBytes": 3176,
-      "allocatorFreeBytes": 3336,
+      "allocatorFreeBytes": 3144,
       "vfs": {
         "groups": {
           "project": {
@@ -48,6 +50,7 @@
         "maxOpenFiles": 512
       },
       "hardwareConcurrency": 5,
+      "storageLayout": "volatile",
       "queue": {
         "pending": 0,
         "running": true,
@@ -66,10 +69,11 @@
       "stderr": "",
       "exitCode": 0,
       "sqlStarted": false,
+      "sqlPhase": "dormant",
       "sqlConnections": 0,
       "linearMemoryBytes": 268435456,
       "allocatorUsedBytes": 3344,
-      "allocatorFreeBytes": 1707104,
+      "allocatorFreeBytes": 1706912,
       "vfs": {
         "groups": {
           "project": {
@@ -109,6 +113,7 @@
         "maxOpenFiles": 512
       },
       "hardwareConcurrency": 5,
+      "storageLayout": "volatile",
       "queue": {
         "pending": 0,
         "running": true,
@@ -117,10 +122,11 @@
     },
     "afterPurePhp": {
       "sqlStarted": false,
+      "sqlPhase": "dormant",
       "sqlConnections": 0,
       "linearMemoryBytes": 268435456,
       "allocatorUsedBytes": 3344,
-      "allocatorFreeBytes": 1707104,
+      "allocatorFreeBytes": 1706912,
       "vfs": {
         "groups": {
           "project": {
@@ -160,6 +166,7 @@
         "maxOpenFiles": 512
       },
       "hardwareConcurrency": 5,
+      "storageLayout": "volatile",
       "queue": {
         "pending": 0,
         "running": true,
@@ -176,10 +183,11 @@
       "stderr": "",
       "exitCode": 0,
       "sqlStarted": false,
+      "sqlPhase": "dormant",
       "sqlConnections": 0,
       "linearMemoryBytes": 268435456,
       "allocatorUsedBytes": 3344,
-      "allocatorFreeBytes": 1707104,
+      "allocatorFreeBytes": 1706912,
       "vfs": {
         "groups": {
           "project": {
@@ -219,6 +227,7 @@
         "maxOpenFiles": 512
       },
       "hardwareConcurrency": 5,
+      "storageLayout": "volatile",
       "queue": {
         "pending": 0,
         "running": true,
@@ -231,14 +240,15 @@
         "X-Powered-By: PHP/8.4.27",
         "Content-type: text/html; charset=UTF-8"
       ],
-      "body": "[[\"POST\",\"custom\",\"native-body\"],[\"HTTP\\/1.1 202 Accepted\",\"cache-control: no-store\",\"connection: keep-alive\",\"content-type: application\\/json\",\"cross-origin-embedder-policy: require-corp\",\"cross-origin-opener-policy: same-origin\",\"date: Sat, 31 Oct 2026 23:10:53 GMT\",\"keep-alive: timeout=5\",\"transfer-encoding: chunked\",\"x-native-reply: present\"]]",
+      "body": "[[\"POST\",\"custom\",\"native-body\"],[\"HTTP\\/1.1 202 Accepted\",\"cache-control: no-store\",\"connection: keep-alive\",\"content-type: application\\/json\",\"cross-origin-embedder-policy: require-corp\",\"cross-origin-opener-policy: same-origin\",\"date: Sun, 01 Nov 2026 09:53:52 GMT\",\"keep-alive: timeout=5\",\"transfer-encoding: chunked\",\"x-native-reply: present\"]]",
       "stderr": "",
       "exitCode": 0,
       "sqlStarted": false,
+      "sqlPhase": "dormant",
       "sqlConnections": 0,
       "linearMemoryBytes": 268435456,
       "allocatorUsedBytes": 3344,
-      "allocatorFreeBytes": 1707104,
+      "allocatorFreeBytes": 1706912,
       "vfs": {
         "groups": {
           "project": {
@@ -278,6 +288,7 @@
         "maxOpenFiles": 512
       },
       "hardwareConcurrency": 5,
+      "storageLayout": "volatile",
       "queue": {
         "pending": 0,
         "running": true,
@@ -294,10 +305,11 @@
       "stderr": "",
       "exitCode": 0,
       "sqlStarted": true,
+      "sqlPhase": "running",
       "sqlConnections": 0,
       "linearMemoryBytes": 268435456,
-      "allocatorUsedBytes": 79621144,
-      "allocatorFreeBytes": 2743640,
+      "allocatorUsedBytes": 79621544,
+      "allocatorFreeBytes": 2743048,
       "vfs": {
         "groups": {
           "project": {
@@ -337,6 +349,7 @@
         "maxOpenFiles": 512
       },
       "hardwareConcurrency": 5,
+      "storageLayout": "volatile",
       "queue": {
         "pending": 0,
         "running": true,
@@ -353,10 +366,11 @@
       "stderr": "",
       "exitCode": 0,
       "sqlStarted": true,
+      "sqlPhase": "running",
       "sqlConnections": 0,
       "linearMemoryBytes": 268435456,
-      "allocatorUsedBytes": 79621144,
-      "allocatorFreeBytes": 2743640,
+      "allocatorUsedBytes": 79621544,
+      "allocatorFreeBytes": 2743048,
       "vfs": {
         "groups": {
           "project": {
@@ -396,6 +410,7 @@
         "maxOpenFiles": 512
       },
       "hardwareConcurrency": 5,
+      "storageLayout": "volatile",
       "queue": {
         "pending": 0,
         "running": true,
@@ -412,10 +427,11 @@
       "stderr": "",
       "exitCode": 0,
       "sqlStarted": true,
+      "sqlPhase": "running",
       "sqlConnections": 0,
       "linearMemoryBytes": 268435456,
-      "allocatorUsedBytes": 181811896,
-      "allocatorFreeBytes": 1945272,
+      "allocatorUsedBytes": 181812280,
+      "allocatorFreeBytes": 1944696,
       "vfs": {
         "groups": {
           "project": {
@@ -455,6 +471,7 @@
         "maxOpenFiles": 512
       },
       "hardwareConcurrency": 5,
+      "storageLayout": "volatile",
       "queue": {
         "pending": 0,
         "running": true,
@@ -480,10 +497,11 @@
     },
     "systemQuota": {
       "sqlStarted": true,
+      "sqlPhase": "running",
       "sqlConnections": 1,
       "linearMemoryBytes": 268435456,
-      "allocatorUsedBytes": 198973800,
-      "allocatorFreeBytes": 12152840,
+      "allocatorUsedBytes": 198974272,
+      "allocatorFreeBytes": 12152176,
       "vfs": {
         "groups": {
           "project": {
@@ -523,6 +541,7 @@
         "maxOpenFiles": 512
       },
       "hardwareConcurrency": 5,
+      "storageLayout": "volatile",
       "queue": {
         "pending": 0,
         "running": true,
@@ -539,10 +558,11 @@
       "stderr": "",
       "exitCode": 0,
       "sqlStarted": true,
+      "sqlPhase": "running",
       "sqlConnections": 0,
       "linearMemoryBytes": 268435456,
-      "allocatorUsedBytes": 79561736,
-      "allocatorFreeBytes": 2803048,
+      "allocatorUsedBytes": 79561488,
+      "allocatorFreeBytes": 2803104,
       "vfs": {
         "groups": {
           "project": {
@@ -582,6 +602,7 @@
         "maxOpenFiles": 512
       },
       "hardwareConcurrency": 5,
+      "storageLayout": "volatile",
       "queue": {
         "pending": 0,
         "running": true,
@@ -620,10 +641,11 @@
       "stderr": "",
       "exitCode": 0,
       "sqlStarted": true,
+      "sqlPhase": "running",
       "sqlConnections": 0,
       "linearMemoryBytes": 268435456,
-      "allocatorUsedBytes": 79621488,
-      "allocatorFreeBytes": 2743296,
+      "allocatorUsedBytes": 79621888,
+      "allocatorFreeBytes": 2742704,
       "vfs": {
         "groups": {
           "project": {
@@ -663,6 +685,7 @@
         "maxOpenFiles": 512
       },
       "hardwareConcurrency": 5,
+      "storageLayout": "volatile",
       "queue": {
         "pending": 0,
         "running": true,
@@ -739,10 +762,11 @@
       "stderr": "",
       "exitCode": 0,
       "sqlStarted": false,
+      "sqlPhase": "stopped",
       "sqlConnections": 0,
       "linearMemoryBytes": 268435456,
       "allocatorUsedBytes": 119199104,
-      "allocatorFreeBytes": 91927536,
+      "allocatorFreeBytes": 91927344,
       "vfs": {
         "groups": {
           "project": {
@@ -762,8 +786,8 @@
             "maxNodes": 256
           },
           "sql": {
-            "bytes": 53451093,
-            "reserved": 53514937,
+            "bytes": 53451088,
+            "reserved": 53514932,
             "nodes": 106,
             "maxBytes": 134217728,
             "maxFileBytes": 67108864,
@@ -782,6 +806,7 @@
         "maxOpenFiles": 512
       },
       "hardwareConcurrency": 5,
+      "storageLayout": "volatile",
       "queue": {
         "pending": 0,
         "running": true,
@@ -790,10 +815,11 @@
     },
     "final": {
       "sqlStarted": true,
+      "sqlPhase": "running",
       "sqlConnections": 0,
       "linearMemoryBytes": 268435456,
-      "allocatorUsedBytes": 198909896,
-      "allocatorFreeBytes": 12216744,
+      "allocatorUsedBytes": 198910328,
+      "allocatorFreeBytes": 12216120,
       "vfs": {
         "groups": {
           "project": {
@@ -833,6 +859,7 @@
         "maxOpenFiles": 512
       },
       "hardwareConcurrency": 5,
+      "storageLayout": "volatile",
       "queue": {
         "pending": 0,
         "running": true,
@@ -841,10 +868,11 @@
     },
     "stopped": {
       "sqlStarted": false,
+      "sqlPhase": "stopped",
       "sqlConnections": 0,
       "linearMemoryBytes": 268435456,
-      "allocatorUsedBytes": 144473112,
-      "allocatorFreeBytes": 66653528,
+      "allocatorUsedBytes": 144473104,
+      "allocatorFreeBytes": 66653344,
       "vfs": {
         "groups": {
           "project": {
@@ -864,8 +892,8 @@
             "maxNodes": 256
           },
           "sql": {
-            "bytes": 53451093,
-            "reserved": 53514937,
+            "bytes": 53451088,
+            "reserved": 53514932,
             "nodes": 106,
             "maxBytes": 134217728,
             "maxFileBytes": 67108864,
@@ -884,6 +912,7 @@
         "maxOpenFiles": 512
       },
       "hardwareConcurrency": 5,
+      "storageLayout": "volatile",
       "queue": {
         "pending": 0,
         "running": true,
@@ -895,10 +924,11 @@
     "passed": true,
     "initial": {
       "sqlStarted": false,
+      "sqlPhase": "dormant",
       "sqlConnections": 0,
       "linearMemoryBytes": 268435456,
       "allocatorUsedBytes": 3176,
-      "allocatorFreeBytes": 3336,
+      "allocatorFreeBytes": 3144,
       "vfs": {
         "groups": {
           "project": {
@@ -938,6 +968,7 @@
         "maxOpenFiles": 8
       },
       "hardwareConcurrency": 5,
+      "storageLayout": "volatile",
       "queue": {
         "pending": 0,
         "running": true,
@@ -946,10 +977,11 @@
     },
     "before": {
       "sqlStarted": false,
+      "sqlPhase": "dormant",
       "sqlConnections": 0,
       "linearMemoryBytes": 268435456,
       "allocatorUsedBytes": 3344,
-      "allocatorFreeBytes": 8002656,
+      "allocatorFreeBytes": 8006560,
       "vfs": {
         "groups": {
           "project": {
@@ -989,6 +1021,7 @@
         "maxOpenFiles": 8
       },
       "hardwareConcurrency": 5,
+      "storageLayout": "volatile",
       "queue": {
         "pending": 0,
         "running": true,
@@ -997,10 +1030,11 @@
     },
     "after": {
       "sqlStarted": false,
+      "sqlPhase": "dormant",
       "sqlConnections": 0,
       "linearMemoryBytes": 268435456,
       "allocatorUsedBytes": 3344,
-      "allocatorFreeBytes": 8002656,
+      "allocatorFreeBytes": 8006560,
       "vfs": {
         "groups": {
           "project": {
@@ -1040,6 +1074,7 @@
         "maxOpenFiles": 8
       },
       "hardwareConcurrency": 5,
+      "storageLayout": "volatile",
       "queue": {
         "pending": 0,
         "running": true,
@@ -1048,10 +1083,11 @@
     },
     "final": {
       "sqlStarted": false,
+      "sqlPhase": "dormant",
       "sqlConnections": 0,
       "linearMemoryBytes": 268435456,
       "allocatorUsedBytes": 3344,
-      "allocatorFreeBytes": 8002656,
+      "allocatorFreeBytes": 8006560,
       "vfs": {
         "groups": {
           "project": {
@@ -1091,6 +1127,7 @@
         "maxOpenFiles": 8
       },
       "hardwareConcurrency": 5,
+      "storageLayout": "volatile",
       "queue": {
         "pending": 0,
         "running": true,
@@ -1112,7 +1149,7 @@
   },
   "persistence": {
     "passed": true,
-    "projectKey": "test-1aec9bca-4cc4-46ad-b73e-708fd37de7b4",
+    "projectKey": "test-d8b32163-5d13-4456-bcd7-ccfc6ac3b2c3",
     "output": "saved-native-project",
     "sql": {
       "columns": [
@@ -1132,5 +1169,57 @@
       "insertId": "0"
     },
     "scope": "New owner worker and WASM instance in the same browser profile after explicit save"
+  },
+  "atomicPersistence": {
+    "passed": true,
+    "scope": "Genuine IndexedDB ConstraintError after a successful put; old snapshot recovered, unsafe in-place restart refused, subsequent save retry recovered all components",
+    "file": "old-files",
+    "sql": {
+      "columns": [
+        {
+          "kind": 1,
+          "nativeType": 253,
+          "flags": 0,
+          "name": "value"
+        }
+      ],
+      "rows": [
+        [
+          "old-sql"
+        ]
+      ],
+      "affectedRows": "1",
+      "insertId": "0"
+    },
+    "metadata": {
+      "version": "old-metadata"
+    },
+    "retry": {
+      "file": "retry-files",
+      "sql": {
+        "columns": [
+          {
+            "kind": 1,
+            "nativeType": 253,
+            "flags": 0,
+            "name": "value"
+          }
+        ],
+        "rows": [
+          [
+            "retry-sql"
+          ]
+        ],
+        "affectedRows": "1",
+        "insertId": "0"
+      },
+      "metadata": {
+        "version": "retry-metadata"
+      }
+    }
+  },
+  "legacyPersistence": {
+    "passed": true,
+    "scope": "Seeded Emscripten 6.0.6 legacy FILE_DATA store retained; SQL saved/reopened through compatibility layout"
   }
 }

@@ -42,8 +42,10 @@ export class NativeRuntime {
   state() { return this.call('state'); }
   sql(sql, database) { return this.call('sql', { sql, database }); }
   closeConsole() { return this.call('closeConsole'); }
-  save() { return this.call('save'); }
-  async shutdown({ save = true } = {}) { if (save) await this.save(); await this.call('release'); this.close(); }
+  get closed() { return this.#closed; }
+  metadata() { return this.call('metadata'); }
+  save(metadata) { return this.call('save',{metadata}); }
+  async shutdown({ save = true, metadata } = {}) { if (save) await this.save(metadata); await this.call('release'); this.close(); }
   stopSQL() { return this.call('stopSQL'); }
   close(error = new Error('Runtime closed')) {
     if (this.#closed) return;

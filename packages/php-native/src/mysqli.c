@@ -31,7 +31,7 @@ static void unsigned_value(my_ulonglong value,zval *output) {
 }
 static void sql_error(MYSQL *mysql, MYSQL_STMT *stmt)
 {
-    const char *message = stmt ? mysql_stmt_error(stmt) : mysql ? mysql_error(mysql) : "Embedded SQL initialization, allocation or connection limit failure";
+    const char *message = stmt ? mysql_stmt_error(stmt) : mysql ? mysql_error(mysql) : pbl_mysql_last_error();
     unsigned code = stmt ? mysql_stmt_errno(stmt) : mysql ? mysql_errno(mysql) : 2002;
     if (report_mode & 2) {
         zend_object *error = zend_throw_exception(sql_exception_ce, message, code);

@@ -23,7 +23,7 @@ write('runtime.c',php_wrapper/'native/runtime.c',[
 write('mysql_driver.c',php_build/'ext/pdo_mysql/mysql_driver.c',[
  ('#include "php.h"','#include "php.h"\n#include "pdo-adapter.h"'),
  ('H = pecalloc(1, sizeof(pdo_mysql_db_handle), dbh->is_persistent);','H = pecalloc(1, sizeof(pdo_mysql_db_handle), dbh->is_persistent);\n\tdbh->driver_data = H;'),
- ('if (!(H->server = pdo_mysql_init(dbh->is_persistent))) {\n\t\tpdo_mysql_error(dbh);','if (!(H->server = pdo_mysql_init(dbh->is_persistent))) {\n\t\tstrcpy(dbh->error_code, "HY000");\n\t\tzend_throw_exception(php_pdo_get_exception(), "Embedded SQL initialization, allocation or connection limit failure", 0);'),
+ ('if (!(H->server = pdo_mysql_init(dbh->is_persistent))) {\n\t\tpdo_mysql_error(dbh);','if (!(H->server = pdo_mysql_init(dbh->is_persistent))) {\n\t\tstrcpy(dbh->error_code, "HY000");\n\t\tzend_throw_exception(php_pdo_get_exception(), pbl_mysql_last_error(), 0);'),
 ])
 write('mysql_statement.c',php_build/'ext/pdo_mysql/mysql_statement.c',[
  ('#if MYSQL_VERSION_ID >= 50708 || defined(PDO_USE_MYSQLND)', '#if (MYSQL_VERSION_ID >= 50708 && !defined(MARIADB_BASE_VERSION)) || defined(PDO_USE_MYSQLND)'),

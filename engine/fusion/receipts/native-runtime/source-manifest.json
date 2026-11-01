@@ -25,7 +25,7 @@
     },
     {
       "path": "engine/fusion/spike/runtime-target.cmake",
-      "sha256": "3c5264a34854a2b02c02cf18b2e6577cd7121ff81a50abd6487d0c5900c73453"
+      "sha256": "8eda90f2c04320348ed68006d9a0cce600eed1121fed15b4ea0d9455c5d4cae4"
     },
     {
       "path": "engine/fusion/spike/select-one.c",
@@ -37,7 +37,7 @@
     },
     {
       "path": "engine/fusion/spike/test-native-runtime.mjs",
-      "sha256": "9377e2264a6d8544948448bc531a746d242e9e6f1448384e71ed57a4ec6f34ae"
+      "sha256": "9c27765e5952b49f62ff639470b29a210a69ada44b498157f3d0791909206301"
     },
     {
       "path": "engine/fusion/spike/worker.mjs",
@@ -53,7 +53,7 @@
     },
     {
       "path": "packages/php-native/README.md",
-      "sha256": "9df3870863ce6a3a217b63d9c36c679ad8494507bf35557e9a4c1d99f24a02ee"
+      "sha256": "9e9cc85b9ec40ad79ecb83cc774c8ab48dd6cf5de986b3efe7c6ae7f60aee710"
     },
     {
       "path": "packages/php-native/src/module.c",
@@ -61,7 +61,7 @@
     },
     {
       "path": "packages/php-native/src/mysqli.c",
-      "sha256": "abda731a15bda189da49cb60a8692356578cfc92258104ba1fc67e9894ff27c7"
+      "sha256": "8a2b6cbba8f5b523d91d65f88a771f36ae3905bd8ae8456f4258147462959c9b"
     },
     {
       "path": "packages/php-native/src/pdo-adapter.h",
@@ -69,11 +69,11 @@
     },
     {
       "path": "packages/runtime/src/native-runtime.mjs",
-      "sha256": "2aced7259008890ce674455ecd60be084ac4523dc668e573541ae329e9c6a354"
+      "sha256": "74a556747ba7161e27ebab9c7d4bdb40b1a3959c899b6b2938e4b0f198bb7224"
     },
     {
       "path": "packages/runtime/src/native-worker.mjs",
-      "sha256": "726d2c72fea4871cd0a78075df87fa8c31ccb0a096bab478383f3ca31923dc7f"
+      "sha256": "ebcc983f2495ff8ecafd82f9f807633d5161e8e6561814aa92c6a7806d64b530"
     },
     {
       "path": "packages/runtime/src/request-queue.mjs",
@@ -89,7 +89,7 @@
     },
     {
       "path": "packages/sql-native/include/pbl_mysql.h",
-      "sha256": "31b11a84a235f9c7905af7a2615e5c522f832f49d1dbccd0639ddee932a8b9b0"
+      "sha256": "a4f449d858382728cff8ecbadf2f24fe777919e4bc21de92757074f81d7cf1ec"
     },
     {
       "path": "packages/sql-native/include/pbl_sql.h",
@@ -97,15 +97,15 @@
     },
     {
       "path": "packages/sql-native/src/console.c",
-      "sha256": "e7022bba29a821d17ab7aad204f95215dbee31a748a56946f05d2026a357eeae"
+      "sha256": "85682be1f50df8f716fdc9bc75f62b217b2aad9d53afadf696e24c6f1af4ed47"
     },
     {
       "path": "packages/sql-native/src/pbl_mysql.c",
-      "sha256": "e36814f2d43e8e04b4c730e650f68acb6d4a77b46712f2dace48bb3019bf8f9d"
+      "sha256": "d3a10da26e03419a51b15c1a83112a1ea40aca16b6f446aaeaceac7ae45c57a7"
     },
     {
       "path": "scripts/prepare-native-drivers.py",
-      "sha256": "d5537c24e24f22b0c2964760fb2e1ae3ca157130158d3db6b1a8be460095d141"
+      "sha256": "aed09c13bd29669a375bc1c2a19b85ba5f5b0a9614877d4270224416d0a1dd74"
     },
     {
       "path": "scripts/prepare-native-server.py",
@@ -125,19 +125,35 @@
     },
     {
       "path": "packages/runtime/src/vfs-quota.mjs",
-      "sha256": "262f63f5c021f7849f1b265c05fb5805f6ce149ecb2d7386efe2392d239bfa2f"
+      "sha256": "16490fbf925b90c55bc3b88d78f2d6bfa3e78201abd2851e9ec25ef719b9981a"
+    },
+    {
+      "path": "packages/runtime/src/idbfs-atomic.mjs",
+      "sha256": "f5d10d162adbcbf9696ee1eca6e6cfb61c1d1e8d88a83bb768be99b1d9f8f7cb"
+    },
+    {
+      "path": "tests/browser/idb-failure-worker.mjs",
+      "sha256": "88fbd785d9ae7642671ba943e61a58d1e106616fd3dd0cbce8f5ecc16da5d075"
+    },
+    {
+      "path": "tests/browser/restart-native.mjs",
+      "sha256": "400d91d602c2cc2cfb1ff068a4d3595256aed633bf3b45636a9ff2197fb57ef5"
+    },
+    {
+      "path": "scripts/inspect-wasm-abi.mjs",
+      "sha256": "2dc2af9ec318f7fc281ddae995d6acb482063a738305ca7ddcfb5c9d0be6b2fc"
     }
   ],
   "artifacts": [
     {
       "path": "build-work/bridge/.native-build/engine/wasm/runtime-dist/pbl-runtime.mjs",
-      "sha256": "c211240161132a8ba98558210b54a7f8793cf402f4f66cc31b78f260a4211227",
-      "bytes": 483399
+      "sha256": "6cf77aa32c3fc1ff517a9cc286f813e8626b8f6ed620ae674f06b7b7941dcf85",
+      "bytes": 483725
     },
     {
       "path": "build-work/bridge/.native-build/engine/wasm/runtime-dist/pbl-runtime.wasm",
-      "sha256": "942de161679b7b10283f70a8ae25a75d514b9957707f2aa0ee5d464433930faa",
-      "bytes": 33289256
+      "sha256": "85c2433390c3f6d87e86903700741012b490dec80c0c136fb1970709f6955e8d",
+      "bytes": 33289652
     }
   ],
   "nativeLibraries": [

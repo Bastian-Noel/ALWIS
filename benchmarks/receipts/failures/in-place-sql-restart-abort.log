@@ -1,0 +1,59 @@
+chromium error warning: unsupported syscall: __syscall_prlimit64
+chromium error warning: unsupported syscall: __syscall_madvise
+chromium error warning: unsupported syscall: __syscall_madvise
+chromium error warning: unsupported syscall: __syscall_madvise
+chromium error warning: unsupported syscall: __syscall_madvise
+chromium error warning: unsupported syscall: __syscall_madvise
+chromium error warning: unsupported syscall: __syscall_madvise
+chromium error warning: unsupported syscall: __syscall_madvise
+chromium error warning: unsupported syscall: __syscall_madvise
+chromium error warning: unsupported syscall: __syscall_mprotect
+chromium error warning: unsupported syscall: __syscall_prlimit64
+chromium error warning: unsupported syscall: __syscall_madvise
+chromium error warning: unsupported syscall: __syscall_madvise
+chromium error warning: unsupported syscall: __syscall_madvise
+chromium error warning: unsupported syscall: __syscall_madvise
+chromium error warning: unsupported syscall: __syscall_madvise
+chromium error warning: unsupported syscall: __syscall_madvise
+chromium error warning: unsupported syscall: __syscall_madvise
+chromium error warning: unsupported syscall: __syscall_madvise
+chromium error warning: unsupported syscall: __syscall_madvise
+chromium error warning: unsupported syscall: __syscall_madvise
+chromium error warning: unsupported syscall: __syscall_mprotect
+chromium error warning: unsupported syscall: __syscall_prlimit64
+chromium error warning: unsupported syscall: __syscall_madvise
+chromium error warning: unsupported syscall: __syscall_madvise
+chromium error warning: unsupported syscall: __syscall_madvise
+chromium error warning: unsupported syscall: __syscall_madvise
+chromium error warning: unsupported syscall: __syscall_madvise
+chromium error warning: unsupported syscall: __syscall_madvise
+chromium error warning: unsupported syscall: __syscall_madvise
+chromium error warning: unsupported syscall: __syscall_madvise
+chromium error warning: unsupported syscall: __syscall_mprotect
+chromium log native: starting failure-injection worker
+chromium error warning: unsupported syscall: __syscall_prlimit64
+chromium error warning: unsupported syscall: __syscall_madvise
+chromium error warning: unsupported syscall: __syscall_madvise
+chromium error warning: unsupported syscall: __syscall_madvise
+chromium error warning: unsupported syscall: __syscall_madvise
+chromium error warning: unsupported syscall: __syscall_madvise
+chromium error warning: unsupported syscall: __syscall_madvise
+chromium log native: injecting failed project save
+chromium error warning: unsupported syscall: __syscall_madvise
+chromium error warning: unsupported syscall: __syscall_madvise
+chromium error warning: unsupported syscall: __syscall_madvise
+chromium error warning: unsupported syscall: __syscall_madvise
+chromium error warning: unsupported syscall: __syscall_mprotect
+chromium error warning: unsupported syscall: __syscall_prlimit64
+chromium error Aborted(native code called abort())
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+page.evaluate: Error: Aborted(native code called abort())
+    at NativeRuntime.worker.onmessage (http://127.0.0.1:36839/packages/runtime/src/native-runtime.mjs:11:83)
+    at /workspace/WASMWebServer/engine/fusion/spike/test-native-runtime.mjs:224:42 {
+  log: []
+}
+
+Node.js v24.19.0

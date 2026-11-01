@@ -9,6 +9,7 @@ import { pathToFileURL } from 'node:url';
 const repo = resolve(new URL('../../..', import.meta.url).pathname);
 const dist = resolve(repo, 'build-work/bridge/.native-build/engine/wasm/runtime-dist');
 const playwright = await import(pathToFileURL(join(repo, 'build-work/php/node_modules/playwright/index.mjs')).href);
+const storageOnly=process.argv.includes('--storage-only');
 const server = createServer(async (request, response) => {
   response.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
   response.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
@@ -44,7 +45,7 @@ try {
       page.on('console', message => console.log(browserName, message.type(), message.text()));
       page.on('pageerror', error => console.error(browserName, error.message));
       await page.goto(`http://127.0.0.1:${server.address().port}/`);
-      const results = await page.evaluate(async fixtures => {
+      const results = storageOnly?null:await page.evaluate(async fixtures => {
         const { NativeRuntime } = await import('/packages/runtime/src/native-runtime.mjs');
         const runtime = await NativeRuntime.create({ moduleURL: new URL('/engine/pbl-runtime.mjs', location.href).href });
         const decode = value => new TextDecoder().decode(value);
@@ -62,6 +63,8 @@ try {
           console.log('native: files written and renamed');
           const file = decode(await runtime.read('/workspace/data/renamed.txt'));
           if (file !== 'native-file-ok') throw Error('Native file contents mismatch');
+          const owned=await runtime.read('/workspace/data/renamed.txt');owned[0]=0;
+          if(decode(await runtime.read('/workspace/data/renamed.txt'))!=='native-file-ok')throw Error('Read result exposed the live filesystem backing buffer');
           await runtime.write('/workspace/http.php', '<?php http_response_code(201); header("X-Native: yes"); echo json_encode([$_GET["q"] ?? null, $_POST["name"] ?? null, file_get_contents(__DIR__."/data/renamed.txt")]);');
           console.log('native: entering CGI');
           const http = await checked({ script: '/workspace/http.php', url: new URL('/http.php?q=query', location.href).href, method: 'POST', headers: [['Content-Type', 'application/x-www-form-urlencoded']], body: 'name=posted' });
@@ -156,10 +159,12 @@ $stmt->close(); $db->close(); echo 'metadata-array-ok';`);
           if (stopped.sqlStarted) throw Error('SQL did not stop');
           const phpAfterStop = await checked({ script: '/workspace/http.php' });
           if (phpAfterStop.sqlStarted || phpAfterStop.status !== 201) throw Error('PHP is not usable independently after SQL stop');
+          for(const script of ['/workspace/pdo.php','/workspace/mysqli.php']){const refused=await runtime.request({script});if(refused.exitCode===0||!decode(refused.stderr).includes('SQL is stopped'))throw Error('PHP adapter attempted an unsafe SQL restart');}
+          if((await checked({script:'/workspace/http.php'})).status!==201)throw Error('Stopped SQL refusal poisoned pure PHP');
           return { initial, file, http, afterPurePhp, network, networkContext, bound, metadata, coverage, rollbackCheck, systemQuota, schema, driverResults, object, consoleMarker, consoleTypes, phpAfterStop, final, stopped };
         } finally { runtime.close(); }
       }, fixtures);
-      const quota=await page.evaluate(async()=>{
+      const quota=storageOnly?null:await page.evaluate(async()=>{
         const {NativeRuntime}=await import('/packages/runtime/src/native-runtime.mjs');
         const runtime=await NativeRuntime.create({moduleURL:new URL('/engine/pbl-runtime.mjs',location.href).href,vfsLimits:{projectBytes:8*1024*1024,projectFileBytes:4*1024*1024,projectNodes:12,openFiles:8,tempBytes:1024*1024,tempFileBytes:1024*1024}});
         try{
@@ -197,6 +202,9 @@ echo 'quota-php-ok';`);
         const options = { moduleURL: new URL('/engine/pbl-runtime.mjs', location.href).href, projectKey };
         let runtime = await NativeRuntime.create(options);
         try {
+          await runtime.write('/workspace/versioned.txt','initial-version');
+          await runtime.write('/workspace/touch.php',"<?php touch(__DIR__.'/versioned.txt',1234567890);echo 'touched';");
+          await runtime.request({script:'/workspace/touch.php'});
           await runtime.write('/workspace/saved.php', '<?php $db=new PDO("mysql:dbname=durable","root",""); echo $db->query("SELECT value FROM entries WHERE id=1")->fetchColumn();');
           await runtime.sql('CREATE DATABASE durable');
           await runtime.sql('CREATE TABLE entries (id INT PRIMARY KEY, value VARCHAR(40)) ENGINE=InnoDB', 'durable');
@@ -208,13 +216,61 @@ echo 'quota-php-ok';`);
           if (response.exitCode !== 0 || output !== 'saved-native-project') throw Error('Persistent file/SQL restore failed: ' + output + ' ' + new TextDecoder().decode(response.stderr));
           const sql = await runtime.sql('SELECT value FROM entries WHERE id=1', 'durable');
           if (sql.rows[0][0] !== 'saved-native-project') throw Error('Persistent console SQL mismatch');
+          await runtime.write('/workspace/versioned.txt','same-mtime-updated');await runtime.request({script:'/workspace/touch.php'});
+          await runtime.shutdown();runtime=await NativeRuntime.create(options);
+          if(new TextDecoder().decode(await runtime.read('/workspace/versioned.txt'))!=='same-mtime-updated')throw Error('Content change with unchanged mtime was not persisted');
           await runtime.shutdown();
           return { passed: true, projectKey, output, sql, scope: 'New owner worker and WASM instance in the same browser profile after explicit save' };
         } finally { runtime.close(); }
       });
-      const receipt = { browser: browserName, version: browser.version(), passed: true, results, quota, persistence };
-      await writeFile(join(dist, 'receipts', `${browserName}.json`), JSON.stringify(receipt, null, 2) + '\n');
-      console.log(browserName, 'native files/CGI/network/PDO/MySQLi passed');
+      const atomicPersistence=await page.evaluate(async()=>{
+        const {NativeRuntime}=await import('/packages/runtime/src/native-runtime.mjs');
+        const projectKey='atomic-'+crypto.randomUUID(),options={moduleURL:new URL('/engine/pbl-runtime.mjs',location.href).href,projectKey};
+        let runtime=await NativeRuntime.create(options);
+        try{
+          if((await runtime.state()).storageLayout!=='atomic-v2')throw Error('New project did not use a single persistent store');
+          await runtime.write('/workspace/saved.txt','old-files');await runtime.sql('CREATE TABLE atomic_value(value VARCHAR(30))','test');await runtime.sql("INSERT INTO atomic_value VALUES('old-sql')");
+          await runtime.shutdown({metadata:{version:'old-metadata'}});
+          console.log('native: starting failure-injection worker');runtime=await NativeRuntime.create({...options,workerURL:new URL('/tests/browser/idb-failure-worker.mjs',location.href)});
+          await runtime.write('/workspace/saved.txt','new-files');await runtime.sql("UPDATE atomic_value SET value='new-sql'",'test');
+          console.log('native: injecting failed project save');await runtime.call('test-arm-failure',{path:'/.pbl/projects/@v2/'+projectKey+'/files/saved.txt'});
+          let rejected=false;try{await runtime.save({version:'new-metadata'});}catch{rejected=true;}
+          if(!rejected)throw Error('Injected storage failure was not reported');const injected=await runtime.call('test-injected-state');if(injected.successfulWrites!==1)throw Error('Fault did not follow a successful storage write');
+          let restartRefused=false;try{await runtime.sql('SELECT value FROM atomic_value','test');}catch(error){restartRefused=error.message.includes('stopped');}if(!restartRefused||(await runtime.state()).sqlPhase!=='stopped')throw Error('Unsafe SQL restart was not blocked');runtime.close();
+          runtime=await NativeRuntime.create(options);
+          const file=new TextDecoder().decode(await runtime.read('/workspace/saved.txt')),sql=await runtime.sql('SELECT value FROM atomic_value','test'),metadata=await runtime.metadata();
+          if(file!=='old-files'||sql.rows[0][0]!=='old-sql'||metadata.version!=='old-metadata')throw Error('Failed transaction produced a mixed project snapshot');
+          await runtime.shutdown({metadata});
+          runtime=await NativeRuntime.create({...options,workerURL:new URL('/tests/browser/idb-failure-worker.mjs',location.href)});
+          console.log('native: retry project files '+JSON.stringify(await runtime.list('/workspace')));await runtime.write('/workspace/saved.txt','retry-files');await runtime.sql("UPDATE atomic_value SET value='retry-sql'",'test');
+          await runtime.call('test-arm-failure',{path:'/.pbl/projects/@v2/'+projectKey+'/files/saved.txt'});
+          let retryFailure=false;try{await runtime.save({version:'retry-metadata'});}catch{retryFailure=true;}if(!retryFailure)throw Error('Retry scenario did not fail first');
+          await runtime.shutdown({metadata:{version:'retry-metadata'}});runtime=await NativeRuntime.create(options);
+          const retriedFile=new TextDecoder().decode(await runtime.read('/workspace/saved.txt')),retriedSql=await runtime.sql('SELECT value FROM atomic_value','test'),retriedMetadata=await runtime.metadata();
+          if(retriedFile!=='retry-files'||retriedSql.rows[0][0]!=='retry-sql'||retriedMetadata.version!=='retry-metadata')throw Error('Retrying failed snapshot did not recover all components');
+          await runtime.shutdown({metadata:retriedMetadata});
+          return {passed:true,scope:'Genuine IndexedDB ConstraintError after a successful put; old snapshot recovered, unsafe in-place restart refused, subsequent save retry recovered all components',file,sql,metadata,retry:{file:retriedFile,sql:retriedSql,metadata:retriedMetadata}};
+        }finally{runtime.close();}
+      });
+      console.log('native: failed transaction restored coherently');
+      const legacyPersistence=await page.evaluate(async()=>{
+        const {NativeRuntime}=await import('/packages/runtime/src/native-runtime.mjs');const key='legacy-'+crypto.randomUUID(),mount='/.pbl/projects/'+key;
+        await new Promise((resolve,reject)=>{
+          const open=indexedDB.open(mount,21);open.onupgradeneeded=()=>{const store=open.result.createObjectStore('FILE_DATA');store.createIndex('timestamp','timestamp');};open.onerror=()=>reject(open.error);
+          open.onsuccess=()=>{const db=open.result,tx=db.transaction('FILE_DATA','readwrite');tx.objectStore('FILE_DATA').put({timestamp:new Date(),mode:33188,contents:new TextEncoder().encode('legacy-project-preserved')},mount+'/legacy.txt');tx.oncomplete=()=>{db.close();resolve();};tx.onerror=()=>reject(tx.error);};
+        });
+        const options={moduleURL:new URL('/engine/pbl-runtime.mjs',location.href).href,projectKey:key};let runtime=await NativeRuntime.create(options);
+        try{
+          if((await runtime.state()).storageLayout!=='legacy-split')throw Error('Legacy project layout was ignored');
+          if(new TextDecoder().decode(await runtime.read('/workspace/legacy.txt'))!=='legacy-project-preserved')throw Error('Legacy project file lost');
+          await runtime.sql('CREATE TABLE legacy_sql(value INT)','test');await runtime.sql('INSERT INTO legacy_sql VALUES(42)');await runtime.shutdown();runtime=await NativeRuntime.create(options);
+          if((await runtime.sql('SELECT value FROM legacy_sql','test')).rows[0][0]!=='42')throw Error('Legacy SQL restore failed');
+          await runtime.shutdown();return {passed:true,scope:'Seeded Emscripten 6.0.6 legacy FILE_DATA store retained; SQL saved/reopened through compatibility layout'};
+        }finally{runtime.close();}
+      });
+      const receipt = { browser: browserName, version: browser.version(), passed: true, scope:storageOnly?'storage-only':'all-native', results, quota, persistence, atomicPersistence, legacyPersistence };
+      await writeFile(join(dist, 'receipts', `${browserName}${storageOnly?'-storage':''}.json`), JSON.stringify(receipt, null, 2) + '\n');
+      console.log(browserName, storageOnly?'native storage checks passed':'native files/CGI/network/PDO/MySQLi/storage passed');
     } finally { await browser.close(); }
   }
 } finally { server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); }

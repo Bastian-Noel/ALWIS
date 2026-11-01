@@ -22,3 +22,9 @@ test('N identities serialize and restore without merging their cookie jars', () 
   assert.equal(restored.get(b).jar.header('https://school.example/'), 'identity=b');
   assert.equal(restored.get(c).jar.header('https://school.example/'), '');
 });
+
+test('Default cookie path includes its directory without requiring a trailing slash',()=>{
+ const jar=new CookieJar();jar.set('view=one','https://school.example/app/index.php');
+ assert.equal(jar.header('https://school.example/app'),'view=one');
+ assert.equal(jar.header('https://school.example/application'),'');
+});

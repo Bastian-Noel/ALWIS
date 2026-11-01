@@ -1,0 +1,146 @@
+{
+  "browser": "chromium",
+  "version": "156.0.8078.4",
+  "passed": true,
+  "scope": "Same private profile and origin; complete browser restart, then SIGKILL after unsaved file changes and SQL COMMIT. Last explicit snapshot recovered; no OS power-loss claim.",
+  "reopened": {
+    "body": "committed-files|committed-sql",
+    "metadata": {
+      "version": "committed-metadata"
+    },
+    "state": {
+      "sqlStarted": true,
+      "sqlPhase": "running",
+      "sqlConnections": 0,
+      "linearMemoryBytes": 268435456,
+      "allocatorUsedBytes": 59666192,
+      "allocatorFreeBytes": 19184032,
+      "vfs": {
+        "groups": {
+          "project": {
+            "bytes": 174,
+            "reserved": 174,
+            "nodes": 5,
+            "maxBytes": 67108864,
+            "maxFileBytes": 16777216,
+            "maxNodes": 2048
+          },
+          "temp": {
+            "bytes": 0,
+            "reserved": 0,
+            "nodes": 5,
+            "maxBytes": 16777216,
+            "maxFileBytes": 16777216,
+            "maxNodes": 256
+          },
+          "sql": {
+            "bytes": 65966050,
+            "reserved": 66029894,
+            "nodes": 105,
+            "maxBytes": 134217728,
+            "maxFileBytes": 67108864,
+            "maxNodes": 4096
+          },
+          "system": {
+            "bytes": 2773764,
+            "reserved": 2773764,
+            "nodes": 117,
+            "maxBytes": 16777216,
+            "maxFileBytes": 16777216,
+            "maxNodes": 2048
+          }
+        },
+        "openFiles": 30,
+        "maxOpenFiles": 512
+      },
+      "hardwareConcurrency": 5,
+      "projectKey": "restart-6ac893b8-0e41-4124-909b-399056c9fc8c",
+      "storageLayout": "atomic-v2",
+      "queue": {
+        "pending": 0,
+        "running": true,
+        "bytes": 0
+      }
+    }
+  },
+  "pending": {
+    "file": "unsaved-files",
+    "sql": {
+      "columns": [
+        {
+          "kind": 1,
+          "nativeType": 253,
+          "flags": 0,
+          "name": "value"
+        }
+      ],
+      "rows": [
+        [
+          "unsaved-sql"
+        ]
+      ],
+      "affectedRows": "1",
+      "insertId": "0"
+    }
+  },
+  "recovered": {
+    "body": "committed-files|committed-sql",
+    "metadata": {
+      "version": "committed-metadata"
+    },
+    "state": {
+      "sqlStarted": true,
+      "sqlPhase": "running",
+      "sqlConnections": 0,
+      "linearMemoryBytes": 268435456,
+      "allocatorUsedBytes": 61774208,
+      "allocatorFreeBytes": 17076016,
+      "vfs": {
+        "groups": {
+          "project": {
+            "bytes": 174,
+            "reserved": 174,
+            "nodes": 5,
+            "maxBytes": 67108864,
+            "maxFileBytes": 16777216,
+            "maxNodes": 2048
+          },
+          "temp": {
+            "bytes": 0,
+            "reserved": 0,
+            "nodes": 5,
+            "maxBytes": 16777216,
+            "maxFileBytes": 16777216,
+            "maxNodes": 256
+          },
+          "sql": {
+            "bytes": 65966050,
+            "reserved": 66029894,
+            "nodes": 105,
+            "maxBytes": 134217728,
+            "maxFileBytes": 67108864,
+            "maxNodes": 4096
+          },
+          "system": {
+            "bytes": 2773764,
+            "reserved": 2773764,
+            "nodes": 117,
+            "maxBytes": 16777216,
+            "maxFileBytes": 16777216,
+            "maxNodes": 2048
+          }
+        },
+        "openFiles": 30,
+        "maxOpenFiles": 512
+      },
+      "hardwareConcurrency": 5,
+      "projectKey": "restart-6ac893b8-0e41-4124-909b-399056c9fc8c",
+      "storageLayout": "atomic-v2",
+      "queue": {
+        "pending": 0,
+        "running": true,
+        "bytes": 0
+      }
+    }
+  }
+}

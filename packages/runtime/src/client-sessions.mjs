@@ -13,7 +13,7 @@ export class CookieJar {
     // The initial virtual origin supports host cookies and an exact-host Domain.
     const domain = (attrs.get('domain') ?? url.hostname).replace(/^\./, '').toLowerCase();
     if (domain !== url.hostname.toLowerCase()) return false;
-    const defaultPath = url.pathname.slice(0, url.pathname.lastIndexOf('/') + 1) || '/';
+    const defaultPath = url.pathname.slice(0, url.pathname.lastIndexOf('/')) || '/';
     const path = attrs.get('path')?.startsWith('/') ? attrs.get('path') : defaultPath;
     const secure = attrs.has('secure'), httpOnly = !javascript && attrs.has('httponly');
     if (secure && url.protocol !== 'https:') return false;

@@ -268,10 +268,11 @@ async function openProject() {
   const key = $('#project').value; if (!/^[A-Za-z0-9_-]{1,64}$/.test(key)) throw Error('Nom de projet : lettres, chiffres, tirets et underscore, 64 caractères maximum.');
   status('Ouverture du projet…');$('main').inert=true;$('#open').disabled=true;
   try{
-    if (hub) { for (const name of tools.keys()) await setTool(name, 'unloaded'); await hub.close(); }
+    if (hub) { for (const name of tools.keys()) await setTool(name, 'unloaded'); await hub.close();navigator.serviceWorker.controller.postMessage({type:'pbl-release',project:hub.key});hub=null;$('#engine-state').textContent='Aucun moteur actif.'; }
+    for(const id of ['save','close','window','new-client','demo','export','import-files'])$('#'+id).disabled=true;
     hub = await ProjectHub.open(key); dirty = false;
     navigator.serviceWorker.controller.postMessage({ type: 'pbl-owner', project: key });
-    for (const id of ['save','close','window','new-client','demo','export','import-files','stop-sql']) $('#' + id).disabled = false;
+    for (const id of ['save','close','window','new-client','demo','export','import-files']) $('#' + id).disabled = false;
     refreshSessions(); for (const select of document.querySelectorAll('[data-tool]')) { select.value = 'active'; await setTool(select.dataset.tool, 'active'); }
     await updateEngine(); status('Projet prêt. SQL démarre uniquement si nécessaire.');
   }finally{$('main').inert=false;$('#open').disabled=false;}
@@ -285,9 +286,8 @@ navigator.serviceWorker.addEventListener('message', event => {
   if (data?.type === 'pbl-cookie') hub.setCookie(data.session, data.value, data.url).then(value => reply(true, value), error => reply(false, null, error.message));
 });
 $('#open').onclick = () => action(openProject);
-$('#save').onclick = () => action(async () => { status('Sauvegarde du projet…'); for (const [name, tool] of tools) if (tool.view) await writeState('tool:' + hub.key + ':' + name, tool.view.snapshot()); await hub.saveAndRestart(); dirty = false; await updateEngine(); status('Fichiers et transactions validées sauvegardés.'); });
-$('#close').onclick = () => action(async () => { for (const name of tools.keys()) await setTool(name, 'unloaded'); await hub.close(); navigator.serviceWorker.controller.postMessage({ type: 'pbl-release', project: hub.key }); hub = null; dirty = false; status('Projet fermé et sauvegardé.'); for (const id of ['save','close','window','new-client','demo','export','import-files','stop-sql']) $('#' + id).disabled = true; });
-$('#stop-sql').onclick = () => action(async () => { await hub.runtime.closeConsole(); await hub.runtime.stopSQL(); await updateEngine(); status('SQL arrêté. PHP et les fichiers restent disponibles.'); });
+$('#save').onclick = () => action(async () => { status('Sauvegarde du projet…'); for (const [name, tool] of tools) if (tool.view) await writeState('tool:' + hub.key + ':' + name, tool.view.snapshot()); try{await hub.saveAndRestart();dirty=false;}finally{await updateEngine().catch(()=>{});} status('Fichiers et transactions validées sauvegardés.'); });
+$('#close').onclick = () => action(async () => { for (const name of tools.keys()) await setTool(name, 'unloaded'); await hub.close(); navigator.serviceWorker.controller.postMessage({ type: 'pbl-release', project: hub.key }); hub = null; dirty = false; status('Projet fermé et sauvegardé.'); for (const id of ['save','close','window','new-client','demo','export','import-files']) $('#' + id).disabled = true; });
 function openWindow(independent) {
   if (!hub) return;
   const popup = window.open('about:blank', '_blank');

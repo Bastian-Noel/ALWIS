@@ -57,12 +57,13 @@
     if (equals < 1 || line.length > 4096) return;
     const name = first.slice(0, equals).trim(), text = first.slice(equals + 1).trim(), url = logical();
     cookies = cookies.filter(item => item.name !== name);
-    cookies.push({ name, value: text, path: url.pathname.slice(0, url.pathname.lastIndexOf('/') + 1) || '/', secure: false, expires: null });
-    pending = pending.then(() => new Promise((resolve, reject) => {
+    cookies.push({ name, value: text, path: url.pathname.slice(0, url.pathname.lastIndexOf('/')) || '/', secure: false, expires: null });
+    const update = pending.catch(() => {}).then(() => new Promise((resolve, reject) => {
       const channel = new MessageChannel(), timer = setTimeout(() => { channel.port1.close(); reject(Error('Cookie update timed out')); }, 10000);
       channel.port1.onmessage = ({ data }) => { clearTimeout(timer); channel.port1.close(); if (data.ok) { cookies = data.value; resolve(); } else reject(Error(data.error)); };
       navigator.serviceWorker.controller.postMessage({ type: 'pbl-cookie', value: line, url: url.href }, [channel.port2]);
     }));
+    pending=update;update.catch(()=>{if(pending===update)pending=Promise.resolve();});
   } });
   const nativeFetch = window.fetch.bind(window);
   window.fetch = async (input, init) => { await pending; return nativeFetch(input instanceof Request ? new Request(route(input.url), input) : route(input), init); };

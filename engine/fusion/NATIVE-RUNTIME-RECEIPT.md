@@ -32,3 +32,5 @@ Les entrées, file et copies de résultats sont bornées ; une adaptation géné
 Le défaut de démarrage CGI a été résolu en conservant l'attribution du module Zend après le démarrage du driver PDO et en plaçant l'inclusion MySQL après les headers PHP dans le runtime généré. Les assertions des fixtures et du parcours HTTP ont été conservées.
 
 Le parcours de conformité `fixtures/compatibility/native-coverage.php` approfondit PDO préparé émulé/natif, fetch/bind/metadata et les refus de résultat, ainsi que les nouveaux appels MySQLi. La [matrice de compatibilité](../../packages/php-native/COMPATIBILITY.md) distingue enregistrement et preuve. La limite maximale du module est maintenant 512 Mio, avec piles pthread de 2 Mio et petit profil de caches.
+
+Le [jalon de récupération du 1 novembre](STORAGE-RECOVERY-RECEIPT.md) remplace la limite initiale « nouveau Worker seulement » : snapshots atomiques pour les nouveaux projets, échec/retry de transaction et redémarrage/SIGKILL du navigateur sont exécutés. Le redémarrage SQL dans un même WASM est explicitement refusé après un abort reproduit ; la sauvegarde du studio recrée l’instance.

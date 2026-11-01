@@ -9,7 +9,7 @@
     "source": "/workspace/WASMWebServer/build-work/php-minimal/ext/pdo_mysql/mysql_driver.c",
     "generated": "mysql_driver.c",
     "originalSha256": "9d63ea770010ed5f3837a64025a5885bfa3bc266bc20d1b1dbfd2c939b2734aa",
-    "generatedSha256": "9dccc07a6662bd1f9c6e1c770dba3f7bbc937915aa61e90c774c7b75ab36dc38"
+    "generatedSha256": "991bad1ff82850a4d1df1d3fc210d634274cec9073757d3f41ba9ac949e31059"
   },
   {
     "source": "/workspace/WASMWebServer/build-work/php-minimal/ext/pdo_mysql/mysql_statement.c",
