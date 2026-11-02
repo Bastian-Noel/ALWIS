@@ -6,13 +6,13 @@
   "files": [
     {
       "name": "THIRD-PARTY.txt",
-      "bytes": 40655,
-      "sha256": "cfc77f7fcc8a3807d9bb56bba5273f3440e12b9726d18e2650143f0ce509c0e8"
+      "bytes": 41787,
+      "sha256": "c0e11cf89930305c3d942f572164ddfe04fc2b77bae3e1de1bd352f6887d44e3"
     },
     {
       "name": "codemirror.mjs",
-      "bytes": 711970,
-      "sha256": "f857050b15dacaad1e1026d8853834c2ba66b202e6d97d95f982d415ae5e61ff"
+      "bytes": 825751,
+      "sha256": "fe59cae480105a22582cfb9d30c3a3827fc0dbd8b286bb72432d56258a303732"
     },
     {
       "name": "definitions.json",
@@ -21,8 +21,8 @@
     },
     {
       "name": "javascript-worker.mjs",
-      "bytes": 3576268,
-      "sha256": "79dfa6a1a25a12e5cd081cf4c98ab8ea43970410291f5c7998afcef0296ad8b9"
+      "bytes": 3578927,
+      "sha256": "36babeca16857e5971a0907dd02f0a6a19b8469dcdce62c5fae1c9b63e2aec96"
     },
     {
       "name": "lsp-worker.mjs",

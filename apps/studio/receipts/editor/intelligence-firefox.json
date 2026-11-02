@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "browser": "firefox",
+  "version": "157.0",
+  "checks": [
+    "PHP snippets and Tab fields",
+    "case-insensitive extensions and HTML closing",
+    "HTML Emmet",
+    "PHP variable casing and parser-verified semicolon correction",
+    "signature help",
+    "lazy jQuery documentation",
+    "definition navigation",
+    "semantic rename preview and undo",
+    "Enter does not accept completion"
+  ],
+  "errors": []
+}

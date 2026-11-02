@@ -55,3 +55,7 @@ Compression et décompression s’exécutent dans un worker court, avec Compress
 `tests/browser/ide-workspace.mjs` vérifie le parcours réel dans Chromium et Firefox ; les reçus et captures sont dans `apps/studio/receipts/ide/`. Les tests de modèle couvrent cardinalités, clés composées, tables de liaison et validation des types de formulaire. Les scénarios existants vérifient aussi la concurrence, les types exacts, la sauvegarde et les sessions. Axe couvre onze états inspectés, dont le schéma et les dialogues DDL/FK, sans remplacer un essai lecteur d’écran ou Safari.
 
 Skills appliqués : [anti-ai-slop](https://github.com/Krirox/anti-ai-slop-skills/blob/b7515139a58dd3076588a3981d3d6f8d4e5bb064/SKILL.md), [better-interface](https://github.com/jakubkrehel/skills/blob/592aedc44d7d5b3e29740984252902f3e5402a1c/skills/better-interface/SKILL.md), better-layout et better-accessibility. La direction visuelle est celle d’un IDE sobre, sans décorations ajoutées aux commandes.
+
+## Aide à l’écriture
+
+Voir [Confort de l’éditeur et diagnostics](CONFORT-EDITEUR.md) pour les raccourcis, corrections proposées, budgets et limites du service de langage.

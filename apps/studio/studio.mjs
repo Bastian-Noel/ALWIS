@@ -119,6 +119,21 @@ async function renderEditor(container, saved) {
   const code = createCodeEditor(source, {
     path: saved?.path ?? "/index.php",
     label: "Code source",
+    onNavigate: async ({ path, from }) => {
+      if (![...list.options].some((option) => option.value === path)) {
+        message.textContent =
+          "Le fichier cible n’est plus présent. Actualisez le projet.";
+        return;
+      }
+      list.value = path;
+      await list.onchange();
+      if (filename.value === path) {
+        source.selectionStart = from;
+        source.selectionEnd = from;
+        code.view.dispatch({ scrollIntoView: true });
+        code.view.focus();
+      }
+    },
     onSave: () => action(write),
     onStatus: (text) => (serviceStatus.textContent = text),
   });
@@ -343,6 +358,7 @@ async function renderEditor(container, saved) {
       expected: base ?? null,
     });
     base = source.value;
+    code.updateProjectFile(filename.value, source.value);
     dirty = true;
     message.textContent =
       "Fichier écrit ; sauvegardez le projet pour le conserver.";
@@ -355,6 +371,7 @@ async function renderEditor(container, saved) {
   list.onchange = () => {
     if (!list.value) return;
     return action(async () => {
+      code.updateProjectFile(filename.value, source.value);
       const previous = snapshot(),
         readOnly = code.view.state.readOnly;
       await writeState("draft:" + hub.key + ":" + previous.path, previous);
@@ -557,7 +574,9 @@ async function renderEditor(container, saved) {
     projectDefinitions = {};
   let contextBytes = 0;
   for (const name of (await files())
-    .filter((name) => /\.(?:php|html?|d\.ts)$/.test(name))
+    .filter((name) =>
+      /\.(?:php|phtml|inc|html?|css|[cm]?js|jsx|tsx?|json)$/.test(name),
+    )
     .slice(0, 64)) {
     try {
       const bytes = await hub.runtime.read("/workspace" + name);

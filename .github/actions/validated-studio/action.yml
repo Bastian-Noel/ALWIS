@@ -47,6 +47,7 @@ runs:
       shell: bash
       run: |
         node tests/browser/editor-services.mjs
+        node tests/browser/editor-intelligence.mjs
         node tests/browser/editor-workbench.mjs
         node tests/browser/ide-workspace.mjs
         node tests/browser/studio-shell.mjs chromium

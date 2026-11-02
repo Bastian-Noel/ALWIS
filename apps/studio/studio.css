@@ -487,6 +487,7 @@ details > summary:focus-visible,
   min-width: 180px;
 }
 .code-editor {
+  isolation: isolate;
   min-width: 0;
   overflow: hidden;
 }
