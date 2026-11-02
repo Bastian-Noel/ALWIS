@@ -1,45 +1,16 @@
-# Studio navigateur du runtime natif
+# Studio : points d’entrée techniques
 
-Démarrage après compilation du target `pbl-runtime` :
+`index.html` définit la coque et les modèles DOM. `studio.mjs` orchestre les outils et le cycle du projet ; `service-worker.mjs` route les requêtes clientes vers le propriétaire moteur. `database/` regroupe les modèles SQL, DDL, valeurs et schéma ; `editor/` fournit CodeMirror et les services de langage.
+
+Les URL publiques de l’entrée, du Service Worker et des workers d’édition sont conservées. `scripts/package-studio.mjs` assemble les modules SQL et les bundles d’édition ; `scripts/serve-studio.mjs` sert les sources et associe sql-export.source.txt à database/sql-export.php. Ne pas servir ce dernier comme un backend PHP distant.
+
+Pour travailler sur cette application :
 
 ```sh
-npm ci
-npm run editor:build
 node scripts/serve-studio.mjs
+node tests/browser/editor-workbench.mjs
+node tests/browser/ide-workspace.mjs
+node tests/browser/studio-shell.mjs chromium
 ```
 
-Pour un hébergement statique ou un paquet de test autonome, suivre [DEPLOYMENT.md](../../docs/deployment.md). La préparation du paquet et sa réussite locale ne signifient pas qu'une URL publique a été publiée.
-
-Le serveur de développement fournit uniquement les ressources statiques, les en-têtes COOP/COEP et le module compilé. PHP et MariaDB s'exécutent dans le navigateur. Le studio possède un Worker moteur par projet ; le Service Worker route les requêtes des fenêtres vers ce propriétaire. Fermer le studio coupe donc le service des clients.
-
-La [première interface structurée](../../docs/README.md) sépare Code, SQL et données, Schéma, Clients, Ressources et Journal. Les onglets se parcourent au clavier. Le journal local conserve au plus 200 événements bornés, erreurs PHP/SQL et requêtes HTTP, sans corps, cookies ni paramètres d'URL ; il s'exporte en JSON. Un bandeau conserve la dernière erreur avec une piste de récupération jusqu'à sa fermeture explicite. Les [éditeurs CodeMirror et leurs services](editor/README.md) sont maintenant intégrés : PHP LSP Rust/WASM, SuperHTML et SWC avec définitions jQuery internes. La complétion PHP ne lance aucun interpréteur PHP supplémentaire.
-
-Ouvrir un projet, charger l'exemple scolaire dans un projet vide, puis ouvrir plusieurs fenêtres. « Fenêtre dans cette session » partage les cookies/PHPSESSID ; « Nouveau client indépendant » crée une identité distincte. Toutes utilisent la même base. Les requêtes PHP sont sérialisées dans la file bornée du moteur.
-
-L'éditeur lit et écrit le même VFS que PHP. La console et la grille interrogent directement le pont C ; la grille permet de modifier une cellule lorsqu'une clé primaire existe (100 lignes par page SQL, avec ordre par clé primaire lorsqu’elle existe). La grille préserve NULL et binaires, refuse une modification si les valeurs de la ligne ont changé et affiche structure/index. Un formulaire distingue DEFAULT, NULL, texte et binaire pour l’insertion ; une suppression demande confirmation et vérifie également la ligne d’origine. Le schéma lit `information_schema`, affiche toutes les colonnes, marque les clés et relie les colonnes des clés étrangères ; les tables sont déplaçables. Un formulaire crée une clé étrangère à partir du catalogue, avec actions ON DELETE/ON UPDATE ; les dialogues affichent le DDL puis relisent le schéma après application. Les outils peuvent être mis en veille ou déchargés avec conservation du brouillon dans IndexedDB. Le déchargement SQL ferme sa connexion et annule ses transactions non validées.
-
-« Sauvegarder » ferme SQL proprement, synchronise un snapshot IDBFS commun fichiers/SQL/sessions pour les nouveaux projets (anciens magasins conservés en compatibilité), puis recrée le moteur. Les changements non sauvegardés peuvent être perdus si l'onglet est arrêté. L’export ZIP réunit désormais les fichiers et les bases utilisateur actives avec un manifeste. Importez dans un projet vide ; les sessions clientes ne font pas partie du ZIP. Compression et décompression tournent dans un worker avec les primitives natives du navigateur. Le [guide de l’espace IDE](../../docs/README.md) décrit les onglets, la complétion contextuelle, les formulaires SQL, les relations par glisser-déposer, les cardinalités et les limites exactes.
-
-
-## Portée actuelle
-
-L'isolation virtuelle d'une même origine couvre cookies, localStorage et noms IndexedDB usuels ; sessionStorage reste propre à chaque fenêtre. Le bootstrap réécrit les URL usuelles de liens, formulaires, fetch et XHR. Ce mécanisme n'est pas une frontière de sécurité pour du code hostile, ni une émulation complète d'une origine navigateur : CSP, iframes, Workers créés par les projets, autres API de stockage et domaines de cookies parents demandent encore du travail. Une isolation par véritables origines reste à comparer.
-
-Le réseau PHP utilise les streams HTTP/HTTPS C soumis aux règles CORS et aux restrictions du navigateur. Aucun socket TCP/UDP général n'est fourni. MySQLi reste un sous-ensemble explicite, décrit dans `packages/php-native/README.md`.
-
-Vérification ciblée, avec les navigateurs Playwright installés :
-
-```sh
-PLAYWRIGHT_BROWSERS_PATH=/workspace/.cache/ms-playwright node tests/browser/studio.mjs
-PLAYWRIGHT_BROWSERS_PATH=/workspace/.cache/ms-playwright node tests/browser/studio-shell.mjs
-```
-
-Les reçus et captures de ce scénario vont dans `build-work/studio-receipts/`. Un échec n'est jamais un reçu de réussite. La capacité linéaire WASM affichée ne représente pas la RAM résidente ; les gains mémoire du déchargement et la tenue en charge restent à mesurer.
-
-La couverture reste inférieure à phpMyAdmin : les formulaires de tables, colonnes, index et contraintes ainsi que le ZIP multi-bases sont disponibles ; les gros imports et les formulaires avancés de routines/privilèges restent à compléter. Les commandes SQL explicites sont disponibles. Les limites du moteur ne doivent pas être masquées par l’interface.
-
-Le changement de projet rend les outils inertes pendant la transition et refuse les actions mises en attente depuis un autre propriétaire. La vue SQL conserve table et page lors du déchargement et relit les données au retour. Les fichiers de projet cachés usuels (.env, .htaccess) sont affichés/exportés ; les sessions et fichiers internes du studio restent exclus.
-
-La sauvegarde attend les requêtes déjà acceptées avant de figer les cookies/sessions. Après un échec de stockage, les nouveaux clients reçoivent 503 jusqu’au réessai. L’état SQL arrêté ne redémarre jamais dans le même WASM ; le studio recrée son propriétaire après sauvegarde réussie. Voir les [preuves de récupération](../../engine/fusion/STORAGE-RECOVERY-RECEIPT.md).
-
-Le [rapport d'interface](../../docs/README.md) consigne les skills appliqués, états rendus, contrastes et limites de vérification. La page locale `/apps/studio/interface-stress.html` affiche le vrai composant de diagnostic sous dix scénarios isolés ; ses données sont des exemples, sans projet actif.
+La préparation du moteur et de Playwright est décrite dans [CONTRIBUTING](../../CONTRIBUTING.md). Le [guide utilisateur](../../docs/README.md) porte les procédures fonctionnelles ; [architecture](../../docs/architecture.md) porte le stockage et les responsabilités. Les reçus locaux sont sous receipts/ et build-work/ ; ils sont liés à la révision testée.

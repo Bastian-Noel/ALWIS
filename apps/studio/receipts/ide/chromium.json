@@ -2,7 +2,7 @@
   "passed": true,
   "browser": "chromium",
   "version": "156.0.8078.4",
-  "project": "ide-770f8d1e-3ad2-4fe6-91dd-2b120fb8321f",
+  "project": "ide-041d8746-717a-46c2-9b75-e07ca4d78b96",
   "checks": [
     "project welcome and recents",
     "SQL remains lazy before SQL tab",

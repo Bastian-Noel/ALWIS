@@ -1,5 +1,7 @@
 # Performance : mesures et protocole
 
+> Les séries ci-dessous sont datées et ne constituent pas une nouvelle mesure de main. Le paquet IDE preview.2 pèse 23 109 017 octets ; son WASM natif 38 249 873 octets. Les anciennes tailles ZIP/WASM citées dans les séries ne décrivent pas cette distribution. Aucun profil utilisateur interchangeable ni gain RAM du dernier éditeur n’a été mesuré.
+
 
 ## Profils de performance et choix conseillé — 1 novembre 2026
 
@@ -17,7 +19,7 @@ Il n'existe pas encore de sélecteur de profils dans le studio. Le moteur actuel
 
 Décharger un outil ne retire pas ses fonctions JavaScript déjà chargées du module principal du studio. Fermer la console ne coupe pas MariaDB utilisée par PHP. La sauvegarde arrête SQL proprement et recrée le moteur ; la première connexion suivante réactive SQL. Aucun redémarrage SQL dans le même WASM arrêté, aucun rejeu automatique de POST.
 
-## Mesures du binaire actuel, refaites pour ce bilan
+## Mesures historiques du 1 novembre 2026
 
 Un navigateur neuf par exécution, Chromium 156.0.8078.4 et Firefox 157.0 sous Linux. Le protocole crée un runtime, exécute PHP seul, initialise SQL, crée 1 000 lignes et mesure 100 requêtes `COUNT(*)`. PSS globale = ensemble des processus descendants du test Playwright ; elle inclut navigateur, JS/JIT, Workers, WASM et VFS. Il ne s'agit ni de la seule RAM du moteur ni d'un pic continu.
 

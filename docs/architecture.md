@@ -147,7 +147,7 @@ Le contrat C décrit une intention, pas une ABI stable. Les budgets de `config/`
 
 ## Références GitHub retenues
 
-Sources téléchargées le 31 octobre 2026. Les archives complètes préservent les notices ; aucune dépendance npm ni chaîne de compilation native n’a été installée.
+Inventaire initial du 31 octobre 2026 : les archives complètes préservent les notices. Les observations de préparation sont historiques ; le studio actuel est compilé et les dépendances npm installées lors de la CI.
 
 | Dépôt / commit | Rôle | Éléments utiles | Limites / travail |
 |---|---|---|---|---|

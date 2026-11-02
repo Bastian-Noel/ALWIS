@@ -8,4 +8,4 @@ Chaque outil évolue entre actif, en veille et déchargé. Le déchargement cons
 
 La compatibilité navigateur complète, la comparaison d'origines séparées et les gains de mémoire physiques restent ouverts. Voir les limites du guide du studio.
 
-Orientation de l’éditeur : [CodeMirror 6, services WASM et définitions jQuery internes](../docs/README.md). Ces composants sont demandés mais pas encore intégrés.
+Orientation de l’éditeur : [CodeMirror 6, services WASM et définitions jQuery internes](../docs/README.md). Ces composants sont intégrés ; les capacités et limites sont décrites dans le guide.

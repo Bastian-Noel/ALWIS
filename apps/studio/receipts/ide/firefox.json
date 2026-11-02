@@ -2,7 +2,7 @@
   "passed": true,
   "browser": "firefox",
   "version": "157.0",
-  "project": "ide-f94d86c8-e9cd-4325-8880-f5a8a161e31c",
+  "project": "ide-f91f156c-7909-43d0-b57c-9c295c9a62e7",
   "checks": [
     "project welcome and recents",
     "SQL remains lazy before SQL tab",
