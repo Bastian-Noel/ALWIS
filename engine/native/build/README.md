@@ -1,4 +1,35 @@
-# First same-module PHP → C → embedded MariaDB experiment
+# Recette native PHP/MariaDB
+
+`runtime-target.cmake` définit la cible de production `pbl-runtime` : pont C PDO/MySQLi, fichiers et réseau. `attach.cmake` injecte les cibles dans le build MariaDB sans modifier ses CMake amont. `CMakeLists.txt` et select-one.c conservent le témoin de liaison `pbl-fusion`, distinct du runtime. Le nom interne PBL_SPIKE_SOURCE reste conservé pour la compatibilité des recettes et du manifeste binaire.
+
+## Utiliser le moteur validé
+
+```sh
+python3 scripts/restore-deployment-engine.py
+```
+
+Le verrou de release et les sources sont contrôlés. La recette actuelle partage PHP 8.4.27 et MariaDB avec Emscripten 6.0.6. Les réglages courants sont dans runtime-target.cmake et les générateurs scripts/prepare-native-*.py ; les paramètres de l’expérience initiale ci-dessous ne les remplacent pas.
+
+## Recompiler la cible actuelle
+
+Après préparation des sources épinglées, application des patchs et compilation des objets PHP pthread et des outils hôtes MariaDB :
+
+```sh
+PBL_TARGET=pbl-runtime JOBS=3 bash engine/native/build/build.sh
+node engine/native/build/test-native-runtime.mjs
+node tests/browser/mysqli-complete.mjs
+node tests/browser/php-essentials.mjs
+node tests/browser/network-native.mjs
+node tests/browser/restart-native.mjs
+```
+
+Les chemins par défaut sont vérifiés par build.sh. Réutiliser les objets préparés uniquement avec le SDK et les sources correspondants. Le manifeste de distribution doit couvrir les sources natives et les fichiers générés livrés ; [CONTRIBUTING](../../../CONTRIBUTING.md) explique les validations et la publication.
+
+## Préparation initiale conservée pour reproduction
+
+Les sections suivantes décrivent le témoin initial ; ses plafonds mémoire, capacités démontrées et commandes par défaut concernent pbl-fusion. Les preuves du runtime ultérieur sont dans engine/fusion/ et les guides actuels.
+
+# Préparation historique du témoin de liaison
 
 This is a build/runtime experiment, not the final PDO/MySQLi backend. A successful syntax check or native archive alone does not close the browser gate. See the accompanying receipt for the latest actual result.
 
@@ -17,7 +48,7 @@ The test uses a dedicated browser worker and MariaDB's auxiliary pthread workers
 
 ## Preparation on this instance
 
-The selected repository is already isolated: use it directly; do not create a worktree. Preserve source snapshots and local work. `scripts/setup-cloud.sh` prepares rootless Debian 13 host tools and the pinned SDK. Activate them in each native-build shell:
+`scripts/setup-cloud.sh` prepares rootless Debian 13 host tools and the pinned SDK. Activate them in each native-build shell:
 
 ```sh
 source /workspace/toolchains/host/activate.sh
