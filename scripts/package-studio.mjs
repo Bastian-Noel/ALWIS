@@ -8,7 +8,8 @@ await rm(target,{recursive:true,force:true});await mkdir(target,{recursive:true}
 const files=[];
 async function copy(source,destination){const output=join(target,destination);await mkdir(resolve(output,'..'),{recursive:true});await copyFile(join(root,source),output);const data=await readFile(output);files.push({path:destination,bytes:data.length,sha256:createHash('sha256').update(data).digest('hex')});}
 for(const directory of ['apps/studio','packages/runtime/src'])for(const entry of await readdir(join(root,directory),{withFileTypes:true}))if(entry.isFile()&&/\.(mjs|js|css|html)$/.test(entry.name))await copy(directory+'/'+entry.name,directory+'/'+entry.name);
-await copy('apps/studio/sql-export.php','apps/studio/sql-export.source.txt');
+for(const entry of await readdir(join(root,'apps/studio/database')))if(/\.mjs$/.test(entry))await copy('apps/studio/database/'+entry,'apps/studio/database/'+entry);
+await copy('apps/studio/database/sql-export.php','apps/studio/sql-export.source.txt');
 for(const name of ['codemirror.mjs','definitions.json','javascript-worker.mjs','lsp-worker.mjs','php-lsp.wasm','superhtml.wasm','swc.wasm','THIRD-PARTY.txt'])await copy('apps/studio/editor/dist/'+name,'apps/studio/editor/dist/'+name);
 for(const name of ['pbl-runtime.mjs','pbl-runtime.wasm'])await copy('build-work/bridge/.native-build/engine/wasm/runtime-dist/'+name,'engine/'+name);
 await copy('apps/studio/index.html','index.html');await copy('apps/studio/service-worker.mjs','service-worker.js');await copy('apps/studio/client-bootstrap.js','_pbl/client.js');

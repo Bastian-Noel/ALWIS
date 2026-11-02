@@ -1,6 +1,6 @@
 # Restaurer les sources
 
-Voir [README](README.md#sources-amont-volumineuses) et [IMPORT](docs/IMPORT.md).
+Voir [README](README.md#sources-amont-volumineuses) et [IMPORT](docs/README.md).
 
 Le ZIP de la release s'extrait à la racine du dépôt : il remplit `sources/`. Les scripts `fetch-upstream.py` puis `fetch-native-deps.py` vérifient les empreintes et extraient dans `upstream/`. En l'absence d'archives locales, ils téléchargent les mêmes snapshots épinglés.
 

@@ -18,7 +18,7 @@
       "sha256": "7c8ddfaa96c3f4f28116056831662870c4d3943b38dd1e91e2bffbc182aeb5d2"
     },
     {
-      "path": "apps/studio/sql-script.mjs",
+      "path": "apps/studio/database/sql-script.mjs",
       "bytes": 3936,
       "sha256": "b1e743d9b1d8f8d3246b3f1bcc85eac478acf82990a6ffc8ca94417812d1703b"
     },

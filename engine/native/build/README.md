@@ -60,9 +60,9 @@ For a first rootless host configure, `CMAKE_PREFIX_PATH=/workspace/toolchains/ho
 
 ```sh
 cd /workspace/WASMWebServer
-JOBS=3 bash engine/fusion/spike/build.sh
+JOBS=3 bash engine/native/build/build.sh
 PLAYWRIGHT_BROWSERS_PATH=/workspace/.cache/ms-playwright \
-  node engine/fusion/spike/test-browser.mjs \
+  node engine/native/build/test-browser.mjs \
   build-work/bridge/.native-build/engine/wasm/fusion-dist \
   build-work/php/node_modules/playwright/index.mjs
 ```

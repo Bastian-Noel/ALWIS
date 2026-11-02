@@ -29,7 +29,7 @@ La suite native complète passe aussi sur [Chromium](receipts/php-essentials-reg
 source /workspace/toolchains/host/activate.sh
 source build-work/emsdk/emsdk_env.sh
 JOBS=3 bash scripts/build-php-essentials.sh
-PBL_TARGET=pbl-runtime JOBS=3 bash engine/fusion/spike/build.sh
+PBL_TARGET=pbl-runtime JOBS=3 bash engine/native/build/build.sh
 PLAYWRIGHT_BROWSERS_PATH=/workspace/.cache/ms-playwright node tests/browser/php-essentials.mjs
 ```
 
@@ -39,4 +39,4 @@ Le WASM passe de **33 301 236 à 38 207 412 octets** (+4 906 176, environ 4,68 M
 
 Restent à réaliser : zlib/ZIP et DOM/XML/SimpleXML, puis les extensions crypto/images selon les projets de référence ; conformité PDO supplémentaire (attributs, curseurs, résultats multiples, LOB en flux) et MySQLi (options, diagnostics complets, long-data, attributs, multi-résultats). Les scénarios passent sur de petits projets ; ils ne prouvent ni compatibilité phpMyAdmin/WordPress, ni endurance, ni plafond universel sur toute requête SQL. cURL, OpenSSL et GD ne sont pas présents. Le wrapper HTTP reste soumis à CORS et aux capacités du navigateur.
 
-L'ordre détaillé des prochains travaux est dans [PROCHAINES-ETAPES.md](../../docs/PROCHAINES-ETAPES.md).
+L'ordre détaillé des prochains travaux est dans [PROCHAINES-ETAPES.md](../../docs/README.md).

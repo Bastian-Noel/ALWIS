@@ -1,9 +1,9 @@
 import { zipTask } from "./archive-service.mjs";
-import { attachDatabaseManager, node, option } from "./database-tools.mjs";
-import { renderSchemaDesigner } from "./schema-designer.mjs";
-import { splitSQL, encodeSQLScript } from "./sql-script.mjs";
+import { attachDatabaseManager, node, option } from "./database/database-tools.mjs";
+import { renderSchemaDesigner } from "./database/schema-designer.mjs";
+import { splitSQL, encodeSQLScript } from "./database/sql-script.mjs";
 import { createCodeEditor } from "./editor/dist/codemirror.mjs";
-import { identifier, literal, editValue, sameValue } from "./sql-values.mjs";
+import { identifier, literal, editValue, sameValue } from "./database/sql-values.mjs";
 import { ProjectHub } from "./project-hub.mjs";
 import { readState, writeState } from "./state.mjs";
 import { createStudioShell } from "./studio-shell.mjs";

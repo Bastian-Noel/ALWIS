@@ -1,10 +1,8 @@
-# Moteurs natifs
+# Moteurs
 
-Le produit cible est un WASM unique PHP + MariaDB avec pont natif et SQL initialisé à la demande. La compilation séparée sert de témoin mesurable.
+- `native/build/` : recette du moteur commun actuellement distribué, cibles runtime et témoin de liaison.
+- `fusion/` : preuves conservées des intégrations natives.
+- `baseline/` : témoins amont séparés du produit.
+- `patches/` : inventaire des adaptations.
 
-- `baseline/` : recettes de reproduction des versions amont, sans patch WASMWebServer.
-- `patches/` : futurs patchs du produit, séparés des snapshots d'origine.
-- Les checkouts et compilations sont placés dans `build-work/`, ignoré par Git.
-- Les binaires et logs CI sont conservés comme artifacts ; les manifestes et conclusions restent versionnés.
-
-Ne pas confondre compiler le pilote PDO chargeable du bridge et compiler PHP lui-même. Les témoins doivent apporter ces deux preuves séparément.
+Les objets et exécutables sont générés dans build-work/. La distribution technique est distincte des versions applicatives ; voir [contribution](../CONTRIBUTING.md) et [publication](../docs/deployment.md).

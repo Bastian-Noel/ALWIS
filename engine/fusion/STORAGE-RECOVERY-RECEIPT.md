@@ -33,7 +33,7 @@ Les reçus mémoire à 256 Mio concernent la capacité linéaire sur leurs scén
 ## Reproduction
 
 ```sh
-PLAYWRIGHT_BROWSERS_PATH=/workspace/.cache/ms-playwright node engine/fusion/spike/test-native-runtime.mjs
+PLAYWRIGHT_BROWSERS_PATH=/workspace/.cache/ms-playwright node engine/native/build/test-native-runtime.mjs
 PLAYWRIGHT_BROWSERS_PATH=/workspace/.cache/ms-playwright node tests/browser/restart-native.mjs
 PLAYWRIGHT_BROWSERS_PATH=/workspace/.cache/ms-playwright node tests/browser/studio.mjs
 ```

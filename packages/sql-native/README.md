@@ -6,4 +6,4 @@ The console owns connection ID 0 independently of PHP request owners. Its sessio
 
 `include/pbl_sql.h` remains the broader design contract for future cursor/batch integration; it is not presented as fully implemented. The current adapters use the embedded MySQL C API through `include/pbl_mysql.h`. See `packages/php-native/README.md` for the working surface and remaining compatibility/peak-memory limits.
 
-Real browser integration receipts are under `engine/fusion/receipts/native-runtime/`. The target is `pbl-runtime`, built using `PBL_TARGET=pbl-runtime bash engine/fusion/spike/build.sh` with the documented pinned prerequisites.
+Real browser integration receipts are under `engine/fusion/receipts/native-runtime/`. The target is `pbl-runtime`, built using `PBL_TARGET=pbl-runtime bash engine/native/build/build.sh` with the documented pinned prerequisites.

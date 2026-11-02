@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {identifier,literal,editValue,sameValue} from '../apps/studio/sql-values.mjs';
+import {identifier,literal,editValue,sameValue} from '../apps/studio/database/sql-values.mjs';
 test('SQL tool values preserve empty, NULL, Unicode, binary and exact integers',()=>{
  assert.equal(literal(null),'NULL');assert.equal(literal(''),"CONVERT(X'' USING utf8mb4)");
  assert.equal(literal(Uint8Array.of(0,255)),"X'00ff'");

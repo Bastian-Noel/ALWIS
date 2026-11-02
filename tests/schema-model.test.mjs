@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { relationModel } from "../apps/studio/schema-designer.mjs";
-import { columnSQL } from "../apps/studio/database-tools.mjs";
+import { relationModel } from "../apps/studio/database/schema-designer.mjs";
+import { columnSQL } from "../apps/studio/database/database-tools.mjs";
 test("cardinalities derive from nullable foreign keys and full unique indexes, including composite keys", () => {
   const columns = [
     ["p", "id", "int", "PRI", "NO"],

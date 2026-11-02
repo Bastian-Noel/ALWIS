@@ -24,7 +24,7 @@ Les deux chaînes PHP sont distinctes. Le bridge compile un **module PDO**, pas 
 - JoomEngine `test/browser.test.mjs` et `test/database-browser.test.mjs` : PHP navigateur puis PDO/MariaDB ; bridge de sa matrice, à enregistrer dans les résultats.
 - Sean Morris `Makefile` et `.github/workflows/build-step.yaml` : profils PHP et wrappers Node/Web/CGI construits dans son image Docker Emscripten patchée. Son patch SDK appartient à cette chaîne, pas automatiquement au build MariaDB.
 
-Les repères détaillés historiques restent dans `docs/CODE-MAP.md`. Prochaine analyse pour la fusion : contraintes pthread/Asyncify, symboles d'initialisation et d'arrêt, allocateurs, API SQL embarquée et propriétaires des résultats. Aucun patch de fusion avant la preuve du témoin.
+Les repères détaillés historiques restent dans `docs/README.md`. Prochaine analyse pour la fusion : contraintes pthread/Asyncify, symboles d'initialisation et d'arrêt, allocateurs, API SQL embarquée et propriétaires des résultats. Aucun patch de fusion avant la preuve du témoin.
 
 ## Correction de compatibilité isolée (suite du run 41197139983)
 

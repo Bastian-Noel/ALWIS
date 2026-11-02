@@ -28,7 +28,7 @@
       "sha256": "b0a3a6fd7107eab8f163bdefe8ca3f7780289e3d71e4bc158decbb5185da83db"
     },
     {
-      "path": "engine/fusion/spike/runtime-target.cmake",
+      "path": "engine/native/build/runtime-target.cmake",
       "bytes": 4689,
       "sha256": "b06d59fcce05531dcc80106798466bb9a2a1a61602506e6b5376e7a5d8131f81"
     },
@@ -53,7 +53,7 @@
       "sha256": "e591f46a82781a0e8b9c7f11d0f842399cf277176b49d93f19358d308bbc6591"
     },
     {
-      "path": "engine/fusion/spike/test-native-runtime.mjs",
+      "path": "engine/native/build/test-native-runtime.mjs",
       "bytes": 29782,
       "sha256": "01ea8af2df673a1315bcdb2469500de6ac92b487fc8903c5180eb3518761c46d"
     },

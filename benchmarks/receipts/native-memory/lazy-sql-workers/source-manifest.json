@@ -23,7 +23,7 @@
       "sha256": "2efc39813a69e2b3575c149522cbe8155a04b4d3c7233e5b81f2051e02308ffe"
     },
     {
-      "path": "engine/fusion/spike/runtime-target.cmake",
+      "path": "engine/native/build/runtime-target.cmake",
       "sha256": "b06d59fcce05531dcc80106798466bb9a2a1a61602506e6b5376e7a5d8131f81"
     },
     {

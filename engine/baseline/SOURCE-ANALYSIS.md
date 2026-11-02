@@ -1,6 +1,6 @@
 # Analyse verrouillée — quatre moteurs de référence (jalon 2)
 
-Date d'analyse : 2026-10-31. Ce dossier est une lecture des snapshots épinglés ; il ne décrit pas un runtime WASMWebServer fusionné. Sources historiques : `provenance/conversation-source.md` et `provenance/conversation-complementaire.txt` ; cadrage prioritaire : `docs/EXECUTION.md`.
+Date d'analyse : 2026-10-31. Ce dossier est une lecture des snapshots épinglés ; il ne décrit pas un runtime WASMWebServer fusionné. Sources historiques : `provenance/conversation-source.md` et `provenance/conversation-complementaire.txt` ; cadrage prioritaire : `docs/compatibility.md`.
 
 ## Versions et familles **non interchangeables**
 
@@ -43,4 +43,4 @@ Deux chemins de validation **distincts** ont été testés en CI : (A) Sean Morr
 4. **Cibler PDO puis MySQLi après un spike natif**, sans une couche de conversions JS dans la future ABI.
 5. Le routage N fenêtres/sessions, outils UI et stockage OPFS sont des jalons ultérieurs ; deux joueurs ne limitent pas le modèle.
 
-Code précis : `docs/CODE-MAP.md` (SRC-001 à SRC-081), `engine/baseline/INTEGRATION-POINTS.md`, `docs/DIFFICULTES.md`. Les documents d'époque dans `provenance/` restent inchangés.
+Code précis : `docs/README.md` (SRC-001 à SRC-081), `engine/baseline/INTEGRATION-POINTS.md`, `docs/README.md`. Les documents d'époque dans `provenance/` restent inchangés.

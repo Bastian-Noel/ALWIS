@@ -14,13 +14,10 @@ runs:
       with:
         path: build-work/editor-upstream
         key: ${{ runner.os }}-editor-engines-${{ hashFiles('apps/studio/editor/engines.lock.json') }}
-    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      with:
-        ref: studio-native-runtime
-        path: deployment/native
-        persist-credentials: false
-    - name: Verify and restore the validated native module
+    - name: Restore pinned native release and verify sources
       shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
       run: python3 scripts/restore-deployment-engine.py
     - name: Build editors, verify source checks and assemble static files
       shell: bash

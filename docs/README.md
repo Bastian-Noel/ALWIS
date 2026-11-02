@@ -1,4 +1,9 @@
-# Espace de travail IDE et administration SQL
+# Guide du studio
+
+[Architecture](architecture.md) · [Compatibilité](compatibility.md) · [Performance](performance.md) · [Publication](deployment.md) · [Contribution](../CONTRIBUTING.md)
+
+
+## Espace de travail IDE et administration SQL
 
 La navigation principale comporte Accueil, Code, Base de données, Schéma relationnel et Clients et sessions. Ressources et Journal sont accessibles dans Outils ; import/export, exemple et fermeture sont dans Projet. Les surfaces reprennent une organisation d’éditeur : onglets horizontaux, panneaux bordés, typographie système, texte de commande et absence d’icônes décoratives.
 
@@ -58,4 +63,74 @@ Skills appliqués : [anti-ai-slop](https://github.com/Krirox/anti-ai-slop-skills
 
 ## Aide à l’écriture
 
-Voir [Confort de l’éditeur et diagnostics](CONFORT-EDITEUR.md) pour les raccourcis, corrections proposées, budgets et limites du service de langage.
+Voir [Confort de l’éditeur et diagnostics](README.md) pour les raccourcis, corrections proposées, budgets et limites du service de langage.
+
+
+## Confort de l’éditeur et diagnostics
+
+Cette évolution conserve CodeMirror 6, PHPantom WASM, SuperHTML et le service TypeScript/SWC. Emmet 0.4.2 est la seule nouvelle dépendance directe ; aucun moteur WASM supplémentaire n’est introduit.
+
+## Disponible
+
+- Snippets PHP (`foreach`, `for`, `while`, `if`, `function`, `try`) et JavaScript : blocs indentés, champs Tab/Maj+Tab, corps final.
+- Entrée conserve son rôle de retour à la ligne. Exception explicite : `!` dans un document HTML vide développe le squelette HTML. Emmet se déclenche avec Tab ou Ctrl/Cmd+Maj+M en contexte HTML/CSS ; commentaires et valeurs d’attributs sont exclus.
+- Paires de parenthèses, indentation, balises HTML via les extensions CodeMirror ; extensions PHP/PHTML/INC et JS/JSX/TS/TSX, insensibles à la casse.
+- Filtrage des complétions selon le préfixe et le contexte. Après `$`, variables PHP uniquement, avec priorité aux déclarations de la portée courante. Les types jQuery restent invisibles dans les fichiers utilisateur.
+- Documentation de la proposition sélectionnée chargée à la demande, descriptions au survol, aide au paramètre actif. Le texte externe est affiché comme texte, jamais comme HTML.
+- Panneau Problèmes, navigation par diagnostic, corrections proposées explicitement. Pour PHP : point-virgule testé sur une copie par le parseur ; faute de casse ou nom proche d’une variable déclarée dans la même portée. Les constructions dynamiques et les candidats ambigus empêchent cette dernière suggestion.
+- Pour JavaScript : diagnostics et corrections locales fournis par TypeScript, sans réinventer son analyse sémantique.
+- Définition (F12), références (Maj+F12 lorsque le fournisseur les expose), retour (Alt+Gauche), symboles du fichier et recherche textuelle dans les fichiers indexés.
+- Renommage sémantique (F2), aperçu puis application en une transaction annulable. Un changement touchant plusieurs fichiers est refusé explicitement : aucune modification partielle.
+- Commenter (Ctrl/Cmd+/), réindenter une sélection (Ctrl/Cmd+Maj+I), recherche/remplacement local et commandes de ligne CodeMirror.
+- Passage à un fichier cible par le chemin habituel de l’application, qui conserve les brouillons.
+
+## Coût et limites
+
+Analyse limitée à 256 K caractères par document ; édition à 1 Mio UTF-8. Contexte projet borné à 64 fichiers / 1 Mio de caractères, avec 64 K caractères par fichier. Résultats de recherche : 100 maximum. Historique de navigation : 30 positions. Aide aux paramètres temporisée et une seule requête en vol. Au plus quatre essais de réparation syntaxique PHP par analyse. Les services restent déchargeables.
+
+Le module de l’éditeur augmente d’environ 110–120 Ko non compressés, essentiellement pour Emmet. Cela mesure le fichier JavaScript livré, pas la RAM du navigateur. Aucun gain de mémoire du runtime PHP/MariaDB n’est revendiqué.
+
+Le contexte est un index borné, pas l’intégralité garantie d’un gros projet. Les fichiers enregistrés et les brouillons quittés actualisent leur entrée ; les modifications externes exigent un rechargement. La recherche ne remplace pas encore dans plusieurs fichiers. Le renommage coordonné de plusieurs fichiers, le formatage complet des documents multilangages, le renommage lié des balises, les complétions de chemins/classes CSS et la présentation enrichie des traces d’exécution restent à finaliser. Les références PHP dépendent des capacités annoncées par PHPantom (non disponibles dans la version embarquée). Une variable inconnue ne reçoit pas systématiquement une correction : les propositions sont conservatrices.
+
+## Validation
+
+- `npm test` : tests existants et tests de portée, ambiguïté et réparation PHP.
+- `node tests/browser/editor-intelligence.mjs` : vrais claviers Chromium/Firefox, snippets, HTML, Emmet, corrections, signatures, documentation, navigation, renommage et Entrée.
+- `node tests/browser/editor-workbench.mjs` : parcours existants code et SQL, conflits, persistance et petits écrans.
+- `node tests/browser/editor-accessibility.mjs` : onze états contrôlés avec axe.
+
+Le parcours de confort est ajouté à la validation commune CI/publication. Ces contrôles ne constituent pas une validation manuelle de tous les lecteurs d’écran ni une équivalence fonctionnelle complète avec VS Code.
+
+
+## Ordre de réalisation actif
+
+Instruction utilisateur : terminer d'abord PHP pour les projets simples et consolider PDO/MySQLi, ensuite réaliser le vrai éditeur de site, enfin terminer l'administration SQL. Cet ordre remplace celui du bilan qui plaçait la diffusion avant ces fonctionnalités. La publication ne doit pas interrompre ce travail lorsque le service d'hébergement est inaccessible.
+
+## 1. PHP et accès SQL
+
+Premier lot PHP : filter, ctype, tokenizer, fileinfo, mbstring et iconv, avec preuves de validation, Unicode, types MIME et encodages. Le sous-module mbregex dépend d'Oniguruma et n'est pas promis par l'activation de mbstring sans cette dépendance.
+
+**Surface procédurale complétée :** [106 fonctions enregistrées avec politiques explicites et limites](../engine/fusion/MYSQLI-106-RECEIPT.md).
+
+**Premier lot livré :** ces six extensions, types numériques PDO avec stringify et conservation des valeurs exactes, savepoints MySQLi procéduraux/objet. Preuves et limites : [PHP essentiel](../engine/fusion/PHP-ESSENTIALS-RECEIPT.md). Les lignes suivantes restent le travail à poursuivre ; ce lot ne clôt pas toute la phase 1.
+
+Compléter ensuite les besoins de fichiers et documents (zlib/ZIP, DOM/XML/SimpleXML) avec dépendances épinglées. Décider des ajouts crypto/images selon les projets de référence. Conserver les sources, recettes et témoins précédents ; mesurer le coût des extensions avant de définir d'autres profils.
+
+Approfondir la conformité PDO : variantes de types/attributs, LOB en flux, curseurs et résultats multiples. MySQLi dispose des nouveaux chemins options/diagnostics/long-data/résultats multiples ; approfondir leurs variantes, les classes/propriétés et les anciens alias objet. Les API hors contexte du serveur embarqué doivent avoir une politique explicite, sans fausse réussite.
+
+Sortie : petits projets PHP CRUD/authentification/upload importés sans réécrire PDO/MySQLi ; erreurs récupérables, transactions, valeurs exactes, quotas et nettoyage prouvés. Alterner fonctionnalités et validations ciblées, sans répéter les compilations amont sans nécessité.
+
+## 2. Vrai éditeur de site
+
+**Lot livré :** CodeMirror, arborescence et opérations de fichiers, recherche/remplacement, services PHP/HTML/SWC, déclarations jQuery internes, cycle de vie et protections des écritures. [Fonctions et limites actuelles](../apps/studio/editor/README.md).
+
+Approfondir les diagnostics PHP sémantiques, le contexte Composer, les diagnostics des documents mixtes, les opérations sur dossiers et l’endurance des services ; compléter les vérifications lecteurs d’écran et Safari.
+
+## 3. Administration SQL complète
+
+**Lot livré :** CodeMirror MySQL, sélection/scripts, résultats multiples, historique, catalogue réel pour la complétion et import DELIMITER/routines. L’explorateur bases/tables, les grilles filtrées/triées, les formulaires DDL, les relations visuelles et le ZIP multi-bases sont désormais livrés : [espace IDE](README.md). La parité exhaustive phpMyAdmin reste ouverte.
+
+Approfondir les variantes avancées de colonnes et index, les formulaires de routines et privilèges, les gros imports/dumps, les dispositions de schémas denses et les restaurations interrompues. Garder les contrôles de concurrence, types exacts, erreurs utiles et budgets ; valider sur un vrai projet avec les outils déjà livrés.
+
+Le bilan du 1 novembre reste une photographie des capacités ; ce fichier définit l'ordre de travail suivant, pas une déclaration de fonctionnalités terminées.
+

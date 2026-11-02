@@ -50,7 +50,7 @@
       "sha256": "18b87a8a6ec7628b504479a6b9cc7babc704534517bd04773af5249ccaec8665"
     },
     {
-      "path": "apps/studio/sql-values.mjs",
+      "path": "apps/studio/database/sql-values.mjs",
       "sha256": "34e61ee529e703c0e9c2eba9c2cf9456a6d5a38e26827907faab828b4934fabb"
     },
     {
@@ -58,7 +58,7 @@
       "sha256": "f6fbf8f7d4502d7bfc0454e732d9b21fe277e41f28937976a006946d21ee759e"
     },
     {
-      "path": "apps/studio/sql-export.php",
+      "path": "apps/studio/database/sql-export.php",
       "sha256": "980a56bc7f53dac2e9e77b986d9a8a988cda8d7c75ccef142135e176a1f0ad1c"
     },
     {

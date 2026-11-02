@@ -1,41 +1,42 @@
 # WASMWebServer
 
-Environnement PHP + MariaDB dans le navigateur pour les petits projets web. Un module principal WASM, pont C commun à PDO/MySQLi, fichiers persistants, N fenêtres clientes et sessions indépendantes ou partagées.
+[![CI](https://github.com/Bastian-Noel/WASMWebServer/actions/workflows/check.yml/badge.svg)](https://github.com/Bastian-Noel/WASMWebServer/actions/workflows/check.yml)
+[![Versions](https://img.shields.io/github/v/release/Bastian-Noel/WASMWebServer)](https://github.com/Bastian-Noel/WASMWebServer/releases)
 
-Le prototype fonctionne dans Chromium et Firefox. Le [cadrage actif](docs/EXECUTION.md) distingue les fonctions validées des limites de compatibilité et de mémoire.
+Un environnement local PHP + MariaDB dans votre navigateur : code, fichiers, SQL et fenêtres clientes avec sessions indépendantes ou partagées.
 
-## Fonctionnalités actuelles
+![Éditeur et explorateur de fichiers](apps/studio/receipts/editor/workbench-chromium.png)
 
-- PHP 8.4.27 : formulaires, sessions, uploads, fichiers et HTTP navigateur ; filter, ctype, tokenizer, fileinfo, mbstring et iconv.
-- [MySQLi : 106 fonctions enregistrées](engine/fusion/MYSQLI-106-RECEIPT.md), avec six API hors contexte refusées explicitement. PDO/MySQLi natifs, préparations, types exacts, transactions et résultats multiples sous quotas.
-- [Éditeur CodeMirror 6](apps/studio/editor/README.md) : fichiers, arborescence, recherche/remplacement, brouillons, PHP LSP en Rust/WASM, SuperHTML, SWC et définitions jQuery internes. Aucun interpréteur PHP supplémentaire pour la complétion.
-- [Espace IDE](docs/ESPACE-IDE.md) : accueil des projets, onglets d’outils, explorateur à droite, sessions visuelles et ZIP fichiers + bases SQL.
-- SQL : console avec scripts et résultats multiples, catalogue réel pour la complétion, grille paginée, insertion/modification/suppression, schéma et import/export.
-- Sauvegarde et reprise du projet dans le navigateur, contrôle des propriétaires, quotas et journal local borné.
+> [!IMPORTANT]
+> Le studio reste un prototype. Les versions publiées et `main` peuvent avoir des fonctionnalités et validations différentes.
 
-La compatibilité exhaustive PDO/MySQLi, ZIP/XML côté PHP, les diagnostics PHP sémantiques complets, les formulaires DDL avancés et l'endurance restent à compléter. La capacité linéaire WASM n'est pas la RAM totale du navigateur. Voir [les étapes restantes](docs/PROCHAINES-ETAPES.md) et [les profils mesurés](docs/PROFILS-PERFORMANCE.md).
+## Essayer depuis un ZIP
 
-## Démarrer
-
-Node 24 et Python 3.12+, puis le [build natif](engine/fusion/spike/README.md) ou la restauration du module validé pour la publication.
+Téléchargez le ZIP applicatif de la [préversion IDE v0.2.0-preview.2](https://github.com/Bastian-Noel/WASMWebServer/releases/tag/v0.2.0-preview.2), extrayez-le puis lancez :
 
 ```sh
-npm ci
-npm run editor:build
-npm test
-node scripts/serve-studio.mjs
+node serve.mjs
 ```
 
-Ouvrir un projet vide, charger l'exemple scolaire et ouvrir une fenêtre cliente. Le [guide du studio](apps/studio/README.md) explique les sessions, les fichiers et la sauvegarde.
+Ouvrez http://127.0.0.1:8080. Node 20+ sert les fichiers ; PHP et MariaDB tournent dans le navigateur. La [version stable précédente v0.1.0](https://github.com/Bastian-Noel/WASMWebServer/releases/tag/v0.1.0) reste disponible. Les améliorations de confort d’édition sur `main` sont postérieures à ces distributions.
 
-## Publier
+## Outils disponibles
 
-Le [dernier essai](docs/PUBLICATION-FTP.md) a validé le build sur les deux navigateurs et transféré les fichiers sur FTP. Le [workflow FTP](docs/FTP-DEPLOYMENT.md) construit et vérifie le site statique avant publication. Il se lance manuellement dans GitHub Actions et utilise le secret FTP_PASSWORD. Le module natif validé est conservé séparément sur `studio-native-runtime`, avec ses empreintes ; il ne mélange pas les fichiers des projets avec le site publié.
+| Outil | Usage |
+|---|---|
+| Projets | Création, sauvegarde locale, import/export ZIP fichiers et SQL |
+| Code | CodeMirror 6, coloration multilangage, services PHP/JS, types jQuery internes |
+| SQL | Bases et tables, requêtes, grille paginée, structure, import/export |
+| Schéma | Relations visuelles, clés étrangères, déplacement des tables |
+| Clients | Plusieurs fenêtres et sessions indépendantes ou partagées |
+| Ressources et journal | État des outils, déchargement et erreurs |
 
-Le paquet autonome se prépare avec `node scripts/package-studio.mjs`. HTTPS et les en-têtes COOP/COEP sont nécessaires à PHP/MariaDB. Les projets restent dans le stockage du navigateur ; ils ne sont pas envoyés sur FTP.
+PHP 8.4.27 et MariaDB partagent un WASM avec pont natif PDO/MySQLi. Les 106 entrées MySQLi enregistrées comprennent six refus explicites ; cela ne garantit pas une compatibilité exhaustive. Chromium et Firefox sont testés. HTTPS et les en-têtes COOP/COEP sont nécessaires en production. Les projets restent dans le stockage du navigateur : exportez-les régulièrement.
 
-## Documentation et provenance
+## Documentation
 
-L'[index de documentation](docs/INDEX.md) donne les guides actuels et identifie les rapports historiques. Les sources amont épinglées, leurs licences et leurs empreintes restent dans `provenance/`. La préversion actuelle [v0.2.0-preview.2](https://github.com/Bastian-Noel/WASMWebServer/releases/tag/v0.2.0-preview.2) fournit la refonte IDE validée et ses preuves ; v0.1.0 reste la précédente distribution stable. L'archive séparée `sources-2026-10-31` conserve les 19 sources amont nécessaires à la restauration ; elle n'est pas une version du studio. Voir les [règles CI et releases](docs/RELEASES.md).
+[Guide utilisateur](docs/README.md) · [Architecture](docs/architecture.md) · [Compatibilité](docs/compatibility.md) · [Performance](docs/performance.md) · [Publication](docs/deployment.md) · [Contribuer](CONTRIBUTING.md)
 
-Les dossiers `build-work/`, `sources/`, `upstream/` et les dépendances npm sont générés ou restaurés localement. Ils ne font pas partie du code source de l'application.
+Le moteur technique et l’archive `sources-2026-10-31` sont des distributions de restauration, distinctes du studio. Les sources épinglées, empreintes et notices restent dans `provenance/`. Les notes des releases conservent l’historique ; les reçus du dépôt sont des preuves liées à leurs révisions.
+
+Les licences tierces sont préservées et regroupées dans `THIRD-PARTY.txt` du paquet. Aucune licence globale n’a été choisie pour le projet ; voir les notices avant redistribution.

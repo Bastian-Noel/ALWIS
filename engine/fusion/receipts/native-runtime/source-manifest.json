@@ -4,43 +4,43 @@
   "target": "pbl-runtime",
   "files": [
     {
-      "path": "engine/fusion/spike/CMakeLists.txt",
+      "path": "engine/native/build/CMakeLists.txt",
       "sha256": "8f80d87eb8135455b462036536ae15affde18f574e0df8cb979184edb11ee562"
     },
     {
-      "path": "engine/fusion/spike/README.md",
+      "path": "engine/native/build/README.md",
       "sha256": "3fa9e79fc414f31a196d80c067e0f75b2bcb6b97fc97d008c00a5f0936c200cd"
     },
     {
-      "path": "engine/fusion/spike/RECEIPT.md",
+      "path": "engine/native/build/RECEIPT.md",
       "sha256": "841797a7c018c3f23245bf58d1cf1b460644bf158d730bb1c38987b3f7d309ee"
     },
     {
-      "path": "engine/fusion/spike/attach.cmake",
+      "path": "engine/native/build/attach.cmake",
       "sha256": "75442e4759fa08fb3eeb4c373c4409b2f6611d61745e08127f524f8b6901a92d"
     },
     {
-      "path": "engine/fusion/spike/build.sh",
+      "path": "engine/native/build/build.sh",
       "sha256": "ec17a48ab31575beeb8dfb53fcf815496fd63d6a073bd28a74341ba9c8c24919"
     },
     {
-      "path": "engine/fusion/spike/runtime-target.cmake",
+      "path": "engine/native/build/runtime-target.cmake",
       "sha256": "610dd14002ebc249a1dd6195f10837dd0799dfff82612aa7d92c9c96783142ed"
     },
     {
-      "path": "engine/fusion/spike/select-one.c",
+      "path": "engine/native/build/select-one.c",
       "sha256": "9c15752f872d4fcad423cc717ede98de743cc01b7e71e260d578813760961c3b"
     },
     {
-      "path": "engine/fusion/spike/test-browser.mjs",
+      "path": "engine/native/build/test-browser.mjs",
       "sha256": "c03d29ea0d1d91ee40c26023dd287919c488cdb70b55f1b56298d46b534885cf"
     },
     {
-      "path": "engine/fusion/spike/test-native-runtime.mjs",
+      "path": "engine/native/build/test-native-runtime.mjs",
       "sha256": "01ea8af2df673a1315bcdb2469500de6ac92b487fc8903c5180eb3518761c46d"
     },
     {
-      "path": "engine/fusion/spike/worker.mjs",
+      "path": "engine/native/build/worker.mjs",
       "sha256": "c9e4d261cc0a808ba458b44ac6260bf305065f1e8ab7f8f4321aea70e6024964"
     },
     {

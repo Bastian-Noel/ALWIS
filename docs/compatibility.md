@@ -1,12 +1,15 @@
-# Objectif actif et preuves de progression
+# Compatibilité et limites
+
+
+## Objectif actif et preuves de progression
 
 Jalon actuel : [106 entrées MySQLi et leurs limites](../engine/fusion/MYSQLI-106-RECEIPT.md), [éditeur de site, jQuery et SQL](../apps/studio/editor/README.md).
 
-**Priorité utilisateur actuelle :** [PHP essentiel + consolidation PDO/MySQLi, puis vrai éditeur de site, puis administration SQL complète](PROCHAINES-ETAPES.md). La diffusion reste un chantier indépendant et ne bloque pas ces développements.
+**Priorité utilisateur actuelle :** [PHP essentiel + consolidation PDO/MySQLi, puis vrai éditeur de site, puis administration SQL complète](README.md). La diffusion reste un chantier indépendant et ne bloque pas ces développements.
 
-État consolidé au 1 novembre : [bilan complet, fonctionnalités et reste à faire](BILAN-2026-11-01.md), [profils mesurés et recommandation](PROFILS-PERFORMANCE.md). Le [lot PHP essentiel et consolidation PDO/MySQLi](../engine/fusion/PHP-ESSENTIALS-RECEIPT.md) prolonge ce bilan ; les profils historiques ne sont pas des options sélectionnables du studio.
+État consolidé au 1 novembre : [bilan complet, fonctionnalités et reste à faire](README.md), [profils mesurés et recommandation](performance.md). Le [lot PHP essentiel et consolidation PDO/MySQLi](../engine/fusion/PHP-ESSENTIALS-RECEIPT.md) prolonge ce bilan ; les profils historiques ne sont pas des options sélectionnables du studio.
 
-L'objectif complet est un prototype navigateur fonctionnel et mesuré avec **un WASM unique PHP + MariaDB et pont natif**, PDO/MySQLi, N fenêtres et sessions indépendantes ou partagées. Les outils texte/SQL doivent pouvoir avoir des cycles de vie séparés. MariaDB démarre à la demande avec un profil mémoire réduit, puis reste active jusqu'à la sauvegarde ou la fermeture. Après arrêt, le runtime est recréé : voir le [cycle simplifié retenu](CYCLE-MOTEUR.md), qui remplace l'expérience de redémarrage SQL à chaud.
+L'objectif complet est un prototype navigateur fonctionnel et mesuré avec **un WASM unique PHP + MariaDB et pont natif**, PDO/MySQLi, N fenêtres et sessions indépendantes ou partagées. Les outils texte/SQL doivent pouvoir avoir des cycles de vie séparés. MariaDB démarre à la demande avec un profil mémoire réduit, puis reste active jusqu'à la sauvegarde ou la fermeture. Après arrêt, le runtime est recréé : voir le [cycle simplifié retenu](architecture.md), qui remplace l'expérience de redémarrage SQL à chaud.
 
 Ce cadrage remplace les anciennes formulations limitant le produit à deux joueurs ou reléguant systématiquement le moteur fusionné à une option de fin de projet. Deux joueurs restent une fixture.
 
@@ -19,7 +22,7 @@ Ce cadrage remplace les anciennes formulations limitant le produit à deux joueu
 | 5 MySQLi/optimisation | Compatibilité, limites, mesures et décisions | En cours : extension MySQLi C, préparations et résultats liés exécutés ; 106/106 entrées procédurales enregistrées avec restrictions explicites, dont six API hors contexte refusées ; conformité approfondie et profils réduits mesurés ; compatibilité complète ouverte |
 | 6 Environnement web | N fenêtres/sessions, HTTP, fichiers, outils et reprise | Prototype fonctionnel : quatre fenêtres/trois sessions, base commune, fichiers, console/grille, schéma, déchargement et sauvegarde/reprise exécutés sur les deux navigateurs |
 
-La [première interface structurée](INTERFACE-STUDIO.md) ajoute six espaces, erreurs récupérables et journal local borné. Les parcours réels et largeurs mobiles passent sur les deux navigateurs ; l'audit Chromium couvre 17 états sans violation automatisée détectée. Voir [la revue et ses limites](INTERFACE-REVIEW-2026-11-01.md). Les [éditeurs CodeMirror et services de langage](../apps/studio/editor/README.md) ont maintenant leurs parcours réels ; l’administration SQL complète reste à finaliser.
+La [première interface structurée](README.md) ajoute six espaces, erreurs récupérables et journal local borné. Les parcours réels et largeurs mobiles passent sur les deux navigateurs ; l'audit Chromium couvre 17 états sans violation automatisée détectée. Voir [la revue et ses limites](README.md). Les [éditeurs CodeMirror et services de langage](../apps/studio/editor/README.md) ont maintenant leurs parcours réels ; l’administration SQL complète reste à finaliser.
 
 Les archives et 14 tests JavaScript importés prouvent uniquement la préparation. Les documents historiques et leurs rapports restent des preuves datées. Le premier benchmark navigateur chiffré a réussi (6 échantillons et scénarios SQL/PDO) ; la mémoire physique demeure non instrumentée dans ce banc. La CI amont a cependant déjà exécuté PHP et MariaDB réels dans Chromium/Firefox ; voir `engine/baseline/CI-RECEIPT.md` pour les preuves et l'échec du témoin original.
 
@@ -42,3 +45,4 @@ Le [receipt du runtime C](../engine/fusion/NATIVE-RUNTIME-RECEIPT.md) atteste le
 ### Snapshot et cycle SQL consolidés (1 novembre)
 
 Les [preuves de récupération](../engine/fusion/STORAGE-RECOVERY-RECEIPT.md) couvrent maintenant snapshot atomique, échec après écriture, réessai, timestamps inchangés et vrai redémarrage/SIGKILL du navigateur sur les deux moteurs. Le redémarrage SQL dans un WASM déjà arrêté a été abandonné après un abort reproduit ; l’interface recrée le runtime. La [réception réseau bornée](../packages/network-native/README.md) est maintenant implémentée et vérifiée sur Chromium/Firefox, avec annulation réelle et récupération PHP/SQL. L’endurance, les erreurs de disque InnoDB et les buffers internes au navigateur restent à approfondir.
+

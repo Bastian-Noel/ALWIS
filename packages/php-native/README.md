@@ -1,6 +1,6 @@
 # Native PHP drivers and runtime integration
 
-The PHP essential profile adds filter, ctype, mbstring (without mbregex), iconv, tokenizer and fileinfo to Core/date/hash/json/pcre/PDO/random/Reflection/session/SPL/standard plus native pdo_mysql/mysqli/pbl_native. It remains smaller than the extension set proposed in docs/BUILD.md: DOM/XML, ZIP/zlib, cURL, OpenSSL and GD are not loaded. The studio's JavaScript ZIP importer does not provide PHP ZipArchive. The previous minimal inventory is retained in `engine/fusion/receipts/php-inventory.json`; the new profile has separate browser receipts and a [current implementation report](../../engine/fusion/PHP-ESSENTIALS-RECEIPT.md).
+The PHP essential profile adds filter, ctype, mbstring (without mbregex), iconv, tokenizer and fileinfo to Core/date/hash/json/pcre/PDO/random/Reflection/session/SPL/standard plus native pdo_mysql/mysqli/pbl_native. It remains smaller than the extension set proposed in docs/README.md: DOM/XML, ZIP/zlib, cURL, OpenSSL and GD are not loaded. The studio's JavaScript ZIP importer does not provide PHP ZipArchive. The previous minimal inventory is retained in `engine/fusion/receipts/php-inventory.json`; the new profile has separate browser receipts and a [current implementation report](../../engine/fusion/PHP-ESSENTIALS-RECEIPT.md).
 
 This directory contains a real Zend C extension, not PHP implementations of mysqli functions. It shares `packages/sql-native/src/pbl_mysql.c` with the adapted stock PDO MySQL C driver. Both link to the same embedded MariaDB library in `pbl-runtime.wasm`.
 
@@ -31,16 +31,16 @@ Incoming HTTP/CGI semantics reuse the pinned native runtime with custom drivers 
 
 ## Build and first end-to-end check
 
-After the native source prerequisites in `engine/fusion/spike/README.md`:
+After the native source prerequisites in `engine/native/build/README.md`:
 
 ```sh
 source /workspace/toolchains/host/activate.sh
 source /workspace/WASMWebServer/build-work/emsdk/emsdk_env.sh
 cd /workspace/WASMWebServer
 JOBS=3 bash scripts/build-php-essentials.sh
-PBL_TARGET=pbl-runtime JOBS=3 bash engine/fusion/spike/build.sh
+PBL_TARGET=pbl-runtime JOBS=3 bash engine/native/build/build.sh
 PLAYWRIGHT_BROWSERS_PATH=/workspace/.cache/ms-playwright node tests/browser/php-essentials.mjs
-PLAYWRIGHT_BROWSERS_PATH=/workspace/.cache/ms-playwright node engine/fusion/spike/test-native-runtime.mjs
+PLAYWRIGHT_BROWSERS_PATH=/workspace/.cache/ms-playwright node engine/native/build/test-native-runtime.mjs
 ```
 
 The integration check executes real files, GET/POST CGI, outgoing browser HTTP, both unchanged school fixtures and object MySQLi, then verifies connection cleanup and SQL stop. Do not describe an unexecuted or failed check as a working feature. Debug assertions and function names are currently kept in the native link to diagnose integration errors.
