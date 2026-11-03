@@ -42,7 +42,7 @@
   if (factory.databases) { const databases = factory.databases.bind(factory); factory.databases = async () => (await databases()).filter(item => item.name.startsWith(dbPrefix)).map(item => ({ ...item, name: item.name.slice(dbPrefix.length) })); }
   const route = value => {
     const url = new URL(value, location.href);
-    if (url.origin === location.origin && !url.pathname.startsWith('/__pbl/') && !url.pathname.startsWith('/_pbl/')) url.pathname = context.prefix + url.pathname.replace(/^\//, '');
+    if (url.origin === location.origin && !url.pathname.startsWith('/__pbl/') && !url.pathname.startsWith('/_pbl/') && !url.pathname.startsWith('/_alwis/')) url.pathname = context.prefix + url.pathname.replace(/^\//, '');
     return url.href;
   };
   const logical = () => { const url = new URL(location.href); if (url.pathname.startsWith(context.prefix)) url.pathname = '/' + url.pathname.slice(context.prefix.length); return url; };
@@ -72,7 +72,13 @@
   document.addEventListener('click', event => {
     const link = event.target.closest?.('a[href]'); if (link) link.href = route(link.href);
   }, true);
-  document.addEventListener('submit', event => { event.target.action = route(event.target.action); }, true);
+  document.addEventListener('submit', event => {
+    const form = event.target, submitter = event.submitter;
+    // A field named action/method/submit shadows the HTMLFormElement properties.
+    // Read attributes, and preserve submitter overrides, just as native submission does.
+    if (submitter?.hasAttribute('formaction')) submitter.setAttribute('formaction', route(submitter.getAttribute('formaction') || location.href));
+    else form.setAttribute('action', route(form.getAttribute('action') || location.href));
+  }, true);
   const rewrite = root => root.querySelectorAll?.('[src],link[href],form[action],a[href]').forEach(element => {
     for (const attr of ['src', 'href', 'action']) if (element.hasAttribute(attr)) {
       const value = element.getAttribute(attr); if (value?.startsWith('/') && !value.startsWith('//')) element.setAttribute(attr, route(value));

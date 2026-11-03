@@ -2,21 +2,33 @@ name: Publish verified native distribution
 on:
   workflow_dispatch:
     inputs:
-      artifact_ref:
-        description: Immutable commit containing artifact.json and the validated native files
+      artifact_run:
+        description: Successful main workflow run containing a native-distribution artifact (no upload branch)
         required: true
         type: string
 permissions:
   contents: write
+  actions: read
 jobs:
   publish:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-        with:
-          ref: ${{ inputs.artifact_ref }}
-          path: deployment/native
+      - name: Download a validated main artifact without creating Git references
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          ARTIFACT_RUN: ${{ inputs.artifact_run }}
+        run: |
+          test "$GITHUB_REF" = refs/heads/main
+          python3 - <<'PYVERIFY'
+          import json,os,subprocess
+          run=os.environ['ARTIFACT_RUN']
+          assert run.isdigit()
+          record=json.loads(subprocess.check_output(['gh','api','repos/'+os.environ['GH_REPO']+'/actions/runs/'+run]))
+          assert record['head_branch']=='main' and record['conclusion']=='success'
+          PYVERIFY
+          gh run download "$ARTIFACT_RUN" --name native-distribution --dir deployment/native
       - name: Verify source manifest and upload immutable distribution
         env:
           GH_TOKEN: ${{ github.token }}

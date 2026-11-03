@@ -43,6 +43,9 @@ try {
       await page.locator("#pn").fill("alwis-" + crypto.randomUUID());
       await page.locator("[data-act=create]").click();
       await page.locator("#ed1 .cm-content").waitFor();
+      await page.evaluate(async () => {
+        const {S} = await import('/apps/studio/workbench/state.mjs'); S.db = 'test';
+      });
       const checks = [];
       const settled = () =>
         page.waitForFunction(

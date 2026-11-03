@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
-"""Create an immutable named release from a successful FTP workflow artifact."""
+"""Create an immutable named release from a validated static build."""
 from pathlib import Path,PurePosixPath
 import hashlib,json,os,re,subprocess,zipfile
 repo=os.environ['GH_REPO'];tag=os.environ.get('RELEASE_TAG','');run=os.environ.get('VALIDATED_RUN','')
 if not re.fullmatch(r'v\d+\.\d+\.\d+(?:-(?:alpha|beta|rc|preview)\.\d+)?',tag):raise SystemExit('Use a version such as v0.1.0 or v0.2.0-preview.1')
-if not run.isdigit():raise SystemExit('A successful FTP run ID is required')
+if not run.isdigit():raise SystemExit('A validated workflow run ID is required')
 def gh(*args):return subprocess.check_output(['gh',*args],text=True).strip()
 def api(path):return json.loads(gh('api','repos/'+repo+'/'+path))
 record=api('actions/runs/'+run)
 if record['path']!='.github/workflows/publish-ftp.yml' or record['head_branch']!='main':raise SystemExit('Release source must be the FTP workflow on main')
 jobs=api('actions/runs/'+run+'/jobs?per_page=100')['jobs']
-if not any(job['name']=='publish' and job['conclusion']=='success' for job in jobs):raise SystemExit('The FTP publication job must have succeeded first')
+before_ftp=os.environ.get('RELEASE_BEFORE_FTP')=='true'
+required_job='build' if before_ftp else 'publish'
+if not any(job['name']==required_job and job['conclusion']=='success' for job in jobs):raise SystemExit('The validated source job must have succeeded first')
 revision=record['head_sha'];output=Path('build-work/releases')/tag;output.mkdir(parents=True,exist_ok=True)
 existing=subprocess.run(['gh','release','view',tag,'--repo',repo,'--json','isDraft,targetCommitish'],capture_output=True,text=True)
 if existing.returncode==0:
@@ -29,6 +31,7 @@ with zipfile.ZipFile(archive)as source:
   path=PurePosixPath(item.filename)
   if path.is_absolute()or'..'in path.parts:raise SystemExit('Unsafe artifact path')
  manifest=json.loads(source.read('release.json'))
+ if tag!='v'+manifest.get('version',''):raise SystemExit('Release version must match the packaged application version')
  if manifest['revision']!=revision or manifest['workingChanges']:raise SystemExit('Artifact does not match a clean validated revision')
  for item in manifest['files']:
   path=PurePosixPath(item['path'])
@@ -47,20 +50,29 @@ if validation_runs:
   validation=output/('ALWIS-'+tag[1:]+'-validation.zip')
   with validation.open('wb')as stream:subprocess.run(['gh','api',f'repos/{repo}/actions/artifacts/{proof[0]["id"]}/zip'],stdout=stream,check=True)
   assets.append(validation)
+if len(assets)==1:
+ proof=[a for a in artifacts if a['name']=='studio-package-validation-'+revision and not a['expired']]
+ if proof:
+  validation=output/('ALWIS-'+tag[1:]+'-validation.zip')
+  with validation.open('wb')as stream:subprocess.run(['gh','api',f'repos/{repo}/actions/artifacts/{proof[0]["id"]}/zip'],stdout=stream,check=True)
+  assets.append(validation)
 checksums=output/'SHA256SUMS';lines=[]
 for file in assets:
  with file.open('rb')as stream:value=hashlib.file_digest(stream,'sha256').hexdigest()
  lines.append(value+'  '+file.name)
 checksums.write_text('\n'.join(lines)+'\n');assets.append(checksums)
+publication_status='Build validé. Le transfert FTP sera exécuté après publication de cette release.' if before_ftp else 'Build et transfert FTP réussis.'
 notes=output/'notes.md';notes.write_text(f'''ALWIS — Atelier Local Web avec IDE et SQL. Cette préversion intègre la nouvelle interface au moteur réel : CodeMirror, aperçu, sessions, administration SQL et schéma relationnel.
 
+- Exemple Campus : 34 tables liées et remplies, quatre sessions, cours, notes et messagerie.
+- Assets isolés par build, version affichée et mise à jour préservant les projets.
 - CodeMirror : formateur à la demande, indentation réglable, snippets immédiats et développement Emmet prioritaire sur Tab.
 - Formulaires de colonnes enrichis, attributs existants préservés, valeurs SQL exactes et protection contre les conflits.
 - Nettoyage natif MySQLi des buffers binaires à la fermeture de connexion ; scénarios PDO natif/émulé, transactions et curseurs consolidés.
 - Export ZIP des fichiers et bases conservées ; un projet PHP pur reste sans démarrage SQL inutile.
 - Thèmes clair/sombre, contrastes corrigés et captures réelles dans le README.
 
-Source validée : `{revision}`. Build et tests Chromium/Firefox réussis, puis transfert FTP réussi : https://github.com/{repo}/actions/runs/{run}.
+Source validée : `{revision}`. Tests Chromium/Firefox réussis. {publication_status} Exécution : https://github.com/{repo}/actions/runs/{run}.
 
 Le ZIP contient le site statique autonome : extraire puis lancer `node serve.mjs` pour un essai local. HTTPS et les en-têtes COOP/COEP sont nécessaires sur un hébergement. Les reçus disponibles et SHA256SUMS accompagnent le paquet. Aucun projet utilisateur ni identifiant FTP n'est inclus.
 

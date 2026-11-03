@@ -39,7 +39,9 @@ runs:
         build-work/php/node_modules/.bin/playwright install --with-deps --only-shell chromium firefox
     - name: Validate the shipped static package in Chromium and Firefox
       shell: bash
-      run: node tests/browser/site-package.mjs
+      run: |
+        node tests/browser/site-package.mjs
+        node tests/browser/site-updates.mjs
     - name: Validate language services, code and SQL editors, native APIs and accessibility
       shell: bash
       run: |

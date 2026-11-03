@@ -56,7 +56,7 @@ Les types, clés, valeurs nulles et relations ont leurs repères visuels. Les fo
 
 ## Essayer ALWIS
 
-Téléchargez le **[paquet ALWIS v0.3.0-preview.2](https://github.com/Bastian-Noel/ALWIS/releases/tag/v0.3.0-preview.2)** : il inclut la nouvelle interface et le moteur PHP/MariaDB validé. Extrayez le ZIP, lancez `node serve.mjs` dans ce dossier avec **Node 20+**, puis ouvrez **http://127.0.0.1:8080**. Les anciens ZIP conservent leur interface historique.
+Téléchargez le **[paquet ALWIS v0.3.0-preview.3](https://github.com/Bastian-Noel/ALWIS/releases/tag/v0.3.0-preview.3)** : il inclut la nouvelle interface et le moteur PHP/MariaDB validé. Extrayez le ZIP, lancez `node serve.mjs` dans ce dossier avec **Node 20+**, puis ouvrez **http://127.0.0.1:8080**. Les anciens ZIP conservent leur interface historique.
 
 Pour démarrer depuis les sources, prévoyez **Node 24+, Python 3.12+ et GitHub CLI authentifié** pour télécharger le moteur épinglé :
 
@@ -72,6 +72,12 @@ node scripts/serve-studio.mjs
 Ouvrez **http://127.0.0.1:8080**, donnez un nom au projet, puis choisissez l’exemple scolaire. Le moteur validé se télécharge sans recompiler PHP ou MariaDB.
 
 Un paquet statique se prépare avec `node scripts/package-studio.mjs`. Une fois distribué, ce paquet se lance avec `node serve.mjs` et **Node 20+**. Pour l’hébergement HTTPS et les en-têtes nécessaires : [guide de publication](docs/deployment.md).
+
+## Un campus complet pour essayer
+
+Choisissez **Exemple scolaire** : 34 tables MariaDB liées et remplies, dix profils et quatre sessions prêtes — Administration, Professeur, Élève et Parent. Explorez élèves et classes, cours, notes, bibliothèque, messagerie et factures. Ouvrez plusieurs fenêtres : les identités restent indépendantes, les notes et messages sont partagés. Les profils sont librement sélectionnables pour la démonstration.
+
+La barre inférieure affiche la version et le build. **Mettre à jour** conserve les projets et les brouillons avant de charger la nouvelle version complète.
 
 ## Vos fichiers, vos sauvegardes
 

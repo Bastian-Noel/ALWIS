@@ -1,3 +1,4 @@
+import { schoolScenario } from "./school-scenario.mjs";
 /** Exact deployment payload smoke: COI, lazy workers, no PHP replay and real clients. */
 import assert from "node:assert/strict";
 import { writeFile } from "node:fs/promises";
@@ -21,16 +22,23 @@ try {
       ...(name === "chromium" ? { args: ["--no-sandbox"] } : {}),
     });
     try {
-      const page = await browser.newPage();
+      const context = await browser.newContext();
+      const page = await context.newPage();
       page.setDefaultTimeout(60000);
       await page.goto(origin);
       await page.locator("#stext").filter({ hasText: "Prêt" }).waitFor();
       const core = await page.evaluate(async () => {
+        const { assetBase } = await (
+          await fetch("/release.json", { cache: "no-store" })
+        ).json();
         const { NativeRuntime } = await import(
-          "/packages/runtime/src/native-runtime.mjs"
+          assetBase + "/packages/runtime/src/native-runtime.mjs"
         );
         const rt = await NativeRuntime.create({
-          moduleURL: new URL("/engine/pbl-runtime.mjs", location.href).href,
+          moduleURL: new URL(
+            assetBase + "/engine/pbl-runtime.mjs",
+            location.href,
+          ).href,
         });
         try {
           const initial = await rt.state();
@@ -87,18 +95,50 @@ try {
       await page.locator("#pn").fill(key);
       await page.locator("[data-act=create]").click();
       await page.locator("#ed1 .cm-content").waitFor();
+      const school = await schoolScenario(
+        page,
+        (await (await fetch(origin + "/release.json")).json()).assetBase,
+      );
+      const editor = page.locator("#ed1 .cm-content");
+      const original = await page.locator("#ed1").evaluate((el) => el.value);
+      await editor.fill("!");
+      await editor.press("Control+End");
+      await editor.press("Enter");
+      assert.match(await editor.innerText(), /<!doctype html>/i);
+      await editor.fill("ul>li*3");
+      await editor.press("Control+End");
+      await page.locator('#ed1 button[data-tool="Emmet"]').click();
+      assert.equal((await editor.innerText()).match(/<li>/g)?.length, 3);
+      await editor.fill("<?php foreach");
+      await editor.press("Control+End");
+      await editor.press("Tab");
+      assert.match(
+        await editor.innerText(),
+        /foreach \(\$items as \$item\) \{/,
+      );
+      await editor.fill(original);
       await page.locator('#ed1 button[data-tool="Formater"]').click();
-      await page.waitForFunction(() => document.querySelector("#ed1").dataset.serviceStatus.startsWith("Mise en forme terminée"));
+      await page.waitForFunction(() =>
+        document
+          .querySelector("#ed1")
+          .dataset.serviceStatus.startsWith("Mise en forme terminée"),
+      );
       const opening = page.waitForEvent("popup");
       await page.evaluate(async () => {
-        const { A } = await import("/apps/studio/workbench/state.mjs");
+        const { A } = await import(
+          (await (await fetch("/release.json")).json()).assetBase +
+            "/apps/studio/workbench/state.mjs"
+        );
         A.openWindow();
       });
       const client = await opening;
       await client.locator("#session").waitFor();
       await client.close();
       await page.evaluate(async () => {
-        const { A } = await import("/apps/studio/workbench/state.mjs");
+        const { A } = await import(
+          (await (await fetch("/release.json")).json()).assetBase +
+            "/apps/studio/workbench/state.mjs"
+        );
         await A.save();
         await A.close();
       });
@@ -108,7 +148,9 @@ try {
         version: browser.version(),
         passed: true,
         core,
-        studio: "project/demo/lazy formatter/PDO client/save/close passed",
+        school,
+        studio:
+          "project/34 tables/4 sessions/production Emmet/snippets/lazy formatter/PDO client/save/close passed",
       });
       console.log(
         name,

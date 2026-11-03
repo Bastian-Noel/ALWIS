@@ -237,10 +237,39 @@ export function createStudioServices() {
                 data: text,
                 expected: null,
               });
+            const installed = await runtime().request({
+              script: "/workspace/install.php",
+            });
+            if (installed.exitCode !== 0 || installed.status >= 400)
+              throw Error(
+                installed.stderr || "Installation scolaire impossible.",
+              );
+            const first = [...hub.sessions.sessions.values()][0];
+            first.label = "Administration";
+            for (const label of ["Professeur", "Élève", "Parent"])
+              await hub.createSession(label);
+            const identities = [1, 2, 4, 6];
+            let index = 0;
+            await runtime().write(
+              "/workspace/.demo-profile.php",
+              '<?php session_start(); $_SESSION["user_id"]=(int)($_GET["user"]??1);',
+            );
+            for (const session of hub.sessions.sessions.values())
+              await hub.route(session.id, {
+                url:
+                  location.origin +
+                  "/.demo-profile.php?user=" +
+                  identities[index++],
+                method: "GET",
+              });
+            await runtime().call("remove", {
+              path: "/workspace/.demo-profile.php",
+            });
           }
           await remember();
           await measure();
           return {
+            defaultDB: template === "demo" ? "school" : "test",
             name,
             initialized: template === "demo" || template === "empty",
           };

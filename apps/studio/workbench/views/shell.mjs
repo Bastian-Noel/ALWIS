@@ -108,7 +108,7 @@ function drawLauncher() {
         (r) =>
           `<button class="proj-row" data-act="open" data-arg="${esc(r.name)}"><b>${esc(r.name)}</b><span class="go">Ouvrir →</span><span class="mut num">${plural(r.files, "fichier", "fichiers")} · ${r.saved ? "sauvegardé" : "non sauvegardé"} · ${esc(r.when)}</span></button>`,
       ).join("")
-    : '<div class="empty" style="margin:0;padding:16px 12px"><b>Aucun projet ici.</b>Créez le premier à droite : l’exemple scolaire montre PHP, MariaDB et deux sessions en trois minutes.</div>';
+    : '<div class="empty" style="margin:0;padding:16px 12px"><b>Aucun projet ici.</b>Créez le premier à droite : l’exemple scolaire montre PHP, 34 tables liées et quatre sessions indépendantes.</div>';
   const h = $("#pnh");
   h.className = "hint " + (!n ? "" : !ok ? "bad" : ex ? "good" : "");
   h.textContent = !n
@@ -207,6 +207,7 @@ Object.assign(A, {
     if (!r) return;
     Object.assign(S, {
       project: name,
+      db: r.defaultDB ?? "test",
       files: [],
       base: {},
       drafts: {},
@@ -247,7 +248,7 @@ Object.assign(A, {
     if (saved) {
       S.vdirs = new Set(saved.vdirs ?? []);
       Object.assign(S, {
-        db: saved.db ?? "test",
+        db: saved.db ?? r.defaultDB ?? "test",
         qtext: saved.query ?? "SELECT 1;",
         hist: saved.queryHistory ?? [],
         table: saved.table ?? null,

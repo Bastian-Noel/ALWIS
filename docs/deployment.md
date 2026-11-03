@@ -60,7 +60,7 @@ L'intégration GitHub utilisée pour préparer ce déploiement a reçu HTTP 403 
 
 ## Envoi et vérifications
 
-Envoi passif dans un dossier temporaire, contrôle des tailles, sauvegarde privée des fichiers remplacés comme artefact GitHub, puis renommage fichier par fichier, index.html en dernier. Aucun ancien fichier de projet n'est supprimé. Cette promotion est atomique par fichier ; elle ne garantit pas une bascule transactionnelle de tout le site. Les anciens fichiers sont disponibles sept jours dans l'artefact privé `ftp-previous-site-*`.
+Envoi passif dans un dossier temporaire, contrôle des tailles, sauvegarde privée des fichiers remplacés comme artefact GitHub, puis renommage fichier par fichier : assets immuables d’abord, index.html ensuite, release.json en dernier. Les assets sont isolés sous `/_alwis/<révision>/` : un onglet garde un graphe cohérent même pendant l’envoi d’une autre version. Aucun ancien fichier de projet n'est supprimé. Cette promotion est atomique par fichier ; elle ne garantit pas une bascule transactionnelle de tout le site. Les anciens fichiers sont disponibles sept jours dans l'artefact privé `ftp-previous-site-*`.
 
 Le site statique validé est conservé quatorze jours dans l'artefact `studio-static-*`, même si FTP échoue. Une publication FTP réussie sans URL publique n'est pas présentée comme un test navigateur du site en ligne.
 
@@ -70,29 +70,28 @@ Le FTP doit accepter les connexions passives et les renommages. Le protocole dem
 
 ## Versionner le paquet publié
 
-Les champs manuels `operation`, `version` et `validated_run` permettent de publier une version nommée à partir du paquet exact dont le transfert FTP a réussi. `publish` réalise le build et l’envoi ; `release` reprend un envoi antérieur sans refaire le transfert. Voir les [règles et limites de création des tags](deployment.md).
+Un seul champ manuel, `version`, et un seul workflow : **build et tests → release publiée → transfert FTP du même paquet → annotation du succès FTP**. Une release disponible ne prouve pas que son transfert a réussi : la fin du job `publish` et les notes mises à jour le confirment. Le script vérifie le SHA et les empreintes ; il ne reconstruit pas entre release et FTP.
 
 
 ## CI et versions
 
-Deux workflows sont actifs :
+Trois workflows sont actifs ; aucun ne crée de branche :
 
 | Workflow | Déclenchement | Rôle |
 |---|---|---|
 | CI - validated studio | Push main, pull request, manuel | Build et validations partagées ; les changements Markdown seuls sont ignorés |
-| Publish FTP - validated studio | Manuel uniquement | Même validation, paquet statique, transfert FTP et version optionnelle |
+| Publish FTP - validated studio | Manuel, main uniquement | Build validé, release puis transfert FTP du même paquet |
+| Publish verified native distribution | Manuel, main uniquement | Consomme un artefact Actions validé, sans checkout de branche d’upload |
 
 Les contrôles sont définis une seule fois dans `.github/actions/validated-studio/action.yml`. Les actions externes sont épinglées par commit. Les anciennes recettes de témoins et d'archivage des sources sont conservées dans `.github/workflow-templates/`, sans exécution automatique. Elles ne sont pas des contrôles quotidiens du studio custom.
 
 ## Publier une version
 
-Dans **Publish FTP - validated studio → Run workflow**, choisir `operation=publish`. Laisser `version` vide pour un simple déploiement ou utiliser un nom comme `v0.2.0-preview.1` pour créer une release après réussite du transfert.
-
-Pour versionner un build déjà envoyé, choisir `operation=release`, renseigner `version` et l'identifiant de l'exécution FTP dans `validated_run`. Le script exige un job FTP réussi sur main, vérifie la révision et toutes les empreintes du manifeste, puis reprend le paquet exact sans le reconstruire. Les reçus CI disponibles pour cette révision accompagnent le ZIP, avec SHA256SUMS.
+Dans **Publish FTP - validated studio → Run workflow**, choisir `main` et renseigner `version` (par exemple `v0.3.0-preview.3`, correspondant à la version de `package.json`). L’action construit et valide les sources, publie le ZIP en release, puis déploie ce paquet exact sur FTP. Si FTP échoue après la release, relancer les jobs échoués : aucun besoin de reconstruire ou de remplacer la release.
 
 Une version publiée ne peut pas être remplacée par ce script ; choisir un nouveau numéro. Le script peut reprendre un brouillon correspondant à la même source. Les versions stables deviennent la dernière release ; les suffixes alpha/beta/rc/preview restent des préversions. Une version stable nommée reste soumise aux limites fonctionnelles documentées du prototype.
 
-La création initiale de release avec le jeton du runner a reçu HTTP 403 dans ce dépôt, malgré `contents: write`. Préparer le tag seul n'a pas suffi. Pour v0.1.0, le brouillon a été créé avec l'intégration GitHub autorisée, sur **la révision validée**, puis le workflow a réussi l'ajout des trois pièces jointes et la publication. Si ce refus revient, un mainteneur prépare le brouillon avec le même tag et la même révision, puis relance `operation=release`. Ne pas déplacer un tag publié vers une autre source.
+La création initiale de release avec le jeton du runner a reçu HTTP 403 dans ce dépôt, malgré `contents: write`. Préparer le tag seul n'a pas suffi. Pour v0.1.0, le brouillon a été créé avec l'intégration GitHub autorisée, sur **la révision validée**, puis le workflow a réussi l'ajout des trois pièces jointes et la publication. Si ce refus revient, un mainteneur prépare le brouillon avec le même tag et la même révision, puis relance les jobs échoués du workflow. Ne pas déplacer un tag publié vers une autre source.
 
 ## Conservation
 
@@ -143,3 +142,11 @@ La rétention des artefacts natifs et des rapports de mesure est configurée sur
 Pour une nouvelle distribution : reconstruire avec `engine/native/build/build.sh`, exécuter les suites natives et navigateur, produire artifact.json (sourceRevision, sourceFiles avec SHA-256, files avec tailles et SHA-256 et références de validation), conserver ces fichiers dans un commit temporaire de distribution. Créer un nouveau tag/release technique, actualiser le verrou, puis lancer « Publish verified native distribution » avec le SHA complet du commit d’artefacts. Le workflow vérifie et publie les fichiers sans écraser un fichier existant. Restaurer la nouvelle release sur un environnement vide puis valider la CI avant de supprimer la branche temporaire. Le tag et les fichiers déjà publiés ne sont jamais déplacés.
 
 Les ZIP du studio, la release native, l’archive des sources et les caches CI ont des rôles distincts. Les caches ne sont pas des sauvegardes. Les reçus historiques restent attachés à leurs révisions.
+
+## Versions du site et mises à jour complètes
+
+Le paquet expose la version et le SHA en bas de page. Les modules, styles, workers et WASM utilisent le même préfixe de build ; les importations absolues internes sont réécrites à l’assemblage et les empreintes portent sur les fichiers réellement livrés. `release.json` est publié après tous les fichiers et consulté sans cache à l’ouverture, au retour dans l’onglet et chaque minute.
+
+Une nouvelle version fait apparaître **Mettre à jour**. Le bouton conserve les brouillons de l’atelier, sauvegarde les fichiers appliqués et SQL, ferme le propriétaire et recharge l’accueil du nouveau build. Les espaces de stockage des projets ne sont ni effacés ni assimilés aux caches de l’application. Les anciennes adresses d’assets restent présentes pour les onglets déjà ouverts ; elles consomment de l’espace d’hébergement tant qu’elles sont conservées. Le test `site-updates.mjs` exerce une vraie bascule entre deux arbres d’assets dans Chromium et Firefox, puis rouvre le projet et distingue le brouillon du PHP appliqué.
+
+La recette native accepte désormais uniquement un `artifact_run` numérique, issu d’une exécution réussie sur `main`, contenant `native-distribution`. Aucune référence Git d’upload, aucun commit orphelin et aucune branche `native-stability` ne sont nécessaires. Les futures compilations natives doivent conserver leurs binaires comme artefacts Actions puis releases, pas dans une branche technique.

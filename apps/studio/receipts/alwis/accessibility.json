@@ -21,6 +21,14 @@
       "violations": []
     },
     {
+      "name": "row action hover light",
+      "violations": []
+    },
+    {
+      "name": "row action hover dark",
+      "violations": []
+    },
+    {
       "name": "structure",
       "violations": []
     },

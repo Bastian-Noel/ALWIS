@@ -58,7 +58,7 @@ self.addEventListener('message', event => {
 });
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
-  if (url.origin !== self.location.origin || url.pathname.startsWith('/_pbl/')) return;
+  if (url.origin !== self.location.origin || (url.pathname.startsWith('/_pbl/') || url.pathname.startsWith('/_alwis/') || url.pathname === '/release.json')) return;
   event.respondWith((async () => {
     const explicit = parsed(url.href);
     const route = explicit ?? await binding(event.clientId) ?? await binding(event.replacesClientId);

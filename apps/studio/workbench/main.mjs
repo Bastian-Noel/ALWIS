@@ -1,3 +1,4 @@
+import { installSiteUpdates } from "../site-updates.mjs";
 import { createStudioServices } from "./services.mjs";
 import { ctx, S, A, log, fail } from "./state.mjs";
 import { draw, drawShell, bindShell } from "./views/shell.mjs";
@@ -125,4 +126,14 @@ try {
 window.addEventListener("focus", () => {
   S.wins = S.wins.filter((w) => w.popup && !w.popup.closed);
   if (S.project && S.view === "sessions") ctx.draw();
+});
+
+installSiteUpdates({
+  persist: () => ctx.persist?.(),
+  close: async () => {
+    if (!S.project) return;
+    // Save the applied runtime and SQL, while preserving unapplied drafts in workspace metadata.
+    await ctx.engine.projects.save();
+    await ctx.engine.projects.close({save: false});
+  },
 });

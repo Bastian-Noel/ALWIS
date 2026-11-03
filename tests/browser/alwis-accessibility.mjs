@@ -67,6 +67,7 @@ try {
   }
   await page.evaluate(async () => {
     const { A, ctx, S } = await import("/apps/studio/workbench/state.mjs");
+    S.db = "test";
     await A.nav("data");
     await ctx.engine.db.query(
       "CREATE TABLE parent(id INT PRIMARY KEY);CREATE TABLE child(id INT PRIMARY KEY,pid INT,FOREIGN KEY(pid) REFERENCES parent(id));INSERT INTO parent VALUES(1);INSERT INTO child VALUES(1,1);",
@@ -77,6 +78,22 @@ try {
     S.dmode = "struct";
     ctx.draw();
   });
+  for (const theme of ['light','dark']) {
+    await page.evaluate(t=>document.documentElement.dataset.theme=t,theme);
+    const action=page.locator('td.ra button').first();
+    await action.hover();
+    const colors=await action.evaluate(el=>{
+      const s=getComputedStyle(el);
+      return {color:s.color,background:s.backgroundColor};
+    });
+    const luminance=text=>{
+      const rgb=text.match(/[\d.]+/g).slice(0,3).map(Number).map(n=>n/255).map(n=>n<=.04045?n/12.92:((n+.055)/1.055)**2.4);
+      return rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722;
+    };
+    const a=luminance(colors.color),b=luminance(colors.background);
+    assert.ok((Math.max(a,b)+.05)/(Math.min(a,b)+.05)>=4.5,JSON.stringify(colors));
+    await audit('row action hover '+theme);
+  }
   await audit("structure");
   await page.locator("[data-act=columnForm]").click();
   await audit("column dialog");

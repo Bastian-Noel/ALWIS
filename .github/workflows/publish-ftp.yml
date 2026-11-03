@@ -2,27 +2,18 @@ name: Publish FTP - validated studio
 on:
   workflow_dispatch:
     inputs:
-      operation:
-        description: Publier sur FTP ou versionner un précédent envoi réussi
-        type: choice
-        options: [publish, release]
-        default: publish
       version:
-        description: Version optionnelle, par exemple v0.1.0
+        description: Release à créer avant le transfert FTP (ex. v0.3.0-preview.3)
         type: string
-        required: false
-      validated_run:
-        description: ID de publication FTP réussie (pour operation release)
-        type: string
-        required: false
+        required: true
 permissions:
   contents: read
 concurrency:
   group: studio-ftp-publication
   cancel-in-progress: false
 jobs:
-  publish:
-    if: inputs.operation != 'release'
+  build:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
@@ -35,27 +26,16 @@ jobs:
           retention-days: 14
           include-hidden-files: true
           path: build-work/site/
-      - name: Publish through passive FTP
-        env:
-          FTP_HOST: '141.253.111.13'
-          FTP_PORT: '21'
-          FTP_USERNAME: studio
-          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-          FTP_REMOTE_DIR: ${{ vars.FTP_REMOTE_DIR || '.' }}
-          FTP_PUBLIC_URL: ${{ vars.FTP_PUBLIC_URL }}
-        run: python3 scripts/deploy-static-ftp.py build-work/site
-      - name: Retain previous files privately for recovery
-        if: always()
+      - name: Retain package and update receipts
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: ftp-previous-site-${{ github.run_id }}
-          retention-days: 7
-          include-hidden-files: true
-          if-no-files-found: ignore
-          path: ${{ runner.temp }}/ftp-previous-site/
+          name: studio-package-validation-${{ github.sha }}
+          retention-days: 14
+          path: |
+            build-work/site-smoke.json
+            build-work/site-updates.json
   release:
-    needs: [publish]
-    if: always() && !cancelled() && inputs.version != '' && (needs.publish.result == 'success' || inputs.operation == 'release')
+    needs: build
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
@@ -65,10 +45,51 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
-      - name: Publish only a validated FTP version
+      - name: Publish the validated release before changing the FTP site
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           RELEASE_TAG: ${{ inputs.version }}
-          VALIDATED_RUN: ${{ inputs.operation == 'release' && inputs.validated_run || github.run_id }}
+          VALIDATED_RUN: ${{ github.run_id }}
+          RELEASE_BEFORE_FTP: 'true'
         run: python3 scripts/release-validated-site.py
+  publish:
+    needs: release
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Download the exact package already published in the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh run download "$GITHUB_RUN_ID" --name "studio-static-$GITHUB_SHA" --dir build-work/site
+      - name: Publish through passive FTP
+        env:
+          FTP_HOST: '141.253.111.13'
+          FTP_PORT: '21'
+          FTP_USERNAME: studio
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_REMOTE_DIR: ${{ vars.FTP_REMOTE_DIR || '.' }}
+          FTP_PUBLIC_URL: ${{ vars.FTP_PUBLIC_URL }}
+        run: python3 scripts/deploy-static-ftp.py build-work/site
+      - name: Record the successful FTP deployment on the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ inputs.version }}
+        run: python3 scripts/record-ftp-release.py
+      - name: Retain previous files privately for recovery
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ftp-previous-site-${{ github.run_id }}
+          retention-days: 7
+          include-hidden-files: true
+          if-no-files-found: ignore
+          path: ${{ runner.temp }}/ftp-previous-site/

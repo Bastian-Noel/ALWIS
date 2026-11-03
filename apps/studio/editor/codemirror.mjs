@@ -583,7 +583,7 @@ export function createCodeEditor(
     dom.setAttribute("aria-label", "Outils du code");
     for (const [label, run] of [
       ["Formater", formatDocument],
-      ["Emmet", () => expandMarkup(view)],
+      ["Emmet", emmetCommand],
       ["Problèmes", () => openLintPanel(view)],
       ["Définition", () => navigate("definition")],
       ["Références", () => navigate("references")],
@@ -696,6 +696,18 @@ export function createCodeEditor(
       worker.terminate();
       formatCancel = null;
     }
+  }
+  function emmetCommand() {
+    if (expandMarkup(view)) return true;
+    status(
+      "Emmet : tapez une abréviation comme ! ou ul>li*3 en HTML, puis Tab ou Emmet.",
+    );
+    showResults(
+      "Développer Emmet",
+      [],
+      "Placez le curseur après une abréviation HTML/CSS, hors commentaire, chaîne et code PHP. Exemple : ! puis Entrée dans un fichier HTML vide ; ul>li*3 puis Tab. La sélection doit être vide.",
+    );
+    return false;
   }
   function expandMarkup(editor) {
     const position = editor.state.selection.main.head,
@@ -1405,6 +1417,7 @@ export function createCodeEditor(
       ],
     }),
   });
+  view.scrollDOM.tabIndex = 0;
   function resetHistory() {
     view.dispatch({ effects: undoHistory.reconfigure([]) });
     view.dispatch({
@@ -1542,7 +1555,7 @@ export function createCodeEditor(
     problems: () => openLintPanel(view),
     signatureHelp,
     format: formatDocument,
-    emmet: () => expandMarkup(view),
+    emmet: emmetCommand,
     navigate,
     outline,
     projectSearch,

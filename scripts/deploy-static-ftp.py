@@ -86,7 +86,7 @@ try:
   if PurePosixPath(name).name in names(parent):
    target=backup/name;target.parent.mkdir(parents=True,exist_ok=True)
    with target.open('wb')as stream:ftp.retrbinary('RETR '+name,stream.write)
- order=sorted(publication,key=lambda name:(name=='index.html',name=='.htaccess',name))
+ order=sorted(publication,key=lambda name:(name=='release.json',name=='index.html',name=='.htaccess',name))
  for name in order:
   ftp.rename(stage+'/'+name,name);print('Published:',name,flush=True)
  # Remove only our now-empty staging directories, never old site contents.

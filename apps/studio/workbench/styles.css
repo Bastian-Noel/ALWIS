@@ -3013,3 +3013,48 @@ main,
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+
+/* Explicit action colours keep native/hover buttons readable in both themes. */
+.ra button:not(.btn), .row .acts button, .nullb {
+  appearance: none;
+  -webkit-appearance: none;
+}
+.ra button:not(.btn), .row .acts button {
+  background-color: transparent;
+  color: var(--ink-2);
+}
+.ra button:not(.btn):hover, .ra button:not(.btn):focus-visible,
+.row .acts button:hover, .row .acts button:focus-visible {
+  background-color: var(--raised);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--seam-2);
+}
+.ra button:not(.btn):active, .row .acts button:active {
+  background-color: var(--recess);
+  color: var(--signal);
+}
+.ra button:disabled, .row .acts button:disabled { opacity: .5; cursor: not-allowed; }
+#siteVersion { white-space: nowrap; color: var(--ink-2); }
+#siteUpdate[data-available="true"] { color: var(--signal); font-weight: 600; }
+@media(max-width:600px) { #siteVersion { font-size: 10px; } #siteUpdate { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } }
+
+.status { min-width: 0; }
+.status > * { min-width: 0; }
+#siteVersion { flex-shrink: 1; overflow: hidden; text-overflow: ellipsis; }
+@media(max-width:600px) {
+  #siteVersion { max-width: 100px; }
+  #sPersist { max-width: 70px; overflow: hidden; white-space: nowrap; }
+  #sDock { max-width: 90px; overflow: hidden; white-space: nowrap; }
+  .status { padding-left: 6px; gap: 3px; }
+  .status button { padding-inline: 4px; }
+  #siteUpdate { max-width: 70px; }
+  #stext { max-width: 35px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
+
+:root:not([data-theme="dark"]) .ty.int { --c: #1b4b98; }
+:root:not([data-theme="dark"]) .ty.str { --c: #125d38; }
+:root:not([data-theme="dark"]) .ty.date { --c: #7a4309; }
+:root:not([data-theme="dark"]) .ty.num { --c: #8a2854; }
+:root:not([data-theme="dark"]) .ty.bool { --c: #583899; }
+:root:not([data-theme="dark"]) .pill.nl { color: #48525c; }
+:root:not([data-theme="dark"]) .bd.fk { color: #126247; }
