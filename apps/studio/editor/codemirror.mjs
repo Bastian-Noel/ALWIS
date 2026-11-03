@@ -29,9 +29,11 @@ import {
   syntaxHighlighting,
   defaultHighlightStyle,
   indentOnInput,
+  indentUnit,
 } from "@codemirror/language";
 import {
   autocompletion,
+  CompletionContext,
   completionKeymap,
   acceptCompletion,
   closeBrackets,
@@ -41,6 +43,7 @@ import {
   nextSnippetField,
   prevSnippetField,
   closeCompletion,
+  clearSnippet,
 } from "@codemirror/autocomplete";
 import {
   lintGutter,
@@ -110,7 +113,10 @@ export function createCodeEditor(
     signatureTimer,
     signatureBusy = false,
     signatureText = "",
-    dismissedAt = -1;
+    dismissedAt = -1,
+    formatCancel,
+    indent = "2";
+  const indentation = new Compartment();
   const signaturePanel = new Compartment();
   const navigation = [];
   const status = (message) => {
@@ -302,6 +308,49 @@ export function createCodeEditor(
       text.slice(part.to).replace(/[^\n\r]/g, " ");
     return { path: filename + ".embedded.js", text: masked };
   }
+  const localTemplates = (context) => {
+    if (paused || destroyed) return null;
+    const word = context.matchBefore(/[\w$]+/);
+    if (
+      !word ||
+      !word.text ||
+      /[.$>:]$/.test(
+        context.state.sliceDoc(Math.max(0, word.from - 1), word.from),
+      )
+    )
+      return null;
+    const node = syntaxTree(context.state).resolveInner(context.pos, -1);
+    if (/Comment|String/.test(node.name)) return null;
+    const options = (templates[region(context.state, context.pos)] ?? [])
+      .filter(([label]) => label.startsWith(word.text))
+      .map(([label, body, detail]) =>
+        snippetCompletion(body, {
+          label,
+          type: "keyword",
+          detail,
+          boost: 99,
+          info: "Tab : insérer la structure puis parcourir les champs. Maj+Tab : champ précédent.",
+        }),
+      );
+    return options.length
+      ? { from: word.from, options, validFor: /^\w*$/ }
+      : null;
+  };
+  function expandStructure(editor) {
+    const context = new CompletionContext(
+      editor.state,
+      editor.state.selection.main.head,
+      true,
+    );
+    if (!editor.state.selection.main.empty) return false;
+    const result = localTemplates(context);
+    const word = context.matchBefore(/[\w$]+/);
+    const option = result?.options.find((o) => o.label === word?.text);
+    if (!option) return false;
+    closeCompletion(editor);
+    option.apply(editor, option, result.from, context.pos);
+    return true;
+  }
   const complete = async (context) => {
     if (paused || destroyed || (!context.explicit && dismissedAt === revision))
       return null;
@@ -454,25 +503,6 @@ export function createCodeEditor(
           })),
           ...options,
         ];
-      if (
-        prefix &&
-        !/String/.test(node.name) &&
-        !/[.>:]$/.test(text.slice(0, word.from))
-      ) {
-        const snippets = (templates[kind] ?? [])
-          .filter(([label]) => label.startsWith(prefix))
-          .map(([label, body, detail]) =>
-            snippetCompletion(body, {
-              label,
-              type: "keyword",
-              detail,
-              info: "Tab : champ suivant. Maj+Tab : champ précédent.",
-              boost: 40,
-            }),
-          );
-        const labels = new Set(snippets.map((s) => s.label));
-        options = [...snippets, ...options.filter((o) => !labels.has(o.label))];
-      }
       options = rankOptions(
         options,
         prefix,
@@ -507,7 +537,7 @@ export function createCodeEditor(
     signatureText = "";
     view.dispatch({ effects: signaturePanel.reconfigure([]) });
   }
-  function showResults(title, items) {
+  function showResults(title, items, message) {
     if (destroyed) return;
     view.dispatch({
       effects: resultsPanel.reconfigure(
@@ -526,7 +556,9 @@ export function createCodeEditor(
           };
           dom.append(close);
           if (!items.length)
-            dom.append(document.createTextNode(" Aucun résultat disponible."));
+            dom.append(
+              document.createTextNode(message ?? " Aucun résultat disponible."),
+            );
           for (const item of items.slice(0, 100)) {
             const button = document.createElement("button");
             button.textContent = item.label;
@@ -550,6 +582,8 @@ export function createCodeEditor(
     dom.setAttribute("role", "toolbar");
     dom.setAttribute("aria-label", "Outils du code");
     for (const [label, run] of [
+      ["Formater", formatDocument],
+      ["Emmet", () => expandMarkup(view)],
       ["Problèmes", () => openLintPanel(view)],
       ["Définition", () => navigate("definition")],
       ["Références", () => navigate("references")],
@@ -562,12 +596,106 @@ export function createCodeEditor(
       const button = document.createElement("button");
       button.type = "button";
       button.textContent = label;
+      button.dataset.tool = label;
+      if (label === "Formater")
+        button.title = "Mettre en forme le fichier — Alt+Maj+F";
+      if (label === "Emmet")
+        button.title = "Développer l’abréviation au curseur (HTML/CSS) — Tab";
       button.onclick = () => {
         Promise.resolve(run()).catch((error) => status(error.message));
       };
       dom.append(button);
     }
+    const select = document.createElement("select");
+    select.setAttribute("aria-label", "Indentation du code");
+    for (const [value, label] of [
+      ["2", "2 espaces"],
+      ["4", "4 espaces"],
+      ["tabs", "Tabulations"],
+    ]) {
+      const option = document.createElement("option");
+      option.value = value;
+      option.textContent = label;
+      select.append(option);
+    }
+    select.value = indent;
+    select.onchange = () => {
+      indent = select.value;
+      view.dispatch({
+        effects: indentation.reconfigure(
+          indentUnit.of(indent === "tabs" ? "\t" : " ".repeat(Number(indent))),
+        ),
+      });
+      view.focus();
+    };
+    dom.append(select);
     return dom;
+  }
+  async function formatDocument() {
+    if (paused || destroyed || formatCancel) return false;
+    const text = view.state.doc.toString(),
+      stamp = revision,
+      requestPath = filename;
+    if (text.length > 262144) {
+      status("Formatage limité à 256 K caractères.");
+      return false;
+    }
+    const worker = new Worker(
+      new URL("./formatter-worker.mjs", import.meta.url),
+      { type: "module" },
+    );
+    status("Mise en forme en cours…");
+    try {
+      const result = await new Promise((resolve, reject) => {
+        formatCancel = () => reject(Error("Mise en forme annulée."));
+        worker.onmessage = ({ data }) =>
+          data.error ? reject(Error(data.error)) : resolve(data.text);
+        worker.onerror = () =>
+          reject(Error("Impossible de charger le formateur."));
+        worker.postMessage({ text, path: requestPath, indent });
+        worker.formatTimeout = setTimeout(
+          () =>
+            reject(
+              Error(
+                "Le formatage a dépassé 10 secondes. La saisie est conservée.",
+              ),
+            ),
+          10000,
+        );
+      });
+      if (
+        destroyed ||
+        paused ||
+        stamp !== revision ||
+        filename !== requestPath
+      ) {
+        if (!destroyed)
+          status("Le document a changé : résultat du formatage ignoré.");
+        return false;
+      }
+      if (result !== text)
+        view.dispatch({
+          changes: { from: 0, to: text.length, insert: result },
+          userEvent: "input.format",
+        });
+      status("Mise en forme terminée. Ctrl+Z pour annuler.");
+      view.focus();
+      return true;
+    } catch (error) {
+      if (!destroyed) {
+        status(error.message);
+        showResults(
+          "Mise en forme impossible — saisie conservée",
+          [],
+          error.message,
+        );
+      }
+      return false;
+    } finally {
+      clearTimeout(worker.formatTimeout);
+      worker.terminate();
+      formatCancel = null;
+    }
   }
   function expandMarkup(editor) {
     const position = editor.state.selection.main.head,
@@ -580,7 +708,12 @@ export function createCodeEditor(
     )
       return false;
     try {
-      return expandAbbreviation(editor);
+      const expanded = expandAbbreviation(editor);
+      if (expanded) {
+        closeCompletion(editor);
+        editor.focus();
+      }
+      return expanded;
     } catch {
       return false;
     }
@@ -1032,7 +1165,9 @@ export function createCodeEditor(
         undoHistory.of(history({ minDepth: 20 })),
         foldGutter(),
         bracketMatching(),
+        EditorState.allowMultipleSelections.of(true),
         indentOnInput(),
+        indentation.of(indentUnit.of("  ")),
         closeBrackets(),
         syntaxHighlighting(
           HighlightStyle.define([
@@ -1162,8 +1297,9 @@ export function createCodeEditor(
         keymap.of([
           { key: "Tab", run: nextSnippetField },
           { key: "Shift-Tab", run: prevSnippetField },
-          { key: "Tab", run: acceptCompletion },
+          { key: "Tab", run: expandStructure },
           { key: "Tab", run: expandMarkup },
+          { key: "Tab", run: acceptCompletion },
           { key: "Mod-Shift-m", run: expandMarkup },
           {
             key: "Enter",
@@ -1182,7 +1318,13 @@ export function createCodeEditor(
             },
           },
           { key: "Mod-/", run: toggleComment },
-          { key: "Mod-Shift-i", run: indentSelection },
+          {
+            key: "Alt-Shift-f",
+            run: () => {
+              void formatDocument();
+              return true;
+            },
+          },
           {
             key: "Mod-Shift-Space",
             run: () => {
@@ -1270,6 +1412,7 @@ export function createCodeEditor(
     });
   }
   function setPath(next) {
+    clearSnippet(view);
     closeCompletion(view);
     if (next !== filename) {
       view.dispatch({ effects: resultsPanel.reconfigure([]) });
@@ -1303,7 +1446,7 @@ export function createCodeEditor(
           ext === "sql"
             ? []
             : autocompletion({
-                override: [complete],
+                override: [localTemplates, complete],
                 defaultKeymap: false,
                 interactionDelay: 0,
               }),
@@ -1323,6 +1466,8 @@ export function createCodeEditor(
           throw Error(
             "Édition limitée à 1 Mio par fichier. Téléchargez ou découpez ce fichier.",
           );
+        clearSnippet(view);
+        closeCompletion(view);
         silent = true;
         try {
           view.dispatch({
@@ -1396,6 +1541,8 @@ export function createCodeEditor(
     search: () => openSearchPanel(view),
     problems: () => openLintPanel(view),
     signatureHelp,
+    format: formatDocument,
+    emmet: () => expandMarkup(view),
     navigate,
     outline,
     projectSearch,
@@ -1420,6 +1567,7 @@ export function createCodeEditor(
     },
     destroy: () => {
       destroyed = true;
+      formatCancel?.();
       clearTimeout(timer);
       clearTimeout(signatureTimer);
       closeServices();

@@ -54,6 +54,7 @@ for file in assets:
 checksums.write_text('\n'.join(lines)+'\n');assets.append(checksums)
 notes=output/'notes.md';notes.write_text(f'''ALWIS — Atelier Local Web avec IDE et SQL. Cette préversion intègre la nouvelle interface au moteur réel : CodeMirror, aperçu, sessions, administration SQL et schéma relationnel.
 
+- CodeMirror : formateur à la demande, indentation réglable, snippets immédiats et développement Emmet prioritaire sur Tab.
 - Formulaires de colonnes enrichis, attributs existants préservés, valeurs SQL exactes et protection contre les conflits.
 - Nettoyage natif MySQLi des buffers binaires à la fermeture de connexion ; scénarios PDO natif/émulé, transactions et curseurs consolidés.
 - Export ZIP des fichiers et bases conservées ; un projet PHP pur reste sans démarrage SQL inutile.

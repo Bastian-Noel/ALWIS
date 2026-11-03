@@ -243,7 +243,11 @@ try {
         document.querySelector("#primary").textContent.includes("Sauvegarder"),
       );
       console.log(name, checks.length + 1);
-      checks.push("production CodeMirror snippets and write");
+      await page.locator('#ed1 button[data-tool="Formater"]').click();
+      await page.waitForFunction(() => document.querySelector("#ed1").dataset.serviceStatus.startsWith("Mise en forme terminée"));
+      await page.locator('#ed1 button[data-tool="Emmet"]').waitFor({state: "visible"});
+      await page.locator('#ed1 select[aria-label="Indentation du code"]').waitFor({state: "visible"});
+      checks.push("production CodeMirror snippets, visible formatting and write");
       await page.locator("#runBtn").click(); // Preview is inline, open real window through the session space.
       await nav("sessions");
       const sid = await page

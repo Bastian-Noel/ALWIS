@@ -54,3 +54,11 @@ node scripts/package-studio.mjs
 `fetch-editor-engines.py` vérifie les SHA-256 des archives officielles et des WASM ; les sources/licences sont identifiées dans engines.lock.json, licenses/ et THIRD-PARTY.txt de l'archive distribuée. `editor:build` assemble les dépendances npm épinglées et copie ces binaires amont : il ne prétend pas recompiler leurs sources Rust/Zig. Les binaires générés restent hors Git ; les reçus et ASSETS.json sont conservés.
 
 Preuves dans `apps/studio/receipts/editor/` : services et atelier sur Chromium/Firefox ; audit axe 4.11.1 sur onze états Chromium, 320 px et texte à 200 %. Lecteurs d'écran et Safari non vérifiés. Les skills d'interface et la revue sont référencés dans REVIEW.md.
+
+## Mise en forme et expansion accessibles
+
+La barre du code et le menu du fichier proposent **Formater** et **Emmet**. Le raccourci de formatage est **Alt+Maj+F** ; Ctrl+Maj+I, réservé aux outils du navigateur, n’est plus utilisé. Le sélecteur d’indentation règle aussi bien la saisie que le formatage : 2 espaces, 4 espaces ou tabulations.
+
+Prettier 3.9.10 et son plugin PHP 0.26.0 formatent PHP/PHTML/INC, HTML, JavaScript/JSX, CSS et JSON. Ils sont regroupés dans un worker séparé, téléchargé uniquement sur demande puis terminé à la fin de chaque commande. Aucun nouveau moteur PHP d’exécution n’est chargé. La version syntaxique PHP du formateur est fixée à 8.4 : la recherche de `composer.json` sur la machine hôte est désactivée. Le formatage est limité à 256 K caractères et 10 secondes. Une erreur ou une modification du document pendant le traitement conserve le brouillon ; une mise en forme appliquée s’annule avec Ctrl/Cmd+Z. Ce n’est pas une sauvegarde automatique. SQL et TypeScript n’ont pas de formateur dans ce lot.
+
+Les snippets locaux ne dépendent plus du démarrage ni du succès des services WASM. Tapez `for` ou `foreach` en contexte PHP/JS puis Tab pour insérer la structure, et Tab/Maj+Tab pour parcourir les champs. Les propositions apparaissent aussi à la frappe d’un préfixe. Emmet passe avant la suggestion HTML sur Tab : `ul>li*3`, par exemple, produit trois éléments. `!` puis Entrée dans un document HTML vide reste disponible. Le bouton et le menu permettent aussi de développer l’abréviation au curseur. Les snippets actifs sont abandonnés au remplacement ou au changement de document.

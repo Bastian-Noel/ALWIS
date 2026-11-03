@@ -29,6 +29,17 @@ export const templates = {
     ["while", "while (${1:condition}) {\n\t${0}\n}", "Boucle conditionnelle"],
   ],
   js: [
+    [
+      "for",
+      "for (${1:let i = 0}; ${2:i < items.length}; ${3:i++}) {\n\t${0}\n}",
+      "Boucle avec compteur",
+    ],
+    [
+      "foreach",
+      "${1:items}.forEach((${2:item}) => {\n\t${0}\n});",
+      "Parcourir une collection",
+    ],
+    ["while", "while (${1:condition}) {\n\t${0}\n}", "Boucle conditionnelle"],
     ["if", "if (${1:condition}) {\n\t${0}\n}", "Bloc conditionnel"],
     [
       "forof",

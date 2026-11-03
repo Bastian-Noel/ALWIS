@@ -11,7 +11,7 @@
     "real composite schema and keyboard movement",
     "pointer drag creates a real native foreign key",
     "SQL optimistic conflict preserves the newer row",
-    "production CodeMirror snippets and write",
+    "production CodeMirror snippets, visible formatting and write",
     "real service worker routing and PHP sessions",
     "external write conflict preserves editor draft",
     "save and engine restart",

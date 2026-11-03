@@ -6,18 +6,23 @@
   "files": [
     {
       "name": "THIRD-PARTY.txt",
-      "bytes": 41779,
-      "sha256": "f5bb254d62eea4ba12db58dfe77b735bab3cf949156a0a2cf33d22132da4486a"
+      "bytes": 43974,
+      "sha256": "ab38603d1d44da98f1a3c2d4ffbd3aca5ebbcdf4b8d5645392aadd2e9ac5b5f9"
     },
     {
       "name": "codemirror.mjs",
-      "bytes": 825917,
-      "sha256": "d4f30fc8320cf347d803aa478ce98d8196aa510c8a7ecc9c6dcdb24148121b22"
+      "bytes": 828498,
+      "sha256": "e01f42db20498a1356cb69246eace43d137919558ec32804124d767e75a7d178"
     },
     {
       "name": "definitions.json",
       "bytes": 3575366,
       "sha256": "5ace2d9103eb38bfdc5ea9953348a2468f5a398b62c927aa647433b645f50ba1"
+    },
+    {
+      "name": "formatter-worker.mjs",
+      "bytes": 1208436,
+      "sha256": "7871ee3bd9d586f141bdb8acaaabb41dbe485f9a2ca5933416355da3dcef2c9c"
     },
     {
       "name": "javascript-worker.mjs",

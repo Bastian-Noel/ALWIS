@@ -1,6 +1,6 @@
 {
   "name": "alwis",
-  "version": "0.3.0-preview.1",
+  "version": "0.3.0-preview.2",
   "private": true,
   "type": "module",
   "engines": {
@@ -31,9 +31,11 @@
     "@codemirror/view": "6.43.15",
     "@emmetio/codemirror6-plugin": "0.4.2",
     "@lezer/highlight": "1.2.5",
+    "@prettier/plugin-php": "0.26.0",
     "@swc/wasm-web": "1.16.21",
     "@types/jquery": "3.5.33",
     "@types/sizzle": "2.3.10",
+    "prettier": "3.9.10",
     "typescript": "5.9.3"
   },
   "devDependencies": {

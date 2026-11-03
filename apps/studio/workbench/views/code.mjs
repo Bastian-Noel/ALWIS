@@ -147,6 +147,12 @@ Object.assign(A, {
   activateEditor() {
     return A.toolState("editor", "active");
   },
+  editorFormat() {
+    return ed?.model.format();
+  },
+  editorEmmet() {
+    return ed?.model.emmet();
+  },
   editorDefinition() {
     return ed?.model.navigate("definition");
   },
@@ -293,6 +299,8 @@ Object.assign(A, {
       { label: "Dupliquer", act: "dupFile", arg: S.active },
       { label: "Copier le chemin", act: "copyPath", arg: S.active },
       "-",
+      { label: "Mettre en forme le fichier", act: "editorFormat", hint: "Alt Maj F" },
+      { label: "Développer Emmet", act: "editorEmmet", hint: "Tab" },
       { label: "Rechercher / remplacer", act: "editorSearch", hint: "Ctrl F" },
       { label: "Problèmes et corrections", act: "editorProblems" },
       { label: "Définition", act: "editorDefinition", hint: "F12" },

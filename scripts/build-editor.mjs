@@ -5,7 +5,13 @@ import {mkdir,copyFile,writeFile,readFile,readdir} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 execFileSync('python3',['scripts/fetch-editor-engines.py'],{stdio:'inherit'});
 const out='apps/studio/editor/dist';await mkdir(out,{recursive:true});
-for(const [entry,name] of [['apps/studio/editor/codemirror.mjs','codemirror'],['apps/studio/editor/javascript-worker.mjs','javascript-worker'],['apps/studio/editor/lsp-worker.mjs','lsp-worker']])await build({entryPoints:[entry],outfile:`${out}/${name}.mjs`,bundle:true,format:'esm',platform:'browser',target:'es2022',minify:true,legalComments:'eof'});
+// The PHP standalone plugin imports Node helpers only for Composer discovery.
+// Browser formatting fixes phpVersion explicitly and never reads the host filesystem.
+const formatterBrowserHost={name:'no-host-filesystem',setup(b){
+  b.onResolve({filter:/^(fs|path)$/},()=>({path:'host-filesystem',namespace:'browser-only'}));
+  b.onLoad({filter:/.*/,namespace:'browser-only'},()=>({contents:'export default {}',loader:'js'}));
+}};
+for(const [entry,name] of [['apps/studio/editor/codemirror.mjs','codemirror'],['apps/studio/editor/javascript-worker.mjs','javascript-worker'],['apps/studio/editor/lsp-worker.mjs','lsp-worker'],['apps/studio/editor/formatter-worker.mjs','formatter-worker']])await build({entryPoints:[entry],outfile:`${out}/${name}.mjs`,bundle:true,format:'esm',platform:'browser',target:'es2022',minify:true,legalComments:'eof',plugins:name==='formatter-worker'?[formatterBrowserHost]:[]});
 for(const [from,to] of [['node_modules/@swc/wasm-web/wasm_bg.wasm','swc.wasm'],['build-work/editor-upstream/superhtml.wasm','superhtml.wasm'],['build-work/editor-upstream/phpantom_lsp.wasm','php-lsp.wasm']])await copyFile(from,`${out}/${to}`);
 const definitions={};
 const libraries=new Set(['lib.es2022.d.ts','lib.dom.d.ts']);

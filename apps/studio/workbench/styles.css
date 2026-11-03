@@ -2971,9 +2971,25 @@ main,
 .column-row .r input[type="checkbox"] {
   width: auto;
 }
-#ed1 .cm-editor-tools,
 #edq .cm-editor-tools {
   display: none;
+}
+#ed1 .cm-editor-tools {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-bottom: 1px solid var(--seam-2);
+}
+#ed1 .cm-editor-tools button:not([data-tool="Formater"]):not([data-tool="Emmet"]) {
+  display: none;
+}
+#ed1 .cm-editor-tools select {
+  width: auto;
+  padding: 3px 6px;
+  color: var(--ink);
+  background: var(--sheet);
+  border: 1px solid var(--seam-2);
+  border-radius: 4px;
 }
 .resource-tools {
   display: flex;

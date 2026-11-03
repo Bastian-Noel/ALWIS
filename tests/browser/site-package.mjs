@@ -87,6 +87,8 @@ try {
       await page.locator("#pn").fill(key);
       await page.locator("[data-act=create]").click();
       await page.locator("#ed1 .cm-content").waitFor();
+      await page.locator('#ed1 button[data-tool="Formater"]').click();
+      await page.waitForFunction(() => document.querySelector("#ed1").dataset.serviceStatus.startsWith("Mise en forme terminée"));
       const opening = page.waitForEvent("popup");
       await page.evaluate(async () => {
         const { A } = await import("/apps/studio/workbench/state.mjs");
@@ -106,7 +108,7 @@ try {
         version: browser.version(),
         passed: true,
         core,
-        studio: "project/demo/PDO client/save/close passed",
+        studio: "project/demo/lazy formatter/PDO client/save/close passed",
       });
       console.log(
         name,

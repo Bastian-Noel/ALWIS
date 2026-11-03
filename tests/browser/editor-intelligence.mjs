@@ -25,9 +25,8 @@ try {
       });
       await page.goto(`http://127.0.0.1:${server.address().port}/`);
       await page.evaluate(async () => {
-        const { createCodeEditor } = await import(
-          "/apps/studio/editor/dist/codemirror.mjs"
-        );
+        const { createCodeEditor } =
+          await import("/apps/studio/editor/dist/codemirror.mjs");
         document.querySelector(".app").style.display = "none";
         document.body.style.overflow = "auto";
         const host = document.createElement("div");
@@ -55,8 +54,8 @@ try {
       await set("/test.PHP", "");
       await page.keyboard.type("<section>");
       assert.equal(await content.innerText(), "<section></section>");
-      await set("/test.php", "<?php fore");
-      await page.keyboard.press("Control+Space");
+      await set("/test.php", "<?php ");
+      await page.keyboard.type("fore");
       await page
         .locator(".cm-tooltip-autocomplete li")
         .filter({ hasText: "foreach" })
@@ -77,6 +76,107 @@ try {
       await set("/test.html", "ul>li*3");
       await page.keyboard.press("Tab");
       assert.equal((await content.innerText()).match(/<li>/g)?.length, 3);
+      // Expansion wins even while an HTML completion popup is already visible.
+      await set("/test.html", "ul>li*3");
+      await page.keyboard.press("Control+Space");
+      await page.keyboard.press("Tab");
+      assert.equal((await content.innerText()).match(/<li>/g)?.length, 3);
+      await set("/test.php", "<main>\nul>li*2");
+      await page.getByRole("button", { name: "Emmet", exact: true }).click();
+      assert.equal((await content.innerText()).match(/<li>/g)?.length, 2);
+      await set("/test.php", "<?php for");
+      await page.keyboard.press("Tab");
+      assert.match(
+        await content.innerText(),
+        /for \(\$i = 0; \$i < 10; \$i\+\+\) \{/,
+      );
+      await page.keyboard.type("$index = 1");
+      assert.match(await content.innerText(), /for \(\$index = 1;/);
+      await set("/test.js", "for");
+      await page.keyboard.press("Tab");
+      assert.match(
+        await content.innerText(),
+        /for \(let i = 0; i < items.length; i\+\+\)/,
+      );
+      await page.keyboard.type("let index = 0");
+      await page.keyboard.press("Tab");
+      await page.keyboard.type("index < 5");
+      await page.keyboard.press("Tab");
+      await page.keyboard.type("index++");
+      assert.match(
+        await content.innerText(),
+        /let index = 0; index < 5; index\+\+/,
+      );
+      // A real formatter, not just line indentation. One undo restores the draft.
+      const unformatted = "<?php foreach($items as $item){echo $item;}";
+      await set("/test.php", unformatted);
+      await page.getByRole("button", { name: "Formater", exact: true }).click();
+      await page.waitForFunction(() =>
+        document
+          .querySelector("#test")
+          .dataset.serviceStatus.startsWith("Mise en forme terminée"),
+      );
+      assert.match(
+        await content.innerText(),
+        /foreach \(\$items as \$item\) \{\n  echo \$item;/,
+      );
+      await page.keyboard.press("Control+z");
+      assert.equal(
+        await page.locator("#test").evaluate((e) => e.value),
+        unformatted,
+      );
+      await set("/test.js", "if(true){console.log('ok');}");
+      await page.getByLabel("Indentation du code").selectOption("tabs");
+      assert.equal(await page.evaluate(() => window.model.format()), true);
+      assert.match(
+        await page.locator("#test").evaluate((e) => e.value),
+        /\n\tconsole/,
+      );
+      await set("/test.html", "<main>\n<p>Hello</p>\n</main>");
+      assert.equal(await page.evaluate(() => window.model.format()), true);
+      assert.match(await content.innerText(), /<main>\n/);
+      for (const [path, source, expected] of [
+        ["/test.css", ".item{color:red;margin:0;}", /color: red;/],
+        [
+          "/test.json",
+          '{"amount":"9007199254740993","empty":""}',
+          /"amount": "9007199254740993"/,
+        ],
+        [
+          "/test.php",
+          '<main>\n<?php if(true){echo "ok";} ?>\n</main>',
+          /if \(true\)/,
+        ],
+      ]) {
+        await set(path, source);
+        assert.equal(await page.evaluate(() => window.model.format()), true);
+        assert.match(await content.innerText(), expected);
+      }
+      await set("/test.php", "<?php foreach(");
+      assert.equal(await page.evaluate(() => window.model.format()), false);
+      assert.equal(
+        await page.locator("#test").evaluate((e) => e.value),
+        "<?php foreach(",
+      );
+      await page
+        .getByRole("region", {
+          name: "Mise en forme impossible — saisie conservée",
+        })
+        .getByRole("button", { name: "Fermer" })
+        .click();
+      // An asynchronous formatting result must never replace subsequent typing.
+      await set("/test.js", "let x=1;");
+      assert.equal(
+        await page.evaluate(async () => {
+          const pending = window.model.format();
+          window.model.view.dispatch({
+            changes: { from: 8, insert: "// draft" },
+          });
+          return await pending;
+        }),
+        false,
+      );
+      assert.match(await content.innerText(), /draft/);
       await set("/test.php", '<?php $utilisateur="Alice"; echo $Utilisateur;');
       await page
         .locator("button")
@@ -158,7 +258,9 @@ try {
             checks: [
               "PHP snippets and Tab fields",
               "case-insensitive extensions and HTML closing",
-              "HTML Emmet",
+              "HTML Emmet and explicit button in PHP HTML regions",
+              "immediate local PHP/JS loops and Tab fields",
+              "PHP/HTML/JS/CSS/JSON formatting, indentation, undo, invalid input and stale result protection",
               "PHP variable casing and parser-verified semicolon correction",
               "signature help",
               "lazy jQuery documentation",
