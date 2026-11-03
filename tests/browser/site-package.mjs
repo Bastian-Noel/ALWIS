@@ -16,7 +16,7 @@ const server = createSiteServer();
 await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
 const origin = "http://127.0.0.1:" + server.address().port;
 try {
-  for (const name of ["chromium", "firefox"]) {
+  for (const name of (process.argv[2] ?? "chromium,firefox").split(",")) {
     const browser = await pw[name].launch({
       headless: true,
       ...(name === "chromium" ? { args: ["--no-sandbox"] } : {}),
@@ -107,7 +107,7 @@ try {
       assert.match(await editor.innerText(), /<!doctype html>/i);
       await editor.fill("ul>li*3");
       await editor.press("Control+End");
-      await page.locator('#ed1 button[data-tool="Emmet"]').click();
+      await page.locator('#codeTools button[data-tool="Emmet"]').click();
       assert.equal((await editor.innerText()).match(/<li>/g)?.length, 3);
       await editor.fill("<?php foreach");
       await editor.press("Control+End");
@@ -117,7 +117,7 @@ try {
         /foreach \(\$items as \$item\) \{/,
       );
       await editor.fill(original);
-      await page.locator('#ed1 button[data-tool="Formater"]').click();
+      await page.locator('#codeTools button[data-tool="Formater"]').click();
       await page.waitForFunction(() =>
         document
           .querySelector("#ed1")

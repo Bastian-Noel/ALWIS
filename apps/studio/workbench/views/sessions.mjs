@@ -4,10 +4,11 @@ import { S, A, ctx, eng, log, sessions, sessionOf } from "../state.mjs";
 import { ui } from "../icons.mjs";
 
 export function drawSessions() {
+  const expanded = new Set([...$("#sesGrid").querySelectorAll("article:has(details[open])")].map(el=>el.dataset.id));
   S.wins = S.wins.filter((w) => w.popup && !w.popup.closed);
   const list = sessions(),
     caps = eng().caps || {};
-  $("#sesGrid").innerHTML = list
+  $("#sesGrid").innerHTML = '<p class="hint session-intro">Une session représente un visiteur : ses cookies sont indépendants. Les fichiers et la base sont communs. Ouvrez plusieurs fenêtres pour comparer les visiteurs.</p><datalist id="sessionPages">' + S.files.filter(f=>/\.(php|html?)$/i.test(f.path)).map(f=>`<option value="${esc(f.path)}"></option>`).join('') + '</datalist>' + list
     .map((s) => {
       const wins = S.wins.filter((w) => w.session === s.id),
         reqs = S.reqs
@@ -16,12 +17,12 @@ export function drawSessions() {
           .reverse(),
         inPv = S.pvSessions.includes(s.id);
       return `<article class="scard" style="--sc:${s.hue}" data-id="${esc(s.id)}"><header><span class="sw big"></span><input class="in lab" value="${esc(s.label)}" data-act-change="sesRename" data-arg="${esc(s.id)}" aria-label="Nom de la session" spellcheck="false"><span class="mono mut" title="Identifiant de session">${esc(s.short || s.id.slice(0, 8))}</span></header>
-      <section><h2 class="session-heading">Cookies <span class="mut num">${s.cookies.length}${s.hidden ? ` + ${s.hidden} masqué` : ""}</span></h2>
+      <details ${expanded.has(s.id) ? "open" : ""}><summary>Cookies et outils avancés</summary><section><h2 class="session-heading">Cookies <span class="mut num">${s.cookies.length}${s.hidden ? ` + ${s.hidden} masqué` : ""}</span></h2>
         <table class="ck2"><tbody>${s.cookies.map((c) => `<tr><td class="mono">${esc(c.name)}</td><td><input class="in" value="${esc(c.value)}" data-act-change="cookieSet" data-arg="${esc(s.id)}|${esc(c.name)}" aria-label="Valeur de ${esc(c.name)}" spellcheck="false"></td><td class="ra"><button data-act="cookieDel" data-arg="${esc(s.id)}|${esc(c.name)}" aria-label="Supprimer ${esc(c.name)}">${ui.trash}</button></td></tr>`).join("") || '<tr><td colspan="3" class="mut">Aucun cookie visible.</td></tr>'}
         <tr class="addrow"><td><input class="in" data-nc="${esc(s.id)}" data-f="n" placeholder="nom" aria-label="Nom du cookie" spellcheck="false"></td><td><input class="in" data-nc="${esc(s.id)}" data-f="v" placeholder="valeur" aria-label="Valeur du cookie" spellcheck="false"></td><td class="ra"><button class="btn sm" aria-label="Ajouter un cookie" data-act="cookieAdd" data-arg="${esc(s.id)}">${ui.plus}</button></td></tr></tbody></table>
-        <button class="btn quiet sm" data-act="sesClear" data-arg="${esc(s.id)}" style="margin-top:6px">Vider les cookies (déconnecter)</button></section>
+        <button class="btn quiet sm" data-act="sesClear" data-arg="${esc(s.id)}" style="margin-top:6px">Vider les cookies (déconnecter)</button></section></details>
       <section><h2 class="session-heading">Fenêtres <span class="mut num">${wins.length}</span></h2>${wins.map((w) => `<div class="winrow"><span class="mono grow trunc">${esc(w.path)}</span><button class="btn quiet sm" data-act="closeWin" data-arg="${w.id}">Fermer</button></div>`).join("") || '<p class="hint">Aucune fenêtre ouverte.</p>'}
-        <div class="openrow"><input class="in" data-wp="${esc(s.id)}" value="${esc(S.pvPath)}" aria-label="Page à ouvrir" spellcheck="false"><button class="btn pri sm" data-act="sesOpen" data-arg="${esc(s.id)}">Ouvrir</button></div></section>
+        <div class="openrow"><input class="in" list="sessionPages" data-wp="${esc(s.id)}" value="${esc(S.pvPath)}" aria-label="Page à ouvrir" spellcheck="false"><button class="btn pri sm" data-act="sesOpen" data-arg="${esc(s.id)}">Ouvrir</button></div></section>
       <section><h2 class="session-heading">Dernières requêtes</h2>${reqs.map((r) => `<div class="req2"><span class="st2 s${String(r.status)[0]} num">${r.status}</span><span class="mono trunc grow">${esc(r.path)}</span><span class="num mut">${r.ms} ms</span></div>`).join("") || '<p class="hint">Rien encore pour cette session.</p>'}</section>
       <footer><button class="btn sm" data-act="sesPreview" data-arg="${esc(s.id)}" aria-pressed="${inPv}">${inPv ? "Dans l’aperçu" : "Afficher dans l’aperçu"}</button>${caps.removeSession && list.length > 1 ? `<button class="btn quiet sm bad" data-act="sesRemove" data-arg="${esc(s.id)}">Supprimer</button>` : ""}</footer></article>`;
     })

@@ -74,7 +74,7 @@ import {
 import { json } from "@codemirror/lang-json";
 import { sql, MySQL } from "@codemirror/lang-sql";
 import { JavaScriptService, LspService, offsetAt } from "./services.mjs";
-import { expandAbbreviation } from "@emmetio/codemirror6-plugin";
+import { expandAbbreviation, emmetConfig } from "@emmetio/codemirror6-plugin";
 import {
   templates,
   documentation,
@@ -86,6 +86,7 @@ import { phpDiagnostics, phpVariables } from "./php-diagnostics.mjs";
 export function createCodeEditor(
   host,
   {
+    toolsHost = null,
     value = "",
     path = "/index.php",
     label = "Code source",
@@ -151,7 +152,7 @@ export function createCodeEditor(
     if (!text.trim()) {
       closeServices();
       diagnostics([]);
-      status("Écrivez du code pour démarrer l’analyse.");
+      status(["html", "htm"].includes(extension) ? "Page HTML : tapez ! puis Entrée pour créer un document en français. Emmet : ul>li*3 puis Tab." : "Écrivez du code pour démarrer l’analyse.");
       return;
     }
     if (text.length > 256 * 1024) {
@@ -598,9 +599,9 @@ export function createCodeEditor(
       button.textContent = label;
       button.dataset.tool = label;
       if (label === "Formater")
-        button.title = "Mettre en forme le fichier — Alt+Maj+F";
+        button.title = "Mettre en forme le fichier";
       if (label === "Emmet")
-        button.title = "Développer l’abréviation au curseur (HTML/CSS) — Tab";
+        button.title = "HTML : ! puis Entrée crée une page en français ; ul>li*3 puis Tab. CSS : m10 puis Tab.";
       button.onclick = () => {
         Promise.resolve(run()).catch((error) => status(error.message));
       };
@@ -1304,7 +1305,8 @@ export function createCodeEditor(
             overflow: "auto",
           },
         }),
-        toolsPanel.of(showPanel.of(() => ({ dom: createTools(), top: true }))),
+        emmetConfig.of({markupStyle: "html", config: {markup: {variables: {lang: "fr"}}}}),
+        toolsPanel.of(toolsHost ? [] : showPanel.of(() => ({ dom: createTools(), top: true }))),
         autocompletion({ defaultKeymap: false, interactionDelay: 0 }),
         keymap.of([
           { key: "Tab", run: nextSnippetField },
@@ -1391,7 +1393,7 @@ export function createCodeEditor(
           ...searchKeymap,
           ...completionKeymap.filter((binding) => binding.key !== "Enter"),
         ]),
-        EditorView.contentAttributes.of({ "aria-label": label }),
+        EditorView.contentAttributes.of({ "aria-label": label, "aria-description": "Pour quitter l’éditeur au clavier, appuyez sur Échap puis Tab." }),
         EditorView.lineWrapping,
         language.of([]),
         editable.of([]),
@@ -1417,6 +1419,7 @@ export function createCodeEditor(
       ],
     }),
   });
+  if (toolsHost) toolsHost.replaceChildren(createTools());
   view.scrollDOM.tabIndex = 0;
   function resetHistory() {
     view.dispatch({ effects: undoHistory.reconfigure([]) });
@@ -1450,7 +1453,7 @@ export function createCodeEditor(
       ts: () => javascript({ typescript: true }),
       tsx: () => javascript({ typescript: true, jsx: true }),
       json,
-      sql: () => sql({ dialect: MySQL }),
+      sql: () => sql({ dialect: MySQL, upperCaseKeywords: true }),
     }[ext];
     view.dispatch({
       effects: [
@@ -1520,7 +1523,7 @@ export function createCodeEditor(
     setSQLSchema: (schema, defaultSchema) =>
       view.dispatch({
         effects: language.reconfigure(
-          sql({ dialect: MySQL, schema, defaultSchema }),
+          sql({ dialect: MySQL, schema, defaultSchema, upperCaseKeywords: true }),
         ),
       }),
     updateProjectFile: (path, text) => {
@@ -1584,6 +1587,7 @@ export function createCodeEditor(
       clearTimeout(timer);
       clearTimeout(signatureTimer);
       closeServices();
+      if (toolsHost) toolsHost.replaceChildren();
       view.destroy();
     },
   };

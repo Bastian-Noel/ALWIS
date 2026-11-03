@@ -1,21 +1,69 @@
-# Contribuer
+# Développer ALWIS
 
-Node 24, Python 3.12+, Git, npm et GitHub CLI authentifié sont nécessaires au développement. Le serveur du ZIP distribué ne demande que Node 20+.
+[← Accueil](README.md) · [Architecture](docs/architecture.md) · [Hébergement](docs/deployment.md)
+
+## 1. Préparer les outils
+
+| Outil | Version / condition |
+|---|---|
+| Node.js | 24 ou plus récent, avec npm |
+| Python | 3.12 ou plus récent |
+| GitHub CLI (`gh`) | Connecté à un compte GitHub |
+
+## 2. Lancer le projet
 
 ```sh
+git clone https://github.com/Bastian-Noel/ALWIS.git
+cd ALWIS
 npm ci
 python3 scripts/restore-deployment-engine.py
 npm run editor:build
-npm test
-node scripts/serve-workbench/main.mjs
+node scripts/serve-studio.mjs
 ```
 
-La restauration télécharge un moteur épinglé et vérifie les empreintes et les sources natives. Pour reconstruire : voir [la recette native](engine/native/build/README.md), Emscripten 6.0.6 et les sources épinglées dans provenance/. Les témoins amont restent dans engine/baseline/.
+Ouvrez **http://127.0.0.1:8080**.
+La restauration télécharge le moteur épinglé : inutile de recompiler PHP et MariaDB pour modifier l’interface.
 
-Avant contribution : exécuter les tests unitaires, les parcours navigateur affectés et `node scripts/package-workbench/main.mjs`, puis `node tests/browser/site-package.mjs`. La CI commune décrit les versions exactes et l’installation de Playwright. Les modifications natives exigent une nouvelle compilation et validation, puis une nouvelle distribution technique ; ne pas modifier les empreintes pour contourner ce contrôle.
+## 3. Vérifier une modification
 
-Les tâches restantes sont centralisées dans [le guide](docs/README.md). Les notes des releases constituent l’historique des distributions. Une validation locale ne garantit pas l’état d’une release publiée.
+```sh
+npm test
+node scripts/package-studio.mjs
+node tests/browser/site-package.mjs
+```
 
-Aucune licence globale du projet n’a été choisie ici. Préserver les licences des composants amont et THIRD-PARTY.txt généré. Les dossiers build-work/, sources/, upstream/ et node_modules/ sont restaurés ou générés et restent hors Git.
+Ajoutez les parcours concernés :
 
-Après validation d’un moteur recompilé et commit de ses sources, `python3 scripts/manifest-native-build.py` prépare les fichiers, le manifeste et les SHA-256 dans build-work/native-distribution/. Les reçus doivent correspondre au hash exact du WASM.
+| Changement | Test navigateur |
+|---|---|
+| Éditeur et complétion | `tests/browser/editor-intelligence.mjs` |
+| Code, données, schéma, sessions | `tests/browser/alwis-workbench.mjs` |
+| Dossier local et simplicité de l’interface | `tests/browser/ide-usability.mjs` |
+| Accessibilité | `tests/browser/alwis-accessibility.mjs` |
+| Clavier, focus et maintien d’Alt | `tests/browser/keyboard.mjs` |
+| Accueil, projets récents et import ZIP | `tests/browser/launcher.mjs` |
+
+Les tests navigateur nécessitent Playwright et ses navigateurs. La [CI](.github/workflows/check.yml) décrit leur installation.
+
+## Repères
+
+- Suivez les [règles du dépôt](AGENTS.md), notamment le travail sur `main`.
+- Gardez les licences des composants et le `THIRD-PARTY.txt` généré.
+- Ne versionnez pas `build-work/`, `sources/`, `upstream/` ou `node_modules/`.
+- Une validation locale ne prouve pas qu’une version publiée contient la modification.
+
+<details>
+<summary>Modifier le moteur PHP / MariaDB</summary>
+
+1. Suivez la [recette native](engine/native/build/README.md).
+2. Recompilez et validez le moteur modifié.
+3. Après le commit de ses sources, préparez la distribution :
+
+   ```sh
+   python3 scripts/manifest-native-build.py
+   ```
+
+Les fichiers et empreintes sont générés dans `build-work/native-distribution/`.
+Les preuves de validation doivent correspondre au WASM exact. Ne changez pas les empreintes pour contourner une vérification.
+
+</details>

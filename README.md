@@ -2,101 +2,71 @@
 
 # ALWIS
 
-**Atelier Local Web avec IDE et SQL**
+**Écrivez du PHP. Testez votre site. Explorez vos données.**
 
-Votre projet PHP, son éditeur et sa base de données, réunis dans le navigateur.
+Tout dans le navigateur, avec un éditeur et une base MariaDB.
 
 [![Validation](https://github.com/Bastian-Noel/ALWIS/actions/workflows/check.yml/badge.svg)](https://github.com/Bastian-Noel/ALWIS/actions/workflows/check.yml)
 [![Préversion](https://img.shields.io/badge/statut-pr%C3%A9version-9a6700)](https://github.com/Bastian-Noel/ALWIS/releases)
-[![PHP](https://img.shields.io/badge/PHP-8.4.27-5969a7)](docs/compatibility.md)
-[![Navigateurs](https://img.shields.io/badge/test%C3%A9-Chromium%20%26%20Firefox-276ac4)](docs/compatibility.md)
 
-[Premiers pas](#essayer-alwis) · [Guide de l’atelier](docs/README.md) · [Contribuer](CONTRIBUTING.md)
+[Premiers pas](#démarrer) · [Guide illustré](docs/README.md) · [Exemple Campus](docs/school-example.md)
 
 </div>
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/alwis-code-dark.png">
-  <img src="docs/images/alwis-code-light.png" alt="ALWIS : code PHP dans CodeMirror, explorateur de fichiers et aperçu du site exécuté dans le navigateur, côte à côte." width="1500">
+  <img src="docs/images/alwis-code-light.png" alt="Code PHP à gauche et aperçu du site Campus à droite dans ALWIS.">
 </picture>
 
-## Un endroit pour apprendre et construire
+## Démarrer
 
-Vous écrivez une page PHP, vous l’ouvrez dans l’aperçu et vous retrouvez ses données dans le même atelier. PHP et MariaDB tournent sur votre appareil, dans le navigateur : aucun serveur PHP distant ni installation locale de base de données n’est nécessaire pour exécuter le projet.
+1. Téléchargez le **paquet applicatif ZIP** depuis les [versions publiées](https://github.com/Bastian-Noel/ALWIS/releases).
+2. Décompressez-le, puis ouvrez un terminal dans ce dossier.
+3. Avec [Node.js 20 ou plus récent](https://nodejs.org/fr) installé, lancez :
 
-ALWIS convient aux exercices, aux petits sites et aux prototypes. Il permet aussi d’ouvrir plusieurs clients avec des sessions différentes pour vérifier une connexion, un formulaire ou une base partagée.
+   ```sh
+   node serve.mjs
+   ```
 
-| Dans l’atelier | Ce que vous pouvez faire |
+4. Ouvrez **http://127.0.0.1:8080**.
+5. Nommez votre projet, choisissez **Exemple scolaire**, puis créez-le.
+
+> [!TIP]
+> Aucune installation de PHP ou de MariaDB n’est nécessaire.
+> Le [guide illustré](docs/README.md) vous accompagne ensuite.
+
+## Où aller ?
+
+| Vous voulez… | Ouvrez… |
 |---|---|
-| **Code** | Parcourir les fichiers, écrire avec la coloration, la complétion PHP/JS, les snippets, Emmet et l’aide aux paramètres. |
-| **Aperçu** | Voir le site à côté du code, comparer deux sessions ou ouvrir une fenêtre cliente. |
-| **Données** | Consulter et modifier les lignes, créer des tables, régler les colonnes et exécuter du SQL. |
-| **Schéma** | Visualiser les clés et relations, déplacer les tables et créer des liens par glisser-déposer ou au clavier. |
-| **Projets** | Garder ses brouillons, sauvegarder dans ce navigateur et exporter fichiers et bases dans un ZIP. |
-| **Serveur** | Comprendre une erreur, lire les requêtes par session et consulter les ressources du moteur. |
+| Écrire une page et voir le résultat | **Code → Aperçu** |
+| Lire ou modifier une table | **Données** |
+| Voir les liens entre les tables | **Schéma** |
+| Tester avec plusieurs visiteurs | **Sessions** |
+| Comprendre une erreur | **Serveur** |
 
-## La base de données se voit aussi
+## Garder votre travail
 
-Les types, clés, valeurs nulles et relations ont leurs repères visuels. Les formulaires présentent le SQL avant application. Les modifications de colonnes conservent les attributs existants ; les grands nombres, décimaux et binaires restent traités sans conversion approximative.
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/images/alwis-schema-dark.png">
-  <img src="docs/images/alwis-schema-light.png" alt="Schéma réel MariaDB dans ALWIS : tables classes, élèves et notes avec clés primaires, clés étrangères et cardinalités." width="1500" loading="lazy">
-</picture>
-
-<details>
-<summary><strong>Voir la grille de données</strong></summary>
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/images/alwis-data-dark.png">
-  <img src="docs/images/alwis-data-light.png" alt="Grille MariaDB d’ALWIS avec ajout rapide, valeurs NULL, types et clés colorés." width="1500" loading="lazy">
-</picture>
-
-</details>
-
-## Essayer ALWIS
-
-Téléchargez le **[paquet ALWIS v0.3.0-preview.3](https://github.com/Bastian-Noel/ALWIS/releases/tag/v0.3.0-preview.3)** : il inclut la nouvelle interface et le moteur PHP/MariaDB validé. Extrayez le ZIP, lancez `node serve.mjs` dans ce dossier avec **Node 20+**, puis ouvrez **http://127.0.0.1:8080**. Les anciens ZIP conservent leur interface historique.
-
-Pour démarrer depuis les sources, prévoyez **Node 24+, Python 3.12+ et GitHub CLI authentifié** pour télécharger le moteur épinglé :
-
-```sh
-git clone https://github.com/Bastian-Noel/ALWIS.git
-cd ALWIS
-npm ci
-python3 scripts/restore-deployment-engine.py
-npm run editor:build
-node scripts/serve-studio.mjs
-```
-
-Ouvrez **http://127.0.0.1:8080**, donnez un nom au projet, puis choisissez l’exemple scolaire. Le moteur validé se télécharge sans recompiler PHP ou MariaDB.
-
-Un paquet statique se prépare avec `node scripts/package-studio.mjs`. Une fois distribué, ce paquet se lance avec `node serve.mjs` et **Node 20+**. Pour l’hébergement HTTPS et les en-têtes nécessaires : [guide de publication](docs/deployment.md).
-
-## Un campus complet pour essayer
-
-Choisissez **Exemple scolaire** : 34 tables MariaDB liées et remplies, dix profils et quatre sessions prêtes — Administration, Professeur, Élève et Parent. Explorez élèves et classes, cours, notes, bibliothèque, messagerie et factures. Ouvrez plusieurs fenêtres : les identités restent indépendantes, les notes et messages sont partagés. Les profils sont librement sélectionnables pour la démonstration.
-
-La barre inférieure affiche la version et le build. **Mettre à jour** conserve les projets et les brouillons avant de charger la nouvelle version complète.
-
-## Vos fichiers, vos sauvegardes
-
-**Enregistrer** applique le code au projet exécuté. **Sauvegarder** conserve le projet dans le stockage de ce navigateur. **Exporter en ZIP** crée une sauvegarde transportable avec les fichiers et les bases utilisateur ; les sessions clientes en sont exclues.
+**Sauvegarder le projet** conserve votre travail dans ce navigateur.
+**Exporter ZIP** crée une copie à garder sur votre ordinateur.
 
 > [!IMPORTANT]
-> Le stockage du navigateur peut être effacé. Exportez les projets que vous souhaitez conserver. ALWIS reste une préversion : la compatibilité PHP/PDO/MySQLi n’est pas exhaustive, et la mémoire totale dépend du navigateur et du projet.
+> Effacer les données du navigateur peut effacer vos projets. Gardez un ZIP des projets importants.
 
-Les captures ci-dessus proviennent de l’interface intégrée, avec du PHP et du SQL réellement exécutés. La validation automatisée couvre Chromium et Firefox ; Safari et les lecteurs d’écran ne bénéficient pas d’une validation manuelle complète.
+## Pour continuer
 
-## Aller plus loin
-
-[Guide utilisateur](docs/README.md) · [Compatibilité et limites](docs/compatibility.md) · [Architecture](docs/architecture.md) · [Mesures de performance](docs/performance.md) · [Contribution](CONTRIBUTING.md)
+- [Écrire du code, sauvegarder et ouvrir un dossier du PC](docs/ide-workflows.md)
+- [Essayer le Campus avec plusieurs visiteurs](docs/school-example.md)
+- [Navigateurs et limites](docs/compatibility.md)
+- [Installer les sources et contribuer](CONTRIBUTING.md)
 
 <details>
-<summary><strong>Composants et licences</strong></summary>
+<summary><strong>Documentation technique et licences</strong></summary>
 
-ALWIS utilise notamment PHP, MariaDB, CodeMirror 6, PHPantom, SuperHTML, TypeScript, SWC et Emmet. Les sources épinglées et notices sont conservées dans `provenance/`, et les notices des éditeurs sont regroupées dans `THIRD-PARTY.txt` du paquet.
+[Architecture](docs/architecture.md) · [Performance](docs/performance.md) · [Hébergement](docs/deployment.md)
 
-Aucune licence globale n’a été choisie pour le projet. Consultez les notices avant redistribution. La release technique du moteur et l’archive des sources amont sont distinctes des versions applicatives.
+ALWIS utilise notamment PHP, MariaDB, CodeMirror, PHPantom, SuperHTML, TypeScript, SWC et Emmet.
+Les notices se trouvent dans `provenance/` et dans le fichier `THIRD-PARTY.txt` du paquet.
+Aucune licence globale n’a été choisie pour le projet.
 
 </details>

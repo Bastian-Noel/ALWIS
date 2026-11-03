@@ -73,6 +73,10 @@ try {
       await set("/test.html", "!");
       await page.keyboard.press("Enter");
       assert.match(await content.innerText(), /<!DOCTYPE html>/i);
+      assert.match(await content.innerText(), /lang="fr"/);
+      assert.doesNotMatch(await content.innerText(), /<meta[^>]*\/>/);
+      assert.equal(await page.evaluate(() => window.model.format()), true);
+      assert.doesNotMatch(await content.innerText(), /<meta[^>]*\/>/);
       await set("/test.html", "ul>li*3");
       await page.keyboard.press("Tab");
       assert.equal((await content.innerText()).match(/<li>/g)?.length, 3);

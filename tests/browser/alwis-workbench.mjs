@@ -92,7 +92,7 @@ try {
       await page.locator("[data-act=selectTable][data-arg=al_child]").click();
       await settled();
       await page.locator("[data-act=dmode][data-arg=struct]").click();
-      await page.locator("[data-act=columnForm]").click();
+      await page.locator("[data-act=columnForm]").first().click();
       await page.locator("[data-f=name]").fill("notes");
       await page.locator("[data-f=type]").fill("VARCHAR(80)");
       await page.locator("[data-f=comment]").fill("user comment");
@@ -130,7 +130,7 @@ try {
       checks.push(
         "column modification preserves default/comment and composite keys",
       );
-      await page.locator("[data-act=columnForm]").click();
+      await page.locator("[data-act=columnForm]").first().click();
       await page.locator("[data-f=name]").fill("required_value");
       await page.locator("[data-f=nullable]").selectOption("NOT NULL");
       await page.locator("[data-f=type]").fill("VARCHAR(0)");
@@ -251,10 +251,10 @@ try {
         document.querySelector("#primary").textContent.includes("Sauvegarder"),
       );
       console.log(name, checks.length + 1);
-      await page.locator('#ed1 button[data-tool="Formater"]').click();
+      await page.locator('#codeTools button[data-tool="Formater"]').click();
       await page.waitForFunction(() => document.querySelector("#ed1").dataset.serviceStatus.startsWith("Mise en forme terminée"));
-      await page.locator('#ed1 button[data-tool="Emmet"]').waitFor({state: "visible"});
-      await page.locator('#ed1 select[aria-label="Indentation du code"]').waitFor({state: "visible"});
+      await page.locator('#codeTools button[data-tool="Emmet"]').waitFor({state: "visible"});
+      await page.locator('#codeTools select[aria-label="Indentation du code"]').waitFor({state: "visible"});
       checks.push("production CodeMirror snippets, visible formatting and write");
       await page.locator("#runBtn").click(); // Preview is inline, open real window through the session space.
       await nav("sessions");

@@ -4,3 +4,5 @@
 - Conserver les builds dans les artefacts GitHub Actions puis les releases. La publication native consomme un identifiant d’exécution validée sur `main`, jamais une branche contenant des binaires.
 - Publier par `publish-ftp.yml` : un build validé, une release, puis le transfert FTP du même paquet. Les secrets restent dans GitHub Actions.
 - Vérifier les parcours réels Chromium/Firefox et le paquet statique ; la version visible doit correspondre au manifeste et au tag. Ne jamais effacer les projets pour actualiser les fichiers du site.
+
+- Préférence du propriétaire : après chaque lot de modifications demandé et validé, committer et pousser sur `main` sans redemander confirmation. Décrire les contrôles effectués et signaler tout blocage. Une publication demandée passe par le workflow GitHub Actions existant.

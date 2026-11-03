@@ -9,9 +9,13 @@ export function drawDock() {
   if (!k) return;
   $$("#dock [role=tab]").forEach((b) => {
     b.setAttribute("aria-selected", b.dataset.arg === k);
+    b.id = "dock-tab-" + b.dataset.arg;
+    b.setAttribute("aria-controls", "dockB");
+    b.tabIndex = b.dataset.arg === k ? 0 : -1;
   });
   $("#lvl").hidden = k !== "log";
   const B = $("#dockB");
+  B.setAttribute("aria-labelledby", "dock-tab-" + k);
   if (k === "req")
     B.innerHTML = S.reqs.length
       ? [...S.reqs]
@@ -64,13 +68,16 @@ export function drawDock() {
 }
 Object.assign(A, {
   dockToggle() {
-    S.dock ? A.dockClose() : A.dockTab("req");
+    S.logs.some(l => l.l === "e" && !l.read) ? A.dockTab("log") : S.dock ? A.dockClose() : A.dockTab("req");
   },
   dockClose() {
+    const hadFocus = $("#dock").contains(document.activeElement);
     S.dock = null;
     ctx.draw();
+    if (hadFocus) $("#sDock").focus();
   },
   dockTab(t) {
+    if (t === "log") for (const entry of S.logs) entry.read = true;
     S.dock = t;
     S.dockTab = t;
     ctx.draw();
@@ -116,17 +123,30 @@ export function bindDock() {
   });
   let gd = null,
     g = $("#grip");
+  const size = (height) => {
+    const max = Math.max(120, Math.round(innerHeight * .7));
+    const value = Math.max(120, Math.min(max, Math.round(height)));
+    $("#dock").style.setProperty("--dh", value + "px");
+    g.setAttribute("aria-valuemin", "120");
+    g.setAttribute("aria-valuemax", String(max));
+    g.setAttribute("aria-valuenow", String(value));
+    g.setAttribute("aria-valuetext", value + " pixels");
+  };
+  g.tabIndex = 0;
+  g.setAttribute("aria-controls", "dock");
+  size($("#dock").offsetHeight || 240);
+  addEventListener("resize", () => size($("#dock").offsetHeight));
+  g.addEventListener("keydown", e => {
+    if (!["ArrowUp", "ArrowDown", "Home", "End"].includes(e.key)) return;
+    e.preventDefault();
+    size(e.key === "Home" ? 120 : e.key === "End" ? innerHeight * .7 : $("#dock").offsetHeight + (e.key === "ArrowUp" ? 24 : -24));
+  });
   g.addEventListener("pointerdown", (e) => {
     gd = { y: e.clientY, h: $("#dock").offsetHeight };
     g.setPointerCapture?.(e.pointerId);
   });
   g.addEventListener("pointermove", (e) => {
-    if (gd)
-      $("#dock").style.setProperty(
-        "--dh",
-        Math.max(120, Math.min(innerHeight * 0.7, gd.h + gd.y - e.clientY)) +
-          "px",
-      );
+    if (gd) size(gd.h + gd.y - e.clientY);
   });
   g.addEventListener("pointerup", () => (gd = null));
 }

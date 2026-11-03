@@ -64,6 +64,9 @@ checksums.write_text('\n'.join(lines)+'\n');assets.append(checksums)
 publication_status='Build validé. Le transfert FTP sera exécuté après publication de cette release.' if before_ftp else 'Build et transfert FTP réussis.'
 notes=output/'notes.md';notes.write_text(f'''ALWIS — Atelier Local Web avec IDE et SQL. Cette préversion intègre la nouvelle interface au moteur réel : CodeMirror, aperçu, sessions, administration SQL et schéma relationnel.
 
+- Accueil repensé, projets récents filtrables et import ZIP dans un nouveau projet sans écrasement.
+- Navigation clavier, raccourcis affichés au maintien d’Alt, focus et attributs ARIA consolidés.
+- Documentation illustrée simplifiée et accès aux dossiers du PC avec protection des modifications externes.
 - Exemple Campus : 34 tables liées et remplies, quatre sessions, cours, notes et messagerie.
 - Assets isolés par build, version affichée et mise à jour préservant les projets.
 - CodeMirror : formateur à la demande, indentation réglable, snippets immédiats et développement Emmet prioritaire sur Tab.

@@ -35,13 +35,17 @@ const sw = (s) => `<span class="sw" style="background:${s.hue}"></span>`;
 function tabsHtml() {
   return S.tabs
     .map(
-      (t) =>
-        `<div class="tab" role="group" aria-label="${esc(nameOf(t))}">${fileIcon(t)}<button data-act="openFile" data-arg="${esc(t)}" class="trunc" aria-pressed="${t === S.active}">${esc(nameOf(t))}</button>${dirty(t) ? '<i class="d" title="Brouillon non enregistré"></i>' : ""}<button class="c" data-act="closeTab" data-arg="${esc(t)}" aria-label="Fermer ${esc(nameOf(t))}">✕</button></div>`,
+      (t, i) =>
+        `<div class="tab" role="presentation">${fileIcon(t)}<button id="file-tab-${i}" role="tab" aria-description="Flèches pour choisir un onglet, Entrée pour l’ouvrir, Suppr pour le fermer." data-act="openFile" data-arg="${esc(t)}" class="trunc" aria-selected="${t === S.active}" tabindex="${t === S.active ? 0 : -1}" aria-controls="${S.files.find(f=>f.path===t)?.kind === "text" ? "ed1" : "edBin"}" aria-label="${esc(nameOf(t))}${dirty(t) ? ", modifié" : ""}">${esc(nameOf(t))}</button>${dirty(t) ? '<i class="d" title="Brouillon non enregistré"></i>' : ""}<button class="c" tabindex="-1" aria-hidden="true" data-act="closeTab" data-arg="${esc(t)}" aria-label="Fermer ${esc(nameOf(t))}">✕</button></div>`,
     )
     .join("");
 }
 export function drawTabs() {
   $("#tabs").innerHTML = tabsHtml();
+  for (const panel of [$("#ed1"), $("#edBin")]) {
+    if (S.tabs.includes(S.active)) panel.setAttribute("aria-labelledby", "file-tab-" + S.tabs.indexOf(S.active));
+    else panel.removeAttribute("aria-labelledby");
+  }
 }
 
 export function drawCode() {
@@ -177,7 +181,7 @@ Object.assign(A, {
   async downloadFile() {
     if (S.active) await eng().fs.download(S.active);
   },
-  async openFile(p) {
+  async openFile(p, trigger, event) {
     if (!S.tabs.includes(p) && S.tabs.length >= 40)
       throw Error(
         "40 onglets maximum. Fermez un fichier avant d’en ouvrir un autre.",
@@ -209,7 +213,11 @@ Object.assign(A, {
     ctx.draw();
     if (follow) A.pvReload();
     ctx.schedulePersist?.();
-    requestAnimationFrame(() => ed?.focus());
+    requestAnimationFrame(() => {
+      if (trigger?.getAttribute("role") === "tab" && event?.detail === 0)
+        $("#tabs [aria-selected=true]")?.focus();
+      else ed?.focus();
+    });
   },
   async closeTab(p) {
     if (dirty(p)) {
@@ -252,6 +260,14 @@ Object.assign(A, {
     }
     const ok = await task("Écriture de " + p, async () => {
       await eng().fs.write(p, S.drafts[p], S.base[p] ?? null);
+      if (ctx.folder) {
+        try { await ctx.folder.write(p, S.drafts[p]); }
+        catch (error) {
+          // Keep the draft retryable if the PC file changed or access was revoked.
+          await eng().fs.write(p, S.base[p] ?? "", S.drafts[p]);
+          throw error;
+        }
+      }
       S.base[p] = S.drafts[p];
       delete S.drafts[p];
       S.applied.add(p);

@@ -17,6 +17,8 @@ import { ui } from "../icons.mjs";
 import * as G from "../sqlgen.mjs";
 import { refreshDb } from "./data.mjs";
 
+import {schemaLayout} from "../schema-layout.mjs";
+
 const BW = 232,
   RH = 26,
   HH = 38,
@@ -33,26 +35,7 @@ let drag = null,
   pan = null;
 
 function layout() {
-  const T = tables(),
-    depth = {},
-    d = (n) =>
-      (depth[n] ??= (() => {
-        depth[n] = 0;
-        const parents = byName(n)
-          .fks.map((f) => f.refTable)
-          .filter((p) => p !== n && byName(p));
-        return parents.length ? 1 + Math.max(...parents.map(d)) : 0;
-      })());
-  T.forEach((t) => d(t.name));
-  const cols = {};
-  T.forEach((t) => (cols[depth[t.name]] ||= []).push(t));
-  Object.entries(cols).forEach(([c, list]) => {
-    let y = 40;
-    list.forEach((t) => {
-      S.pos[t.name] = [40 + c * (BW + 96), y];
-      y += HH + t.columns.length * RH + 8 + 36;
-    });
-  });
+  Object.assign(S.pos, schemaLayout(tables()));
 }
 function ensurePos() {
   if (tables().some((t) => !S.pos[t.name])) {
@@ -247,9 +230,9 @@ export function drawSchema() {
   if (t)
     $("#insp").innerHTML =
       `<div style="${hueStyle(t.name)}"><div class="ihead"><i class="td big"></i><div class="grow"><h3 class="trunc">${esc(t.name)}</h3><p class="hint num">${plural(t.columns.length, "colonne", "colonnes")} · ${plural(t.rows, "ligne", "lignes")} · ${plural(t.fks.length, "relation", "relations")}</p></div><button class="btn quiet sm" data-act="schemaSel" data-arg="${esc(t.name)}" aria-label="Fermer la fiche">✕</button></div>
-    <div class="sw8" role="group" aria-label="Couleur de la table">${HUES.map((h) => `<button class="hsw ${tableHue(t.name) === h ? "on" : ""}" style="--h:${h}" data-act="tableHue" data-arg="${esc(t.name)}|${h}" aria-label="Couleur ${h}"></button>`).join("")}</div>
+    <div class="sw8" role="group" aria-label="Couleur de la table">${HUES.map((h) => `<button class="hsw ${tableHue(t.name) === h ? "on" : ""}" style="--h:${h}" data-act="tableHue" aria-pressed="${tableHue(t.name) === h}" data-arg="${esc(t.name)}|${h}" aria-label="Couleur ${h}"></button>`).join("")}</div>
     <div class="ibtns"><button class="btn pri" data-act="selectTable" data-arg="${esc(t.name)}">Voir les données</button><button class="btn" data-act="openStruct" data-arg="${esc(t.name)}">Structure</button></div>
-    <button class="btn" data-act="relationForm">Créer une relation (clavier / clés composées)</button><h4 class="h-s">Ajouter une colonne</h4><div class="qa"><input class="in" id="sqName" placeholder="nom_de_colonne" aria-label="Nom" autocomplete="off" spellcheck="false"><select class="in" id="sqType" aria-label="Type" style="width:100%">${["INT", "VARCHAR(255)", "TEXT", "DATE", "DECIMAL(10,2)", "TINYINT(1)"].map((x) => `<option>${x}</option>`).join("")}</select><button class="btn" data-act="schemaColAdd" data-arg="${esc(t.name)}">Ajouter</button></div>
+    <button class="btn" data-act="relationForm">Créer une relation (clavier / clés composées)</button><button class="btn" data-act="schemaColAdd" data-arg="${esc(t.name)}">Ajouter une colonne dans Données…</button>
     <p class="hint" style="margin-top:12px">Glissez le point d’un champ vers la clé d’une autre table pour créer une relation. Cliquez un lien pour le modifier.</p></div>`;
 }
 
@@ -387,19 +370,8 @@ Object.assign(A, {
     await A.selectTable(t);
   },
   async schemaColAdd(t) {
-    const n = $("#sqName").value.trim();
-    if (!/^\w{1,64}$/.test(n)) {
-      $("#sqName").classList.add("err");
-      return toast(
-        "Nom requis : 64 caractères, lettres, chiffres et underscore.",
-      );
-    }
-    await apply("Ajout de colonne", async () => {
-      await sql(
-        G.addColumn(t, { name: n, type: $("#sqType").value, nullable: true }),
-      );
-    });
-    toast(`Colonne « ${n} » ajoutée à ${t}`);
+    await A.openStruct(t);
+    return A.columnForm();
   },
   async joinTable() {
     const names = tables().map((t) => t.name);

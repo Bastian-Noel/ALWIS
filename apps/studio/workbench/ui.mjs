@@ -41,7 +41,9 @@ export function modal({
     const old = $("#modal"),
       d = old.cloneNode(false);
     old.replaceWith(d);
-    d.innerHTML = `<div class="dlg-h"><h1>${esc(title)}</h1></div><div class="dlg-b">${body}</div><div class="dlg-f">${actions.map((a) => `<button class="btn ${a.kind || ""}" data-v="${a.v}" ${a.dis ? "disabled" : ""}>${a.label}</button>`).join("")}</div>`;
+    d.innerHTML = `<div class="dlg-h"><h1 id="modal-title">${esc(title)}</h1></div><div class="dlg-b">${body}</div><div class="dlg-f">${actions.map((a) => `<button class="btn ${a.kind || ""}" data-v="${a.v}" ${a.dis ? "disabled" : ""}>${a.label}</button>`).join("")}</div>`;
+    d.setAttribute("aria-labelledby", "modal-title");
+    d.setAttribute("aria-modal", "true");
     d.style.width = wide ? "min(680px,calc(100vw - 24px))" : "";
     let val = null;
     d.onclick = async (e) => {
@@ -201,17 +203,25 @@ export function menu(anchor, items, { html, cls = "" } = {}) {
   closeMenus();
   const p = document.createElement("div");
   p.className = "pop " + cls;
-  p.setAttribute("role", "menu");
+  p.id = "action-menu";
+  p.setAttribute("role", html ? "dialog" : "menu");
+  p.setAttribute("aria-label", anchor.getAttribute?.("aria-label") || "Actions");
+  p.returnFocus = anchor instanceof HTMLElement ? anchor : document.activeElement;
+  if (anchor instanceof HTMLElement) {
+    anchor.setAttribute("aria-haspopup", html ? "dialog" : "menu");
+    anchor.setAttribute("aria-expanded", "true");
+    anchor.setAttribute("aria-controls", p.id);
+  }
   p.innerHTML =
     html ||
     items
       .map((i) =>
         i === "-"
           ? "<hr>"
-          : `<button class="mi" role="menuitem" data-act="${i.act}" data-arg="${esc(i.arg ?? "")}" ${i.dis ? "disabled" : ""} style="${i.bad ? "color:var(--err)" : ""}">${i.icon || ""}<span class="grow">${i.label}</span>${i.hint ? `<small>${i.hint}</small>` : ""}</button>`,
+          : `<button class="mi" role="menuitem" data-act="${i.act}" data-arg="${esc(i.arg ?? "")}" ${i.dis ? "disabled" : ""} style="${i.bad ? "color:var(--err)" : ""}">${i.icon || ""}<span class="grow">${i.label}</span>${i.hint ? `<small class="shortcut-label">${i.hint}</small>` : ""}</button>`,
       )
       .join("");
-  document.body.append(p);
+  $("#main").append(p);
   const r = anchor.getBoundingClientRect(),
     w = p.offsetWidth;
   p.style.top =
@@ -236,17 +246,25 @@ export function menu(anchor, items, { html, cls = "" } = {}) {
   );
   return p;
 }
-export const closeMenus = () => $$(".pop").forEach((p) => p.remove());
+export const closeMenus = ({restore = false} = {}) => $$(".pop").forEach((p) => {
+  const trigger = p.returnFocus;
+  p.remove();
+  if (trigger?.isConnected) {
+    trigger.setAttribute("aria-expanded", "false");
+    trigger.removeAttribute("aria-controls");
+    if (restore) trigger.focus({preventScroll:true});
+  }
+});
 document.addEventListener("pointerdown", (e) => {
   if (!e.target.closest(".pop")) closeMenus();
 });
 document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") closeMenus();
+  if (e.key === "Escape" && $(".pop")) { e.preventDefault(); closeMenus({restore:true}); }
 });
 document.addEventListener(
   "click",
   (e) => {
-    if (e.target.closest(".pop button[data-act]")) closeMenus();
+    if (e.target.closest(".pop button[data-act]")) closeMenus({restore:true});
   },
   true,
 );
@@ -340,6 +358,7 @@ export function mkEditor(root, { lang, onInput, onRun, onSave, onCursor }) {
   let current = lang === "sql" ? "/query.sql" : "/index.php";
   root.replaceChildren();
   const model = createCodeEditor(root, {
+    toolsHost: lang === "sql" ? null : document.querySelector("#codeTools"),
     path: current,
     label: lang === "sql" ? "Requête SQL" : "Code source",
     onSave,

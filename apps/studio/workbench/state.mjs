@@ -85,6 +85,7 @@ export function log(level, msg, detail) {
   S.logs.push({
     t: clock(),
     l: level,
+    read: S.dock === "log",
     msg: String(msg).slice(0, 1600),
     detail: detail ? String(detail).slice(0, 8192) : undefined,
   });

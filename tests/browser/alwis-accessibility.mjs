@@ -95,7 +95,7 @@ try {
     await audit('row action hover '+theme);
   }
   await audit("structure");
-  await page.locator("[data-act=columnForm]").click();
+  await page.locator("[data-act=columnForm]").first().click();
   await audit("column dialog");
   await page.getByRole("button", { name: "Annuler", exact: true }).click();
   await page.evaluate(async () => {

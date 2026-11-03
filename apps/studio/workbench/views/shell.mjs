@@ -30,6 +30,9 @@ import { drawSchema } from "./schema.mjs";
 import { drawSessions } from "./sessions.mjs";
 import { drawDock } from "./dock.mjs";
 
+import { unusedArchiveName } from "../project-name.mjs";
+let launcherExpanded = false;
+
 const VIEWS = [
   ["code", "Code", '<path d="M8 8l-5 4 5 4M16 8l5 4-5 4M14 5l-4 14"/>'],
   [
@@ -57,7 +60,9 @@ export function drawShell() {
   $("#chip").hidden = !w;
   $("#primary").hidden = !w;
   $("#sPersist").hidden = !w;
-  $("#pname").textContent = S.project || "";
+  $("#pname").title = ctx.folder ? "Fichiers enregistrés vers le PC ; bases SQL, suppressions et renommages conservés dans le navigateur. Rouvrez le dossier à chaque session." : "Projet conservé dans ce navigateur. Exportez un ZIP pour une copie externe.";
+  $("#pname").textContent = ctx.folder ? "PC : " + ctx.folder.name : S.project || "";
+  document.querySelectorAll(".project-transfer").forEach(e=>e.hidden=!w);
   $("#themeBtn").textContent = S.theme === "dark" ? "Clair" : "Sombre";
   if (w) {
     const p = persistState();
@@ -69,21 +74,17 @@ export function drawShell() {
       a = S.applied.size + (S.dbDirty ? 1 : 0),
       b = $("#primary");
     b.disabled = !d && !a;
-    b.innerHTML = d
-      ? "Enregistrer <kbd>Ctrl S</kbd>"
-      : a
-        ? "Sauvegarder"
-        : "À jour";
+    b.textContent = d || a ? "Sauvegarder le projet" : "Projet sauvegardé";
+    b.title = "Enregistre tous les brouillons et conserve le projet dans ce navigateur.";
   }
   $("#slamp").className =
     "lamp " + ({ ok: "ok", on: "ok", busy: "warn", err: "err" }[S.lamp] || "");
   $("#stext").textContent = S.stext;
-  const errs = S.logs.filter((l) => l.l === "e").length;
+  $("#main").setAttribute("aria-busy", String(S.lamp === "busy"));
+  const errs = S.logs.filter((l) => l.l === "e" && !l.read).length;
   $("#sCount").textContent = errs
     ? plural(errs, "erreur", "erreurs")
-    : S.reqs.length
-      ? plural(S.reqs.length, "requête", "requêtes")
-      : "";
+    : "";
   $("#sDock").setAttribute("aria-expanded", !!S.dock);
   $("#rail").innerHTML =
     VIEWS.map(
@@ -103,24 +104,32 @@ function drawLauncher() {
     R = eng().projects.recents(),
     ex = R.find((r) => r.name === n),
     ok = /^[A-Za-z0-9_-]{1,64}$/.test(n);
-  $("#recent").innerHTML = R.length
-    ? R.map(
-        (r) =>
-          `<button class="proj-row" data-act="open" data-arg="${esc(r.name)}"><b>${esc(r.name)}</b><span class="go">Ouvrir →</span><span class="mut num">${plural(r.files, "fichier", "fichiers")} · ${r.saved ? "sauvegardé" : "non sauvegardé"} · ${esc(r.when)}</span></button>`,
-      ).join("")
-    : '<div class="empty" style="margin:0;padding:16px 12px"><b>Aucun projet ici.</b>Créez le premier à droite : l’exemple scolaire montre PHP, 34 tables liées et quatre sessions indépendantes.</div>';
+  const query = $("#projectFilter").value.trim().toLocaleLowerCase("fr");
+  const matches = R.filter(r => r.name.toLocaleLowerCase("fr").includes(query));
+  const shown = query || launcherExpanded ? matches : matches.slice(0, 6);
+  $("#welcomeTitle").textContent = R.length ? "Reprenez là où vous en étiez." : "Commençons par un projet.";
+  $("#recentSection").hidden = !R.length;
+  $("#recentCount").textContent = R.length;
+  $("#recent").innerHTML = shown.length
+    ? shown.map(r => `<button class="proj-row" data-act="open" data-arg="${esc(r.name)}" aria-label="Ouvrir le projet ${esc(r.name)}"><b title="${esc(r.name)}">${esc(r.name)}</b><span class="go" aria-hidden="true">→</span><span class="project-meta">${plural(r.files, "fichier", "fichiers")} · ${r.saved ? "Sauvegardé" : "À sauvegarder"}<br>${esc(r.when)}</span></button>`).join("")
+    : '<p class="recent-empty" role="status">Aucun projet ne correspond à cette recherche.</p>';
+  const more = $("#showRecent");
+  more.hidden = !!query || R.length <= 6;
+  more.setAttribute("aria-expanded", String(launcherExpanded));
+  more.textContent = launcherExpanded ? "Afficher moins" : `Voir les ${R.length} projets`;
   const h = $("#pnh");
-  h.className = "hint " + (!n ? "" : !ok ? "bad" : ex ? "good" : "");
+  h.className = "hint project-name-help " + (!n || ok ? "" : "bad");
   h.textContent = !n
-    ? "Lettres, chiffres, tirets et underscore. 64 caractères maximum."
+    ? "Sans espace, 64 caractères maximum."
     : !ok
-      ? "Nom invalide : lettres, chiffres, tirets et underscore uniquement."
+      ? "Utilisez des lettres sans accent, des chiffres, - ou _."
       : ex
-        ? "Ce projet existe déjà : il sera ouvert, pas écrasé."
+        ? "Ce projet existe déjà : vous pouvez le rouvrir."
         : "Nom disponible.";
   const b = $("#pgo");
   b.disabled = !ok;
-  b.textContent = ex ? "Ouvrir le projet" : "Créer le projet";
+  b.innerHTML = (ex ? "Ouvrir le projet" : "Créer le projet") + ' <span aria-hidden="true">→</span>';
+  $("#pn").setAttribute("aria-invalid", String(!!n && !ok));
   $$("input[name=tpl]").forEach((i) => (i.disabled = !!ex));
   const v = eng().env();
   $("#env").innerHTML =
@@ -186,10 +195,18 @@ Object.assign(A, {
       dock: null,
       alert: null,
     });
+    ctx.folder = null;
+    $("#pn").value = "";
+    $("#projectFilter").value = "";
+    launcherExpanded = false;
     resetEditor();
     log("i", "Projet fermé");
     draw();
     toast("Projet fermé");
+  },
+  toggleRecent() {
+    launcherExpanded = !launcherExpanded;
+    drawLauncher();
   },
   async create() {
     const n = $("#pn").value.trim();
@@ -208,6 +225,7 @@ Object.assign(A, {
     Object.assign(S, {
       project: name,
       db: r.defaultDB ?? "test",
+      dbCollapsed: false,
       files: [],
       base: {},
       drafts: {},
@@ -223,7 +241,6 @@ Object.assign(A, {
       cat: null,
       dbs: [],
       table: null,
-      db: "test",
       pos: {},
       viewFit: false,
       schemaSel: null,
@@ -297,8 +314,7 @@ Object.assign(A, {
     ctx.draw();
   },
   async primary() {
-    if (drafts().length) await A.applyAll();
-    else if (S.applied.size || S.dbDirty) await A.save();
+    await A.save();
   },
   async save() {
     S.saveFail = false;
@@ -473,9 +489,11 @@ function palDraw() {
     pList
       .map(
         (c, i) =>
-          `<li><button role="option" data-i="${i}" aria-selected="${i === pSel}">${esc(c.l)}<small>${c.s}</small></button></li>`,
+          `<li role="presentation"><button id="palette-option-${i}" role="option" tabindex="-1" data-i="${i}" aria-selected="${i === pSel}">${esc(c.l)}<small class="${/Ctrl|Alt|Maj|^F\d/.test(c.s) ? "shortcut-label" : ""}">${c.s}</small></button></li>`,
       )
-      .join("") || '<li class="hint" style="padding:12px">Aucune action.</li>';
+      .join("") || '<li role="presentation" class="hint" style="padding:12px">Aucune action.</li>';
+  if (pList.length) $("#pq").setAttribute("aria-activedescendant", "palette-option-" + pSel);
+  else $("#pq").removeAttribute("aria-activedescendant");
 }
 export function openPal(q = "") {
   $("#pq").value = q;
@@ -511,6 +529,7 @@ export function bindShell() {
     }
   });
   $("#pn").addEventListener("input", drawLauncher);
+  $("#projectFilter").addEventListener("input", drawLauncher);
   $("#pn").addEventListener("keydown", (e) => {
     if (e.key === "Enter" && S.lamp !== "busy") A.create();
   });
@@ -520,14 +539,13 @@ export function bindShell() {
     if (files.some((f) => /\.zip$/i.test(f.name)))
       await task("Import ZIP", async () => {
         if (S.mode === "launcher") {
-          const name = $("#pn").value.trim();
-          if (!/^[A-Za-z0-9_-]{1,64}$/.test(name))
-            throw Error("Choisissez un nom de projet avant l’import.");
+          const archive = files.find(f => /\.zip$/i.test(f.name));
+          const name = await unusedArchiveName(archive.name, eng().projects.recents());
           await A.open(name, "archive");
           if (S.mode !== "work") return;
         }
         S.applied.add("archive");
-        await eng().projects.importZip(files[0]);
+        await eng().projects.importZip(files.find(f => /\.zip$/i.test(f.name)));
         await refreshFiles();
         S.dbDirty = true;
         S.applied.add("archive");
@@ -572,7 +590,7 @@ export function bindShell() {
     }
   });
   addEventListener("keydown", (e) => {
-    if (e.defaultPrevented || S.lamp === "busy") return;
+    if (e.defaultPrevented || S.lamp === "busy" || document.querySelector("dialog[open]")) return;
     const m = e.ctrlKey || e.metaKey,
       k = e.key.toLowerCase(),
       w = S.mode === "work";

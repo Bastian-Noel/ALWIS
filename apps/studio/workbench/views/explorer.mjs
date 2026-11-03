@@ -101,20 +101,21 @@ export const visibleRows = () => rows();
 export function drawExplorer() {
   const list = rows(),
     q = S.ff.trim().toLowerCase();
+  const selectedPath = list.some(r => r.path === S.exSel) ? S.exSel : list[0]?.path;
   $("#tree").innerHTML =
     list
       .map((r) => {
-        const sel = S.exSel === r.path,
+        const sel = selectedPath === r.path,
           renaming = S.ren === r.path,
           pad = `style="--d:${r.depth}"`;
         const label = renaming
           ? `<input class="ren" value="${esc(r.name)}" aria-label="Nouveau nom" spellcheck="false">`
           : `<span class="nm trunc">${mark(r.name, q)}</span>`;
         if (r.kind === "dir")
-          return `<div class="row dir" role="treeitem" aria-expanded="${r.open}" aria-selected="${sel}" tabindex="${sel ? 0 : -1}" draggable="true" data-path="${esc(r.path)}" data-kind="dir" ${pad}>${ui.chev.replace('class="chev"', 'class="chev' + (r.open ? " open" : "") + '"')}${folderIcon(r.open)}${label}<span class="cnt num">${r.empty ? "vide" : r.n}</span><span class="acts"><button data-act="newFile" data-arg="${esc(r.path)}" aria-label="Nouveau fichier dans ${esc(r.name)}" title="Nouveau fichier">${ui.plus}</button><button data-act="exMenuBtn" data-arg="${esc(r.path)}|dir" aria-label="Actions" aria-haspopup="true">${ui.more}</button></span></div>`;
+          return `<div class="row dir" role="treeitem" aria-level="${r.depth + 1}" aria-expanded="${r.open}" aria-selected="${sel}" tabindex="${sel ? 0 : -1}" draggable="true" data-path="${esc(r.path)}" data-kind="dir" ${pad}>${ui.chev.replace('class="chev"', 'class="chev' + (r.open ? " open" : "") + '"')}${folderIcon(r.open)}${label}<span class="cnt num">${r.empty ? "vide" : r.n}</span><span class="acts"><button data-act="newFile" data-arg="${esc(r.path)}" aria-label="Nouveau fichier dans ${esc(r.name)}" title="Nouveau fichier">${ui.plus}</button><button data-act="exMenuBtn" data-arg="${esc(r.path)}|dir" aria-label="Actions" aria-haspopup="true">${ui.more}</button></span></div>`;
         const web = isWeb(r.path),
           big = r.info && r.info.kind !== "text";
-        return `<div class="row file${S.active === r.path ? " active" : ""}" role="treeitem" aria-selected="${sel}" tabindex="${sel ? 0 : -1}" draggable="true" data-path="${esc(r.path)}" data-kind="file" ${pad}><span class="chev sp"></span>${fileIcon(r.path)}${label}${r.path === "/index.php" ? '<span class="entry" title="Page d’accueil du site">accueil</span>' : ""}${dirty(r.path) ? '<i class="d" title="Brouillon non enregistré"></i>' : S.applied.has(r.path) ? '<i class="d a" title="Appliqué, pas encore sauvegardé"></i>' : ""}${big ? `<span class="cnt num">${r.info.kind === "big" ? (r.info.size / 1048576).toFixed(1).replace(".", ",") + " Mio" : Math.round(r.info.size / 1024) + " Kio"}</span>` : ""}<span class="acts">${web ? `<button data-act="runFile" data-arg="${esc(r.path)}" aria-label="Ouvrir ${esc(r.name)} dans une session" title="Ouvrir dans la session active">${ui.play}</button>` : ""}<button data-act="exMenuBtn" data-arg="${esc(r.path)}|file" aria-label="Actions" aria-haspopup="true">${ui.more}</button></span></div>`;
+        return `<div class="row file${S.active === r.path ? " active" : ""}" role="treeitem" aria-level="${r.depth + 1}" aria-selected="${sel}" tabindex="${sel ? 0 : -1}" draggable="true" data-path="${esc(r.path)}" data-kind="file" ${pad}><span class="chev sp"></span>${fileIcon(r.path)}${label}${r.path === "/index.php" ? '<span class="entry" title="Page d’accueil du site">accueil</span>' : ""}${dirty(r.path) ? '<i class="d" title="Brouillon non enregistré"></i>' : S.applied.has(r.path) ? '<i class="d a" title="Appliqué, pas encore sauvegardé"></i>' : ""}${big ? `<span class="cnt num">${r.info.kind === "big" ? (r.info.size / 1048576).toFixed(1).replace(".", ",") + " Mio" : Math.round(r.info.size / 1024) + " Kio"}</span>` : ""}<span class="acts">${web ? `<button data-act="runFile" data-arg="${esc(r.path)}" aria-label="Ouvrir ${esc(r.name)} dans une session" title="Ouvrir dans la session active">${ui.play}</button>` : ""}<button data-act="exMenuBtn" data-arg="${esc(r.path)}|file" aria-label="Actions" aria-haspopup="true">${ui.more}</button></span></div>`;
       })
       .join("") ||
     `<p class="hint" style="padding:10px 12px">${q ? "Aucun fichier ne correspond." : "Aucun fichier. Créez-en un, ou déposez des fichiers ici."}</p>`;
@@ -442,6 +443,9 @@ Object.assign(A, {
 
 export function bindExplorer() {
   const tree = $("#tree");
+  tree.addEventListener("focusin", e => {
+    if (e.target.matches("[role=treeitem]")) S.exSel = e.target.dataset.path;
+  });
   tree.addEventListener("click", (e) => {
     if (e.target.closest(".acts,.ren")) return;
     const r = e.target.closest(".row");
@@ -469,6 +473,7 @@ export function bindExplorer() {
       }
       return;
     }
+    if (e.target.closest("button")) return;
     const list = rows(),
       i = Math.max(
         0,
@@ -482,7 +487,10 @@ export function bindExplorer() {
       drawExplorer();
       $(`#tree [data-path="${CSS.escape(r.path)}"]`)?.focus();
     };
-    if (e.key === "ArrowDown") {
+    if (e.key === "Home" || e.key === "End") {
+      e.preventDefault();
+      go(e.key === "Home" ? 0 : list.length - 1);
+    } else if (e.key === "ArrowDown") {
       e.preventDefault();
       go(i + 1);
     } else if (e.key === "ArrowUp") {

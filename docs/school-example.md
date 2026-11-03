@@ -1,26 +1,70 @@
-# Exemple Campus ALWIS
+# Essayer le Campus
 
-Depuis l’accueil, créez **un nouveau projet** avec « Exemple scolaire ». Les anciens projets ne sont pas remplacés : leurs fichiers, bases et modifications sont conservés.
+[← Guide illustré](README.md)
 
-La base `school` contient 34 tables remplies et 40 clés étrangères :
+Un petit site scolaire déjà rempli : élèves, cours, notes, messages, bibliothèque et factures.
 
-| Domaine | Tables |
+## Ouvrir l’exemple
+
+1. Depuis l’accueil, donnez un nom à un **nouveau projet**.
+2. Choisissez **Exemple scolaire**, puis créez-le.
+3. Dans **Code**, cliquez sur **Aperçu**.
+
+![Le site Campus ouvert à côté de son code PHP.](images/alwis-code-light.png)
+
+## Trois choses à essayer
+
+### 1. Explorer les élèves
+
+- Dans le site, ouvrez la liste des élèves.
+- Dans ALWIS, allez dans **Données → school → students**.
+- Retrouvez les mêmes informations dans la table.
+
+### 2. Partager une note
+
+1. Dans **Sessions**, ouvrez une fenêtre **Professeur** et une fenêtre **Élève**.
+2. Côté professeur, modifiez une note de l’élève concerné.
+3. Actualisez sa page côté élève pour voir le résultat.
+
+### 3. Envoyer un message
+
+1. Ouvrez la messagerie du Campus.
+2. Choisissez un destinataire et envoyez un message.
+3. Ouvrez le profil du destinataire pour le lire.
+
+## Qui utilise le site ?
+
+| Session prête à ouvrir | Profil |
 |---|---|
-| Organisation | campuses, years, terms, departments, rooms |
-| Identités | users, roles, user_roles, teachers, guardians, students, student_guardians |
-| Scolarité | classes, enrollments, subjects, courses, class_courses, lessons, attendance |
-| Évaluation | assignments, submissions, grades |
-| Communication | messages, message_recipients, announcements, studio_notes |
-| Vie scolaire | clubs, club_members, library_books, library_loans |
-| Facturation | invoices, invoice_lines, payments |
-| Installation | school_meta |
+| Administration | Camille |
+| Professeur | Nora |
+| Élève | Alice |
+| Parent | Emma |
 
-Le propriétaire crée quatre sessions : Administration (Camille), Professeur (Nora), Élève (Alice) et Parent (Emma). Dans **Sessions**, ouvrez plusieurs fenêtres. Chaque session garde son profil et ses cookies ; deux fenêtres du même groupe les partagent. Les requêtes simultanées sont ordonnancées sur le propriétaire PHP/SQL commun. Ce scénario n’exige pas un moteur par fenêtre.
+![Les quatre visiteurs du Campus dans l’espace Sessions.](images/alwis-sessions.png)
 
-L’application propose sept espaces : accueil/carnet commun, élèves/classes, cours/salles, devoirs/notes, bibliothèque/emprunts, messages et factures. Les formulaires de profil, note, résultat scolaire et message utilisent les services PHP/PDO réels, une protection CSRF et une redirection après POST. La transaction d’envoi évite les messages orphelins ; une erreur de saisie conserve les champs. Les liens composés et plusieurs tables de liaison permettent d’explorer les relations dans Schéma.
+**Même session :** les fenêtres partagent l’identité. **Sessions différentes :** chaque visiteur garde la sienne.
 
-`install.php` installe la version initiale une seule fois ; il ne réinsère pas les données modifiées lors des visites suivantes. `schema.sql` et `data/seed.json` rendent le contenu initial lisible. Les dates sont fixes pour rendre le jeu reproductible. Exporter le projet emporte fichiers et base.
+> [!NOTE]
+> Les profils sont librement sélectionnables pour essayer le site. Ce n’est pas un système de connexion destiné à la production.
 
-Les profils sont sélectionnables librement pour la démonstration : ce n’est pas une authentification pour un serveur de production. Les données affichées sont de démonstration. Tous les domaines ont un contenu initial ; seules les actions proposées ont une interface d’écriture. L’administration générale des autres tables se fait dans les outils SQL d’ALWIS.
+## Garder vos essais
 
-Le test du **paquet statique exact** vérifie les 34 tables non vides, 40 clés étrangères, quatre fenêtres simultanées, l’isolation des profils, le carnet partagé, une note professeur visible par l’élève, la messagerie, le rollback après destinataire invalide et la conservation après sauvegarde/redémarrage, dans Chromium et Firefox. Les résultats figurent dans l’artefact de validation `site-smoke.json`.
+Cliquez sur **Sauvegarder le projet**, puis sur **Exporter ZIP** pour une copie sur le PC.
+Créer un autre Campus ne remplace pas vos projets existants.
+
+<details>
+<summary>Pour explorer le code et les tables</summary>
+
+| Élément | Contenu |
+|---|---|
+| Base `school` | 34 tables remplies et 40 clés étrangères |
+| `schema.sql` | Structure des tables |
+| `data/seed.json` | Données initiales |
+| `install.php` | Installation initiale, sans réinitialiser vos changements à chaque visite |
+
+Les données sont fictives. Certaines tables se modifient uniquement depuis **Données** ou **SQL**.
+
+Le scénario automatisé vérifie les profils, les notes, les messages et la restauration : [test du Campus](../tests/browser/school-scenario.mjs).
+
+</details>

@@ -100,16 +100,16 @@ async function run(label, fn) {
 /* ───────── arbre : bases et tables ───────── */
 export function drawDtree() {
   $("#dbtree").innerHTML =
-    S.dbs
+    [...S.dbs].sort((a,b) => Number(a.system)-Number(b.system) || a.name.localeCompare(b.name))
       .map((d) => {
-        const open = d.name === S.db;
+        const open = d.name === S.db && !S.dbCollapsed;
         return (
-          `<div class="row db${d.system ? " sys" : ""}" data-act="selectDb" data-arg="${esc(d.name)}" role="treeitem" aria-expanded="${open}" tabindex="0">${ui.chev.replace('class="chev"', 'class="chev' + (open ? " open" : "") + '"')}<span class="nm trunc">${esc(d.name)}</span>${d.system ? '<span class="cnt">système</span>' : `<span class="acts"><button data-act="quickTableStart" data-arg="${esc(d.name)}" aria-label="Nouvelle table dans ${esc(d.name)}" title="Nouvelle table">${ui.plus}</button><button data-act="dbMenu" aria-label="Actions sur la base" aria-haspopup="true">${ui.more}</button></span>`}</div>` +
+          `<div class="row db${d.system ? " sys" : ""}" data-act="toggleDb" data-arg="${esc(d.name)}" role="treeitem" aria-level="1" aria-selected="${d.name === S.db}" aria-expanded="${open}" tabindex="0">${ui.chev.replace('class="chev"', 'class="chev' + (open ? " open" : "") + '"')}<span class="nm trunc">${esc(d.name)}</span>${d.system ? '<span class="cnt">système</span>' : `<span class="acts"><button data-act="quickTableStart" data-arg="${esc(d.name)}" aria-label="Nouvelle table dans ${esc(d.name)}" title="Nouvelle table">${ui.plus}</button><button data-act="dbMenu" aria-label="Actions sur la base" aria-haspopup="true">${ui.more}</button></span>`}</div>` +
           (open && S.cat
             ? S.cat.tables
                 .map(
                   (t) =>
-                    `<div class="row tb${t.name === S.table ? " active" : ""}" data-act="selectTable" data-arg="${esc(t.name)}" role="treeitem" aria-selected="${t.name === S.table}" tabindex="0" style="${hueStyle(t.name)}"><i class="td"></i><span class="nm trunc">${esc(t.name)}</span><span class="cnt num">${t.rows}</span><span class="acts"><button data-act="rowQuick" data-arg="${esc(t.name)}" aria-label="Ajouter une ligne à ${esc(t.name)}" title="Ajouter une ligne">${ui.plus}</button></span></div>`,
+                    `<div class="row tb${t.name === S.table ? " active" : ""}" data-act="selectTable" data-arg="${esc(t.name)}" role="treeitem" aria-level="2" aria-selected="${t.name === S.table}" tabindex="0" style="${hueStyle(t.name)}"><i class="td"></i><span class="nm trunc">${esc(t.name)}</span><span class="cnt num">${t.rows}</span><span class="acts"><button data-act="rowQuick" data-arg="${esc(t.name)}" aria-label="Ajouter une ligne à ${esc(t.name)}" title="Ajouter une ligne">${ui.plus}</button></span></div>`,
                 )
                 .join("") +
               (d.system
@@ -186,7 +186,7 @@ function dataHtml(t) {
   const th = cols
     .map((c) => {
       const f = fkOf(c.name);
-      return `<th data-act="sort" data-arg="${esc(c.name)}" aria-sort="${S.sort?.c === c.name ? (S.sort.d > 0 ? "ascending" : "descending") : "none"}"><span class="cn">${esc(c.name)}</span>${c.key === "PRI" ? `<span class="kb pk" title="Clé primaire">${ui.key}</span>` : f ? `<span class="kb fk" style="--h:${tableHue(f.refTable)}" title="Référence ${esc(f.refTable)}.${esc(f.refColumn)}">${ui.link}</span>` : ""}${tyChip(c.type)}${S.sort?.c === c.name ? `<span class="srt">${S.sort.d > 0 ? "↑" : "↓"}</span>` : ""}</th>`;
+      return `<th aria-sort="${S.sort?.c === c.name ? (S.sort.d > 0 ? "ascending" : "descending") : "none"}"><button class="sort-column" data-act="sort" data-arg="${esc(c.name)}" aria-label="Trier par ${esc(c.name)}"><span class="cn">${esc(c.name)}</span>${c.key === "PRI" ? `<span class="kb pk" title="Clé primaire">${ui.key}</span>` : f ? `<span class="kb fk" style="--h:${tableHue(f.refTable)}" title="Référence ${esc(f.refTable)}.${esc(f.refColumn)}">${ui.link}</span>` : ""}${tyChip(c.type)}${S.sort?.c === c.name ? `<span class="srt">${S.sort.d > 0 ? "↑" : "↓"}</span>` : ""}</button></th>`;
     })
     .join("");
   const body = g.rows
@@ -260,7 +260,7 @@ function structHtml(t) {
     .join("");
   return `<div class="gridwrap st"><div class="chips"><span class="chip2">${plural(t.columns.length, "colonne", "colonnes")}</span><span class="chip2">${plural(pkOf(t).length, "clé primaire", "clés primaires")}</span><span class="chip2">${plural(t.fks.length, "relation sortante", "relations sortantes")}</span><span class="chip2">${plural(t.rows, "ligne", "lignes")}</span></div>
     <table class="sg"><thead><tr><th>Colonne</th><th>Type</th><th>Valeur nulle</th><th>Clés et relations</th><th>Extra</th><th class="ra"><span class="sr-only">Actions</span></th></tr></thead><tbody>${rows}
-    <tr class="addrow"><td><input class="in" id="ncName" placeholder="Nouvelle colonne" aria-label="Nom de la nouvelle colonne" autocomplete="off" spellcheck="false"></td><td><select class="in" id="ncType" aria-label="Type">${TYPES.map((x) => `<option>${x}</option>`).join("")}</select></td><td><label class="chk2"><input type="checkbox" id="ncNull" checked> NULL</label></td><td></td><td></td><td class="ra"><button class="btn sm pri" data-act="colAdd">Ajouter</button></td></tr></tbody></table>
+    <tr class="addrow"><td colspan="6"><button class="btn" data-act="columnForm">Ajouter une colonne…</button></td></tr></tbody></table>
     <section class="sec2"><h3>Index</h3><div class="pills">${t.indexes.map((i) => `<span class="pillx ${i.name === "PRIMARY" ? "pk" : ""}">${i.name === "PRIMARY" ? ui.key : ""}<b>${esc(i.name)}</b><span class="mono">(${esc(i.columns.join(", "))})</span>${i.unique && i.name !== "PRIMARY" ? "<em>UNIQUE</em>" : ""}${i.name !== "PRIMARY" ? `<button data-act="idxDrop" data-arg="${esc(i.name)}" aria-label="Supprimer l’index ${esc(i.name)}">✕</button>` : ""}</span>`).join("") || '<span class="mut">Aucun index.</span>'}<button class="btn sm" data-act="idxAdd">${ui.plus}Index</button></div></section>
     <section class="sec2"><h3>Relations</h3><div class="pills">${t.fks.map((f) => `<button class="rel2" style="--h:${tableHue(f.refTable)}" data-act="selectTable" data-arg="${esc(f.refTable)}"><b>${esc(f.column)}</b> → <b>${esc(f.refTable)}.${esc(f.refColumn)}</b><em>ON DELETE ${f.onDelete}</em></button>`).join("")}${incoming.map((f) => `<button class="rel2 in" style="--h:${tableHue(f.table)}" data-act="selectTable" data-arg="${esc(f.table)}"><b>${esc(f.table)}.${esc(f.column)}</b> → <b>${esc(f.refColumn)}</b><em>référence cette table</em></button>`).join("")}${!t.fks.length && !incoming.length ? '<span class="mut">Aucune relation. Glissez un champ vers un autre dans le Schéma pour en créer une.</span>' : ""}</div></section>
     <section class="sec2"><h3>Définition <button class="btn quiet sm" data-act="copyDdl">Copier</button></h3><pre class="pre sqlh">${sqlHtml(t.ddl)}</pre></section>${S.lastSQL ? `<p class="hint mono" style="padding:0 18px 18px">Dernier SQL : ${esc(S.lastSQL.replace(/\s+/g, " ").slice(0, 160))}</p>` : ""}</div>`;
@@ -279,7 +279,7 @@ function drawSql(head) {
   edQ = null;
   $("#dmain").innerHTML =
     head +
-    `<div class="q-ed" id="qwrap"><div class="edwrap" id="edq"></div><div class="bar tight"><button class="btn pri sm" data-act="runSQL">Exécuter <kbd>Ctrl ↵</kbd></button><button class="btn quiet sm" data-act="histMenu" aria-haspopup="true">Récentes ▾</button><span class="hint hide-s">Ctrl+Entrée exécute la sélection, sinon tout le script.</span><span class="grow"></span><span class="mono mut">${esc(S.db)}</span></div></div><div id="rsb" class="side grow"></div>`;
+    `<div class="q-ed" id="qwrap"><div class="edwrap" id="edq"></div><div class="bar tight"><button class="btn pri sm" data-act="runSQL">Exécuter <kbd>Ctrl ↵</kbd></button><button class="btn quiet sm" data-act="histMenu" aria-haspopup="true">Récentes ▾</button><span class="hint hide-s">Exécute la sélection, sinon tout le script.</span><span class="grow"></span><span class="mono mut">${esc(S.db)}</span></div></div><div id="rsb" class="side grow"></div>`;
   edQ?.destroy();
   edQ = mkEditor($("#edq"), {
     lang: "sql",
@@ -316,7 +316,7 @@ function drawResults() {
   const c = r[S.rsi];
   b.innerHTML =
     (r.length > 1
-      ? `<div class="rs-tabs">${r.map((x, i) => `<button class="btn sm ${i === S.rsi ? "pri" : ""}" data-act="rsTab" data-arg="${i}">Résultat ${i + 1}</button>`).join("")}</div>`
+      ? `<div class="rs-tabs" role="group" aria-label="Résultats SQL">${r.map((x, i) => `<button class="btn sm ${i === S.rsi ? "pri" : ""}" data-act="rsTab" aria-pressed="${i === S.rsi}" data-arg="${i}">Résultat ${i + 1}</button>`).join("")}</div>`
       : "") +
     (c.columns
       ? `<div class="gridwrap"><table class="dg ro"><thead><tr>${c.columns.map((n) => `<th><span class="cn">${esc(n)}</span></th>`).join("")}</tr></thead><tbody>${c.rows
@@ -336,7 +336,12 @@ Object.assign(A, {
   activateSQL() {
     return A.toolState("sql", "active");
   },
+  async toggleDb(d) {
+    if (d === S.db) { S.dbCollapsed = !S.dbCollapsed; drawDtree(); return; }
+    return A.selectDb(d);
+  },
   async selectDb(d) {
+    S.dbCollapsed = false;
     S.db = d;
     S.table = null;
     S.page = 1;
@@ -1160,7 +1165,7 @@ export function bindData() {
         S.newTable = false;
         drawDtree();
       }
-    } else if (e.key === "Enter" && e.target.dataset.act) e.target.click();
+    }
   });
   $("#dbtree").addEventListener("focusout", (e) => {
     if (e.target.id === "ntName" && S.newTable) {

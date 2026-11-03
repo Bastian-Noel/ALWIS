@@ -1,3 +1,5 @@
+import "./local-folder.mjs";
+import { installKeyboard } from "./keyboard.mjs";
 import { installSiteUpdates } from "../site-updates.mjs";
 import { createStudioServices } from "./services.mjs";
 import { ctx, S, A, log, fail } from "./state.mjs";
@@ -67,6 +69,7 @@ bindCode();
 bindData();
 bindSchema();
 bindDock();
+installKeyboard();
 window.addEventListener("error", (e) =>
   fail("Erreur de l’interface", e.error ?? Error(e.message)),
 );

@@ -1,3 +1,4 @@
+import { htmlVoidStyle } from "./html-style.mjs";
 // Loaded only by the explicit format command; the owner terminates this worker.
 import { format } from "prettier/standalone";
 import * as babel from "prettier/plugins/babel";
@@ -28,7 +29,7 @@ self.onmessage = async ({ data }) => {
       throw Error(
         "Formatage limité à 256 K caractères pour préserver la réactivité.",
       );
-    const text = await format(data.text, {
+    let text = await format(data.text, {
       parser,
       plugins: [babel, estree, html, postcss, php],
       tabWidth: data.indent === "2" ? 2 : 4,
@@ -37,6 +38,7 @@ self.onmessage = async ({ data }) => {
       printWidth: 100,
       endOfLine: "auto",
     });
+    if (parser === "html") text = htmlVoidStyle(text);
     self.postMessage({ text });
   } catch (error) {
     self.postMessage({ error: String(error.message).slice(0, 1500) });
