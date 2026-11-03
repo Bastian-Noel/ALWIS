@@ -175,6 +175,11 @@ try {
         toPort = page
           .locator('[data-col="id"][data-t="drag_parent"] .port')
           .last();
+      // schemaLayout fits on the next animation frame. Wait for visible ports
+      // to settle before reading coordinates; the pointer must hit the rendered view.
+      await fromPort.hover();
+      await toPort.hover();
+      await fromPort.hover();
       const fromBox = await fromPort.boundingBox(),
         toBox = await toPort.boundingBox();
       await page.mouse.move(
