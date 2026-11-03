@@ -1,0 +1,117 @@
+{
+  "browser": "firefox",
+  "version": "157.0",
+  "wasmSha256": "80df46b7b308b33475fde138eb1a295c01ffbf6ac685d17a74209eb224674e0f",
+  "scope": "12 mixed PHP requests, not a long endurance or browser RAM measurement",
+  "passed": true,
+  "samples": [
+    {
+      "iteration": 0,
+      "allocatorUsedBytes": 77540880,
+      "linearMemoryBytes": 268435456,
+      "checks": [
+        "closed connections immediately release long-data reservations",
+        "PDO native/emulated errors, transactions, cursor reuse and cross-driver rollback"
+      ]
+    },
+    {
+      "iteration": 1,
+      "allocatorUsedBytes": 77542216,
+      "linearMemoryBytes": 268435456,
+      "checks": [
+        "closed connections immediately release long-data reservations",
+        "PDO native/emulated errors, transactions, cursor reuse and cross-driver rollback"
+      ]
+    },
+    {
+      "iteration": 2,
+      "allocatorUsedBytes": 77543688,
+      "linearMemoryBytes": 268435456,
+      "checks": [
+        "closed connections immediately release long-data reservations",
+        "PDO native/emulated errors, transactions, cursor reuse and cross-driver rollback"
+      ]
+    },
+    {
+      "iteration": 3,
+      "allocatorUsedBytes": 77556064,
+      "linearMemoryBytes": 268435456,
+      "checks": [
+        "closed connections immediately release long-data reservations",
+        "PDO native/emulated errors, transactions, cursor reuse and cross-driver rollback"
+      ]
+    },
+    {
+      "iteration": 4,
+      "allocatorUsedBytes": 77554496,
+      "linearMemoryBytes": 268435456,
+      "checks": [
+        "closed connections immediately release long-data reservations",
+        "PDO native/emulated errors, transactions, cursor reuse and cross-driver rollback"
+      ]
+    },
+    {
+      "iteration": 5,
+      "allocatorUsedBytes": 77555160,
+      "linearMemoryBytes": 268435456,
+      "checks": [
+        "closed connections immediately release long-data reservations",
+        "PDO native/emulated errors, transactions, cursor reuse and cross-driver rollback"
+      ]
+    },
+    {
+      "iteration": 6,
+      "allocatorUsedBytes": 77556504,
+      "linearMemoryBytes": 268435456,
+      "checks": [
+        "closed connections immediately release long-data reservations",
+        "PDO native/emulated errors, transactions, cursor reuse and cross-driver rollback"
+      ]
+    },
+    {
+      "iteration": 7,
+      "allocatorUsedBytes": 77557848,
+      "linearMemoryBytes": 268435456,
+      "checks": [
+        "closed connections immediately release long-data reservations",
+        "PDO native/emulated errors, transactions, cursor reuse and cross-driver rollback"
+      ]
+    },
+    {
+      "iteration": 8,
+      "allocatorUsedBytes": 77559200,
+      "linearMemoryBytes": 268435456,
+      "checks": [
+        "closed connections immediately release long-data reservations",
+        "PDO native/emulated errors, transactions, cursor reuse and cross-driver rollback"
+      ]
+    },
+    {
+      "iteration": 9,
+      "allocatorUsedBytes": 77560544,
+      "linearMemoryBytes": 268435456,
+      "checks": [
+        "closed connections immediately release long-data reservations",
+        "PDO native/emulated errors, transactions, cursor reuse and cross-driver rollback"
+      ]
+    },
+    {
+      "iteration": 10,
+      "allocatorUsedBytes": 77561888,
+      "linearMemoryBytes": 268435456,
+      "checks": [
+        "closed connections immediately release long-data reservations",
+        "PDO native/emulated errors, transactions, cursor reuse and cross-driver rollback"
+      ]
+    },
+    {
+      "iteration": 11,
+      "allocatorUsedBytes": 77563488,
+      "linearMemoryBytes": 268435456,
+      "checks": [
+        "closed connections immediately release long-data reservations",
+        "PDO native/emulated errors, transactions, cursor reuse and cross-driver rollback"
+      ]
+    }
+  ]
+}

@@ -22,6 +22,8 @@ Le parcours navigateur répète cette fixture sur douze requêtes et vérifie ap
 
 L’ouverture concurrente de deux projets est refusée avant création d’un second moteur. Une ouverture échouée nettoie son propriétaire sans sauvegarder un projet partiellement initialisé. Le parcours de l’atelier exerce ce verrou dans les deux navigateurs.
 
+Un export ZIP de projet PHP pur reste sans démarrage MariaDB ni workers SQL ; les fichiers SQL persistés après un redémarrage restent inclus lorsqu’ils existent. Le parcours de l’atelier vérifie les deux cas.
+
 La console SQL n’indexe plus tous les fichiers PHP/JavaScript à chaque montage de son éditeur. Elle utilise le catalogue SQL déjà disponible ; les services et l’index de fichiers restent destinés à l’éditeur de code.
 
 ## Reproduire et distribuer

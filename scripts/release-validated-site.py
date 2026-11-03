@@ -52,7 +52,12 @@ for file in assets:
  with file.open('rb')as stream:value=hashlib.file_digest(stream,'sha256').hexdigest()
  lines.append(value+'  '+file.name)
 checksums.write_text('\n'.join(lines)+'\n');assets.append(checksums)
-notes=output/'notes.md';notes.write_text(f'''Prototype fonctionnel d’ALWIS : PHP/MariaDB dans le navigateur, PDO/MySQLi natifs, éditeurs CodeMirror et services WASM avec définitions jQuery internes, outils SQL et sauvegarde locale.
+notes=output/'notes.md';notes.write_text(f'''ALWIS — Atelier Local Web avec IDE et SQL. Cette préversion intègre la nouvelle interface au moteur réel : CodeMirror, aperçu, sessions, administration SQL et schéma relationnel.
+
+- Formulaires de colonnes enrichis, attributs existants préservés, valeurs SQL exactes et protection contre les conflits.
+- Nettoyage natif MySQLi des buffers binaires à la fermeture de connexion ; scénarios PDO natif/émulé, transactions et curseurs consolidés.
+- Export ZIP des fichiers et bases conservées ; un projet PHP pur reste sans démarrage SQL inutile.
+- Thèmes clair/sombre, contrastes corrigés et captures réelles dans le README.
 
 Source validée : `{revision}`. Build et tests Chromium/Firefox réussis, puis transfert FTP réussi : https://github.com/{repo}/actions/runs/{run}.
 

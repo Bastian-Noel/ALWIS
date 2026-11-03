@@ -1,8 +1,8 @@
 {
   "browser": "chromium",
   "version": "156.0.8078.4",
-  "wasmBytes": 38207412,
-  "wasmSha256": "c1f09293757b494964b0bec2154f38e3f84cfd093ec884ad7073e33c9a4117f8",
+  "wasmBytes": 38249621,
+  "wasmSha256": "80df46b7b308b33475fde138eb1a295c01ffbf6ac685d17a74209eb224674e0f",
   "passed": true,
   "cases": [
     {
@@ -63,7 +63,7 @@
     },
     "linearMemoryBytes": 268435456,
     "allocatorUsedBytes": 3344,
-    "allocatorFreeBytes": 1861408,
+    "allocatorFreeBytes": 1874784,
     "vfs": {
       "groups": {
         "project": {
@@ -117,14 +117,14 @@
     "nativeStatements": 0,
     "preparedSQLReservedBytes": 0,
     "pthreadWorkers": {
-      "used": 15,
-      "idle": 1,
+      "used": 16,
+      "idle": 0,
       "created": 16,
-      "peak": 15
+      "peak": 16
     },
-    "linearMemoryBytes": 268435456,
-    "allocatorUsedBytes": 77548536,
-    "allocatorFreeBytes": 2811960,
+    "linearMemoryBytes": 322174976,
+    "allocatorUsedBytes": 220856856,
+    "allocatorFreeBytes": 2803288,
     "vfs": {
       "groups": {
         "project": {
@@ -144,16 +144,16 @@
           "maxNodes": 256
         },
         "sql": {
-          "bytes": 65982379,
-          "reserved": 66046223,
+          "bytes": 65957803,
+          "reserved": 66009243,
           "nodes": 103,
           "maxBytes": 134217728,
           "maxFileBytes": 67108864,
           "maxNodes": 4096
         },
         "system": {
-          "bytes": 2773732,
-          "reserved": 2773732,
+          "bytes": 2773736,
+          "reserved": 2773736,
           "nodes": 112,
           "maxBytes": 16777216,
           "maxFileBytes": 16777216,

@@ -1,8 +1,8 @@
 {
   "browser": "firefox",
   "version": "157.0",
-  "wasmBytes": 38207412,
-  "wasmSha256": "c1f09293757b494964b0bec2154f38e3f84cfd093ec884ad7073e33c9a4117f8",
+  "wasmBytes": 38249621,
+  "wasmSha256": "80df46b7b308b33475fde138eb1a295c01ffbf6ac685d17a74209eb224674e0f",
   "passed": true,
   "cases": [
     {
@@ -63,7 +63,7 @@
     },
     "linearMemoryBytes": 268435456,
     "allocatorUsedBytes": 3344,
-    "allocatorFreeBytes": 1861408,
+    "allocatorFreeBytes": 1874784,
     "vfs": {
       "groups": {
         "project": {
@@ -123,8 +123,8 @@
       "peak": 15
     },
     "linearMemoryBytes": 268435456,
-    "allocatorUsedBytes": 77549648,
-    "allocatorFreeBytes": 2819040,
+    "allocatorUsedBytes": 77538080,
+    "allocatorFreeBytes": 2790736,
     "vfs": {
       "groups": {
         "project": {
@@ -144,8 +144,8 @@
           "maxNodes": 256
         },
         "sql": {
-          "bytes": 65982379,
-          "reserved": 66046223,
+          "bytes": 65957803,
+          "reserved": 66009243,
           "nodes": 103,
           "maxBytes": 134217728,
           "maxFileBytes": 67108864,

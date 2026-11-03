@@ -2,7 +2,7 @@
   "passed": true,
   "browser": "firefox",
   "version": "157.0",
-  "wasmSha256": "f9cadc7e93df0f80c60783a02d26d3318b0d973ad1e6d85c4436a45b9d8cf2de",
+  "wasmSha256": "80df46b7b308b33475fde138eb1a295c01ffbf6ac685d17a74209eb224674e0f",
   "ok": true,
   "registered": [
     "mysqli_affected_rows",
@@ -142,8 +142,8 @@
       "peak": 15
     },
     "linearMemoryBytes": 268435456,
-    "allocatorUsedBytes": 77503392,
-    "allocatorFreeBytes": 19582160,
+    "allocatorUsedBytes": 77503672,
+    "allocatorFreeBytes": 19581880,
     "vfs": {
       "groups": {
         "project": {

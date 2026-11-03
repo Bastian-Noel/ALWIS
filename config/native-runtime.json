@@ -1,7 +1,5 @@
 {
-  "release": "native-runtime-2026-11-01",
-  "manifestSha256": "19ec03cf5c6622099742a010645f48d737fda215de5212c2043e5b11bc456760",
-  "sourceRelocations": {
-    "engine/fusion/spike/runtime-target.cmake": "engine/native/build/runtime-target.cmake"
-  }
+  "release": "native-runtime-2026-11-03-stability",
+  "manifestSha256": "05987b9ba2b112ff0abbfc6ea05430add57ea9e5f83ab2f6dcd8024ad51ed304",
+  "sourceRelocations": {}
 }

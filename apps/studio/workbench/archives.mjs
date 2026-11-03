@@ -157,21 +157,25 @@ export function projectArchives(hub, files) {
       exportedAt: new Date().toISOString(),
       databases: [],
     };
-    // A saved SQL database can be dormant after restart; exporting must still include it.
-    for (const [name] of (await rows("SHOW DATABASES")).rows) {
-      if (
-        ["mysql", "sys", "information_schema", "performance_schema"].includes(
-          name,
+    // Keep pure-PHP archives lazy, but include SQL files persisted before a restart.
+    const state = await hub.runtime.state(),
+      sqlFiles = state.vfs?.groups?.sql;
+    if (state.sqlPhase !== "dormant" || !sqlFiles || sqlFiles.bytes > 0)
+      for (const [name] of (await rows("SHOW DATABASES")).rows) {
+        if (
+          ["mysql", "sys", "information_schema", "performance_schema"].includes(
+            name,
+          )
         )
-      )
-        continue;
-      const bytes = await exportSQLDatabase(name);
-      size += bytes.length;
-      if (size > 64 * 1024 * 1024) throw Error("Export limité à 64 Mio.");
-      const path = ".pbl-backup/database-" + manifest.databases.length + ".sql";
-      entries.push({ name: path, bytes });
-      manifest.databases.push({ name, path });
-    }
+          continue;
+        const bytes = await exportSQLDatabase(name);
+        size += bytes.length;
+        if (size > 64 * 1024 * 1024) throw Error("Export limité à 64 Mio.");
+        const path =
+          ".pbl-backup/database-" + manifest.databases.length + ".sql";
+        entries.push({ name: path, bytes });
+        manifest.databases.push({ name, path });
+      }
     entries.push({
       name: ".pbl-backup/project.json",
       bytes: new TextEncoder().encode(JSON.stringify(manifest)),

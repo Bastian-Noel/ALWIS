@@ -2,7 +2,7 @@
   "passed": true,
   "browser": "chromium",
   "version": "156.0.8078.4",
-  "wasmSha256": "f9cadc7e93df0f80c60783a02d26d3318b0d973ad1e6d85c4436a45b9d8cf2de",
+  "wasmSha256": "80df46b7b308b33475fde138eb1a295c01ffbf6ac685d17a74209eb224674e0f",
   "ok": true,
   "registered": [
     "mysqli_affected_rows",
@@ -136,14 +136,14 @@
     "nativeStatements": 0,
     "preparedSQLReservedBytes": 0,
     "pthreadWorkers": {
-      "used": 15,
-      "idle": 1,
+      "used": 10,
+      "idle": 6,
       "created": 16,
-      "peak": 15
+      "peak": 10
     },
     "linearMemoryBytes": 268435456,
-    "allocatorUsedBytes": 77503704,
-    "allocatorFreeBytes": 19581848,
+    "allocatorUsedBytes": 66959416,
+    "allocatorFreeBytes": 19583032,
     "vfs": {
       "groups": {
         "project": {

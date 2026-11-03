@@ -32,6 +32,10 @@ try {
           ctx.engine.projects.open("opening-guard", "empty"),
           ctx.engine.projects.open("opening-guard-second", "empty"),
         ]);
+        await ctx.engine.projects.exportZip();
+        const memory = await ctx.engine.measure();
+        if (memory.raw.sqlStarted || memory.raw.pthreadWorkers.created)
+          throw Error("Pure PHP ZIP eagerly started SQL");
         await ctx.engine.projects.close({ save: false });
         return results.map((r) => r.status);
       });
