@@ -1,3 +1,4 @@
+import { withProjectLoading } from "../project-loading.mjs";
 /** Coque du studio : barre du haut, rail, état, accueil, actions de projet, palette de commandes, raccourcis. */
 import {
   $,
@@ -214,87 +215,92 @@ Object.assign(A, {
     await A.open(n, $("input[name=tpl]:checked").value);
   },
   async open(name, tpl = "demo") {
-    if (name) $("#pn").value = name;
-    name = $("#pn").value.trim();
-    const R = eng().projects.recents(),
-      ex = R.some((r) => r.name === name);
-    const r = await task("Ouverture du projet", () =>
-      eng().projects.open(name, ex ? "existing" : tpl),
-    );
-    if (!r) return;
-    Object.assign(S, {
-      project: name,
-      db: r.defaultDB ?? "test",
-      dbCollapsed: false,
-      files: [],
-      base: {},
-      drafts: {},
-      tabs: [],
-      active: null,
-      vdirs: new Set(),
-      applied: new Set(),
-      dbDirty: false,
-      savedAt: Date.now(),
-      saveFail: false,
-      reqs: [],
-      wins: [],
-      cat: null,
-      dbs: [],
-      table: null,
-      pos: {},
-      viewFit: false,
-      schemaSel: null,
-      pv: false,
-      pvDouble: false,
-      pvPath: "/index.php",
-      pvInfo: {},
-      conflict: {},
-      find: { open: false, i: 0 },
-      exSel: null,
-      dmode: "data",
-      grid: null,
-    });
-    if (r.initialized) {
-      S.applied = new Set(["/index.php"]);
-      S.savedAt = null;
-    }
-    S.pvSessions = [sessions()[0].id];
-    resetEditor();
-    await refreshFiles();
-    const saved = await eng().projects.loadWorkspace();
-    if (saved) {
-      S.vdirs = new Set(saved.vdirs ?? []);
+    return withProjectLoading(async (progress) => {
+      if (name) $("#pn").value = name;
+      name = $("#pn").value.trim();
+      const R = eng().projects.recents(),
+        ex = R.some((r) => r.name === name);
+      const r = await task("Ouverture du projet", () =>
+        eng().projects.open(name, ex ? "existing" : tpl, progress),
+      );
+      if (!r) return;
       Object.assign(S, {
-        db: saved.db ?? r.defaultDB ?? "test",
-        qtext: saved.query ?? "SELECT 1;",
-        hist: saved.queryHistory ?? [],
-        table: saved.table ?? null,
-        tabs: saved.tabs ?? [],
-        active: saved.active ?? null,
-        base: saved.base ?? {},
-        drafts: saved.drafts ?? {},
-        pos: saved.pos ?? {},
-        layouts: saved.layouts ?? {},
-        layoutDB: null,
-        hue: saved.hue ?? {},
+        project: name,
+        db: r.defaultDB ?? "test",
+        dbCollapsed: false,
+        files: [],
+        base: {},
+        drafts: {},
+        tabs: [],
+        active: null,
+        vdirs: new Set(),
+        applied: new Set(),
+        dbDirty: false,
+        savedAt: Date.now(),
+        saveFail: false,
+        reqs: [],
+        wins: [],
+        cat: null,
+        dbs: [],
+        table: null,
+        pos: {},
+        viewFit: false,
+        schemaSel: null,
+        pv: false,
+        pvDouble: false,
+        pvPath: "/index.php",
+        pvInfo: {},
+        conflict: {},
+        find: { open: false, i: 0 },
+        exSel: null,
+        dmode: "data",
+        grid: null,
       });
-    }
-    if (!ex)
-      R.unshift({
-        name,
-        files: S.files.length,
-        when: "à l’instant",
-        saved: false,
-      });
-    S.mode = "work";
-    S.view = "code";
-    log("i", `Projet « ${name} » ouvert`);
-    if (S.active && S.files.some((f) => f.path === S.active))
-      await A.openFile(S.active);
-    else if (S.files.some((f) => f.path === "/index.php"))
-      await A.openFile("/index.php");
-    else draw();
-    toast(`« ${name} » ouvert`);
+      if (r.initialized) {
+        S.applied = new Set(["/index.php"]);
+        S.savedAt = null;
+      }
+      S.pvSessions = [sessions()[0].id];
+      progress("Lecture des fichiers du projet…");
+      resetEditor();
+      await refreshFiles();
+      progress("Restauration de vos onglets et brouillons…");
+      const saved = await eng().projects.loadWorkspace();
+      if (saved) {
+        S.vdirs = new Set(saved.vdirs ?? []);
+        Object.assign(S, {
+          db: saved.db ?? r.defaultDB ?? "test",
+          qtext: saved.query ?? "SELECT 1;",
+          hist: saved.queryHistory ?? [],
+          table: saved.table ?? null,
+          tabs: saved.tabs ?? [],
+          active: saved.active ?? null,
+          base: saved.base ?? {},
+          drafts: saved.drafts ?? {},
+          pos: saved.pos ?? {},
+          layouts: saved.layouts ?? {},
+          layoutDB: null,
+          hue: saved.hue ?? {},
+        });
+      }
+      if (!ex)
+        R.unshift({
+          name,
+          files: S.files.length,
+          when: "à l’instant",
+          saved: false,
+        });
+      progress("Ouverture de votre espace de travail…");
+      S.mode = "work";
+      S.view = "code";
+      log("i", `Projet « ${name} » ouvert`);
+      if (S.active && S.files.some((f) => f.path === S.active))
+        await A.openFile(S.active);
+      else if (S.files.some((f) => f.path === "/index.php"))
+        await A.openFile("/index.php");
+      else draw();
+      toast(`« ${name} » ouvert`);
+    });
   },
   async nav(v) {
     if (!S.project) return;

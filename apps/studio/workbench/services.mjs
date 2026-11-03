@@ -194,7 +194,7 @@ export function createStudioServices() {
           }).format(new Date(p.updatedAt)),
           saved: true,
         })),
-      async open(name, template) {
+      async open(name, template, progress = () => {}) {
         if (opening || hub)
           throw Error("Un projet est déjà ouvert ou en cours d’ouverture.");
         opening = true;
@@ -205,7 +205,9 @@ export function createStudioServices() {
             );
           if (hub)
             throw Error("Fermez le projet courant avant d’en ouvrir un autre.");
+          progress("Préparation du moteur PHP…");
           await initWorker();
+          progress("Ouverture du stockage du projet…");
           hub = await ProjectHub.open(name);
           sqlReady = false;
           memory = null;
@@ -230,6 +232,7 @@ export function createStudioServices() {
               expected: null,
             });
           if (template === "demo" && !(await paths()).length) {
+            progress("Création des fichiers du Campus…");
             const { files } = await import("../school-demo.mjs");
             for (const [path, text] of Object.entries(files))
               await runtime().call("write", {
@@ -237,6 +240,7 @@ export function createStudioServices() {
                 data: text,
                 expected: null,
               });
+            progress("Installation des données du Campus…");
             const installed = await runtime().request({
               script: "/workspace/install.php",
             });
@@ -244,6 +248,7 @@ export function createStudioServices() {
               throw Error(
                 installed.stderr || "Installation scolaire impossible.",
               );
+            progress("Préparation des sessions de démonstration…");
             const first = [...hub.sessions.sessions.values()][0];
             first.label = "Administration";
             for (const label of ["Professeur", "Élève", "Parent"])
