@@ -125,6 +125,36 @@ try {
   });
   assert.equal((await state()).pending, 0);
   checks.push("Ctrl+S saves file and project together");
+  const [archive, simultaneous] = await Promise.all([
+    page.waitForEvent("download"),
+    page.evaluate(async () => {
+      const { A, ctx } = await import("/apps/studio/workbench/state.mjs");
+      const original = ctx.engine.projects.save;
+      let checkpoints = 0;
+      ctx.engine.projects.save = async () => {
+        checkpoints++;
+        return original();
+      };
+      try {
+        const first = A.save(),
+          second = A.save();
+        const sameOperation = first === second;
+        const [saved] = await Promise.all([first, second, A.exportZip()]);
+        return { sameOperation, saved, checkpoints };
+      } finally {
+        ctx.engine.projects.save = original;
+      }
+    }),
+  ]);
+  assert.ok(await archive.path());
+  assert.deepEqual(simultaneous, {
+    sameOperation: true,
+    saved: true,
+    checkpoints: 1,
+  });
+  checks.push(
+    "simultaneous saves share one checkpoint and ZIP waits for restart",
+  );
   await action("newFile", "/pages");
   await page.locator("#newEntryName").fill("contact.php");
   await page.locator("#newEntryName").press("Enter");
@@ -312,6 +342,15 @@ try {
     );
     assert.equal(overflow, false, "mobile page overflow");
     await shot("mobile-" + theme);
+    await page.setViewportSize({ width: 320, height: 844 });
+    await audit("mobile 320 " + theme);
+    assert.equal(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth > innerWidth,
+      ),
+      false,
+    );
+    await shot("mobile-320-" + theme);
     await page.setViewportSize({ width: 1440, height: 1000 });
   }
   await page.keyboard.press("Alt");

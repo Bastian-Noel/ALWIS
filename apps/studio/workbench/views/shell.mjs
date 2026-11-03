@@ -34,6 +34,7 @@ import { drawDock } from "./dock.mjs";
 import { ui } from "../icons.mjs";
 import { unusedArchiveName } from "../project-name.mjs";
 let launcherExpanded = false;
+let projectSavePromise = null;
 
 const VIEWS = [
   ["code", "Code", '<path d="M8 8l-5 4 5 4M16 8l5 4-5 4M14 5l-4 14"/>'],
@@ -76,7 +77,11 @@ export function drawShell() {
   document
     .querySelectorAll(".project-transfer")
     .forEach((e) => (e.hidden = !w));
-  $("#themeBtn").textContent = S.theme === "dark" ? "Clair" : "Sombre";
+  $("#themeBtn").innerHTML =
+    '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16Z" fill="currentColor"/></svg>';
+  $("#themeBtn").title =
+    S.theme === "dark" ? "Activer le thème clair" : "Activer le thème sombre";
+  $("#themeBtn").setAttribute("aria-label", $("#themeBtn").title);
   if (w) {
     const p = persistState();
     $("#ladder").innerHTML = p.l.map((c) => `<i class="${c}"></i>`).join("");
@@ -87,6 +92,10 @@ export function drawShell() {
       a = S.applied.size + (S.dbDirty ? 1 : 0),
       b = $("#primary");
     b.disabled = !d && !a;
+    b.setAttribute(
+      "aria-label",
+      d || a ? "Enregistrer le projet" : "Projet enregistré",
+    );
     b.innerHTML = `${ui.save}<span>${d || a ? "Enregistrer" : "Enregistré"}</span>`;
     b.title =
       "Enregistre tous les brouillons et conserve le projet dans ce navigateur.";
@@ -197,16 +206,14 @@ Object.assign(A, {
         icon: ui.folder,
         description: "Revenir à l’accueil pour ouvrir ou créer un projet",
       },
-      ...recent
-        .slice(0, 8)
-        .map((r) => ({
-          label: esc(r.name),
-          act: "switchProject",
-          arg: r.name,
-          icon: ui.folder,
-          description:
-            "Ouvrir ce projet — les modifications en cours seront proposées à l’enregistrement",
-        })),
+      ...recent.slice(0, 8).map((r) => ({
+        label: esc(r.name),
+        act: "switchProject",
+        arg: r.name,
+        icon: ui.folder,
+        description:
+          "Ouvrir ce projet — les modifications en cours seront proposées à l’enregistrement",
+      })),
       "-",
       {
         label: "Exporter le projet en ZIP",
@@ -391,30 +398,46 @@ Object.assign(A, {
   async primary() {
     await A.save();
   },
-  async save() {
-    if (S.saving) return false;
+  save() {
+    // Every caller waits for the same checkpoint and runtime restart.
+    if (projectSavePromise) return projectSavePromise;
     S.saving = true;
     S.saveFail = false;
-    const ok = await task("Sauvegarde du projet", async () => {
-      if (!(await A.applyAll()))
-        throw Error("Certains brouillons n’ont pas pu être enregistrés.");
-      await eng().db.close();
-      await eng().projects.save();
-      await ctx.persist?.();
-      return true;
+    projectSavePromise = (async () => {
+      try {
+        // Keep the precise file-conflict diagnostic produced by apply().
+        if (!(await A.applyAll())) {
+          S.saveFail = true;
+          return false;
+        }
+        const ok = await task("Sauvegarde du projet", async () => {
+          await eng().db.close();
+          await eng().projects.save();
+          await ctx.persist?.();
+          return true;
+        });
+        if (!ok) {
+          S.saveFail = true;
+          return false;
+        }
+        S.applied.clear();
+        S.dbDirty = false;
+        S.savedAt = Date.now();
+        log("i", "Projet sauvegardé dans le navigateur");
+        toast("Projet sauvegardé dans ce navigateur");
+        return true;
+      } catch (error) {
+        S.saveFail = true;
+        fail("Enregistrement impossible.", error);
+        return false;
+      } finally {
+        S.saving = false;
+        ctx.draw();
+      }
+    })().finally(() => {
+      projectSavePromise = null;
     });
-    S.saving = false;
-    if (!ok) {
-      S.saveFail = true;
-      ctx.draw();
-      return;
-    }
-    S.applied.clear();
-    S.dbDirty = false;
-    S.savedAt = Date.now();
-    log("i", "Projet sauvegardé dans le navigateur");
-    ctx.draw();
-    toast("Projet sauvegardé dans ce navigateur");
+    return projectSavePromise;
   },
   persist(_, el) {
     const pending = drafts().length || S.applied.size || S.dbDirty;
@@ -423,6 +446,7 @@ Object.assign(A, {
     });
   },
   async exportZip() {
+    if (projectSavePromise && !(await projectSavePromise)) return;
     if (!(await A.applyAll())) return;
     await eng().projects.exportZip();
     toast("Export ZIP : fichiers et bases actives (sessions exclues)");

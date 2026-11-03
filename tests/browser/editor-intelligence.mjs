@@ -114,7 +114,12 @@ try {
       // A real formatter, not just line indentation. One undo restores the draft.
       const unformatted = "<?php foreach($items as $item){echo $item;}";
       await set("/test.php", unformatted);
-      await page.getByRole("button", { name: "Formater", exact: true }).click();
+      await page
+        .getByRole("button", {
+          name: "Mettre en forme le fichier",
+          exact: true,
+        })
+        .click();
       await page.waitForFunction(() =>
         document
           .querySelector("#test")
@@ -130,6 +135,7 @@ try {
         unformatted,
       );
       await set("/test.js", "if(true){console.log('ok');}");
+      await page.evaluate(() => window.model.chooseIndent());
       await page.getByLabel("Indentation du code").selectOption("tabs");
       assert.equal(await page.evaluate(() => window.model.format()), true);
       assert.match(

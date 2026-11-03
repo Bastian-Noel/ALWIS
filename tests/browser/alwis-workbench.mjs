@@ -320,18 +320,27 @@ try {
       });
       await page.locator("#ed1 .cm-content").fill('<?php echo "saved";');
       await page.locator("#ed1 .cm-content").press("Control+s");
-      await page.evaluate(async () => {
-        const { A } = await import("/apps/studio/workbench/state.mjs");
-        await A.save();
+      await page.waitForFunction(async () => {
+        const { S } = await import("/apps/studio/workbench/state.mjs");
+        return !S.saving && S.lamp !== "busy";
       });
+      assert.equal(
+        await page.evaluate(async () => {
+          const { S } = await import("/apps/studio/workbench/state.mjs");
+          return S.saveFail;
+        }),
+        false,
+        "Ctrl+S must finish saving the whole project",
+      );
       console.log(name, checks.length + 1);
       checks.push("save and engine restart");
-      const archivePromise = page.waitForEvent("download");
-      await page.evaluate(async () => {
-        const { A } = await import("/apps/studio/workbench/state.mjs");
-        await A.exportZip();
-      });
-      const archive = await archivePromise;
+      const [archive] = await Promise.all([
+        page.waitForEvent("download"),
+        page.evaluate(async () => {
+          const { A } = await import("/apps/studio/workbench/state.mjs");
+          await A.exportZip();
+        }),
+      ]);
       const path = await archive.path();
       assert.ok(path);
       console.log(name, checks.length + 1);
