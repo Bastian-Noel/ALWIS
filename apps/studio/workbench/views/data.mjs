@@ -7,7 +7,6 @@ import {
   toast,
   menu,
   ddl,
-  modal,
   confirmDlg,
   mkEditor,
   sqlHtml,
@@ -53,6 +52,8 @@ export async function loadCatalog() {
   if (!S.table || !cur()) S.table = S.cat.tables[0]?.name ?? null;
 }
 export async function loadRows() {
+  // Row indexes identify only the currently displayed result.
+  S.sel = new Set();
   const t = cur();
   if (!t || S.dmode === "sql") {
     S.grid = null;
@@ -90,6 +91,10 @@ export async function refreshDb({ rows = true } = {}) {
     S.db = S.dbs.find((d) => !d.system)?.name ?? S.dbs[0]?.name;
   await loadCatalog();
   if (rows) await loadRows();
+}
+async function readRows(label) {
+  await task(label, loadRows);
+  ctx.draw();
 }
 async function run(label, fn) {
   const r = await task(label, async () => {
@@ -231,6 +236,10 @@ function dataHtml(t) {
 }
 function afterGrid() {
   if (!S.cell && S.grid?.rows.length) S.cell = { r: 0, c: 0 };
+  if (S.cell && S.grid?.rows.length) {
+    S.cell.r = Math.min(S.cell.r, S.grid.rows.length - 1);
+    S.cell.c = Math.min(S.cell.c, S.grid.columns.length - 1);
+  }
   const c = S.cell;
   if (c) {
     const td = $(`#gw td[data-r="${c.r}"][data-c="${c.c}"]`);
@@ -395,18 +404,18 @@ Object.assign(A, {
   async sort(c) {
     S.sort = S.sort?.c === c && S.sort.d === 1 ? { c, d: -1 } : { c, d: 1 };
     S.page = 1;
-    await run("Tri", async () => {});
+    await readRows("Tri");
   },
   async page(d) {
     S.page = Math.max(1, S.page + +d);
-    await run("Page", async () => {});
+    await readRows("Page");
   },
   async searchRows() {
     S.search = $("#dataSearch").value.trim();
     S.page = 1;
     S.sel = new Set();
     S.cell = null;
-    await run("Recherche dans la table", async () => {});
+    await readRows("Recherche dans la table");
     $("#dataSearch")?.focus();
   },
   async searchReset() {
@@ -414,7 +423,7 @@ Object.assign(A, {
     S.page = 1;
     S.sel = new Set();
     S.cell = null;
-    await run("Recherche dans la table", async () => {});
+    await readRows("Recherche dans la table");
     $("#dataSearch")?.focus();
   },
   async filterApply() {
@@ -423,14 +432,14 @@ Object.assign(A, {
     S.filter = c ? { c, op: $("#fop").value, v: $("#fval").value } : null;
     S.page = 1;
     S.sel = new Set();
-    await run("Filtre", async () => {});
+    await readRows("Filtre");
   },
   async filterReset() {
     S.filter = null;
     S.page = 1;
     S.sel = new Set();
     S.cell = null;
-    await run("Filtre", async () => {});
+    await readRows("Filtre");
   },
   rowSel(i, el) {
     el.checked ? S.sel.add(+i) : S.sel.delete(+i);
@@ -988,56 +997,6 @@ Object.assign(A, {
     S.dbDirty = true;
     ctx.draw();
   },
-  async insertAdvanced() {
-    const t = cur();
-    const body = t.columns
-      .map(
-        (c) =>
-          `<div class="field"><span>${esc(c.name)} <span class="mut">${esc(c.type)}${c.key === "PRI" ? " · clé" : ""}</span></span><div style="display:grid;grid-template-columns:130px 1fr;gap:6px"><select class="in" data-kind="${esc(c.name)}" style="width:100%"><option value="def">DEFAULT</option><option value="null" ${c.nullable ? "" : "disabled"}>NULL</option><option value="text">Texte</option><option value="hex">Binaire (hex)</option></select><input class="in" data-val="${esc(c.name)}" disabled aria-label="Valeur de ${esc(c.name)}"></div></div>`,
-      )
-      .join("");
-    const r = await modal({
-      title: `Insérer une ligne dans ${esc(t.name)}`,
-      wide: 1,
-      body:
-        `<p class="hint" style="margin-bottom:10px">DEFAULT laisse la base choisir. NULL reste distinct du texte vide.</p>` +
-        body,
-      actions: [
-        { label: "Annuler", v: "no" },
-        { label: "Insérer", v: "ok", kind: "pri" },
-      ],
-      onOpen(d) {
-        d.addEventListener("change", (e) => {
-          const k = e.target.dataset.kind;
-          if (k) {
-            const i = $(`[data-val="${CSS.escape(k)}"]`, d);
-            i.disabled = !["text", "hex"].includes(e.target.value);
-            if (!i.disabled) i.focus();
-          }
-        });
-      },
-    });
-    if (r !== "ok") return;
-    const cols = [],
-      vals = [];
-    for (const c of t.columns) {
-      const k = $(`[data-kind="${CSS.escape(c.name)}"]`).value,
-        v = $(`[data-val="${CSS.escape(c.name)}"]`).value;
-      if (k === "def") continue;
-      cols.push(c.name);
-      vals.push(
-        k === "null"
-          ? null
-          : /int|decimal/i.test(c.type) && v !== "" && !isNaN(v)
-            ? Number(v)
-            : v,
-      );
-    }
-    await run("Insertion", async () => {
-      await sql(G.insert(t.name, cols, vals));
-    });
-    toast("Ligne insérée");
-  },
   /* console SQL */
   async runSQL(selection) {
     if (S.toolModes?.sql === "sleep")
@@ -1156,7 +1115,10 @@ export function bindData() {
     const td = e.target.closest("td[data-c]");
     if (td && !td.classList.contains("edit") && S.dmode === "data") {
       S.cell = { r: +td.dataset.r, c: +td.dataset.c };
-      $$("#gw td.cur").forEach((x) => x.classList.remove("cur"));
+      $$("#gw td.cur").forEach((x) => {
+        x.classList.remove("cur");
+        x.tabIndex = -1;
+      });
       td.classList.add("cur");
       td.tabIndex = 0;
       td.focus();
@@ -1194,8 +1156,12 @@ export function bindData() {
         return;
       }
       S.cell = { r: Math.max(0, nr), c: Math.max(0, Math.min(cols - 1, nc)) };
-      drawData();
-      $(`#gw td[data-r="${S.cell.r}"][data-c="${S.cell.c}"]`)?.focus();
+      $$("#gw td.cur").forEach((cell) => {
+        cell.classList.remove("cur");
+        cell.tabIndex = -1;
+      });
+      S.focus = "cell";
+      afterGrid();
     };
     if (e.key === "ArrowDown") mv(r + 1, c);
     else if (e.key === "ArrowUp") mv(r - 1, c);

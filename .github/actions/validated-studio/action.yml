@@ -50,6 +50,7 @@ runs:
         node tests/browser/alwis-workbench.mjs
         node tests/browser/mysqli-complete.mjs
         node tests/browser/database-stability.mjs
+        node tests/browser/data-integrity.mjs
         node tests/browser/alwis-accessibility.mjs
         node tests/browser/keyboard.mjs
         node tests/browser/workspace-design.mjs

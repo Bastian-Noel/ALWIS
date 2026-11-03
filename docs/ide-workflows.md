@@ -81,6 +81,8 @@ Les outils secondaires et le réglage d’indentation se trouvent dans **…** a
 
 Dans **Données**, cherchez une table dans le volet de gauche. La recherche au-dessus de la grille porte sur toutes les colonnes et toutes les lignes de la table, y compris les pages suivantes. Vous pouvez la combiner avec **Filtrer par colonne**.
 
+La sélection des lignes est réinitialisée après un tri, un changement de page ou un rechargement des données : vérifiez votre sélection avant une suppression. Les flèches déplacent le focus dans la grille en conservant la ligne de saisie en cours.
+
 Pour créer une relation, ouvrez **Schéma → Relier des tables** ou **Données → Structure → Relation**. Choisissez les deux tables, puis la clé référencée et les colonnes correspondantes. Les clés composées sont proposées ensemble. Les comportements à la suppression et à la modification restent dans les options ; la requête SQL est consultable à la demande.
 
 ## Importer un ZIP
