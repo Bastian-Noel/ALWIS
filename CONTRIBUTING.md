@@ -17,3 +17,5 @@ Avant contribution : exécuter les tests unitaires, les parcours navigateur affe
 Les tâches restantes sont centralisées dans [le guide](docs/README.md). Les notes des releases constituent l’historique des distributions. Une validation locale ne garantit pas l’état d’une release publiée.
 
 Aucune licence globale du projet n’a été choisie ici. Préserver les licences des composants amont et THIRD-PARTY.txt généré. Les dossiers build-work/, sources/, upstream/ et node_modules/ sont restaurés ou générés et restent hors Git.
+
+Après validation d’un moteur recompilé et commit de ses sources, `python3 scripts/manifest-native-build.py` prépare les fichiers, le manifeste et les SHA-256 dans build-work/native-distribution/. Les reçus doivent correspondre au hash exact du WASM.

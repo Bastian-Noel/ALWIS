@@ -44,6 +44,7 @@ export function download(bytes, name, type = "application/octet-stream") {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 export function createStudioServices() {
+  let opening = false;
   let hub = null,
     recents = [],
     sqlReady = false,
@@ -194,51 +195,71 @@ export function createStudioServices() {
           saved: true,
         })),
       async open(name, template) {
-        if (!/^[A-Za-z0-9_-]{1,64}$/.test(name))
-          throw Error(
-            "Nom de projet : 1 à 64 lettres, chiffres, tirets ou underscore.",
-          );
-        if (hub)
-          throw Error("Fermez le projet courant avant d’en ouvrir un autre.");
-        await initWorker();
-        hub = await ProjectHub.open(name);
-        sqlReady = false;
-        memory = null;
-        hub.onRequest = (r) =>
-          emit("request", {
-            ...r,
-            session: r.session,
-            t: new Date().toLocaleTimeString("fr"),
-            ms: Math.round(r.durationMs),
+        if (opening || hub)
+          throw Error("Un projet est déjà ouvert ou en cours d’ouverture.");
+        opening = true;
+        try {
+          if (!/^[A-Za-z0-9_-]{1,64}$/.test(name))
+            throw Error(
+              "Nom de projet : 1 à 64 lettres, chiffres, tirets ou underscore.",
+            );
+          if (hub)
+            throw Error("Fermez le projet courant avant d’en ouvrir un autre.");
+          await initWorker();
+          hub = await ProjectHub.open(name);
+          sqlReady = false;
+          memory = null;
+          hub.onRequest = (r) =>
+            emit("request", {
+              ...r,
+              session: r.session,
+              t: new Date().toLocaleTimeString("fr"),
+              ms: Math.round(r.durationMs),
+            });
+          hub.onDiagnostic = (message, details) =>
+            emit("log", { l: "e", msg: message, detail: details });
+          navigator.serviceWorker.controller.postMessage({
+            type: "pbl-owner",
+            project: name,
           });
-        hub.onDiagnostic = (message, details) =>
-          emit("log", { l: "e", msg: message, detail: details });
-        navigator.serviceWorker.controller.postMessage({
-          type: "pbl-owner",
-          project: name,
-        });
-        archives = projectArchives(hub, paths);
-        if (template === "empty" && !(await paths()).length)
-          await runtime().call("write", {
-            path: validPath("/index.php"),
-            data: '<?php\necho \"Bienvenue dans ALWIS\";\n',
-            expected: null,
-          });
-        if (template === "demo" && !(await paths()).length) {
-          const { files } = await import("../school-demo.mjs");
-          for (const [path, text] of Object.entries(files))
+          archives = projectArchives(hub, paths);
+          if (template === "empty" && !(await paths()).length)
             await runtime().call("write", {
-              path: validPath("/" + path.replace(/^\//, "")),
-              data: text,
+              path: validPath("/index.php"),
+              data: '<?php\necho \"Bienvenue dans ALWIS\";\n',
               expected: null,
             });
+          if (template === "demo" && !(await paths()).length) {
+            const { files } = await import("../school-demo.mjs");
+            for (const [path, text] of Object.entries(files))
+              await runtime().call("write", {
+                path: validPath("/" + path.replace(/^\//, "")),
+                data: text,
+                expected: null,
+              });
+          }
+          await remember();
+          await measure();
+          return {
+            name,
+            initialized: template === "demo" || template === "empty",
+          };
+        } catch (error) {
+          if (hub) {
+            const failed = hub;
+            hub = null;
+            try {
+              await failed.close({ save: false });
+            } catch {}
+            navigator.serviceWorker.controller?.postMessage({
+              type: "pbl-release",
+              project: failed.key,
+            });
+          }
+          throw error;
+        } finally {
+          opening = false;
         }
-        await remember();
-        await measure();
-        return {
-          name,
-          initialized: template === "demo" || template === "empty",
-        };
       },
       async save() {
         await hub.saveAndRestart();

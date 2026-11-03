@@ -406,10 +406,9 @@ export function mkEditor(root, { lang, onInput, onRun, onSave, onCursor }) {
     },
   };
   editors.add(result);
-  eng()
-    ?.fs.context()
+  (lang === "sql" ? Promise.resolve(null) : eng()?.fs.context())
     .then((context) => {
-      if (editors.has(result)) model.setProjectContext(context);
+      if (context && editors.has(result)) model.setProjectContext(context);
     })
     .catch(() => {});
   return result;

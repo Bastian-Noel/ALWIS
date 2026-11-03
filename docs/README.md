@@ -146,3 +146,5 @@ La grille distingue les valeurs exactes ; les binaires s’affichent en hexadéc
 « Enregistrer » applique les brouillons aux fichiers lus par PHP. « Sauvegarder » conserve le projet dans ce navigateur et redémarre le moteur. « Fermer sans sauvegarder » abandonne les modifications du moteur depuis le dernier checkpoint ; les brouillons locaux restent récupérables. Le ZIP inclut les fichiers et les bases utilisateur, même lorsque SQL est dormant après une sauvegarde. Les sessions clientes restent exclues des ZIP.
 
 Les anciens ZIP applicatifs publiés avant ALWIS gardent leur interface d’origine. Les captures actuelles sont celles du code source ALWIS ; elles ne modifient pas rétroactivement ces versions.
+
+[Consolidation PDO/MySQLi et cycle des projets](../packages/php-native/stability.md) : défaut reproduit de réservation des buffers, contrôles de transactions et curseurs, ouverture concurrente et optimisation du montage de la console SQL.

@@ -34,3 +34,7 @@ L’initialisation installe désormais les définitions officielles des tables s
 ## Lot PHP essentiel et transactions partielles
 
 `php-database-essentials.php` vérifie types PDO, stringify, bornes des entiers, références relues à l'exécution, LOB, comptage des lignes et rollback. MySQLi ajoute `savepoint` et `release_savepoint` dans les deux styles d'appel, identifiants avec backtick échappé, refus des noms vides/NUL et récupération après un savepoint inexistant. Les deux extensions partagent les mêmes données. Voir [le reçu et les limites](../../engine/fusion/PHP-ESSENTIALS-RECEIPT.md).
+
+## Consolidation des propriétaires
+
+Les chunks MySQLi `send_long_data` sont libérés dès la fermeture de leur connexion, même lorsque PHP garde les objets de statements vivants. La nouvelle [suite de stabilité](stability.md) exerce aussi PDO natif/émulé, erreurs, transactions, curseurs et rollback inter-pilotes sur douze requêtes successives. Les compteurs reviennent à zéro ; les limites de compatibilité décrites plus haut restent applicables.

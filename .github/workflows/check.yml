@@ -37,3 +37,4 @@ jobs:
             apps/studio/receipts/editor/*.json
             apps/studio/receipts/editor/*.png
             engine/fusion/receipts/mysqli-complete/*.json
+            engine/fusion/receipts/database-stability/*.json

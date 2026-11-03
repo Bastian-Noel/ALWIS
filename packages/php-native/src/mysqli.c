@@ -69,11 +69,14 @@ static void connection_info(zval *object)
     else { snprintf(text,sizeof(text),"%llu",(unsigned long long)id); zend_update_property_string(connection_ce,Z_OBJ_P(object),"insert_id",9,text); }
     zval affected_value;if(affected==(my_ulonglong)-1)ZVAL_LONG(&affected_value,-1);else unsigned_value(affected,&affected_value);zend_update_property(connection_ce,Z_OBJ_P(object),"affected_rows",13,&affected_value);zval_ptr_dtor(&affected_value);
 }
+static void clear_long_data(native_statement *object);
 static void close_connection(native_connection *connection)
 {
     for(native_result *result=connection->streams;result;result=result->next){if(result->stream)mysql_free_result(result->stream);result->stream=NULL;result->cancelled=true;}
     for (native_statement *stmt=connection->statements;stmt;stmt=stmt->next) {
         if (stmt->stmt) { pbl_stmt_close(stmt->stmt); stmt->stmt=NULL; }
+        /* Chunks are owned strings: release them without invoking user-bound destructors here. */
+        clear_long_data(stmt);
     }
     if (connection->mysql) { pbl_mysql_close(connection->mysql); connection->mysql=NULL; if(mysqli_links)mysqli_links--; }
 }

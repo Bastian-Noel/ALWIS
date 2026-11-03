@@ -26,6 +26,16 @@ try {
       page.on("pageerror", (e) => errors.push(e.message));
       await page.goto(`http://127.0.0.1:${server.address().port}/`);
       await page.locator("#stext").filter({ hasText: "Prêt" }).waitFor();
+      const opening = await page.evaluate(async () => {
+        const { ctx } = await import("/apps/studio/workbench/state.mjs");
+        const results = await Promise.allSettled([
+          ctx.engine.projects.open("opening-guard", "empty"),
+          ctx.engine.projects.open("opening-guard-second", "empty"),
+        ]);
+        await ctx.engine.projects.close({ save: false });
+        return results.map((r) => r.status);
+      });
+      assert.deepEqual(opening, ["fulfilled", "rejected"]);
       await page.locator("#pn").fill("alwis-" + crypto.randomUUID());
       await page.locator("[data-act=create]").click();
       await page.locator("#ed1 .cm-content").waitFor();

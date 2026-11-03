@@ -511,7 +511,7 @@ export function bindShell() {
   });
   $("#pn").addEventListener("input", drawLauncher);
   $("#pn").addEventListener("keydown", (e) => {
-    if (e.key === "Enter") A.create();
+    if (e.key === "Enter" && S.lamp !== "busy") A.create();
   });
   $("#zipIn").addEventListener("change", async (e) => {
     const files = [...e.target.files];
