@@ -376,6 +376,15 @@ export function mkEditor(root, { lang, onInput, onRun, onSave, onCursor }) {
         model.setPath(path);
       }
       root.value = text ?? "";
+      if ((l === "sql" || current.endsWith(".sql")) && S.cat)
+        model.setSQLSchema(
+          {
+            [S.db]: Object.fromEntries(
+              S.cat.tables.map((t) => [t.name, t.columns.map((c) => c.name)]),
+            ),
+          },
+          S.db,
+        );
       select();
     },
     get: () => root.value,

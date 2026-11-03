@@ -4,6 +4,7 @@
   "version": "156.0.8078.4",
   "checks": [
     "real SQL scripts, exact decimal and binary",
+    "live catalog completion in the SQL editor",
     "complete column form applied to native MariaDB",
     "column modification preserves default/comment and composite keys",
     "invalid type retains input and blocks invalid DDL",

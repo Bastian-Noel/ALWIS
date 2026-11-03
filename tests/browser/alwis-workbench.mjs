@@ -63,6 +63,15 @@ try {
       await page.locator("#rsb td").filter({ hasText: "0x00ff" }).waitFor();
       console.log(name, checks.length + 1);
       checks.push("real SQL scripts, exact decimal and binary");
+      await page.locator("#edq .cm-content").fill("SELECT * FROM al_");
+      await page.locator("#edq .cm-content").press("Control+End");
+      await page.keyboard.press("Control+Space");
+      await page
+        .locator(".cm-tooltip-autocomplete li")
+        .filter({ hasText: "al_child" })
+        .waitFor();
+      await page.keyboard.press("Escape");
+      checks.push("live catalog completion in the SQL editor");
       await page.locator("[data-act=selectTable][data-arg=al_child]").click();
       await settled();
       await page.locator("[data-act=dmode][data-arg=struct]").click();

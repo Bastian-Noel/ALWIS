@@ -291,6 +291,16 @@ function drawSql(head) {
   drawResults();
 }
 function drawResults() {
+  if (edQ && S.cat)
+    edQ.model.setSQLSchema(
+      {
+        [S.db]: Object.fromEntries(
+          S.cat.tables.map((t) => [t.name, t.columns.map((c) => c.name)]),
+        ),
+      },
+      S.db,
+    );
+
   const b = $("#rsb"),
     r = S.rs;
   if (!b) return;
