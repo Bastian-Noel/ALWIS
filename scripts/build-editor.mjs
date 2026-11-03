@@ -20,6 +20,11 @@ for(const pkg of ['jquery','sizzle'])for(const name of await readdir('node_modul
 await writeFile(`${out}/definitions.json`,JSON.stringify(definitions));
 const packages=JSON.parse(await readFile('package.json','utf8')).dependencies;let notices='ALWIS editor dependencies\n\n';
 for(const name of Object.keys(packages)){for(const file of ['LICENSE','LICENSE.txt','license']){try{notices+=name+' '+packages[name]+'\n'+await readFile('node_modules/'+name+'/'+file,'utf8')+'\n\n';break;}catch(error){if(error.code!=='ENOENT')throw error;}}}
+// The PHP standalone formatter embeds these distributions and their notices.
+for(const name of ['php-parser','linguist-languages'])for(const file of ['LICENSE','ThirdPartyNoticeText.txt']){
+  try{notices+=name+' — '+file+'\n'+await readFile('node_modules/'+name+'/'+file,'utf8')+'\n\n';}
+  catch(error){if(error.code!=='ENOENT')throw error;}
+}
 for(const name of await readdir('apps/studio/editor/licenses'))notices+=name+'\n'+await readFile('apps/studio/editor/licenses/'+name,'utf8')+'\n';
 await writeFile(out+'/THIRD-PARTY.txt',notices);
 const files=[];for(const name of await readdir(out)){const data=await readFile(out+'/'+name);files.push({name,bytes:data.length,sha256:createHash('sha256').update(data).digest('hex')});}
