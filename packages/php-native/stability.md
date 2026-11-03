@@ -38,3 +38,9 @@ python3 scripts/manifest-native-build.py
 ```
 
 Le générateur refuse les sources natives non commitées et les reçus absents, échoués ou portant un autre hash WASM. Il conserve les sources C et leurs en-têtes, la recette, les générateurs et la provenance des adaptations PDO. Le nouveau moteur est distribué via une release technique épinglée ; l’ancien reste disponible. La CI vérifie les sources et les empreintes avant restauration. Cette consolidation n’ajoute pas les six API MySQLi volontairement refusées et ne prétend pas terminer la conformité PDO/MySQLi.
+
+## Build validé du 3 novembre 2026
+
+Le moteur est épinglé sur la release technique [`native-runtime-2026-11-03-stability`](https://github.com/Bastian-Noel/ALWIS/releases/tag/native-runtime-2026-11-03-stability). Son WASM porte l’empreinte SHA-256 `80df46b7b308b33475fde138eb1a295c01ffbf6ac685d17a74209eb224674e0f`. La [CI de la source applicative `a47f701`](https://github.com/Bastian-Noel/ALWIS/actions/runs/41597218729) a réussi : le moteur restauré et le paquet statique ont été vérifiés dans Chromium et Firefox. Les reçus versionnés sont dans `engine/fusion/receipts/database-stability/`.
+
+La distribution utilise uniquement `main` pour les sources et les releases pour les binaires ; aucune branche d’upload n’est nécessaire.

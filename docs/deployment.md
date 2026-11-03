@@ -34,9 +34,7 @@ PLAYWRIGHT_BROWSERS_PATH=/workspace/.cache/ms-playwright node tests/browser/site
 
 Le test charge le paquet statique exact dans Chromium et Firefox : isolation, PHP sans Worker SQL, première connexion PDO et MySQLi, POST exécuté une seule fois, deuxième requête, puis ouverture du studio, exemple, fenêtre cliente et sauvegarde/fermeture. Les résultats sont archivés dans `apps/studio/receipts/deployment/`.
 
-La préparation ne prouve pas une mise en ligne. À ce jalon, aucun déploiement public n'est confirmé : les outils Sites n'étaient pas exposés dans la session de travail. Le paquet est prêt pour la connexion de l'hébergement demandé. Un aperçu public chez un autre fournisseur doit suivre l'accord explicite demandé dans la conversation.
-
-État actualisé pendant le bilan : l'utilisateur a autorisé l'aperçu gratuit Cloudflare. L'exécutable officiel vérifié ne peut pas provisionner le tunnel depuis cet environnement ; la requête API via le proxy renvoie HTTP 403, « Your request was blocked ». Aucun lien ni déploiement Cloudflare n'a été créé. Cette autorisation n'est donc plus le blocage ; l'accès au service l'est.
+La validation du paquet, le transfert FTP et la vérification du domaine public sont trois preuves distinctes. Le workflow FTP publie sur l’hébergement configuré ; l’accès HTTPS et les en-têtes COOP/COEP sont vérifiés seulement si `FTP_PUBLIC_URL` est renseigné. Aucun déploiement Sites ou Cloudflare n’est utilisé.
 
 Les Workers pthreads SQL sont maintenant chargés au premier besoin SQL, et leur nombre reste borné à 16 dans ce profil. Les observations du paquet sont 0 Worker auxiliaire avant SQL, puis 16 créés ; le pic observé vaut 15 sur les deux navigateurs lors du dernier passage. Cela ne constitue pas encore une mesure du gain de RAM globale. Le démarrage conserve la même requête PHP : le compteur écrit avant PDO passe de 1 à 2 sur deux requêtes, sans rejeu automatique.
 
@@ -104,7 +102,11 @@ L'archive `sources-2026-10-31` est une archive de provenance séparée, identifi
 
 Première version publiée : [v0.1.0](https://github.com/Bastian-Noel/ALWIS/releases/tag/v0.1.0), [exécution de versionnement réussie](https://github.com/Bastian-Noel/ALWIS/actions/runs/41334230705).
 
-Préversion actuelle de la refonte IDE : [v0.2.0-preview.2](https://github.com/Bastian-Noel/ALWIS/releases/tag/v0.2.0-preview.2), source `19b6ee0`, [CI réussie](https://github.com/Bastian-Noel/ALWIS/actions/runs/41337154626), [FTP et release réussis](https://github.com/Bastian-Noel/ALWIS/actions/runs/41337170552). La préversion intermédiaire de ce lot et son tag ont été retirés après validation de la version corrigée.
+Préversion actuelle : **[ALWIS v0.3.0-preview.1](https://github.com/Bastian-Noel/ALWIS/releases/tag/v0.3.0-preview.1)**, source `a47f701056a64fe9ef5cd5927787e94c8a2bdd9c`, [CI réussie](https://github.com/Bastian-Noel/ALWIS/actions/runs/41597218729), [build, FTP et release réussis](https://github.com/Bastian-Noel/ALWIS/actions/runs/41597778920) le 3 novembre 2026. Elle contient la nouvelle interface ALWIS et le moteur natif consolidé PDO/MySQLi. Le ZIP applicatif, les reçus de validation et `SHA256SUMS` sont joints à la release. `FTP_PUBLIC_URL` n’étant pas renseigné, le domaine HTTPS et ses en-têtes ne sont pas vérifiés par cette publication.
+
+Les sources restent uniquement sur `main` ; les builds natifs et applicatifs sont conservés dans les releases, sans branche d’upload. Les modifications documentaires ultérieures ne changent pas la révision du paquet publié.
+
+Préversion historique de la refonte IDE : [v0.2.0-preview.2](https://github.com/Bastian-Noel/ALWIS/releases/tag/v0.2.0-preview.2), source `19b6ee0`, [CI réussie](https://github.com/Bastian-Noel/ALWIS/actions/runs/41337154626), [FTP et release réussis](https://github.com/Bastian-Noel/ALWIS/actions/runs/41337170552). La préversion intermédiaire de ce lot et son tag ont été retirés après validation de la version corrigée.
 
 
 ## Accélération CI : artefacts et caches (31 octobre 2026)
