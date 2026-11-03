@@ -1,6 +1,6 @@
 # Contribuer
 
-Node 24, Python 3.12+, Git et npm sont nécessaires au développement. Le serveur du ZIP distribué ne demande que Node 20+.
+Node 24, Python 3.12+, Git, npm et GitHub CLI authentifié sont nécessaires au développement. Le serveur du ZIP distribué ne demande que Node 20+.
 
 ```sh
 npm ci
