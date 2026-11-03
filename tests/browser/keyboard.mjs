@@ -167,7 +167,9 @@ try {
   await page.waitForFunction(() =>
     document.querySelector("#dock").classList.contains("on"),
   );
-  await page.locator("#dock [aria-selected=true]").focus();
+  // Unread errors may open Journal first; start the arrow test from Requêtes.
+  await page.locator("#dock-tab-req").click();
+  await page.locator("#dock-tab-req").focus();
   await page.keyboard.press("ArrowRight");
   await page.keyboard.press("Enter");
   await page.waitForFunction(
