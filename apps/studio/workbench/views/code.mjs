@@ -220,6 +220,8 @@ Object.assign(A, {
     });
   },
   async closeTab(p) {
+    const restoreTabFocus = document.activeElement?.closest("#tabs") &&
+      document.activeElement.dataset.arg === p;
     if (dirty(p)) {
       const r = await modal({
         title: "Fermer ce fichier ?",
@@ -243,6 +245,10 @@ Object.assign(A, {
       edFile = null;
     }
     ctx.draw();
+    if (restoreTabFocus) {
+      const next = $("#tabs [aria-selected=true]") || $('#v-code [data-act="newFile"]');
+      next?.focus({ preventScroll: true });
+    }
   },
   async apply(p = S.active, quiet) {
     if (S.toolModes?.editor === "sleep")
