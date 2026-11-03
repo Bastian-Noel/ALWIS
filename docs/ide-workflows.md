@@ -160,3 +160,5 @@ Le menu du projet permet de **délier le dossier du PC**. Cette action conserve 
 Dans le menu du bouton **Aperçu**, choisissez **Exécuter PHP · sortie texte**. Le panneau **Sortie PHP** présente le résultat et le statut HTTP, avec au plus 64 Kio de texte. L’exécution utilise les fichiers appliqués et la session active ; vous pouvez continuer à éditer pendant son traitement.
 
 Le moteur actuel traite les requêtes du projet en série. Il ne propose pas de daemon PHP permanent ou de processus parallèle indépendant : les autres requêtes attendent, et le garde-fou du moteur termine le worker après un appel de 180 secondes. Cette commande convient aux scripts ponctuels, pas aux boucles infinies ou aux serveurs persistants.
+
+Dans **Sessions**, chaque carte propose **Supprimer** avec confirmation. Les fenêtres du visiteur sont fermées et l’aperçu revient à une session restante. Enregistrez le projet pour conserver la suppression. La dernière session est protégée ; créez-en une autre pour pouvoir la supprimer.

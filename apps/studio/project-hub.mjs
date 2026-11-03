@@ -17,6 +17,17 @@ export class ProjectHub {
   snapshot(){return {format:1,sessions:this.sessions.export()};}
   async saveSessions() { await writeState('sessions:' + this.key, this.sessions.export()); }
   async createSession(label) { const id = this.sessions.create(label); await this.saveSessions(); return id; }
+  async removeSession(id) {
+    if(this.busy)throw Error('Le projet est occupé. Réessayez après l’opération en cours.');
+    const session=this.sessions.get(id);
+    if(this.sessions.sessions.size<=1)throw Error('Conservez au moins une session. Créez-en une autre avant de supprimer celle-ci.');
+    await this.freeze();
+    try {
+      this.sessions.sessions.delete(id);
+      try { await this.saveSessions(); }
+      catch(error) { this.sessions.sessions.set(id,session); throw error; }
+    } finally { this.busy=false; }
+  }
   routeURL(session, path = '/index.php') { return `/__pbl/${encodeURIComponent(this.key)}/${encodeURIComponent(session)}/${path.replace(/^\//, '')}`; }
   route(sessionId,input){
     if(this.lastSaveError)return Promise.resolve(this.error(503,'Sauvegarde échouée. Le propriétaire doit réessayer la sauvegarde avant de reprendre les clients.'));

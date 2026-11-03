@@ -1,6 +1,6 @@
 /** Espace Sessions : une carte par identité (cookies, fenêtres, activité). L'ouverture se fait aussi depuis l'éditeur. */
 import { $, esc, plural, toast, confirmDlg } from "../ui.mjs";
-import { S, A, ctx, eng, log, sessions, sessionOf } from "../state.mjs";
+import { S, A, ctx, eng, log, task, sessions, sessionOf } from "../state.mjs";
 import { ui } from "../icons.mjs";
 
 export function drawSessions() {
@@ -24,7 +24,7 @@ export function drawSessions() {
       <section><h2 class="session-heading">Fenêtres <span class="mut num">${wins.length}</span></h2>${wins.map((w) => `<div class="winrow"><span class="mono grow trunc">${esc(w.path)}</span><button class="btn quiet sm" data-act="closeWin" data-arg="${w.id}">Fermer</button></div>`).join("") || '<p class="hint">Aucune fenêtre ouverte.</p>'}
         <div class="openrow"><input class="in" list="sessionPages" data-wp="${esc(s.id)}" value="${esc(S.pvPath)}" aria-label="Page à ouvrir" spellcheck="false"><button class="btn pri sm" data-act="sesOpen" data-arg="${esc(s.id)}">Ouvrir</button></div></section>
       <section><h2 class="session-heading">Dernières requêtes</h2>${reqs.map((r) => `<div class="req2"><span class="st2 s${String(r.status)[0]} num">${r.status}</span><span class="mono trunc grow">${esc(r.path)}</span><span class="num mut">${r.ms} ms</span></div>`).join("") || '<p class="hint">Rien encore pour cette session.</p>'}</section>
-      <footer><button class="btn sm" data-act="sesPreview" data-arg="${esc(s.id)}" aria-pressed="${inPv}">${inPv ? "Dans l’aperçu" : "Afficher dans l’aperçu"}</button>${caps.removeSession && list.length > 1 ? `<button class="btn quiet sm bad" data-act="sesRemove" data-arg="${esc(s.id)}">Supprimer</button>` : ""}</footer></article>`;
+      <footer><button class="btn sm" data-act="sesPreview" data-arg="${esc(s.id)}" aria-pressed="${inPv}">${inPv ? "Dans l’aperçu" : "Afficher dans l’aperçu"}</button>${caps.removeSession ? `<button class="btn quiet sm bad" data-act="sesRemove" data-arg="${esc(s.id)}" aria-label="Supprimer la session ${esc(s.label)}" title="${list.length > 1 ? "Supprimer cette session" : "Créez une autre session avant de supprimer la dernière"}" ${list.length > 1 ? "" : "disabled"}>${ui.trash} Supprimer</button>` : ""}</footer></article>`;
     })
     .join("");
 }
@@ -90,11 +90,22 @@ Object.assign(A, {
     A.pvReload();
   },
   async sesRemove(id) {
-    await eng().sessions.remove(id);
-    S.pvSessions = S.pvSessions.filter((x) => x !== id);
-    if (!S.pvSessions.length) S.pvSessions = [sessions()[0].id];
-    S.wins = S.wins.filter((w) => w.session !== id);
+    const session=sessionOf(id);
+    if(!session)return;
+    if(sessions().length<=1)return toast("Conservez au moins une session. Créez-en une autre d’abord.");
+    if(!(await confirmDlg("Supprimer la session « "+session.label+" » ?","Ce visiteur et ses cookies seront retirés. Ses fenêtres seront fermées. Les fichiers du projet et les bases de données sont conservés.","Supprimer la session",true)))return;
+    if(!(await task("Suppression de la session", async()=>{await eng().sessions.remove(id);return true;})))return;
+    for(const win of S.wins.filter(w=>w.session===id))win.popup?.close();
+    S.wins = S.wins.filter(w=>w.session!==id);
+    S.pvSessions = S.pvSessions.filter(x=>x!==id);
+    if(!S.pvSessions.length)S.pvSessions=[sessions()[0].id];
+    if(S.pvSessions.length<2)S.pvDouble=false;
+    delete S.pvInfo[id];
+    S.dbDirty=true;
+    log("i","Session supprimée : "+session.label);
     ctx.draw();
+    if(S.pv){const {drawPv}=await import("./code.mjs");drawPv();await A.pvReload();}
+    toast("Session supprimée. Enregistrez le projet pour conserver ce changement.");
   },
   async compare() {
     if (!S.pvDouble) await A.pvDoubleToggle();

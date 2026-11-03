@@ -167,7 +167,7 @@ export function createStudioServices() {
   }
   const services = {
     kind: "native",
-    caps: { removeSession: false, mkdir: false },
+    caps: { removeSession: true, mkdir: false },
     on(type, fn) {
       if (!bus.has(type)) bus.set(type, new Set());
       bus.get(type).add(fn);
@@ -664,6 +664,7 @@ export function createStudioServices() {
             }))
           : [],
       create: (label) => hub.createSession(label),
+      remove: (id) => hub.removeSession(id),
       async rename(session, label) {
         label = String(label).trim();
         if (!label || label.length > 80)
