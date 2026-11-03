@@ -47,7 +47,7 @@ Tout dans le navigateur, avec un éditeur et une base MariaDB.
 
 ## Garder votre travail
 
-**Sauvegarder le projet** conserve votre travail dans ce navigateur.
+**Enregistrer** conserve votre travail dans ce navigateur.
 **Exporter ZIP** crée une copie à garder sur votre ordinateur.
 
 > [!IMPORTANT]

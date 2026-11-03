@@ -6,6 +6,9 @@ const server = createStudioServer();
 await new Promise((r) => server.listen(0, "127.0.0.1", r));
 const browser = await chromium.launch({
   headless: true,
+  ...(process.env.ALWIS_CHROMIUM_PATH
+    ? { executablePath: process.env.ALWIS_CHROMIUM_PATH }
+    : {}),
   args: ["--no-sandbox"],
 });
 try {
@@ -82,7 +85,7 @@ try {
   await page.keyboard.press("ArrowRight");
   assert.equal(
     await page.evaluate(() => document.activeElement.dataset.tool),
-    "Emmet",
+    "Problèmes",
   );
   const active = page.locator("#tabs [aria-selected=true]");
   await active.focus();

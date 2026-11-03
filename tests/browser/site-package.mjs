@@ -19,6 +19,9 @@ try {
   for (const name of (process.argv[2] ?? "chromium,firefox").split(",")) {
     const browser = await pw[name].launch({
       headless: true,
+      ...(name === "chromium" && process.env.ALWIS_CHROMIUM_PATH
+        ? { executablePath: process.env.ALWIS_CHROMIUM_PATH }
+        : {}),
       ...(name === "chromium" ? { args: ["--no-sandbox"] } : {}),
     });
     try {
@@ -107,7 +110,8 @@ try {
       assert.match(await editor.innerText(), /<!doctype html>/i);
       await editor.fill("ul>li*3");
       await editor.press("Control+End");
-      await page.locator('#codeTools button[data-tool="Emmet"]').click();
+      await page.locator("#fileMenuBtn").click();
+      await page.locator('[data-act="editorEmmet"]').click();
       assert.equal((await editor.innerText()).match(/<li>/g)?.length, 3);
       await editor.fill("<?php foreach");
       await editor.press("Control+End");

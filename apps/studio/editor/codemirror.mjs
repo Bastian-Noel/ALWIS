@@ -1,3 +1,4 @@
+import { ui } from "../workbench/icons.mjs";
 import { EditorState, StateField, Compartment } from "@codemirror/state";
 import {
   EditorView,
@@ -152,7 +153,11 @@ export function createCodeEditor(
     if (!text.trim()) {
       closeServices();
       diagnostics([]);
-      status(["html", "htm"].includes(extension) ? "Page HTML : tapez ! puis Entrée pour créer un document en français. Emmet : ul>li*3 puis Tab." : "Écrivez du code pour démarrer l’analyse.");
+      status(
+        ["html", "htm"].includes(extension)
+          ? "Page HTML : tapez ! puis Entrée pour créer un document en français. Emmet : ul>li*3 puis Tab."
+          : "Écrivez du code pour démarrer l’analyse.",
+      );
       return;
     }
     if (text.length > 256 * 1024) {
@@ -596,12 +601,23 @@ export function createCodeEditor(
     ]) {
       const button = document.createElement("button");
       button.type = "button";
-      button.textContent = label;
+      button.innerHTML =
+        label === "Formater"
+          ? ui.format
+          : label === "Problèmes"
+            ? ui.warning + "<span>Problèmes</span>"
+            : label;
+      button.setAttribute(
+        "aria-label",
+        label === "Formater" ? "Mettre en forme le fichier" : label,
+      );
       button.dataset.tool = label;
-      if (label === "Formater")
-        button.title = "Mettre en forme le fichier";
+      if (label === "Formater") button.title = "Mettre en forme le fichier";
+      if (label === "Problèmes")
+        button.title = "Afficher les erreurs et avertissements du fichier";
       if (label === "Emmet")
-        button.title = "HTML : ! puis Entrée crée une page en français ; ul>li*3 puis Tab. CSS : m10 puis Tab.";
+        button.title =
+          "HTML : ! puis Entrée crée une page en français ; ul>li*3 puis Tab. CSS : m10 puis Tab.";
       button.onclick = () => {
         Promise.resolve(run()).catch((error) => status(error.message));
       };
@@ -629,6 +645,7 @@ export function createCodeEditor(
       });
       view.focus();
     };
+    select.hidden = true;
     dom.append(select);
     return dom;
   }
@@ -1305,8 +1322,15 @@ export function createCodeEditor(
             overflow: "auto",
           },
         }),
-        emmetConfig.of({markupStyle: "html", config: {markup: {variables: {lang: "fr"}}}}),
-        toolsPanel.of(toolsHost ? [] : showPanel.of(() => ({ dom: createTools(), top: true }))),
+        emmetConfig.of({
+          markupStyle: "html",
+          config: { markup: { variables: { lang: "fr" } } },
+        }),
+        toolsPanel.of(
+          toolsHost
+            ? []
+            : showPanel.of(() => ({ dom: createTools(), top: true })),
+        ),
         autocompletion({ defaultKeymap: false, interactionDelay: 0 }),
         keymap.of([
           { key: "Tab", run: nextSnippetField },
@@ -1393,7 +1417,11 @@ export function createCodeEditor(
           ...searchKeymap,
           ...completionKeymap.filter((binding) => binding.key !== "Enter"),
         ]),
-        EditorView.contentAttributes.of({ "aria-label": label, "aria-description": "Pour quitter l’éditeur au clavier, appuyez sur Échap puis Tab." }),
+        EditorView.contentAttributes.of({
+          "aria-label": label,
+          "aria-description":
+            "Pour quitter l’éditeur au clavier, appuyez sur Échap puis Tab.",
+        }),
         EditorView.lineWrapping,
         language.of([]),
         editable.of([]),
@@ -1519,11 +1547,33 @@ export function createCodeEditor(
   host.codeEditor = {
     view,
     setPath,
+    chooseIndent: () => {
+      const select = (toolsHost || host).querySelector(
+        '[aria-label="Indentation du code"]',
+      );
+      if (!select) return;
+      select.hidden = false;
+      select.focus();
+      select.onblur = () => {
+        select.hidden = true;
+      };
+      select.onkeydown = (event) => {
+        if (event.key === "Escape") {
+          select.hidden = true;
+          view.focus();
+        }
+      };
+    },
     resetHistory,
     setSQLSchema: (schema, defaultSchema) =>
       view.dispatch({
         effects: language.reconfigure(
-          sql({ dialect: MySQL, schema, defaultSchema, upperCaseKeywords: true }),
+          sql({
+            dialect: MySQL,
+            schema,
+            defaultSchema,
+            upperCaseKeywords: true,
+          }),
         ),
       }),
     updateProjectFile: (path, text) => {

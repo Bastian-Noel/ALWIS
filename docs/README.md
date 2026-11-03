@@ -76,8 +76,7 @@ Les visiteurs partagent le même site et la même base, mais gardent leurs propr
 
 | Action | Résultat |
 |---|---|
-| **Ctrl + S** | Le fichier actif est prêt à être exécuté |
-| **Sauvegarder le projet** | Tous les brouillons et les bases sont conservés dans ce navigateur |
+| **Enregistrer** ou **Ctrl + S** | Tous les brouillons, fichiers et bases sont conservés dans ce navigateur |
 | **Exporter ZIP** | Une copie des fichiers et bases est téléchargée sur le PC |
 
 Sur petit écran, retrouvez le ZIP dans le menu du projet, en haut.

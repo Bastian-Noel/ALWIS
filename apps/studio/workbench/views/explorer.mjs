@@ -1,15 +1,5 @@
 /** Explorateur de fichiers : dossiers repliables, renommage en place, glisser-déposer, menu contextuel, clavier. */
-import {
-  $,
-  $$,
-  esc,
-  plural,
-  toast,
-  menu,
-  ddl,
-  confirmDlg,
-  at,
-} from "../ui.mjs";
+import { $, $$, esc, plural, toast, menu, confirmDlg, at } from "../ui.mjs";
 import { S, A, ctx, eng, log, fail, dirty } from "../state.mjs";
 import { fileIcon, folderIcon, ui, isWeb, fileKind } from "../icons.mjs";
 
@@ -101,10 +91,22 @@ export const visibleRows = () => rows();
 export function drawExplorer() {
   const list = rows(),
     q = S.ff.trim().toLowerCase();
-  const selectedPath = list.some(r => r.path === S.exSel) ? S.exSel : list[0]?.path;
+  if (S.newEntry) {
+    const parent = S.newEntry.dir,
+      parentIndex = list.findIndex((r) => r.path === parent);
+    const depth = parentIndex < 0 ? 0 : list[parentIndex].depth + 1;
+    list.splice(parentIndex + 1, 0, { kind: "new", depth });
+  }
+  const selectedPath = list.some((r) => r.path === S.exSel)
+    ? S.exSel
+    : list[0]?.path;
   $("#tree").innerHTML =
     list
       .map((r) => {
+        if (r.kind === "new") {
+          const entry = S.newEntry;
+          return `<div class="row new-entry" role="treeitem" aria-level="${r.depth + 1}" style="--d:${r.depth}"><span class="chev sp"></span>${entry.kind === "dir" ? folderIcon(true) : fileIcon(entry.value || "nouveau.php")}<div class="entry-input"><input class="ren" id="newEntryName" value="${esc(entry.value)}" placeholder="${entry.kind === "dir" ? "nom-du-dossier" : "nom-du-fichier.php"}" aria-label="Nom du nouveau ${entry.kind === "dir" ? "dossier" : "fichier"}" aria-describedby="newEntryHelp newEntryError" aria-invalid="${!!entry.error}" spellcheck="false" autocomplete="off"><span id="newEntryHelp" class="hint">${esc(entry.dir === "/" ? "À la racine du projet" : entry.dir)} · Entrée pour créer</span><span id="newEntryError" class="hint bad" role="status">${esc(entry.error || "")}</span></div></div>`;
+        }
         const sel = selectedPath === r.path,
           renaming = S.ren === r.path,
           pad = `style="--d:${r.depth}"`;
@@ -121,6 +123,11 @@ export function drawExplorer() {
     `<p class="hint" style="padding:10px 12px">${q ? "Aucun fichier ne correspond." : "Aucun fichier. Créez-en un, ou déposez des fichiers ici."}</p>`;
   $("#treeNote").textContent =
     plural(S.files.length, "fichier", "fichiers") + " · 1 024 maximum";
+  const creating = $("#newEntryName");
+  if (creating) {
+    creating.focus();
+    creating.select();
+  }
   if (S.ren) {
     const i = $("#tree .ren");
     if (i && !i.dataset.f) {
@@ -215,71 +222,87 @@ Object.assign(A, {
           ],
     );
   },
-  async newFile(dir) {
+  newFile(dir) {
+    A.entryStart("file", dir);
+  },
+  newFolder(dir) {
+    A.entryStart("dir", dir);
+  },
+  entryStart(kind, dir) {
     dir =
       typeof dir === "string" && dir
         ? dir
-        : S.exSel && S.files.every((f) => f.path !== S.exSel)
-          ? S.exSel
-          : S.exSel
+        : S.exSel
+          ? S.files.some((f) => f.path === S.exSel)
             ? dirOf(S.exSel)
-            : "/";
-    S.openDirs.add(dir);
-    const r = await ddl({
-      title: "Nouveau fichier",
-      ok: "Créer",
-      fields: [
-        {
-          id: "p",
-          label: "Chemin dans le projet",
-          value: join(dir, "nouveau.php"),
-        },
-      ],
-      check: (v) => checkPath(v.p),
-      sql: (v) => "-- crée " + norm(v.p),
-    });
-    if (!r) return;
-    const p = norm(r.p);
-    try {
-      await eng().fs.write(p, "");
-      S.applied.add(p);
-      await refreshFiles();
-      log("i", "Fichier créé : " + p);
-      S.exSel = p;
-      await A.openFile(p);
-    } catch (e) {
-      fail("Création impossible.", e);
-    }
+            : S.exSel
+          : "/";
+    S.newEntry = { kind, dir, value: "", error: "" };
+    S.ff = "";
+    $("#ff").value = "";
+    S.view = "code";
+    S.exOpen = true;
+    for (let d = dir; d !== "/"; d = dirOf(d)) S.openDirs.add(d);
+    ctx.draw();
   },
-  async newFolder(dir) {
-    dir = typeof dir === "string" && dir ? dir : "/";
-    const r = await ddl({
-      title: "Nouveau dossier",
-      ok: "Créer",
-      fields: [
-        {
-          id: "p",
-          label: "Chemin du dossier",
-          value: join(dir, "nouveau-dossier"),
-        },
-      ],
-      check: (v) => checkPath(v.p),
-      sql: (v) => "-- crée " + norm(v.p) + "/",
-    });
-    if (!r) return;
-    const p = norm(r.p);
-    S.vdirs.add(p);
-    S.openDirs.add(p);
-    S.openDirs.add(dirOf(p));
-    S.exSel = p;
+  entryCancel() {
+    S.newEntry = null;
     drawExplorer();
-    toast(
-      "Dossier créé : il apparaît dans le projet dès qu’il contient un fichier",
+    const row = $$("#tree [data-path]").find(
+      (el) => el.dataset.path === S.exSel,
     );
+    (row || $('#v-code [data-act="newFile"]'))?.focus();
+  },
+  async entryCommit(value) {
+    const entry = S.newEntry;
+    if (!entry || entry.saving) return;
+    entry.value = value.trim();
+    const path = norm(
+      entry.value.startsWith("/") ? entry.value : join(entry.dir, entry.value),
+    );
+    const error =
+      !entry.value || path === "/" ? "Saisissez un nom." : checkPath(path);
+    if (error) {
+      entry.error = error;
+      drawExplorer();
+      return;
+    }
+    entry.saving = true;
+    try {
+      if (entry.kind === "file") {
+        await eng().fs.write(path, "");
+        S.applied.add(path);
+        await refreshFiles();
+      } else S.vdirs.add(path);
+      for (let d = dirOf(path); d !== "/"; d = dirOf(d)) S.openDirs.add(d);
+      S.exSel = path;
+      S.newEntry = null;
+      if (entry.kind === "file") await A.openFile(path);
+      else {
+        S.openDirs.add(path);
+        drawExplorer();
+        $$("#tree [data-path]")
+          .find((el) => el.dataset.path === path)
+          ?.focus();
+        toast("Dossier créé. Ajoutez-y vos fichiers.");
+      }
+      ctx.schedulePersist?.();
+    } catch (error) {
+      entry.saving = false;
+      entry.error = error.message;
+      drawExplorer();
+    }
   },
   renameStart(path) {
     S.ren = path || S.exSel || S.active;
-    if (S.ren) drawExplorer();
+    if (S.ren) {
+      S.view = "code";
+      S.exOpen = true;
+      S.ff = "";
+      $("#ff").value = "";
+      for (let d = dirOf(S.ren); d !== "/"; d = dirOf(d)) S.openDirs.add(d);
+      ctx.draw();
+    }
   },
   async renameCommit(name) {
     const from = S.ren;
@@ -443,11 +466,11 @@ Object.assign(A, {
 
 export function bindExplorer() {
   const tree = $("#tree");
-  tree.addEventListener("focusin", e => {
+  tree.addEventListener("focusin", (e) => {
     if (e.target.matches("[role=treeitem]")) S.exSel = e.target.dataset.path;
   });
   tree.addEventListener("click", (e) => {
-    if (e.target.closest(".acts,.ren")) return;
+    if (e.target.closest(".acts,.ren,.new-entry")) return;
     const r = e.target.closest(".row");
     if (r) A.exClick(r.dataset.path);
   });
@@ -462,7 +485,25 @@ export function bindExplorer() {
     if (e.target.classList?.contains("ren") && S.ren)
       A.renameCommit(e.target.value);
   });
+  tree.addEventListener("input", (e) => {
+    if (e.target.id !== "newEntryName" || !S.newEntry) return;
+    S.newEntry.value = e.target.value;
+    S.newEntry.error = "";
+    e.target.setAttribute("aria-invalid", "false");
+    $("#newEntryError").textContent = "";
+  });
   tree.addEventListener("keydown", (e) => {
+    if (e.target.id === "newEntryName") {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        A.entryCommit(e.target.value);
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        A.entryCancel();
+      }
+      return;
+    }
     if (e.target.classList.contains("ren")) {
       if (e.key === "Enter") {
         e.preventDefault();

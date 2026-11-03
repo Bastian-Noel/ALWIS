@@ -50,7 +50,7 @@ Un petit site scolaire déjà rempli : élèves, cours, notes, messages, bibliot
 
 ## Garder vos essais
 
-Cliquez sur **Sauvegarder le projet**, puis sur **Exporter ZIP** pour une copie sur le PC.
+Cliquez sur **Enregistrer**, puis sur **Exporter ZIP** pour une copie sur le PC.
 Créer un autre Campus ne remplace pas vos projets existants.
 
 <details>

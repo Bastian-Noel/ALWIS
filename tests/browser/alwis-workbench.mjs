@@ -44,7 +44,8 @@ try {
       await page.locator("[data-act=create]").click();
       await page.locator("#ed1 .cm-content").waitFor();
       await page.evaluate(async () => {
-        const {S} = await import('/apps/studio/workbench/state.mjs'); S.db = 'test';
+        const { S } = await import("/apps/studio/workbench/state.mjs");
+        S.db = "test";
       });
       const checks = [];
       const settled = () =>
@@ -247,15 +248,28 @@ try {
           '<?php session_start(); $_SESSION["n"]=($_SESSION["n"]??0)+1; echo "ALWIS-client:".$_SESSION["n"];',
         );
       await page.locator("#ed1 .cm-content").press("Control+s");
-      await page.waitForFunction(() =>
-        document.querySelector("#primary").textContent.includes("Sauvegarder"),
+      await page.waitForFunction(
+        () => document.querySelector("#primary").disabled,
       );
       console.log(name, checks.length + 1);
       await page.locator('#codeTools button[data-tool="Formater"]').click();
-      await page.waitForFunction(() => document.querySelector("#ed1").dataset.serviceStatus.startsWith("Mise en forme terminée"));
-      await page.locator('#codeTools button[data-tool="Emmet"]').waitFor({state: "visible"});
-      await page.locator('#codeTools select[aria-label="Indentation du code"]').waitFor({state: "visible"});
-      checks.push("production CodeMirror snippets, visible formatting and write");
+      await page.waitForFunction(() =>
+        document
+          .querySelector("#ed1")
+          .dataset.serviceStatus.startsWith("Mise en forme terminée"),
+      );
+      await page
+        .locator('#codeTools button[data-tool="Problèmes"]')
+        .waitFor({ state: "visible" });
+      assert.equal(
+        await page
+          .locator('#codeTools select[aria-label="Indentation du code"]')
+          .isVisible(),
+        false,
+      );
+      checks.push(
+        "production CodeMirror snippets, visible formatting and write",
+      );
       await page.locator("#runBtn").click(); // Preview is inline, open real window through the session space.
       await nav("sessions");
       const sid = await page

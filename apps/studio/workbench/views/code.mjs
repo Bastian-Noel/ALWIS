@@ -36,14 +36,18 @@ function tabsHtml() {
   return S.tabs
     .map(
       (t, i) =>
-        `<div class="tab" role="presentation">${fileIcon(t)}<button id="file-tab-${i}" role="tab" aria-description="Flèches pour choisir un onglet, Entrée pour l’ouvrir, Suppr pour le fermer." data-act="openFile" data-arg="${esc(t)}" class="trunc" aria-selected="${t === S.active}" tabindex="${t === S.active ? 0 : -1}" aria-controls="${S.files.find(f=>f.path===t)?.kind === "text" ? "ed1" : "edBin"}" aria-label="${esc(nameOf(t))}${dirty(t) ? ", modifié" : ""}">${esc(nameOf(t))}</button>${dirty(t) ? '<i class="d" title="Brouillon non enregistré"></i>' : ""}<button class="c" tabindex="-1" aria-hidden="true" data-act="closeTab" data-arg="${esc(t)}" aria-label="Fermer ${esc(nameOf(t))}">✕</button></div>`,
+        `<div class="tab" role="presentation">${fileIcon(t)}<button id="file-tab-${i}" role="tab" aria-description="Flèches pour choisir un onglet, Entrée pour l’ouvrir, Suppr pour le fermer." data-act="openFile" data-arg="${esc(t)}" class="trunc" aria-selected="${t === S.active}" tabindex="${t === S.active ? 0 : -1}" aria-controls="${S.files.find((f) => f.path === t)?.kind === "text" ? "ed1" : "edBin"}" aria-label="${esc(nameOf(t))}${dirty(t) ? ", modifié" : ""}">${esc(nameOf(t))}</button>${dirty(t) ? '<i class="d" title="Brouillon non enregistré"></i>' : ""}<button class="c" tabindex="-1" aria-hidden="true" data-act="closeTab" data-arg="${esc(t)}" aria-label="Fermer ${esc(nameOf(t))}">✕</button></div>`,
     )
     .join("");
 }
 export function drawTabs() {
   $("#tabs").innerHTML = tabsHtml();
   for (const panel of [$("#ed1"), $("#edBin")]) {
-    if (S.tabs.includes(S.active)) panel.setAttribute("aria-labelledby", "file-tab-" + S.tabs.indexOf(S.active));
+    if (S.tabs.includes(S.active))
+      panel.setAttribute(
+        "aria-labelledby",
+        "file-tab-" + S.tabs.indexOf(S.active),
+      );
     else panel.removeAttribute("aria-labelledby");
   }
 }
@@ -93,7 +97,7 @@ export function drawCode() {
     if (!ed && !S.editorUnloaded)
       ed = mkEditor($("#ed1"), {
         lang: "php",
-        onSave: () => A.apply(),
+        onSave: () => A.save(),
         onCursor: (l, c) => ($("#pos").textContent = `Ln ${l}, col ${c}`),
         onInput(v) {
           if (v === S.base[S.active]) delete S.drafts[S.active];
@@ -150,6 +154,9 @@ export function drawPv() {
 Object.assign(A, {
   activateEditor() {
     return A.toolState("editor", "active");
+  },
+  editorIndent() {
+    return ed?.model.chooseIndent();
   },
   editorFormat() {
     return ed?.model.format();
@@ -220,7 +227,8 @@ Object.assign(A, {
     });
   },
   async closeTab(p) {
-    const restoreTabFocus = document.activeElement?.closest("#tabs") &&
+    const restoreTabFocus =
+      document.activeElement?.closest("#tabs") &&
       document.activeElement.dataset.arg === p;
     if (dirty(p)) {
       const r = await modal({
@@ -233,7 +241,10 @@ Object.assign(A, {
         ],
       });
       if (!r || r === "no") return;
-      if (r === "save" && !(await A.apply(p, true))) return;
+      if (r === "save") {
+        await A.save();
+        if (S.saveFail) return;
+      }
     }
     const i = S.tabs.indexOf(p);
     S.tabs.splice(i, 1);
@@ -246,7 +257,8 @@ Object.assign(A, {
     }
     ctx.draw();
     if (restoreTabFocus) {
-      const next = $("#tabs [aria-selected=true]") || $('#v-code [data-act="newFile"]');
+      const next =
+        $("#tabs [aria-selected=true]") || $('#v-code [data-act="newFile"]');
       next?.focus({ preventScroll: true });
     }
   },
@@ -267,8 +279,9 @@ Object.assign(A, {
     const ok = await task("Écriture de " + p, async () => {
       await eng().fs.write(p, S.drafts[p], S.base[p] ?? null);
       if (ctx.folder) {
-        try { await ctx.folder.write(p, S.drafts[p]); }
-        catch (error) {
+        try {
+          await ctx.folder.write(p, S.drafts[p]);
+        } catch (error) {
           // Keep the draft retryable if the PC file changed or access was revoked.
           await eng().fs.write(p, S.base[p] ?? "", S.drafts[p]);
           throw error;
@@ -321,15 +334,35 @@ Object.assign(A, {
       { label: "Dupliquer", act: "dupFile", arg: S.active },
       { label: "Copier le chemin", act: "copyPath", arg: S.active },
       "-",
-      { label: "Mettre en forme le fichier", act: "editorFormat", hint: "Alt Maj F" },
-      { label: "Développer Emmet", act: "editorEmmet", hint: "Tab" },
+      {
+        label: "Mettre en forme le fichier",
+        act: "editorFormat",
+        hint: "Alt Maj F",
+      },
+      {
+        label: "Développer une abréviation HTML/CSS",
+        act: "editorEmmet",
+        hint: "Alt E",
+        description: "Emmet : transforme par exemple ul>li*3 en une liste HTML",
+        icon: ui.code,
+      },
       { label: "Rechercher / remplacer", act: "editorSearch", hint: "Ctrl F" },
       { label: "Problèmes et corrections", act: "editorProblems" },
       { label: "Définition", act: "editorDefinition", hint: "F12" },
       { label: "Références", act: "editorReferences", hint: "Maj F12" },
       { label: "Renommer le symbole", act: "editorRename", hint: "F2" },
       { label: "Symboles du fichier", act: "editorSymbols" },
-      { label: "Rechercher dans le projet", act: "editorProjectSearch" },
+      {
+        label: "Rechercher dans le projet",
+        act: "editorProjectSearch",
+        icon: ui.search,
+      },
+      {
+        label: "Indentation…",
+        act: "editorIndent",
+        icon: ui.settings,
+        description: "Choisir 2 espaces, 4 espaces ou des tabulations",
+      },
       "-",
       { label: "Supprimer…", act: "deletePath", arg: S.active, bad: 1 },
     ]);

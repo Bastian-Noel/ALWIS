@@ -3085,6 +3085,85 @@ main,
 :root:not([data-theme="dark"]) .pill.nl { color: #48525c; }
 :root:not([data-theme="dark"]) .bd.fk { color: #126247; }
 
+/* Workspace hierarchy: project, document tools, then the editing surface. */
+.top { border-bottom:1px solid var(--seam-2); background:var(--faceplate); }
+.top .chip { display:grid; grid-template-columns:minmax(70px,1fr) auto 12px; column-gap:12px; row-gap:0; padding:4px 10px; min-width:190px; max-width:360px; background:var(--sheet); border:1px solid var(--seam); text-align:left; }
+.chip .project-caption { grid-column:1/3; color:var(--ink-2); font-size:10px; line-height:1.3; letter-spacing:.04em; }
+.chip #pname { grid-column:1; font-size:13px; color:var(--ink); }
+.chip #psum { grid-column:2; font-size:11px; }
+.chip .project-chevron { grid-column:3; grid-row:1/3; align-self:center; color:var(--ink-2); }
+.chip .ladder { display:none; }
+.ed-col > .crumbs { position:relative; z-index:2; min-height:46px; gap:8px; background:var(--faceplate); border-block:1px solid var(--seam-2); box-shadow:0 1px 0 var(--sheet); }
+.ed-col > .crumbs #crumb { font-size:12px; }
+#runBtn { color:var(--ink-2); }
+:root:not([data-theme="dark"]) .rail button[aria-current="page"] { color:#164ab3; }
+#edFoot { white-space:nowrap; }
+#edFoot > span { flex-shrink:0; }
+#edFoot #lsp { flex-shrink:1; min-width:0; max-width:50%; overflow:hidden; text-overflow:ellipsis; }
+.ed-col > .crumbs .icon-btn { width:30px; padding:6px; flex:none; justify-content:center; }
+#codeTools { flex:none; border-left:1px solid var(--seam-2); padding-left:8px; }
+#codeTools .cm-editor-tools button { display:none; align-items:center; justify-content:center; gap:5px; min-height:30px; padding:5px 7px; color:var(--ink-2); }
+#codeTools .cm-editor-tools button[data-tool="Formater"], #codeTools .cm-editor-tools button[data-tool="Problèmes"] { display:inline-flex; }
+#codeTools .cm-editor-tools button[data-tool="Formater"] { width:30px; }
+#codeTools .cm-editor-tools button:hover { color:var(--ink); background:var(--hover); }
+#codeTools .cm-editor-tools select:not([hidden]) { position:absolute; right:12px; top:calc(100% + 4px); z-index:5; padding:8px; border-radius:6px; background:var(--raised); box-shadow:0 8px 24px #0002; }
+.pop .mi { gap:10px; min-height:36px; }
+.pop .mi > svg { flex:none; color:var(--ink-2); }
+.save-summary { padding:4px 14px 14px; display:grid; gap:10px; max-width:330px; }
+.save-summary .btn { justify-self:start; }
+.new-entry { align-items:flex-start; background:var(--sel); min-height:66px; padding-block:6px; }
+.new-entry > .fi { margin-top:7px; }
+.entry-input { flex:1; min-width:0; display:grid; gap:3px; padding-right:8px; }
+.entry-input .ren { width:100%; min-width:0; background:var(--sheet); border:1px solid var(--signal); border-radius:4px; padding:4px 6px; }
+.entry-input .hint { font-size:10px; white-space:normal; line-height:1.4; }
+.entry-input [aria-invalid="true"] { border-color:var(--err); }
+.sql-disclosure, .relation-options { margin-block:16px; border:1px solid var(--seam); border-radius:7px; }
+.sql-disclosure > summary, .relation-options > summary { padding:10px 12px; cursor:pointer; font-weight:500; color:var(--ink-2); }
+.sql-disclosure .pre { margin:0; border:0; border-top:1px solid var(--seam); border-radius:0 0 7px 7px; }
+.data-searchbar { display:flex; align-items:center; flex-wrap:wrap; gap:8px; padding:12px 16px; border-bottom:1px solid var(--seam); }
+.data-search { display:flex; align-items:center; flex:1; max-width:450px; min-width:180px; gap:8px; background:var(--sheet); border:1px solid var(--seam-2); border-radius:6px; padding-left:10px; }
+.data-search:focus-within { outline:2px solid var(--signal); outline-offset:1px; }
+.data-search .in { width:100%; border:0; background:transparent; box-shadow:none; outline:0; padding:7px 8px 7px 0; }
+.data-search > svg { color:var(--ink-2); flex:none; }
+.data-searchbar > [role="status"] { margin-left:auto; }
+.table-search { padding:2px 10px 10px; }
+.table-search .in { width:100%; }
+.dg tr.ghost .btn { color:var(--on-signal); background:var(--signal); }
+.data-filters { border-bottom:1px solid var(--seam); background:var(--faceplate); }
+.data-filters > summary { cursor:pointer; padding:8px 16px; color:var(--ink-2); font-size:12px; }
+.data-filters .fl { flex-wrap:wrap; }
+.relation-intro { color:var(--ink-2); margin-bottom:18px; }
+.relation-tables { display:grid; grid-template-columns:minmax(0,1fr) 44px minmax(0,1fr); align-items:center; gap:10px; }
+.relation-card { display:grid; gap:10px; padding:16px; border:1px solid var(--seam-2); border-radius:10px; background:var(--faceplate); min-width:0; }
+.relation-card .in { width:100%; min-width:0; background:var(--sheet); padding:8px; }
+.relation-step { font-size:11px; font-weight:600; color:var(--signal); }
+.relation-connector { display:grid; justify-items:center; gap:6px; color:var(--ink-2); font-size:11px; }
+.relation-connector > svg { width:22px; height:22px; }
+.relation-mapping { margin-top:22px; }
+.relation-mapping h2 { font-size:14px; margin-bottom:12px; }
+.relation-mapping > .field .in { width:100%; }
+.relation-pair { display:grid; grid-template-columns:minmax(0,1fr) 24px minmax(0,1fr); gap:12px; align-items:center; margin-block:10px; padding:12px; background:var(--faceplate); border:1px solid var(--seam); border-radius:8px; }
+.relation-pair .field { margin:0; min-width:0; }
+.relation-pair .in { width:100%; min-width:0; background:var(--sheet); }
+.relation-pair-arrow { color:var(--ink-2); }
+.relation-target { display:grid; gap:3px; min-width:0; }
+.relation-target > span, .relation-target > small { color:var(--ink-2); font-size:11px; overflow-wrap:anywhere; }
+.relation-target b { display:flex; gap:7px; align-items:center; overflow-wrap:anywhere; }
+.relation-options .field { padding-inline:12px; }
+.relation-options .in { width:100%; }
+@media (max-width:680px) {
+  .top .chip { min-width:90px; max-width:180px; gap:0 6px; }
+  .chip #psum { display:none; }
+  .chip #pname { grid-column:1/3; }
+  .top { gap:6px; }
+  #codeTools [data-tool="Problèmes"] span { display:none; }
+  .relation-tables { grid-template-columns:minmax(0,1fr); }
+  .relation-connector { display:flex; justify-content:center; }
+  .relation-card { padding:12px; gap:6px; }
+  .relation-pair { padding:8px; gap:6px; grid-template-columns:minmax(0,1fr) 16px minmax(0,1fr); }
+  .data-searchbar { padding:10px; }
+}
+
 /* Shared file toolbar and readable diagnostics. */
 #codeTools .cm-editor-tools { display:flex; align-items:center; flex-wrap:wrap; gap:4px; }
 #codeTools button:not([data-tool="Formater"]):not([data-tool="Emmet"]):not([data-tool="Problèmes"]) { display:none; }

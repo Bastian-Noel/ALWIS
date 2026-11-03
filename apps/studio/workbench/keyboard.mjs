@@ -1,5 +1,5 @@
 /** Keyboard access and transient shortcut hints. No accesskey: avoid browser/OS conflicts. */
-import { S } from "./state.mjs";
+import { S, A } from "./state.mjs";
 const commands = [
   ["Digit1", "Alt+1", '[data-act="nav"][data-arg="code"]'],
   ["Digit2", "Alt+2", '[data-act="nav"][data-arg="data"]'],
@@ -160,6 +160,16 @@ export function installKeyboard() {
       )
         return;
       const target = [...document.querySelectorAll(command[2])].find(available);
+      if (
+        !target &&
+        command[0] === "KeyE" &&
+        S.mode === "work" &&
+        S.view === "code" &&
+        S.active
+      ) {
+        e.preventDefault();
+        Promise.resolve(A.editorEmmet()).catch(() => {});
+      }
       if (target) {
         e.preventDefault();
         target.focus({ preventScroll: true });

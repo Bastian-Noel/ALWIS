@@ -18,16 +18,32 @@ export const filterSql = (f) =>
       : f.op === "LIKE"
         ? `${id(f.c)} LIKE ${lit("%" + f.v + "%")}`
         : `${id(f.c)} ${f.op} ${lit(f.v)}`;
+/** Literal substring search across the whole table, before pagination. */
+export const searchSql = (search) => {
+  if (!search?.text || !search.columns?.length) return "";
+  const pattern = "%" + search.text.replace(/[!%_]/g, (c) => "!" + c) + "%";
+  return (
+    "(" +
+    search.columns
+      .map((c) => `CAST(${id(c)} AS CHAR) LIKE ${lit(pattern)} ESCAPE '!'`)
+      .join(" OR ") +
+    ")"
+  );
+};
 export const select = (
   t,
-  { filter, sort, limit = 100, offset = 0, count } = {},
-) =>
-  `SELECT ${count ? "COUNT(*)" : "*"} FROM ${id(t)}${filter ? " WHERE " + filterSql(filter) : ""}` +
-  (!count && sort
-    ? ` ORDER BY ${id(sort.c)} ${sort.d < 0 ? "DESC" : "ASC"}`
-    : "") +
-  (count ? "" : ` LIMIT ${limit} OFFSET ${offset}`) +
-  ";";
+  { filter, search, sort, limit = 100, offset = 0, count } = {},
+) => {
+  const clauses = [filterSql(filter), searchSql(search)].filter(Boolean);
+  return (
+    `SELECT ${count ? "COUNT(*)" : "*"} FROM ${id(t)}${clauses.length ? " WHERE " + clauses.join(" AND ") : ""}` +
+    (!count && sort
+      ? ` ORDER BY ${id(sort.c)} ${sort.d < 0 ? "DESC" : "ASC"}`
+      : "") +
+    (count ? "" : ` LIMIT ${limit} OFFSET ${offset}`) +
+    ";"
+  );
+};
 export const insert = (t, cols, vals) =>
   cols.length
     ? `INSERT INTO ${id(t)} (${cols.map(id).join(", ")}) VALUES (${vals.map(lit).join(", ")});`

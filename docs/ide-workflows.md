@@ -14,7 +14,7 @@
 | **Suppr**, sur un onglet de fichier | Fermer ce fichier ; un brouillon demande confirmation |
 | **Échap** | Fermer un menu ou un dialogue |
 | **Alt + 1 / 2 / 3 / 4** | Code / Données / Schéma / Sessions |
-| **Alt + S** | Sauvegarder le projet |
+| **Ctrl + S** ou **Alt + S** | Enregistrer les fichiers et le projet |
 | **Alt + R** | Afficher ou masquer l’aperçu |
 | **Alt + J** | Ouvrir ou fermer le panneau Serveur |
 | **Alt + K** | Rechercher une action |
@@ -60,15 +60,28 @@ Les raccourcis globaux restent inactifs dans les dialogues. **AltGr** garde son 
 
 Certaines erreurs courantes, comme un `;` manquant en PHP, peuvent être corrigées. Toutes les erreurs n’ont pas de correction automatique.
 
-## Enregistrer ou sauvegarder ?
+## Changer de projet et créer des fichiers
+
+Le nom du **projet ouvert** reste affiché en haut. Cliquez dessus pour ouvrir un projet récent ou revenir à **Tous les projets**. Si des modifications sont en attente, ALWIS propose de les enregistrer avant de quitter le projet.
+
+Dans l’explorateur, cliquez sur **Nouveau fichier** ou **Nouveau dossier**, puis saisissez le nom directement dans l’arborescence. **Entrée** crée l’élément ; **Échap** annule. Un chemin comme `pages/contact.php` crée aussi les dossiers nécessaires. Un nom déjà utilisé est refusé.
+
+Les outils secondaires et le réglage d’indentation se trouvent dans **…** au-dessus de l’éditeur. Les icônes ont un nom accessible et une indication au survol.
+
+## Enregistrer le projet
 
 | Action | Ce qui est conservé | Où ? |
 |---|---|---|
-| **Ctrl + S** | Le fichier actif | Dans le projet en cours d’exécution |
-| **Sauvegarder le projet** | Tous les brouillons, fichiers et bases | Dans ce navigateur |
+| **Enregistrer**, **Ctrl + S** ou **Alt + S** | Tous les brouillons, fichiers et bases | Dans ce navigateur |
 | **Exporter ZIP** | Les fichiers et bases utilisateur | Dans un fichier téléchargé |
 
 **Conseil :** sauvegardez pendant le travail ; exportez un ZIP avant de changer de PC.
+
+## Rechercher dans les données et relier des tables
+
+Dans **Données**, cherchez une table dans le volet de gauche. La recherche au-dessus de la grille porte sur toutes les colonnes et toutes les lignes de la table, y compris les pages suivantes. Vous pouvez la combiner avec **Filtrer par colonne**.
+
+Pour créer une relation, ouvrez **Schéma → Relier des tables** ou **Données → Structure → Relation**. Choisissez les deux tables, puis la clé référencée et les colonnes correspondantes. Les clés composées sont proposées ensemble. Les comportements à la suppression et à la modification restent dans les options ; la requête SQL est consultable à la demande.
 
 ## Importer un ZIP
 
@@ -78,7 +91,7 @@ Certaines erreurs courantes, comme un `;` manquant en PHP, peuvent être corrig�
 
 Si ce nom existe déjà, ALWIS choisit un nom distinct. Votre projet existant est conservé.
 
-Dans un projet ouvert, l’import reste accessible dans l’en-tête ou le menu du projet.
+L’import se fait depuis l’accueil, pour créer un projet distinct. Pour y revenir, ouvrez le sélecteur du projet puis **Tous les projets**.
 
 > [!NOTE]
 > Un fichier du même nom ou une base déjà remplie peut bloquer l’import. ALWIS refuse de les écraser silencieusement.
@@ -91,7 +104,7 @@ Dans un projet ouvert, l’import reste accessible dans l’en-tête ou le menu 
 2. Choisissez le dossier et autorisez l’accès.
 3. Modifiez un fichier, puis faites **Ctrl + S**.
 
-Le nom **PC : votre dossier** indique que les fichiers enregistrés sont aussi écrits sur le PC.
+La mention **Projet ouvert · dossier PC**, au-dessus du nom du dossier, indique que les fichiers enregistrés sont aussi écrits sur le PC.
 
 ![Le bouton Ouvrir un dossier du PC se trouve sur l’accueil.](images/alwis-start.png)
 

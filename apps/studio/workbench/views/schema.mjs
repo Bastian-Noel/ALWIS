@@ -17,7 +17,7 @@ import { ui } from "../icons.mjs";
 import * as G from "../sqlgen.mjs";
 import { refreshDb } from "./data.mjs";
 
-import {schemaLayout} from "../schema-layout.mjs";
+import { schemaLayout } from "../schema-layout.mjs";
 
 const BW = 232,
   RH = 26,
@@ -232,7 +232,7 @@ export function drawSchema() {
       `<div style="${hueStyle(t.name)}"><div class="ihead"><i class="td big"></i><div class="grow"><h3 class="trunc">${esc(t.name)}</h3><p class="hint num">${plural(t.columns.length, "colonne", "colonnes")} · ${plural(t.rows, "ligne", "lignes")} · ${plural(t.fks.length, "relation", "relations")}</p></div><button class="btn quiet sm" data-act="schemaSel" data-arg="${esc(t.name)}" aria-label="Fermer la fiche">✕</button></div>
     <div class="sw8" role="group" aria-label="Couleur de la table">${HUES.map((h) => `<button class="hsw ${tableHue(t.name) === h ? "on" : ""}" style="--h:${h}" data-act="tableHue" aria-pressed="${tableHue(t.name) === h}" data-arg="${esc(t.name)}|${h}" aria-label="Couleur ${h}"></button>`).join("")}</div>
     <div class="ibtns"><button class="btn pri" data-act="selectTable" data-arg="${esc(t.name)}">Voir les données</button><button class="btn" data-act="openStruct" data-arg="${esc(t.name)}">Structure</button></div>
-    <button class="btn" data-act="relationForm">Créer une relation (clavier / clés composées)</button><button class="btn" data-act="schemaColAdd" data-arg="${esc(t.name)}">Ajouter une colonne dans Données…</button>
+    <button class="btn" data-act="relationForm">Relier des tables</button><button class="btn" data-act="schemaColAdd" data-arg="${esc(t.name)}">Ajouter une colonne dans Données…</button>
     <p class="hint" style="margin-top:12px">Glissez le point d’un champ vers la clé d’une autre table pour créer une relation. Cliquez un lien pour le modifier.</p></div>`;
 }
 
@@ -280,7 +280,7 @@ function relPop({ child, parent, fk, x, y }) {
     html: `<div class="ph">${fk ? "Modifier la relation" : existing ? "Remplacer la relation" : "Nouvelle relation"}</div>
     <div class="relhead"><span class="pillt" style="--h:${tableHue(ct.name)}">${esc(ct.name)}.${esc(cc.name)}</span><span>→</span><span class="pillt" style="--h:${tableHue(pt.name)}">${esc(pt.name)}.${esc(pc.name)}</span></div>
     <p class="pp">Plusieurs <b>${esc(ct.name)}</b> pour un <b>${esc(pt.name)}</b>${cc.nullable ? ", le parent est facultatif" : ", le parent est obligatoire"}.</p>
-    <div style="display:grid;gap:8px;padding:0 10px 6px">${sel("rd", ["RESTRICT", "CASCADE", "SET NULL"], state.del)}${sel("ru", ["CASCADE", "RESTRICT", "SET NULL"], state.upd)}<pre class="pre sqlh" id="rsql"></pre>${warn ? `<p class="hint bad">${esc(warn)}</p>` : ""}</div>
+    <div style="display:grid;gap:8px;padding:0 10px 6px">${sel("rd", ["RESTRICT", "CASCADE", "SET NULL"], state.del)}${sel("ru", ["CASCADE", "RESTRICT", "SET NULL"], state.upd)}<details class="sql-disclosure"><summary>Voir la requête SQL</summary><pre class="pre sqlh" id="rsql"></pre></details>${warn ? `<p class="hint bad">${esc(warn)}</p>` : ""}</div>
     <div style="display:flex;gap:6px;padding:4px 10px 10px;justify-content:space-between">${fk ? '<button class="btn sm bad" id="rdrop">Supprimer</button>' : "<span></span>"}<span style="display:flex;gap:6px"><button class="btn sm" id="rno">Annuler</button><button class="btn sm pri" id="rok" ${unique ? "" : "disabled"}>${fk ? "Appliquer" : "Créer la relation"}</button></span></div>`,
   });
   const paint = () => {

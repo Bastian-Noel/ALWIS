@@ -38,14 +38,16 @@
         <button
           class="chip"
           id="chip"
-          data-act="persist"
-          aria-haspopup="true"
+          data-act="projectMenu"
+          aria-label="Changer de projet"
+          title="Changer de projet ou revenir à l’accueil"
+          aria-haspopup="menu"
           hidden
         >
-          <span class="ladder" id="ladder" aria-hidden="true"
+          <span class="project-caption">Projet ouvert</span><span class="ladder" id="ladder" aria-hidden="true"
             ><i></i><i></i><i></i></span
           ><b class="trunc" id="pname"></b
-          ><span class="mut hide-s" id="psum"></span>
+          ><span class="mut hide-s" id="psum"></span><span class="project-chevron" aria-hidden="true">⌄</span>
         </button>
         <span class="grow"></span>
         <button class="btn quiet hide-s" data-act="palette" id="palBtn">
@@ -58,8 +60,6 @@
         >
           ⌘
         </button>
-        <button class="btn quiet project-transfer" data-act="importZip" hidden>Importer ZIP</button>
-        <button class="btn quiet project-transfer" data-act="exportZip" hidden>Exporter ZIP</button>
         <button class="btn pri" id="primary" data-act="primary" hidden>
           Enregistrer
         </button>
@@ -249,15 +249,14 @@
                     Fichiers</button
                   ><span id="ficon" style="display: flex"></span
                   ><span class="grow" id="crumb"></span>
-                  <button class="btn quiet sm hide-s" data-act="find">
-                    Rechercher
-                  </button>
+                  <button class="btn quiet sm icon-btn" data-act="find" aria-label="Rechercher dans le fichier" title="Rechercher et remplacer dans le fichier"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg></button>
                   <span class="split-btn"
                     ><button
                       class="btn sm"
                       id="runBtn"
                       data-act="pvToggle"
                       aria-pressed="false"
+                      title="Afficher ou masquer l’aperçu du site"
                     ></button
                     ><button
                       class="btn sm"
@@ -274,7 +273,8 @@
                     id="fileMenuBtn"
                     data-act="fileMenu"
                     aria-haspopup="true"
-                    aria-label="Actions sur le fichier"
+                    aria-label="Outils et options du fichier"
+                    title="Outils du code, indentation et actions sur le fichier"
                   >
                     <svg
                       viewBox="0 0 16 16"
@@ -400,6 +400,7 @@
                 <div class="side-h">
                   <span class="grow">Bases de données</span>
                 </div>
+                <div class="table-search"><input class="in" id="tableSearch" type="search" placeholder="Rechercher une table" aria-label="Rechercher une table dans la base ouverte"></div>
                 <div class="tree" id="dbtree" role="tree" aria-label="Bases de données et tables"></div>
               </aside>
               <div class="side sheet" id="dmain"></div>
@@ -414,7 +415,7 @@
                 <select class="in" id="sdb"></select></label
               ><span class="hint num" id="scount"></span
               ><span class="grow"></span>
-              <button class="btn sm" data-act="schemaLayout">Réorganiser</button
+              <button class="btn sm" data-act="relationForm" title="Choisir les tables et associer leurs colonnes">Relier des tables</button><button class="btn sm" data-act="schemaLayout">Réorganiser</button
               ><button class="btn sm" data-act="joinTable">Liaison N–N</button
               ><button class="btn sm hide-s" data-act="schemaSvg">
                 Exporter en SVG

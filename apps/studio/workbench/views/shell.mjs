@@ -31,6 +31,7 @@ import { drawSchema } from "./schema.mjs";
 import { drawSessions } from "./sessions.mjs";
 import { drawDock } from "./dock.mjs";
 
+import { ui } from "../icons.mjs";
 import { unusedArchiveName } from "../project-name.mjs";
 let launcherExpanded = false;
 
@@ -61,9 +62,20 @@ export function drawShell() {
   $("#chip").hidden = !w;
   $("#primary").hidden = !w;
   $("#sPersist").hidden = !w;
-  $("#pname").title = ctx.folder ? "Fichiers enregistrés vers le PC ; bases SQL, suppressions et renommages conservés dans le navigateur. Rouvrez le dossier à chaque session." : "Projet conservé dans ce navigateur. Exportez un ZIP pour une copie externe.";
-  $("#pname").textContent = ctx.folder ? "PC : " + ctx.folder.name : S.project || "";
-  document.querySelectorAll(".project-transfer").forEach(e=>e.hidden=!w);
+  $("#pname").title = ctx.folder
+    ? "Fichiers enregistrés vers le PC ; bases SQL, suppressions et renommages conservés dans le navigateur. Rouvrez le dossier à chaque session."
+    : "Projet conservé dans ce navigateur. Exportez un ZIP pour une copie externe.";
+  $("#pname").textContent = ctx.folder?.name || S.project || "";
+  $(".project-caption").textContent = ctx.folder
+    ? "Projet ouvert · dossier PC"
+    : "Projet ouvert";
+  $("#chip").setAttribute(
+    "aria-label",
+    `Projet ouvert : ${ctx.folder?.name || S.project || ""}. Changer de projet`,
+  );
+  document
+    .querySelectorAll(".project-transfer")
+    .forEach((e) => (e.hidden = !w));
   $("#themeBtn").textContent = S.theme === "dark" ? "Clair" : "Sombre";
   if (w) {
     const p = persistState();
@@ -75,17 +87,16 @@ export function drawShell() {
       a = S.applied.size + (S.dbDirty ? 1 : 0),
       b = $("#primary");
     b.disabled = !d && !a;
-    b.textContent = d || a ? "Sauvegarder le projet" : "Projet sauvegardé";
-    b.title = "Enregistre tous les brouillons et conserve le projet dans ce navigateur.";
+    b.innerHTML = `${ui.save}<span>${d || a ? "Enregistrer" : "Enregistré"}</span>`;
+    b.title =
+      "Enregistre tous les brouillons et conserve le projet dans ce navigateur.";
   }
   $("#slamp").className =
     "lamp " + ({ ok: "ok", on: "ok", busy: "warn", err: "err" }[S.lamp] || "");
   $("#stext").textContent = S.stext;
   $("#main").setAttribute("aria-busy", String(S.lamp === "busy"));
   const errs = S.logs.filter((l) => l.l === "e" && !l.read).length;
-  $("#sCount").textContent = errs
-    ? plural(errs, "erreur", "erreurs")
-    : "";
+  $("#sCount").textContent = errs ? plural(errs, "erreur", "erreurs") : "";
   $("#sDock").setAttribute("aria-expanded", !!S.dock);
   $("#rail").innerHTML =
     VIEWS.map(
@@ -106,18 +117,29 @@ function drawLauncher() {
     ex = R.find((r) => r.name === n),
     ok = /^[A-Za-z0-9_-]{1,64}$/.test(n);
   const query = $("#projectFilter").value.trim().toLocaleLowerCase("fr");
-  const matches = R.filter(r => r.name.toLocaleLowerCase("fr").includes(query));
+  const matches = R.filter((r) =>
+    r.name.toLocaleLowerCase("fr").includes(query),
+  );
   const shown = query || launcherExpanded ? matches : matches.slice(0, 6);
-  $("#welcomeTitle").textContent = R.length ? "Reprenez là où vous en étiez." : "Commençons par un projet.";
+  $("#welcomeTitle").textContent = R.length
+    ? "Reprenez là où vous en étiez."
+    : "Commençons par un projet.";
   $("#recentSection").hidden = !R.length;
   $("#recentCount").textContent = R.length;
   $("#recent").innerHTML = shown.length
-    ? shown.map(r => `<button class="proj-row" data-act="open" data-arg="${esc(r.name)}" aria-label="Ouvrir le projet ${esc(r.name)}"><b title="${esc(r.name)}">${esc(r.name)}</b><span class="go" aria-hidden="true">→</span><span class="project-meta">${plural(r.files, "fichier", "fichiers")} · ${r.saved ? "Sauvegardé" : "À sauvegarder"}<br>${esc(r.when)}</span></button>`).join("")
+    ? shown
+        .map(
+          (r) =>
+            `<button class="proj-row" data-act="open" data-arg="${esc(r.name)}" aria-label="Ouvrir le projet ${esc(r.name)}"><b title="${esc(r.name)}">${esc(r.name)}</b><span class="go" aria-hidden="true">→</span><span class="project-meta">${plural(r.files, "fichier", "fichiers")} · ${r.saved ? "Sauvegardé" : "À sauvegarder"}<br>${esc(r.when)}</span></button>`,
+        )
+        .join("")
     : '<p class="recent-empty" role="status">Aucun projet ne correspond à cette recherche.</p>';
   const more = $("#showRecent");
   more.hidden = !!query || R.length <= 6;
   more.setAttribute("aria-expanded", String(launcherExpanded));
-  more.textContent = launcherExpanded ? "Afficher moins" : `Voir les ${R.length} projets`;
+  more.textContent = launcherExpanded
+    ? "Afficher moins"
+    : `Voir les ${R.length} projets`;
   const h = $("#pnh");
   h.className = "hint project-name-help " + (!n || ok ? "" : "bad");
   h.textContent = !n
@@ -129,7 +151,9 @@ function drawLauncher() {
         : "Nom disponible.";
   const b = $("#pgo");
   b.disabled = !ok;
-  b.innerHTML = (ex ? "Ouvrir le projet" : "Créer le projet") + ' <span aria-hidden="true">→</span>';
+  b.innerHTML =
+    (ex ? "Ouvrir le projet" : "Créer le projet") +
+    ' <span aria-hidden="true">→</span>';
   $("#pn").setAttribute("aria-invalid", String(!!n && !ok));
   $$("input[name=tpl]").forEach((i) => (i.disabled = !!ex));
   const v = eng().env();
@@ -162,6 +186,43 @@ Object.assign(A, {
     S.mode = "launcher";
     draw();
   },
+  projectMenu(_, el) {
+    const recent = eng()
+      .projects.recents()
+      .filter((r) => r.name !== S.project);
+    menu(el || $("#chip"), [
+      {
+        label: "Tous les projets",
+        act: "home",
+        icon: ui.folder,
+        description: "Revenir à l’accueil pour ouvrir ou créer un projet",
+      },
+      ...recent
+        .slice(0, 8)
+        .map((r) => ({
+          label: esc(r.name),
+          act: "switchProject",
+          arg: r.name,
+          icon: ui.folder,
+          description:
+            "Ouvrir ce projet — les modifications en cours seront proposées à l’enregistrement",
+        })),
+      "-",
+      {
+        label: "Exporter le projet en ZIP",
+        act: "exportZip",
+        icon: ui.download,
+        description: "Télécharger une copie des fichiers et des bases",
+      },
+      { label: "État de l’enregistrement", act: "persist", icon: ui.save },
+      { label: "Fermer le projet", act: "close", icon: ui.close },
+    ]);
+  },
+  async switchProject(name) {
+    if (!name || name === S.project) return;
+    await A.close();
+    if (S.mode === "launcher") await A.open(name);
+  },
   async close() {
     const d = drafts().length,
       a = S.applied.size + (S.dbDirty ? 1 : 0);
@@ -172,8 +233,8 @@ Object.assign(A, {
         body: `<p class="sec">${d ? plural(d, "brouillon non enregistré", "brouillons non enregistrés") + ". " : ""}${a ? "Des modifications ne sont pas encore sauvegardées dans le navigateur." : ""}</p>`,
         actions: [
           { label: "Annuler", v: "no" },
-          { label: "Fermer sans sauvegarder", v: "drop", kind: "bad" },
-          { label: "Sauvegarder et fermer", v: "save", kind: "pri" },
+          { label: "Fermer sans enregistrer", v: "drop", kind: "bad" },
+          { label: "Enregistrer et fermer", v: "save", kind: "pri" },
         ],
       });
       if (!r || r === "no") return;
@@ -255,12 +316,20 @@ Object.assign(A, {
         exSel: null,
         dmode: "data",
         grid: null,
+        search: "",
+        tableQuery: "",
+        filter: null,
+        sort: null,
+        page: 1,
+        newEntry: null,
+        ren: null,
       });
       if (r.initialized) {
         S.applied = new Set(["/index.php"]);
         S.savedAt = null;
       }
       S.pvSessions = [sessions()[0].id];
+      $("#tableSearch").value = "";
       progress("Lecture des fichiers du projet…");
       resetEditor();
       await refreshFiles();
@@ -323,6 +392,8 @@ Object.assign(A, {
     await A.save();
   },
   async save() {
+    if (S.saving) return false;
+    S.saving = true;
     S.saveFail = false;
     const ok = await task("Sauvegarde du projet", async () => {
       if (!(await A.applyAll()))
@@ -332,6 +403,7 @@ Object.assign(A, {
       await ctx.persist?.();
       return true;
     });
+    S.saving = false;
     if (!ok) {
       S.saveFail = true;
       ctx.draw();
@@ -345,40 +417,9 @@ Object.assign(A, {
     toast("Projet sauvegardé dans ce navigateur");
   },
   persist(_, el) {
-    const d = drafts().length,
-      a = S.applied.size + (S.dbDirty ? 1 : 0);
-    const row = (k, sub, btn) =>
-      `<div style="display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:6px 10px;align-items:center"><b>${k}</b>${btn || "<span></span>"}<span class="sec" style="grid-column:1/3">${sub}</span></div>`;
-    menu(el || $("#chip"), 0, {
-      html:
-        `<div class="ph">Où sont vos modifications ?</div>` +
-        row(
-          "Brouillon",
-          d
-            ? plural(d, "fichier", "fichiers") + " seulement dans l’éditeur."
-            : "Rien en attente.",
-          d
-            ? '<button class="btn sm pri" data-act="applyAll">Enregistrer</button>'
-            : "",
-        ) +
-        row(
-          "Appliqué",
-          a
-            ? `${S.applied.size ? plural(S.applied.size, "fichier", "fichiers") + " lus par PHP" : ""}${S.applied.size && S.dbDirty ? " et " : ""}${S.dbDirty ? "des changements du projet" : ""}, perdus si l’onglet se ferme.`
-            : "Tout est sauvegardé.",
-          a
-            ? '<button class="btn sm pri" data-act="save">Sauvegarder</button>'
-            : "",
-        ) +
-        row(
-          "Conservé",
-          S.savedAt
-            ? "Dernière sauvegarde à " +
-                clock(new Date(S.savedAt)).slice(0, 5) +
-                "."
-            : "Jamais sauvegardé.",
-        ) +
-        '<hr><button class="mi" data-act="exportZip">Exporter le projet en ZIP</button><button class="mi" data-act="importZip">Importer un ZIP ou des fichiers</button><button class="mi" data-act="close" style="color:var(--err)">Fermer le projet</button>',
+    const pending = drafts().length || S.applied.size || S.dbDirty;
+    menu(el?.isConnected ? el : $("#chip"), 0, {
+      html: `<div class="ph">Enregistrement du projet</div><div class="save-summary"><b>${esc(S.project)}</b><p>${pending ? "Des modifications sont à enregistrer." : "Toutes les modifications sont enregistrées."}</p><p class="hint">${ctx.folder ? "Les fichiers sont aussi écrits dans votre dossier du PC. Les bases restent dans ce navigateur." : "Votre projet est conservé dans ce navigateur. Exportez un ZIP pour une copie externe."}</p>${pending ? '<button class="btn pri" data-act="save">Enregistrer le projet</button>' : ""}${S.savedAt ? `<p class="hint">Dernier enregistrement à ${clock(new Date(S.savedAt)).slice(0, 5)}.</p>` : ""}</div>`,
     });
   },
   async exportZip() {
@@ -436,8 +477,8 @@ function cmds() {
       { l: "Aller aux sessions", s: "Espace", f: () => A.nav("sessions") },
       { l: "Nouveau fichier", s: "Fichiers", f: () => A.newFile() },
       { l: "Nouveau dossier", s: "Fichiers", f: () => A.newFolder() },
-      { l: "Enregistrer le fichier", s: "Ctrl S", f: () => A.apply() },
-      { l: "Sauvegarder le projet", s: "Ctrl Maj S", f: A.save },
+      { l: "Enregistrer le projet", s: "Ctrl S", f: A.save },
+      { l: "Changer de projet", s: "Projet", f: () => A.projectMenu() },
       {
         l: "Afficher ou masquer l’aperçu",
         s: "Ctrl ⏎",
@@ -497,8 +538,10 @@ function palDraw() {
         (c, i) =>
           `<li role="presentation"><button id="palette-option-${i}" role="option" tabindex="-1" data-i="${i}" aria-selected="${i === pSel}">${esc(c.l)}<small class="${/Ctrl|Alt|Maj|^F\d/.test(c.s) ? "shortcut-label" : ""}">${c.s}</small></button></li>`,
       )
-      .join("") || '<li role="presentation" class="hint" style="padding:12px">Aucune action.</li>';
-  if (pList.length) $("#pq").setAttribute("aria-activedescendant", "palette-option-" + pSel);
+      .join("") ||
+    '<li role="presentation" class="hint" style="padding:12px">Aucune action.</li>';
+  if (pList.length)
+    $("#pq").setAttribute("aria-activedescendant", "palette-option-" + pSel);
   else $("#pq").removeAttribute("aria-activedescendant");
 }
 export function openPal(q = "") {
@@ -545,13 +588,18 @@ export function bindShell() {
     if (files.some((f) => /\.zip$/i.test(f.name)))
       await task("Import ZIP", async () => {
         if (S.mode === "launcher") {
-          const archive = files.find(f => /\.zip$/i.test(f.name));
-          const name = await unusedArchiveName(archive.name, eng().projects.recents());
+          const archive = files.find((f) => /\.zip$/i.test(f.name));
+          const name = await unusedArchiveName(
+            archive.name,
+            eng().projects.recents(),
+          );
           await A.open(name, "archive");
           if (S.mode !== "work") return;
         }
         S.applied.add("archive");
-        await eng().projects.importZip(files.find(f => /\.zip$/i.test(f.name)));
+        await eng().projects.importZip(
+          files.find((f) => /\.zip$/i.test(f.name)),
+        );
         await refreshFiles();
         S.dbDirty = true;
         S.applied.add("archive");
@@ -596,7 +644,12 @@ export function bindShell() {
     }
   });
   addEventListener("keydown", (e) => {
-    if (e.defaultPrevented || S.lamp === "busy" || document.querySelector("dialog[open]")) return;
+    if (
+      e.defaultPrevented ||
+      S.lamp === "busy" ||
+      document.querySelector("dialog[open]")
+    )
+      return;
     const m = e.ctrlKey || e.metaKey,
       k = e.key.toLowerCase(),
       w = S.mode === "work";
@@ -605,11 +658,7 @@ export function bindShell() {
       openPal();
     } else if (m && k === "s" && w) {
       e.preventDefault();
-      e.shiftKey
-        ? A.save()
-        : S.view === "code" && S.active
-          ? A.apply()
-          : A.applyAll();
+      A.save();
     } else if (m && k === "j" && w) {
       e.preventDefault();
       A.dockToggle();

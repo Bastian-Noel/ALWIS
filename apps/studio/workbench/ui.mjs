@@ -1,4 +1,5 @@
 import { createCodeEditor } from "../editor/dist/codemirror.mjs";
+import { ui } from "./icons.mjs";
 import { S, A, eng } from "./state.mjs";
 /** Primitives d'interface partagées. Aucune connaissance du moteur ni de l'état du studio. */
 export const $ = (s, r = document) => r.querySelector(s);
@@ -146,7 +147,7 @@ export async function ddl({
       (typed
         ? `<label class="field"><span>Confirmation</span><input class="in" data-f="__t" autocomplete="off" placeholder="${esc(typed)}"></label>`
         : "") +
-      `<div class="field"><span>SQL à appliquer</span><pre class="pre" id="ddl-sql"></pre></div><p id="ddl-err" class="hint" role="status"></p>`,
+      `<details class="sql-disclosure"><summary>Voir la requête SQL</summary><pre class="pre" id="ddl-sql"></pre></details><p id="ddl-err" class="hint" role="status"></p>`,
     beforeClose: async (value, d) => {
       if (value !== "ok" || !onApply) return true;
       const button = $("[data-v=ok]", d);
@@ -205,8 +206,12 @@ export function menu(anchor, items, { html, cls = "" } = {}) {
   p.className = "pop " + cls;
   p.id = "action-menu";
   p.setAttribute("role", html ? "dialog" : "menu");
-  p.setAttribute("aria-label", anchor.getAttribute?.("aria-label") || "Actions");
-  p.returnFocus = anchor instanceof HTMLElement ? anchor : document.activeElement;
+  p.setAttribute(
+    "aria-label",
+    anchor.getAttribute?.("aria-label") || "Actions",
+  );
+  p.returnFocus =
+    anchor instanceof HTMLElement ? anchor : document.activeElement;
   if (anchor instanceof HTMLElement) {
     anchor.setAttribute("aria-haspopup", html ? "dialog" : "menu");
     anchor.setAttribute("aria-expanded", "true");
@@ -218,7 +223,7 @@ export function menu(anchor, items, { html, cls = "" } = {}) {
       .map((i) =>
         i === "-"
           ? "<hr>"
-          : `<button class="mi" role="menuitem" data-act="${i.act}" data-arg="${esc(i.arg ?? "")}" ${i.dis ? "disabled" : ""} style="${i.bad ? "color:var(--err)" : ""}">${i.icon || ""}<span class="grow">${i.label}</span>${i.hint ? `<small class="shortcut-label">${i.hint}</small>` : ""}</button>`,
+          : `<button class="mi" role="menuitem" data-act="${i.act}" data-arg="${esc(i.arg ?? "")}" ${i.dis ? "disabled" : ""} title="${esc(i.description || i.label)}" style="${i.bad ? "color:var(--err)" : ""}">${i.icon || { renameStart: ui.rename, dupFile: ui.copy, copyPath: ui.link, editorFormat: ui.format, editorEmmet: ui.code, editorSearch: ui.search, editorProblems: ui.warning, editorDefinition: ui.arrow, editorReferences: ui.link, editorRename: ui.rename, editorSymbols: ui.code, deletePath: ui.trash }[i.act] || ""}<span class="grow">${i.label}</span>${i.hint ? `<small class="shortcut-label">${i.hint}</small>` : ""}</button>`,
       )
       .join("");
   $("#main").append(p);
@@ -246,25 +251,30 @@ export function menu(anchor, items, { html, cls = "" } = {}) {
   );
   return p;
 }
-export const closeMenus = ({restore = false} = {}) => $$(".pop").forEach((p) => {
-  const trigger = p.returnFocus;
-  p.remove();
-  if (trigger?.isConnected) {
-    trigger.setAttribute("aria-expanded", "false");
-    trigger.removeAttribute("aria-controls");
-    if (restore) trigger.focus({preventScroll:true});
-  }
-});
+export const closeMenus = ({ restore = false } = {}) =>
+  $$(".pop").forEach((p) => {
+    const trigger = p.returnFocus;
+    p.remove();
+    if (trigger?.isConnected) {
+      trigger.setAttribute("aria-expanded", "false");
+      trigger.removeAttribute("aria-controls");
+      if (restore) trigger.focus({ preventScroll: true });
+    }
+  });
 document.addEventListener("pointerdown", (e) => {
   if (!e.target.closest(".pop")) closeMenus();
 });
 document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape" && $(".pop")) { e.preventDefault(); closeMenus({restore:true}); }
+  if (e.key === "Escape" && $(".pop")) {
+    e.preventDefault();
+    closeMenus({ restore: true });
+  }
 });
 document.addEventListener(
   "click",
   (e) => {
-    if (e.target.closest(".pop button[data-act]")) closeMenus({restore:true});
+    if (e.target.closest(".pop button[data-act]"))
+      closeMenus({ restore: true });
   },
   true,
 );

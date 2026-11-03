@@ -59,14 +59,18 @@ export async function loadRows() {
     return;
   }
   const q = (s) => eng().db.query(s, S.db);
+  const search = { text: S.search, columns: t.columns.map((c) => c.name) };
   S.total = Number(
-    (await q(G.select(t.name, { filter: S.filter, count: 1 })))[0].rows[0][0],
+    (await q(G.select(t.name, { filter: S.filter, search, count: 1 })))[0]
+      .rows[0][0],
   );
-  t.rows = S.total;
+  if (!S.filter && !S.search) t.rows = S.total;
+  S.page = Math.min(S.page, Math.max(1, Math.ceil(S.total / 100)));
   S.grid = (
     await q(
       G.select(t.name, {
         filter: S.filter,
+        search,
         sort: S.sort,
         offset: (S.page - 1) * 100,
       }),
@@ -100,13 +104,24 @@ async function run(label, fn) {
 /* ───────── arbre : bases et tables ───────── */
 export function drawDtree() {
   $("#dbtree").innerHTML =
-    [...S.dbs].sort((a,b) => Number(a.system)-Number(b.system) || a.name.localeCompare(b.name))
+    [...S.dbs]
+      .sort(
+        (a, b) =>
+          Number(a.system) - Number(b.system) || a.name.localeCompare(b.name),
+      )
       .map((d) => {
         const open = d.name === S.db && !S.dbCollapsed;
         return (
           `<div class="row db${d.system ? " sys" : ""}" data-act="toggleDb" data-arg="${esc(d.name)}" role="treeitem" aria-level="1" aria-selected="${d.name === S.db}" aria-expanded="${open}" tabindex="0">${ui.chev.replace('class="chev"', 'class="chev' + (open ? " open" : "") + '"')}<span class="nm trunc">${esc(d.name)}</span>${d.system ? '<span class="cnt">système</span>' : `<span class="acts"><button data-act="quickTableStart" data-arg="${esc(d.name)}" aria-label="Nouvelle table dans ${esc(d.name)}" title="Nouvelle table">${ui.plus}</button><button data-act="dbMenu" aria-label="Actions sur la base" aria-haspopup="true">${ui.more}</button></span>`}</div>` +
           (open && S.cat
             ? S.cat.tables
+                .filter(
+                  (t) =>
+                    !S.tableQuery ||
+                    t.name
+                      .toLocaleLowerCase("fr")
+                      .includes(S.tableQuery.toLocaleLowerCase("fr")),
+                )
                 .map(
                   (t) =>
                     `<div class="row tb${t.name === S.table ? " active" : ""}" data-act="selectTable" data-arg="${esc(t.name)}" role="treeitem" aria-level="2" aria-selected="${t.name === S.table}" tabindex="0" style="${hueStyle(t.name)}"><i class="td"></i><span class="nm trunc">${esc(t.name)}</span><span class="cnt num">${t.rows}</span><span class="acts"><button data-act="rowQuick" data-arg="${esc(t.name)}" aria-label="Ajouter une ligne à ${esc(t.name)}" title="Ajouter une ligne">${ui.plus}</button></span></div>`,
@@ -178,7 +193,10 @@ function dataHtml(t) {
   const g = S.grid,
     pages = Math.max(1, Math.ceil(S.total / 100));
   S.page = Math.min(S.page, pages);
-  const flt = `<div class="bar tight fl"><select class="in" id="fcol" aria-label="Colonne du filtre"><option value="">Filtrer…</option>${t.columns.map((c) => `<option ${S.filter?.c === c.name ? "selected" : ""}>${esc(c.name)}</option>`).join("")}</select><select class="in" id="fop" aria-label="Opérateur">${G.OPS.map((o) => `<option ${S.filter?.op === o ? "selected" : ""}>${o}</option>`).join("")}</select><input class="in" id="fval" placeholder="Valeur" value="${esc(S.filter?.v || "")}" style="width:160px" aria-label="Valeur du filtre"><button class="btn sm" data-act="filterApply">Appliquer</button>${S.filter ? '<button class="btn quiet sm" data-act="filterReset">Réinitialiser</button>' : ""}<span class="grow"></span>${S.sel.size ? `<span class="hint">${plural(S.sel.size, "ligne sélectionnée", "lignes sélectionnées")}</span><button class="btn sm bad" data-act="deleteRows" data-arg="sel">Supprimer…</button>` : '<span class="hint hide-s">Cliquez une cellule · Entrée ou saisie pour modifier · Tab pour avancer</span>'}</div>`;
+  const searchBar = `<form class="data-searchbar" id="dataSearchForm" role="search" aria-label="Rechercher dans la table"><label class="data-search">${ui.search}<input class="in" id="dataSearch" type="search" value="${esc(S.search || "")}" placeholder="Rechercher dans toutes les colonnes…" aria-label="Rechercher dans toutes les lignes de ${esc(t.name)}"></label><button class="btn sm" type="submit">Rechercher</button>${S.search ? '<button class="btn quiet sm" type="button" data-act="searchReset">Effacer</button>' : ""}<span class="hint num" role="status">${plural(S.total, "ligne", "lignes")}${S.search || S.filter ? " trouvée" + (S.total > 1 ? "s" : "") : ""}</span></form>`;
+  const flt =
+    searchBar +
+    `<details class="data-filters" ${S.filter ? "open" : ""}><summary>Filtrer par colonne${S.filter ? " · 1 filtre actif" : ""}</summary><div class="bar tight fl"><select class="in" id="fcol" aria-label="Colonne du filtre"><option value="">Filtrer…</option>${t.columns.map((c) => `<option ${S.filter?.c === c.name ? "selected" : ""}>${esc(c.name)}</option>`).join("")}</select><select class="in" id="fop" aria-label="Opérateur">${G.OPS.map((o) => `<option ${S.filter?.op === o ? "selected" : ""}>${o}</option>`).join("")}</select><input class="in" id="fval" placeholder="Valeur" value="${esc(S.filter?.v || "")}" style="width:160px" aria-label="Valeur du filtre"><button class="btn sm" data-act="filterApply">Appliquer</button>${S.filter ? '<button class="btn quiet sm" data-act="filterReset">Réinitialiser</button>' : ""}<span class="grow"></span>${S.sel.size ? `<span class="hint">${plural(S.sel.size, "ligne sélectionnée", "lignes sélectionnées")}</span><button class="btn sm bad" data-act="deleteRows" data-arg="sel">Supprimer…</button>` : '<span class="hint hide-s">Cliquez une cellule · Entrée ou saisie pour modifier · Tab pour avancer</span>'}</div></details>`;
   if (!g) return flt + '<div class="empty"><b>Chargement…</b></div>';
   const cols = t.columns,
     pk = pkOf(t),
@@ -207,7 +225,7 @@ function dataHtml(t) {
   const ghost = `<tr class="ghost"><td class="ck">${ui.plus}</td>${cols.map((c) => `<td><input data-g="${esc(c.name)}" ${isAuto(c) ? "disabled" : ""} placeholder="${isAuto(c) ? "auto" : c.nullable ? c.name : c.name + " *"}" aria-label="Nouvelle valeur de ${esc(c.name)}" autocomplete="off" spellcheck="false"></td>`).join("")}<td class="ra"><button class="btn sm pri" data-act="ghostAdd" aria-label="Ajouter la ligne">↵</button></td></tr>`;
   return (
     flt +
-    `<div class="gridwrap" id="gw"><table class="dg"><thead><tr><th class="ck"><input type="checkbox" data-act-change="rowAll" aria-label="Tout sélectionner" ${S.sel.size && S.sel.size === g.rows.length ? "checked" : ""}></th>${th}<th class="ra"><button data-act="colQuick" aria-label="Ajouter une colonne" title="Ajouter une colonne">${ui.plus}</button></th></tr></thead><tbody>${body}${ghost}</tbody></table>${!g.rows.length && !S.filter ? '<p class="hint" style="padding:14px 18px">Table vide : saisissez une première ligne ci-dessus. Une cellule vide prend la valeur par défaut.</p>' : ""}${!g.rows.length && S.filter ? '<p class="hint" style="padding:14px 18px">Aucune ligne ne correspond au filtre.</p>' : ""}</div>
+    `<div class="gridwrap" id="gw"><table class="dg"><thead><tr><th class="ck"><input type="checkbox" data-act-change="rowAll" aria-label="Tout sélectionner" ${S.sel.size && S.sel.size === g.rows.length ? "checked" : ""}></th>${th}<th class="ra"><button data-act="colQuick" aria-label="Ajouter une colonne" title="Ajouter une colonne">${ui.plus}</button></th></tr></thead><tbody>${body}${ghost}</tbody></table>${!g.rows.length && !S.filter && !S.search ? '<p class="hint" style="padding:14px 18px">Table vide : saisissez une première ligne ci-dessus. Une cellule vide prend la valeur par défaut.</p>' : ""}${!g.rows.length && (S.filter || S.search) ? '<p class="hint" style="padding:14px 18px">Aucune ligne ne correspond à votre recherche ou aux filtres.</p>' : ""}</div>
     <div class="foot"><span class="num">${plural(S.total, "ligne", "lignes")}</span><span class="mono trunc grow sqlecho" title="${esc(S.lastSQL)}" aria-live="polite">${S.gmsg ? esc(S.gmsg) : esc(S.lastSQL)}</span><button class="btn quiet sm" data-act="page" data-arg="-1" ${S.page < 2 ? "disabled" : ""} aria-label="Page précédente">‹</button><span class="num">Page ${S.page} / ${pages}</span><button class="btn quiet sm" data-act="page" data-arg="1" ${S.page >= pages ? "disabled" : ""} aria-label="Page suivante">›</button></div>`
   );
 }
@@ -337,7 +355,11 @@ Object.assign(A, {
     return A.toolState("sql", "active");
   },
   async toggleDb(d) {
-    if (d === S.db) { S.dbCollapsed = !S.dbCollapsed; drawDtree(); return; }
+    if (d === S.db) {
+      S.dbCollapsed = !S.dbCollapsed;
+      drawDtree();
+      return;
+    }
     return A.selectDb(d);
   },
   async selectDb(d) {
@@ -346,6 +368,7 @@ Object.assign(A, {
     S.table = null;
     S.page = 1;
     S.filter = null;
+    S.search = "";
     S.sort = null;
     S.sel = new Set();
     S.rs = null;
@@ -357,6 +380,7 @@ Object.assign(A, {
     S.page = 1;
     S.sort = null;
     S.filter = null;
+    S.search = "";
     S.sel = new Set();
     S.cell = null;
     S.view = "data";
@@ -377,8 +401,25 @@ Object.assign(A, {
     S.page = Math.max(1, S.page + +d);
     await run("Page", async () => {});
   },
+  async searchRows() {
+    S.search = $("#dataSearch").value.trim();
+    S.page = 1;
+    S.sel = new Set();
+    S.cell = null;
+    await run("Recherche dans la table", async () => {});
+    $("#dataSearch")?.focus();
+  },
+  async searchReset() {
+    S.search = "";
+    S.page = 1;
+    S.sel = new Set();
+    S.cell = null;
+    await run("Recherche dans la table", async () => {});
+    $("#dataSearch")?.focus();
+  },
   async filterApply() {
     const c = $("#fcol").value;
+    S.cell = null;
     S.filter = c ? { c, op: $("#fop").value, v: $("#fval").value } : null;
     S.page = 1;
     S.sel = new Set();
@@ -386,6 +427,9 @@ Object.assign(A, {
   },
   async filterReset() {
     S.filter = null;
+    S.page = 1;
+    S.sel = new Set();
+    S.cell = null;
     await run("Filtre", async () => {});
   },
   rowSel(i, el) {
@@ -402,6 +446,7 @@ Object.assign(A, {
       S.table = t;
       S.page = 1;
       S.filter = null;
+      S.search = "";
       S.sort = null;
     }
     S.dmode = "data";
@@ -790,6 +835,7 @@ Object.assign(A, {
     S.focus = "newcol";
     S.page = 1;
     S.filter = null;
+    S.search = "";
     S.sort = null;
     if (
       await run("Création de la table", async () => {
@@ -1096,6 +1142,16 @@ async function afterRedraw() {
 
 export function bindData() {
   const m = $("#dmain");
+  $("#tableSearch").addEventListener("input", (e) => {
+    S.tableQuery = e.target.value;
+    drawDtree();
+  });
+  m.addEventListener("submit", (e) => {
+    if (e.target.id !== "dataSearchForm") return;
+    e.preventDefault();
+    if (S.lamp !== "busy")
+      A.searchRows().catch((error) => fail("Recherche impossible.", error));
+  });
   m.addEventListener("click", (e) => {
     const td = e.target.closest("td[data-c]");
     if (td && !td.classList.contains("edit") && S.dmode === "data") {

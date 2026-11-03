@@ -1,4 +1,5 @@
 import * as G from "../sqlgen.mjs";
+import { ui } from "../icons.mjs";
 import { ddl, modal, esc, toast } from "../ui.mjs";
 import { S, A, ctx, eng, task, sql } from "../state.mjs";
 import {
@@ -164,70 +165,28 @@ export async function relationForm(initial = {}) {
   if (!tables.length) return;
   const current =
     tables.find((t) => t.name === (initial.child ?? S.table)) ?? tables[0];
-  const fields = [
-    {
-      id: "child",
-      label: "Table enfant",
-      type: "select",
-      options: tables.map((t) => t.name),
-      value: current.name,
-    },
-    {
-      id: "columns",
-      label: "Colonnes enfant, dans l’ordre (séparées par des virgules)",
-      value: (
-        initial.columns ?? [
-          current.columns.find((c) => c.key !== "PRI")?.name ??
-            current.columns[0].name,
-        ]
-      ).join(","),
-    },
-    {
-      id: "parent",
-      label: "Table parente",
-      type: "select",
-      options: tables.map((t) => t.name),
-      value: initial.parent ?? tables[0].name,
-    },
-    {
-      id: "refColumns",
-      label: "Colonnes référencées, dans le même ordre",
-      value: (initial.refColumns ?? ["id"]).join(","),
-    },
-    {
-      id: "name",
-      label: "Nom de la contrainte",
-      value:
-        initial.name ?? "fk_" + current.name + "_" + Date.now().toString(36),
-    },
-    {
-      id: "delete",
-      label: "ON DELETE",
-      type: "select",
-      options: ["RESTRICT", "CASCADE", "SET NULL", "NO ACTION"],
-      value: initial.onDelete ?? "RESTRICT",
-    },
-    {
-      id: "update",
-      label: "ON UPDATE",
-      type: "select",
-      options: ["RESTRICT", "CASCADE", "SET NULL", "NO ACTION"],
-      value: initial.onUpdate ?? "CASCADE",
-    },
-  ];
   const build = (v) => {
     const child = tables.find((t) => t.name === v.child),
       parent = tables.find((t) => t.name === v.parent),
-      cols = names(v.columns),
-      refs = names(v.refColumns);
+      cols = v.columns,
+      refs = v.refColumns;
+    if (checkName(v.name))
+      throw Error(
+        "Le nom de la relation doit contenir entre 1 et 64 caractères. Modifiez-le dans les options.",
+      );
+    if (!refs.length)
+      throw Error("Choisissez une table avec une clé primaire ou unique.");
+    if (!cols.length || cols.some((c) => !c) || cols.length !== refs.length)
+      throw Error(
+        "Choisissez une colonne source pour chaque colonne de la clé.",
+      );
     if (
-      checkName(v.name) ||
-      !cols.length ||
-      cols.length !== refs.length ||
       new Set(cols).size !== cols.length ||
       new Set(refs).size !== refs.length
     )
-      throw Error("Nom valide et même nombre de colonnes distinctes requis.");
+      throw Error(
+        "Chaque colonne doit être utilisée une seule fois dans le lien.",
+      );
     for (let i = 0; i < cols.length; i++) {
       const a = child.columns.find((c) => c.name === cols[i]),
         b = parent.columns.find((c) => c.name === refs[i]);
@@ -252,11 +211,161 @@ export async function relationForm(initial = {}) {
       );
     return `ALTER TABLE ${id(child.name)} ${initial.name ? "DROP FOREIGN KEY " + id(initial.name) + ", " : ""}ADD CONSTRAINT ${id(v.name)} FOREIGN KEY (${cols.map(id).join(",")}) REFERENCES ${id(parent.name)} (${refs.map(id).join(",")}) ON DELETE ${v.delete} ON UPDATE ${v.update};`;
   };
-  await ddl({
-    title: initial.name ? "Modifier une relation" : "Créer une relation",
-    fields,
-    sql: build,
-    onApply: (v) => execute(build(v)),
+  const keys = (t) =>
+    t.indexes.filter((index) => index.unique && index.columns.length);
+  const parent =
+    tables.find((t) => t.name === initial.parent) ??
+    tables.find((t) => t.name !== current.name && keys(t).length) ??
+    current;
+  const key =
+    keys(parent).find(
+      (k) =>
+        JSON.stringify(k.columns) ===
+        JSON.stringify(initial.refColumns ?? [initial.refColumn ?? "id"]),
+    ) ?? keys(parent)[0];
+  const value = {
+    child: current.name,
+    parent: parent.name,
+    columns: initial.columns ?? [
+      initial.column ??
+        current.columns.find((c) => c.key !== "PRI")?.name ??
+        current.columns[0]?.name,
+    ],
+    refColumns: key?.columns ?? [],
+    name:
+      initial.name ??
+      ("fk_" + current.name).slice(0, 48) + "_" + Date.now().toString(36),
+    delete: initial.onDelete ?? "RESTRICT",
+    update: initial.onUpdate ?? "CASCADE",
+  };
+  const tableOptions = (selected) =>
+    tables
+      .map(
+        (t) =>
+          `<option value="${esc(t.name)}" ${t.name === selected ? "selected" : ""}>${esc(t.name)}</option>`,
+      )
+      .join("");
+  const rules = {
+    RESTRICT: "Empêcher la suppression",
+    CASCADE: "Supprimer aussi les lignes liées",
+    "SET NULL": "Retirer le lien (NULL)",
+    "NO ACTION": "Refuser si des lignes sont liées",
+  };
+  const ruleOptions = (selected, update = false) =>
+    Object.entries(rules)
+      .map(
+        ([code, label]) =>
+          `<option value="${code}" ${code === selected ? "selected" : ""}>${esc(update ? { RESTRICT: "Empêcher la modification", CASCADE: "Mettre à jour les liens", "SET NULL": "Retirer le lien (NULL)", "NO ACTION": "Refuser si des lignes sont liées" }[code] : label)}</option>`,
+      )
+      .join("");
+  await modal({
+    title: initial.name ? "Modifier la relation" : "Relier deux tables",
+    wide: true,
+    body: `<p class="relation-intro">Choisissez la table qui porte le lien, puis celle qu’elle référence.</p>
+      <div class="relation-tables"><label class="relation-card"><span class="relation-step">1 · Depuis</span><b>Plusieurs lignes de…</b><select class="in" id="rel-child" aria-label="Table qui porte le lien">${tableOptions(value.child)}</select><span class="hint">La table qui contient la clé étrangère</span></label><span class="relation-connector" aria-hidden="true">${ui.link}<span>N → 1</span></span><label class="relation-card"><span class="relation-step">2 · Vers</span><b>Une ligne de…</b><select class="in" id="rel-parent" aria-label="Table référencée">${tableOptions(value.parent)}</select><span class="hint">La table dont on référence une clé</span></label></div>
+      <section class="relation-mapping" aria-labelledby="rel-mapping-title"><h2 id="rel-mapping-title">Associer les colonnes</h2><label class="field"><span>Clé de la table référencée</span><select class="in" id="rel-key"></select></label><div id="rel-pairs"></div><p id="rel-summary" class="hint" aria-live="polite"></p></section>
+      <details class="relation-options"><summary>Comportement et nom de la relation</summary><label class="field"><span>Si la ligne référencée est supprimée</span><select class="in" id="rel-delete">${ruleOptions(value.delete)}</select></label><label class="field"><span>Si sa clé est modifiée</span><select class="in" id="rel-update">${ruleOptions(value.update, true)}</select></label><label class="field"><span>Nom de la relation</span><input class="in" id="rel-name" value="${esc(value.name)}" maxlength="64"></label></details>
+      <details class="sql-disclosure"><summary>Voir la requête SQL</summary><pre class="pre" id="rel-sql"></pre></details><p class="hint bad" id="rel-error" role="status"></p>`,
+    actions: [
+      { label: "Annuler", v: "no" },
+      {
+        label: initial.name ? "Enregistrer la relation" : "Créer la relation",
+        v: "ok",
+        kind: "pri",
+      },
+    ],
+    onOpen(d) {
+      const get = (id) => d.querySelector("#rel-" + id);
+      function validate() {
+        value.columns = [...d.querySelectorAll("[data-rel-column]")].map(
+          (input) => input.value,
+        );
+        value.delete = get("delete").value;
+        value.update = get("update").value;
+        value.name = get("name").value.trim();
+        try {
+          get("sql").textContent = build(value);
+          get("error").textContent = "";
+          d.querySelector('[data-v="ok"]').disabled = false;
+          get("summary").textContent =
+            `Chaque ligne de ${value.child} référence une ligne de ${value.parent}.`;
+        } catch (error) {
+          get("error").textContent = error.message;
+          get("sql").textContent = "";
+          get("summary").textContent =
+            "Choisissez des colonnes de même type pour établir le lien.";
+          d.querySelector('[data-v="ok"]').disabled = true;
+        }
+      }
+      function pairs() {
+        const child = tables.find((t) => t.name === value.child),
+          parent = tables.find((t) => t.name === value.parent);
+        const refs = value.refColumns,
+          selected = value.columns;
+        get("pairs").innerHTML = refs.length
+          ? refs
+              .map((ref, i) => {
+                const target = parent.columns.find((c) => c.name === ref),
+                  compatible = child.columns.filter(
+                    (c) => c.type.toLowerCase() === target.type.toLowerCase(),
+                  );
+                const chosen =
+                  compatible.find((c) => c.name === selected[i]) ??
+                  compatible.find((c) => c.name === value.parent + "_" + ref) ??
+                  compatible[0];
+                return `<div class="relation-pair"><label class="field"><span>${esc(value.child)}</span><select class="in" data-rel-column aria-label="Colonne à relier à ${esc(value.parent)}.${esc(ref)}"><option value="">Choisir une colonne…</option>${child.columns.map((c) => `<option value="${esc(c.name)}" ${c === chosen ? "selected" : ""} ${compatible.includes(c) ? "" : "disabled"}>${esc(c.name)} · ${esc(c.type)}</option>`).join("")}</select></label><span class="relation-pair-arrow" aria-hidden="true">${ui.arrow}</span><div class="relation-target"><span>${esc(value.parent)}</span><b>${ui.key}${esc(ref)}</b><small>${esc(target.type)}</small></div></div>`;
+              })
+              .join("")
+          : '<p class="hint">Cette table n’a pas encore de clé primaire ou unique. Ajoutez-en une dans Structure ou choisissez une autre table.</p>';
+        validate();
+      }
+      function parentKeys() {
+        const available = keys(tables.find((t) => t.name === value.parent));
+        get("key").innerHTML = available.length
+          ? available
+              .map(
+                (k) =>
+                  `<option value="${esc(JSON.stringify(k.columns))}" ${JSON.stringify(k.columns) === JSON.stringify(value.refColumns) ? "selected" : ""}>${esc(k.name === "PRIMARY" ? "Clé primaire" : k.name)} · ${esc(k.columns.join(" + "))}</option>`,
+              )
+              .join("")
+          : '<option value="">Aucune clé disponible</option>';
+        value.refColumns = JSON.parse(get("key").value || "[]");
+        pairs();
+      }
+      get("child").onchange = () => {
+        value.child = get("child").value;
+        value.columns = [];
+        pairs();
+      };
+      get("parent").onchange = () => {
+        value.parent = get("parent").value;
+        value.refColumns = [];
+        parentKeys();
+      };
+      get("key").onchange = () => {
+        value.refColumns = JSON.parse(get("key").value || "[]");
+        pairs();
+      };
+      d.addEventListener("change", validate);
+      get("name").addEventListener("input", validate);
+      parentKeys();
+      get("child").focus();
+    },
+    beforeClose: async (action, d) => {
+      if (action !== "ok") return true;
+      const button = d.querySelector('[data-v="ok"]');
+      button.disabled = true;
+      try {
+        await execute(build(value));
+        toast("Relation enregistrée");
+        return true;
+      } catch (error) {
+        d.querySelector("#rel-error").textContent = error.message;
+        return false;
+      } finally {
+        button.disabled = false;
+      }
+    },
   });
 }
 async function advancedInsert() {

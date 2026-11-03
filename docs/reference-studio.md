@@ -16,7 +16,7 @@ Accueil ouvre un nom existant ou crée un projet vide. Les 40 derniers projets o
 
 Dans Code, l’arborescence est à droite sur grand écran et au-dessus de l’éditeur sur petit écran. Les onglets de fichiers utilisent une seule instance CodeMirror : chaque fichier conserve son brouillon et sa sélection. Création, renommage, suppression, recherche et remplacement restent disponibles. Un fichier fait au plus 1 Mio UTF-8 ; les binaires ne sont pas interprétés comme du texte. Les écritures vérifient la version de départ pour refuser l’écrasement d’une modification concurrente.
 
-Tab accepte la suggestion visible, sinon indente. Entrée insère un retour à la ligne avec indentation ; elle n’accepte pas une suggestion. Les balises HTML se ferment automatiquement. Le parseur mixte choisit la complétion selon la zone PHP, HTML, JavaScript ou CSS, y compris JavaScript dans une balise script d’un fichier PHP. La complétion jQuery utilise les définitions internes sans ajouter ces fichiers au projet. Ctrl+Espace ouvre les suggestions et Ctrl+S écrit le fichier courant. Le bouton Sauvegarder écrit les brouillons des onglets ouverts avant de sauvegarder le projet.
+Tab accepte la suggestion visible, sinon indente. Entrée insère un retour à la ligne avec indentation ; elle n’accepte pas une suggestion. Les balises HTML se ferment automatiquement. Le parseur mixte choisit la complétion selon la zone PHP, HTML, JavaScript ou CSS, y compris JavaScript dans une balise script d’un fichier PHP. La complétion jQuery utilise les définitions internes sans ajouter ces fichiers au projet. Ctrl+Espace ouvre les suggestions et Ctrl+S et le bouton Enregistrer écrivent tous les brouillons puis conservent le projet dans ce navigateur.
 
 PHP utilise PHPantom Rust/WASM, HTML SuperHTML, JavaScript SWC/WASM et TypeScript pour les types. Il n’y a pas de deuxième interpréteur PHP dédié à la complétion. Les diagnostics PHP sémantiques exhaustifs, Composer et les transformations de code à grande échelle ne sont pas ceux d’un VS Code complet.
 
@@ -146,7 +146,7 @@ Dans **Données → Structure**, « Colonne » ouvre le formulaire complet : typ
 
 La grille distingue les valeurs exactes ; les binaires s’affichent en hexadécimal et ont leur éditeur dédié. « Insérer avec options » distingue DEFAULT, NULL, texte vide et binaire. Une modification/suppression vérifie les valeurs originales de la ligne. Le schéma conserve les clés composées et propose un formulaire utilisable au clavier en complément du glisser-déposer.
 
-« Enregistrer » applique les brouillons aux fichiers lus par PHP. « Sauvegarder » conserve le projet dans ce navigateur et redémarre le moteur. « Fermer sans sauvegarder » abandonne les modifications du moteur depuis le dernier checkpoint ; les brouillons locaux restent récupérables. Le ZIP inclut les fichiers et les bases utilisateur, même lorsque SQL est dormant après une sauvegarde. Les sessions clientes restent exclues des ZIP.
+« Enregistrer » applique tous les brouillons aux fichiers lus par PHP et conserve le projet dans ce navigateur. « Fermer sans enregistrer » abandonne les modifications du moteur depuis le dernier checkpoint ; les brouillons locaux restent récupérables. Le ZIP inclut les fichiers et les bases utilisateur, même lorsque SQL est dormant après une sauvegarde. Les sessions clientes restent exclues des ZIP.
 
 Les anciens ZIP applicatifs publiés avant ALWIS gardent leur interface d’origine. Les captures actuelles sont celles du code source ALWIS ; elles ne modifient pas rétroactivement ces versions.
 

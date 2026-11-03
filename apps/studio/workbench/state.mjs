@@ -51,6 +51,8 @@ export const S = {
   dmode: "data",
   sort: null,
   filter: null,
+  search: "",
+  tableQuery: "",
   page: 1,
   total: 0,
   grid: null,

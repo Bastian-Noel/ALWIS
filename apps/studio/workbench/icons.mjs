@@ -74,3 +74,28 @@ export const ui = {
   trash:
     '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M5 4.5l.5 8h5l.5-8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
 };
+
+const lineIcon = (paths) =>
+  `<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
+Object.assign(ui, {
+  search: lineIcon(
+    '<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/>',
+  ),
+  save: lineIcon('<path d="M5 3h12l4 4v14H3V3Zm2 0v6h10V3M7 21v-8h10v8"/>'),
+  format: lineIcon(
+    '<path d="M9 5h12M9 10h8M9 15h12M9 20h8M3 5l1 1 2-3M3 15l1 1 2-3"/>',
+  ),
+  warning: lineIcon('<path d="m12 3 10 18H2ZM12 9v5m0 3h.01"/>'),
+  rename: lineIcon('<path d="m15 4 5 5M4 20l5-1L21 7l-5-5L4 14ZM3 22h18"/>'),
+  copy: lineIcon(
+    '<rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V3H3v13h5"/>',
+  ),
+  code: lineIcon('<path d="m8 6-6 6 6 6m8-12 6 6-6 6m-3-15-2 18"/>'),
+  arrow: lineIcon('<path d="M4 12h16m-6-6 6 6-6 6"/>'),
+  folder: lineIcon('<path d="M3 7V4h7l3 3h8v13H3Zm0 0h10"/>'),
+  settings: lineIcon(
+    '<path d="M3 6h18M3 12h18M3 18h18"/><circle cx="8" cy="6" r="2"/><circle cx="16" cy="12" r="2"/><circle cx="8" cy="18" r="2"/>',
+  ),
+  download: lineIcon('<path d="M12 3v12m-5-5 5 5 5-5M3 16v5h18v-5"/>'),
+  close: lineIcon('<path d="m6 6 12 12M18 6 6 18"/>'),
+});
