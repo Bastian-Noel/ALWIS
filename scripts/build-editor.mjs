@@ -12,7 +12,7 @@ const libraries=new Set(['lib.es2022.d.ts','lib.dom.d.ts']);
 for(const name of libraries){const text=await readFile('node_modules/typescript/lib/'+name,'utf8');definitions['/.pbl-types/'+name]=text;for(const match of text.matchAll(/<reference lib="([^"]+)"/g))libraries.add('lib.'+match[1]+'.d.ts');}
 for(const pkg of ['jquery','sizzle'])for(const name of await readdir('node_modules/@types/'+pkg))if(name.endsWith('.d.ts'))definitions[`/.pbl-types/node_modules/@types/${pkg}/${name}`]=await readFile(`node_modules/@types/${pkg}/${name}`,'utf8');
 await writeFile(`${out}/definitions.json`,JSON.stringify(definitions));
-const packages=JSON.parse(await readFile('package.json','utf8')).dependencies;let notices='WASMWebServer editor dependencies\n\n';
+const packages=JSON.parse(await readFile('package.json','utf8')).dependencies;let notices='ALWIS editor dependencies\n\n';
 for(const name of Object.keys(packages)){for(const file of ['LICENSE','LICENSE.txt','license']){try{notices+=name+' '+packages[name]+'\n'+await readFile('node_modules/'+name+'/'+file,'utf8')+'\n\n';break;}catch(error){if(error.code!=='ENOENT')throw error;}}}
 for(const name of await readdir('apps/studio/editor/licenses'))notices+=name+'\n'+await readFile('apps/studio/editor/licenses/'+name,'utf8')+'\n';
 await writeFile(out+'/THIRD-PARTY.txt',notices);

@@ -22,7 +22,7 @@ export class ProjectHub {
     if(this.lastSaveError)return Promise.resolve(this.error(503,'Sauvegarde échouée. Le propriétaire doit réessayer la sauvegarde avant de reprendre les clients.'));
     if(this.busy)return Promise.resolve(this.error(503,'Projet en cours de sauvegarde. Réessayez dans un instant.'));
     const started=performance.now();
-    return this.track(this.serveRequest(sessionId,input).then(response=>{this.onRequest?.({method:input.method??'GET',path:new URL(input.url).pathname,status:response.status,durationMs:performance.now()-started});return response;}));
+    return this.track(this.serveRequest(sessionId,input).then(response=>{this.onRequest?.({session:sessionId,method:input.method??'GET',path:new URL(input.url).pathname,status:response.status,durationMs:performance.now()-started});return response;}));
   }
   async serveRequest(sessionId, input) {
     if (this.busy) return { status: 503, headers: [['Content-Type', 'text/plain']], body: encoder.encode('Projet en cours de sauvegarde. Réessayez dans un instant.') };
@@ -85,5 +85,5 @@ export class ProjectHub {
       this.runtime = await NativeRuntime.create({ moduleURL: new URL('/engine/pbl-runtime.mjs', location.href).href, projectKey: this.key });this.lastSaveError=null;this.checkpointCommitted=false;
     } catch(error){this.lastSaveError=error;throw error;} finally { this.busy = false; for(const session of this.sessions.sessions.values())this.broadcastCookies(session.id); }
   }
-  async close() { await this.freeze();try{await this.saveSessions();if(!this.runtime.closed)await this.runtime.shutdown({metadata:this.snapshot()});}catch(error){this.busy=false;throw error;} }
+  async close({save=true}={}) { await this.freeze();try{if(save)await this.saveSessions();if(!this.runtime.closed)await this.runtime.shutdown({save,metadata:this.snapshot()});}catch(error){this.busy=false;throw error;} }
 }

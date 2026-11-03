@@ -46,7 +46,7 @@ Les fonctions existantes de grille, insertion, suppression, schéma, sauvegarde 
 npm ci
 npm run editor:build
 PLAYWRIGHT_BROWSERS_PATH=/workspace/.cache/ms-playwright node tests/browser/editor-services.mjs
-PLAYWRIGHT_BROWSERS_PATH=/workspace/.cache/ms-playwright node tests/browser/editor-workbench.mjs
+PLAYWRIGHT_BROWSERS_PATH=/workspace/.cache/ms-playwright node tests/browser/alwis-workbench.mjs
 PLAYWRIGHT_BROWSERS_PATH=/workspace/.cache/ms-playwright node tests/browser/editor-accessibility.mjs
 node scripts/package-studio.mjs
 ```

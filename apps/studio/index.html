@@ -2,529 +2,596 @@
 <html lang="fr">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <meta name="theme-color" content="#1e1e1e" />
-    <title>WASMWebServer</title>
-    <link rel="stylesheet" href="/apps/studio/studio.css" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>ALWIS — Atelier Local Web avec IDE et SQL</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='3' y='9' width='26' height='14' rx='3' fill='none' stroke='%2315191d' stroke-width='2.5'/%3E%3Ccircle cx='23' cy='16' r='3' fill='%23168a4d'/%3E%3Crect x='7' y='14.5' width='9' height='3' rx='1.5' fill='%2315191d'/%3E%3C/svg%3E"
+    />
+    <script>
+      try {
+        var t =
+          localStorage.getItem("alwis-theme") ||
+          localStorage.getItem("wws-theme");
+      } catch (e) {}
+      document.documentElement.dataset.theme =
+        t ||
+        (matchMedia("(prefers-color-scheme:dark)").matches ? "dark" : "light");
+    </script>
+
+    <link rel="stylesheet" href="/apps/studio/workbench/styles.css" />
   </head>
   <body>
-    <a class="skip-link" href="#workspace">Aller à l’espace de travail</a>
-    <header class="app-header">
-      <a class="brand" href="/">WASMWebServer</a
-      ><strong id="project-name">Aucun projet ouvert</strong
-      ><span id="dirty-state" class="state-label"></span>
-      <div class="header-actions">
-        <button id="save" data-project-action disabled>Sauvegarder</button>
-        <details class="project-menu">
-          <summary>Projet</summary>
-          <div class="menu-content">
-            <label class="upload" for="import-files"
-              >Importer des fichiers / ZIP<input
-                id="import-files"
-                type="file"
-                multiple
-                data-project-action
-                disabled /></label
-            ><button id="export" data-project-action disabled>
-              Exporter le projet ZIP</button
-            ><button id="demo" data-project-action disabled>
-              Charger l’exemple scolaire</button
-            ><button id="close" data-project-action disabled>
-              Fermer le projet
-            </button>
-          </div>
-        </details>
-        <details class="secondary-tools">
-          <summary>
-            Outils <span id="error-count" class="count" hidden>0</span>
-          </summary>
-          <div
-            class="menu-content"
-            role="tablist"
-            aria-label="Outils secondaires"
-          >
-            <button
-              id="tab-resources"
-              role="tab"
-              aria-selected="false"
-              aria-controls="panel-resources"
-              data-panel="resources"
-              tabindex="-1"
-            >
-              Ressources</button
-            ><button
-              id="tab-journal"
-              role="tab"
-              aria-selected="false"
-              aria-controls="panel-journal"
-              data-panel="journal"
-              tabindex="-1"
-            >
-              Journal
-            </button>
-          </div>
-        </details>
-      </div>
-    </header>
-    <nav aria-label="Navigation du studio">
-      <div
-        class="workspace-tabs"
-        role="tablist"
-        aria-label="Espaces du studio"
-        aria-orientation="horizontal"
-      >
+    <div class="app" id="app" data-mode="launcher" data-lamp="off">
+      <header class="top">
         <button
-          id="tab-home"
-          role="tab"
-          aria-selected="true"
-          aria-controls="panel-home"
-          data-panel="home"
+          class="mark"
+          data-act="home"
+          aria-label="ALWIS, retour à l’accueil"
         >
-          Accueil
+          <span class="unit" aria-hidden="true"><i></i></span>ALWIS
         </button>
         <button
-          id="tab-editor"
-          role="tab"
-          aria-selected="false"
-          aria-controls="panel-editor"
-          data-panel="editor"
-          tabindex="-1"
+          class="chip"
+          id="chip"
+          data-act="persist"
+          aria-haspopup="true"
+          hidden
         >
-          Code
+          <span class="ladder" id="ladder" aria-hidden="true"
+            ><i></i><i></i><i></i></span
+          ><b class="trunc" id="pname"></b
+          ><span class="mut hide-s" id="psum"></span>
+        </button>
+        <span class="grow"></span>
+        <button class="btn quiet hide-s" data-act="palette" id="palBtn">
+          Rechercher une action <kbd>Ctrl K</kbd>
         </button>
         <button
-          id="tab-sql"
-          role="tab"
-          aria-selected="false"
-          aria-controls="panel-sql"
-          data-panel="sql"
-          tabindex="-1"
+          class="btn quiet show-s"
+          data-act="palette"
+          aria-label="Palette de commandes"
         >
-          Base de données
+          ⌘
+        </button>
+        <button class="btn pri" id="primary" data-act="primary" hidden>
+          Enregistrer
         </button>
         <button
-          id="tab-schema"
-          role="tab"
-          aria-selected="false"
-          aria-controls="panel-schema"
-          data-panel="schema"
-          tabindex="-1"
+          class="btn quiet"
+          data-act="theme"
+          id="themeBtn"
+          aria-label="Changer de thème"
         >
-          Schéma relationnel
+          Thème
         </button>
-        <button
-          id="tab-clients"
-          role="tab"
-          aria-selected="false"
-          aria-controls="panel-clients"
-          data-panel="clients"
-          tabindex="-1"
-        >
-          Clients et sessions
-        </button>
-      </div>
-    </nav>
-    <main id="workspace" tabindex="-1">
-      <section
-        id="error-banner"
-        class="error-banner"
-        role="alert"
-        aria-atomic="true"
-        hidden
-      >
-        <div>
-          <strong id="error-title">Action impossible</strong>
-          <p id="error-message"></p>
-          <p id="error-recovery"></p>
-        </div>
-        <div class="bar">
-          <button id="show-error">Voir le diagnostic</button
-          ><button id="dismiss-error">Masquer l’erreur</button>
-        </div>
-      </section>
-      <section
-        id="panel-home"
-        class="workspace-panel home-panel"
-        role="tabpanel"
-        aria-labelledby="tab-home"
-      >
-        <div class="home-content">
-          <h1>Projets</h1>
-          <p class="home-intro">
-            Votre espace PHP, vos fichiers et vos bases, dans ce navigateur.
-          </p>
-          <section class="open-project">
-            <h2>Ouvrir ou créer un projet</h2>
-            <div class="bar">
-              <label for="project"
-                >Nom du projet<input
-                  id="project"
-                  value="school-demo"
-                  pattern="[A-Za-z0-9_\-]{1,64}"
-                  maxlength="64"
-                  aria-describedby="project-help"
-                  autocomplete="off"
-                  spellcheck="false" /></label
-              ><button id="open" class="primary">Ouvrir</button
-              ><button id="home-import">Importer un projet ZIP</button
-              ><input
-                id="home-zip"
-                type="file"
-                accept=".zip,application/zip"
-                hidden
-              />
+      </header>
+
+      <nav class="rail" id="rail" aria-label="Espaces du studio"></nav>
+
+      <main id="main">
+        <div id="alertHost"></div>
+
+        <section class="stage" id="launcher" aria-label="Accueil">
+          <div class="launch">
+            <div>
+              <h1>Vos projets PHP et MariaDB,<br />dans cet onglet.</h1>
+              <p class="lead">
+                Fichiers, base de données et fenêtres clientes tournent ici.
+                Rien n’est envoyé à un serveur.
+              </p>
+              <h2 class="hint" style="font-weight: 600; margin: 0 12px 4px">
+                Projets de ce navigateur
+              </h2>
+              <div id="recent"></div>
             </div>
-            <p id="project-help" class="hint">
-              Lettres, chiffres, tirets et underscore. Un nouveau nom crée un
-              projet vide.
-            </p>
-          </section>
-          <section class="recent-projects">
-            <h2>Projets récents</h2>
-            <div id="project-list">
-              <p class="empty-state">Aucun projet enregistré ici.</p>
-            </div>
-          </section>
-          <div id="current-project-info"></div>
-        </div>
-      </section>
-      <section
-        id="panel-editor"
-        class="workspace-panel"
-        role="tabpanel"
-        aria-labelledby="tab-editor"
-        hidden
-      >
-        <h1 class="sr-only">Code</h1>
-        <div id="editor-tool" class="tool-surface"></div>
-      </section>
-      <section
-        id="panel-sql"
-        class="workspace-panel"
-        role="tabpanel"
-        aria-labelledby="tab-sql"
-        hidden
-      >
-        <h1 class="sr-only">Base de données</h1>
-        <div id="sql-tool" class="tool-surface"></div>
-      </section>
-      <section
-        id="panel-schema"
-        class="workspace-panel"
-        role="tabpanel"
-        aria-labelledby="tab-schema"
-        hidden
-      >
-        <h1 class="sr-only">Schéma relationnel</h1>
-        <div id="schema-tool" class="tool-surface"></div>
-      </section>
-      <section
-        id="panel-clients"
-        class="workspace-panel clients-panel"
-        role="tabpanel"
-        aria-labelledby="tab-clients"
-        hidden
-      >
-        <div class="view-heading"><h1>Clients et sessions</h1></div>
-        <div class="client-launch">
-          <div class="bar">
-            <label for="preview-path"
-              >Page<input
-                id="preview-path"
-                value="/index.php"
-                spellcheck="false" /></label
-            ><label for="sessions"
-              >Identité<select
-                id="sessions"
-                data-project-action
-                disabled
-              ></select></label
-            ><button id="window" class="primary" data-project-action disabled>
-              Ouvrir un client</button
-            ><button id="new-client" data-project-action disabled>
-              Nouvelle session indépendante
-            </button>
-          </div>
-        </div>
-        <div class="session-layout">
-          <section>
-            <h2>Identités</h2>
-            <div id="session-overview" class="session-overview"></div>
-          </section>
-          <section>
-            <h2>Fenêtres ouvertes</h2>
-            <div id="client-windows">
-              <p class="empty-state">
-                Aucune fenêtre ouverte depuis ce studio.
+            <div style="display: grid; gap: 14px; align-content: start">
+              <div class="panel">
+                <h2>Nouveau projet</h2>
+                <label class="field"
+                  ><span>Nom</span
+                  ><input
+                    class="in"
+                    id="pn"
+                    maxlength="64"
+                    autocomplete="off"
+                    spellcheck="false"
+                    placeholder="mon-site"
+                    aria-describedby="pnh"
+                /></label>
+                <fieldset style="border: 0; padding: 0; margin: 0 0 6px">
+                  <legend style="position: absolute; left: -9999px">
+                    Point de départ
+                  </legend>
+                  <label class="radio"
+                    ><input type="radio" name="tpl" value="demo" checked /><b
+                      >Exemple scolaire</b
+                    ><span class="mut"
+                      >Exemple de notes en PHP, base « test » à la demande, 12
+                      fichiers.</span
+                    ></label
+                  >
+                  <label class="radio"
+                    ><input type="radio" name="tpl" value="empty" /><b
+                      >Projet vide</b
+                    ><span class="mut"
+                      >Un index.php ; MariaDB démarre uniquement si nécessaire.</span
+                    ></label
+                  >
+                </fieldset>
+                <p class="hint" id="pnh" style="margin-bottom: 12px"></p>
+                <div style="display: flex; gap: 8px">
+                  <button class="btn pri" id="pgo" data-act="create">
+                    Créer le projet</button
+                  ><button class="btn" data-act="importZip">
+                    Importer un ZIP
+                  </button>
+                </div>
+              </div>
+              <p class="hint" style="padding: 0 4px">
+                Sur un poste partagé, pensez à exporter vos projets en ZIP : le
+                navigateur peut vider son stockage.
               </p>
             </div>
-          </section>
-        </div>
-      </section>
-      <section
-        id="panel-resources"
-        class="workspace-panel secondary-panel"
-        role="tabpanel"
-        aria-labelledby="tab-resources"
-        hidden
-      >
-        <div class="view-heading">
-          <h1>Ressources</h1>
-          <button id="refresh-resources" data-project-action disabled>
-            Actualiser
+          </div>
+          <div class="env" id="env"></div>
+        </section>
+
+        <section class="stage" id="ws" hidden>
+          <div class="view" id="v-code" hidden>
+            <div class="cgrid" id="cgrid">
+              <aside class="side" aria-label="Explorateur de fichiers">
+                <div class="side-h">
+                  <span class="grow">Fichiers</span>
+                  <button
+                    class="btn quiet sm"
+                    data-act="newFile"
+                    aria-label="Nouveau fichier"
+                    title="Nouveau fichier"
+                  >
+                    <svg
+                      viewBox="0 0 16 16"
+                      width="15"
+                      height="15"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M4 1.5h5l3 3V14a.5.5 0 0 1-.5.5h-7A.5.5 0 0 1 4 14zM8.5 8v4M6.5 10h4"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.4"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                    </svg>
+                  </button>
+                  <button
+                    class="btn quiet sm"
+                    data-act="newFolder"
+                    aria-label="Nouveau dossier"
+                    title="Nouveau dossier"
+                  >
+                    <svg
+                      viewBox="0 0 16 16"
+                      width="15"
+                      height="15"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M1.5 3.5A1 1 0 0 1 2.5 2.5h3.2l1.3 1.5h6.5a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1zM8 7v4M6 9h4"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.4"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                    </svg>
+                  </button>
+                  <button
+                    class="btn quiet sm"
+                    data-act="exCollapseAll"
+                    aria-label="Tout replier"
+                    title="Tout replier"
+                  >
+                    <svg
+                      viewBox="0 0 16 16"
+                      width="15"
+                      height="15"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M4 6l4 4 4-4M4 2.5h8"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.4"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        transform="rotate(180 8 8)"
+                      />
+                    </svg>
+                  </button>
+                  <button
+                    class="btn quiet sm show-s"
+                    data-act="exToggleMobile"
+                    aria-label="Fermer l’explorateur"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <div style="padding: 2px 10px 6px">
+                  <input
+                    class="in"
+                    id="ff"
+                    placeholder="Filtrer les fichiers"
+                    aria-label="Filtrer les fichiers"
+                    autocomplete="off"
+                  />
+                </div>
+                <div
+                  class="tree"
+                  id="tree"
+                  role="tree"
+                  aria-label="Arborescence du projet"
+                ></div>
+                <p
+                  class="hint"
+                  style="padding: 6px 14px 10px"
+                  id="treeNote"
+                ></p>
+              </aside>
+              <div class="ed-col">
+                <div
+                  class="tabs"
+                  id="tabs"
+                  role="group"
+                  aria-label="Fichiers ouverts"
+                ></div>
+                <div class="crumbs">
+                  <button class="btn quiet sm show-s" data-act="exToggleMobile">
+                    Fichiers</button
+                  ><span id="ficon" style="display: flex"></span
+                  ><span class="grow" id="crumb"></span>
+                  <button class="btn quiet sm hide-s" data-act="find">
+                    Rechercher
+                  </button>
+                  <span class="split-btn"
+                    ><button
+                      class="btn sm"
+                      id="runBtn"
+                      data-act="pvToggle"
+                      aria-pressed="false"
+                    ></button
+                    ><button
+                      class="btn sm"
+                      data-act="runMenu"
+                      aria-haspopup="true"
+                      aria-label="Options d’ouverture : fenêtre, nouvelle session, comparaison"
+                    >
+                      ▾
+                    </button></span
+                  >
+                  <button
+                    class="btn quiet sm"
+                    data-act="fileMenu"
+                    aria-haspopup="true"
+                    aria-label="Actions sur le fichier"
+                  >
+                    <svg
+                      viewBox="0 0 16 16"
+                      width="14"
+                      height="14"
+                      aria-hidden="true"
+                    >
+                      <circle cx="3.5" cy="8" r="1.3" fill="currentColor" />
+                      <circle cx="8" cy="8" r="1.3" fill="currentColor" />
+                      <circle cx="12.5" cy="8" r="1.3" fill="currentColor" />
+                    </svg>
+                  </button>
+                </div>
+                <div id="conflict" hidden></div>
+                <div class="find" id="findbar" hidden>
+                  <input
+                    class="in"
+                    id="fq"
+                    placeholder="Rechercher"
+                    aria-label="Rechercher"
+                    autocomplete="off"
+                  /><input
+                    class="in"
+                    id="fr"
+                    placeholder="Remplacer par"
+                    aria-label="Remplacer par"
+                    autocomplete="off"
+                  />
+                  <span class="hint num" id="fc"></span
+                  ><button
+                    class="btn sm"
+                    data-act="findPrev"
+                    aria-label="Précédent"
+                  >
+                    ↑</button
+                  ><button
+                    class="btn sm"
+                    data-act="findNext"
+                    aria-label="Suivant"
+                  >
+                    ↓
+                  </button>
+                  <button class="btn sm" data-act="replaceOne">Remplacer</button
+                  ><button class="btn sm" data-act="replaceAll">Tout</button
+                  ><button
+                    class="btn quiet sm"
+                    data-act="find"
+                    aria-label="Fermer la recherche"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <div class="edwrap" id="ed1" hidden></div>
+                <div class="empty" id="edEmpty">
+                  <b>Aucun fichier ouvert</b
+                  ><span
+                    >Choisissez un fichier dans l’explorateur, ou appuyez sur
+                    <kbd>Ctrl P</kbd> pour en ouvrir un par son nom. Glissez des
+                    fichiers dans l’explorateur pour les importer.</span
+                  ><button class="btn" data-act="newFile">
+                    Nouveau fichier
+                  </button>
+                </div>
+                <div class="empty" id="edBin" hidden></div>
+                <div class="foot" id="edFoot">
+                  <span id="pos" class="num">Ln 1, col 1</span
+                  ><span id="lang"></span><span>UTF-8</span
+                  ><span class="grow"></span><span id="lsp" class="mut"></span>
+                </div>
+              </div>
+              <section class="pv-col" aria-label="Aperçu">
+                <div class="pv-head">
+                  <input
+                    class="in grow"
+                    id="pvPath"
+                    value="/index.php"
+                    aria-label="Chemin de la page"
+                    spellcheck="false"
+                  />
+                  <button
+                    class="btn sm"
+                    data-act="pvReload"
+                    aria-label="Recharger l’aperçu"
+                  >
+                    ↻
+                  </button>
+                  <button
+                    class="btn sm tg"
+                    id="pvFollow"
+                    data-act="pvFollowToggle"
+                    aria-pressed="true"
+                    title="L’aperçu suit le fichier ouvert"
+                  >
+                    Suivre
+                  </button>
+                  <button
+                    class="btn sm tg"
+                    id="pvDouble"
+                    data-act="pvDoubleToggle"
+                    aria-pressed="false"
+                    title="Comparer deux sessions côte à côte"
+                  >
+                    A | B
+                  </button>
+                  <button class="btn sm hide-s" data-act="openWindow">
+                    Fenêtre</button
+                  ><button
+                    class="btn quiet sm"
+                    data-act="pvToggle"
+                    aria-label="Fermer l’aperçu"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <div class="pv-frames" id="pvFrames" data-n="1"></div>
+              </section>
+            </div>
+          </div>
+
+          <div class="view" id="v-data" hidden>
+            <div class="dgrid">
+              <aside class="side" aria-label="Bases et tables">
+                <div class="side-h">
+                  <span class="grow">Bases de données</span>
+                </div>
+                <div class="tree" id="dbtree" role="tree"></div>
+              </aside>
+              <div class="side sheet" id="dmain"></div>
+            </div>
+          </div>
+
+          <div class="view" id="v-schema" hidden>
+            <div class="bar" style="background: var(--faceplate)">
+              <b>Schéma</b
+              ><label class="hint"
+                >Base
+                <select class="in" id="sdb"></select></label
+              ><span class="hint num" id="scount"></span
+              ><span class="grow"></span>
+              <button class="btn sm" data-act="schemaLayout">Réorganiser</button
+              ><button class="btn sm" data-act="joinTable">Liaison N–N</button
+              ><button class="btn sm hide-s" data-act="schemaSvg">
+                Exporter en SVG
+              </button>
+              <span class="seg" role="group" aria-label="Zoom"
+                ><button
+                  data-act="zoom"
+                  data-arg="-1"
+                  aria-label="Zoom arrière"
+                >
+                  −</button
+                ><button
+                  data-act="schemaFit"
+                  id="zl"
+                  class="num"
+                  style="min-width: 56px; text-align: center"
+                  title="Ajuster à l’écran"
+                >
+                  100 %</button
+                ><button data-act="zoom" data-arg="1" aria-label="Zoom avant">
+                  +
+                </button></span
+              >
+            </div>
+            <div class="sgrid" id="sgrid">
+              <div class="canvas" id="canvas">
+                <svg
+                  id="sv"
+                  role="application"
+                  aria-label="Schéma relationnel. Glissez le point d’un champ vers une clé pour créer une relation."
+                >
+                  <g id="layer"></g>
+                </svg>
+                <div
+                  class="empty"
+                  id="schemaEmpty"
+                  hidden
+                  style="position: absolute; inset: 0"
+                >
+                  <b>Aucune table dans cette base</b
+                  ><span
+                    >Créez une table dans l’espace Données pour la voir
+                    ici.</span
+                  >
+                </div>
+                <div class="hintchip" id="schemaHint">
+                  Glissez le point d’un champ vers une clé pour créer une
+                  relation · molette pour zoomer
+                </div>
+              </div>
+              <aside
+                class="insp"
+                id="insp"
+                aria-label="Fiche de la table"
+              ></aside>
+            </div>
+          </div>
+
+          <div class="view" id="v-sessions" hidden>
+            <div class="sess-wrap">
+              <div>
+                <h1>Sessions</h1>
+                <p class="sec" style="margin-top: 4px; max-width: 66ch">
+                  Une session est un visiteur : ses cookies, sa session PHP.
+                  Deux fenêtres de la même session partagent leur connexion ;
+                  deux sessions se comportent comme deux personnes. Ouvrez-les
+                  aussi depuis l’éditeur, avec le bouton ▶ Aperçu.
+                </p>
+              </div>
+              <div class="sess-bar">
+                <button class="btn pri" data-act="newIdent">
+                  Nouvelle session</button
+                ><button class="btn" data-act="compare">
+                  Comparer A et B dans l’éditeur
+                </button>
+              </div>
+              <div id="sesGrid"></div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <section class="dock" id="dock" aria-label="Serveur">
+        <div
+          class="grip"
+          id="grip"
+          role="separator"
+          aria-orientation="horizontal"
+          aria-label="Redimensionner le panneau"
+        ></div>
+        <div class="bar tight">
+          <span class="seg" role="tablist" aria-label="Panneau serveur"
+            ><button role="tab" data-act="dockTab" data-arg="req">
+              Requêtes</button
+            ><button role="tab" data-act="dockTab" data-arg="log">
+              Journal</button
+            ><button role="tab" data-act="dockTab" data-arg="res">
+              Ressources
+            </button></span
+          >
+          <span class="grow"></span
+          ><select class="in" id="lvl" aria-label="Niveau" hidden>
+            <option value="">Tous les niveaux</option>
+            <option value="e">Erreurs</option>
+            <option value="w">Avertissements</option>
+          </select>
+          <button class="btn quiet sm" data-act="logClear">Effacer</button
+          ><button class="btn quiet sm" data-act="logExport">
+            Exporter JSON</button
+          ><button
+            class="btn quiet sm"
+            data-act="dockClose"
+            aria-label="Fermer le panneau"
+          >
+            ✕
           </button>
         </div>
-        <p id="engine-state">Aucun moteur actif.</p>
-        <dl class="resource-readings">
-          <div>
-            <dt>Capacité WASM</dt>
-            <dd id="memory-capacity">—</dd>
-          </div>
-          <div>
-            <dt>Tas C occupé</dt>
-            <dd id="memory-used">—</dd>
-          </div>
-          <div>
-            <dt>MariaDB</dt>
-            <dd id="sql-phase">Non initialisée</dd>
-          </div>
-        </dl>
-        <h2>Stockage en mémoire</h2>
-        <div id="vfs-readings"></div>
-        <h2>Outils</h2>
-        <div class="bar">
-          <label
-            >Code<select data-tool="editor">
-              <option value="active">Actif</option>
-              <option value="idle">En veille</option>
-              <option value="unloaded">Déchargé</option>
-            </select></label
-          ><label
-            >SQL<select data-tool="sql">
-              <option value="active">Actif</option>
-              <option value="idle">En veille</option>
-              <option value="unloaded">Déchargé</option>
-            </select></label
-          ><label
-            >Schéma<select data-tool="schema">
-              <option value="active">Actif</option>
-              <option value="idle">En veille</option>
-              <option value="unloaded">Déchargé</option>
-            </select></label
+        <div class="dock-b" id="dockB"></div>
+      </section>
+
+      <footer class="status">
+        <span class="lamp" id="slamp"></span
+        ><span id="stext" role="status" aria-live="polite">Prêt</span
+        ><span class="grow"></span>
+        <button data-act="persist" id="sPersist" hidden></button>
+        <button data-act="dockToggle" id="sDock" aria-expanded="false">
+          Serveur <span class="num mut" id="sCount"></span>
+        </button>
+      </footer>
+    </div>
+
+    <div class="blocked" id="blocked" hidden>
+      <div class="panel">
+        <h2>Ce site ne peut pas encore lancer PHP</h2>
+        <div class="chk">
+          <span class="lamp ok"></span
+          ><span>Contexte sécurisé (HTTPS ou localhost)</span>
+        </div>
+        <div class="chk">
+          <span class="lamp err"></span
+          ><span
+            ><b>En-têtes COOP/COEP absents.</b> Le navigateur refuse la mémoire
+            partagée dont WebAssembly a besoin.</span
           >
         </div>
-        <p class="hint">
-          La capacité WASM et le tas C ne représentent pas la RAM totale du
-          navigateur. MariaDB démarre au besoin et reste active jusqu’à la
-          sauvegarde ou la fermeture.
+        <div class="chk">
+          <span class="lamp ok"></span><span>Service Worker disponible</span>
+        </div>
+        <p class="hint" style="margin: 12px 0">
+          Que faire : configurez
+          <span class="mono">Cross-Origin-Opener-Policy: same-origin</span> et
+          <span class="mono">Cross-Origin-Embedder-Policy: require-corp</span>
+          sur l’hébergement, puis rechargez.
         </p>
-      </section>
-      <section
-        id="panel-journal"
-        class="workspace-panel secondary-panel"
-        role="tabpanel"
-        aria-labelledby="tab-journal"
-        hidden
-      >
-        <div class="view-heading">
-          <h1>Journal</h1>
-          <button id="export-log">Exporter</button>
+        <div style="display: flex; gap: 8px">
+          <button class="btn pri" data-act="unblock">Recharger</button
+          ><button class="btn" data-act="docsHost">Guide d’hébergement</button>
         </div>
-        <div class="bar log-toolbar">
-          <label for="log-filter"
-            >Niveau<select id="log-filter">
-              <option value="">Tous</option>
-              <option value="error">Erreurs</option>
-              <option value="warning">Avertissements</option>
-              <option value="info">Informations</option>
-            </select></label
-          ><button id="clear-log">Effacer</button
-          ><span id="log-count" class="hint"></span>
-        </div>
-        <div id="journal-entries"></div>
-      </section>
-    </main>
-    <footer class="app-footer">
-      <p id="status" role="status" aria-live="polite">Ouverture du studio…</p>
-      <span id="activity">En attente</span
-      ><span id="footer-project">Aucun projet ouvert</span>
-    </footer>
-    <template id="editor-template"
-      ><div class="editor-workbench">
-        <div class="editor-main">
-          <div class="file-tabs" aria-label="Fichiers ouverts"></div>
-          <div class="bar">
-            <input
-              class="filename"
-              value="/index.php"
-              aria-label="Chemin du fichier"
-            /><button class="load">Charger</button
-            ><button class="write primary">Écrire le fichier</button>
-          </div>
-          <div class="bar editor-actions">
-            <button class="new-file">Nouveau fichier</button
-            ><button class="search-code">Rechercher / remplacer</button>
-            <details>
-              <summary>Gérer le fichier</summary>
-              <div class="bar">
-                <button class="rename-file">Renommer</button
-                ><button class="delete-file danger">Supprimer</button>
-              </div>
-            </details>
-          </div>
-          <div class="source code-editor"></div>
-          <p class="language-status hint" role="status"></p>
-          <dialog class="file-dialog" aria-labelledby="file-dialog-title">
-            <form method="dialog">
-              <h3 class="file-dialog-title" id="file-dialog-title">
-                Nouveau fichier
-              </h3>
-              <label
-                >Chemin du fichier<input
-                  class="file-target"
-                  aria-describedby="file-operation-error"
-                  value="/index.php"
-                  required
-              /></label>
-              <p
-                class="hint file-error"
-                id="file-operation-error"
-                role="status"
-              ></p>
-              <div class="bar">
-                <button class="file-confirm primary" type="button">
-                  Créer le fichier</button
-                ><button value="cancel">Annuler</button>
-              </div>
-            </form>
-          </dialog>
-          <p class="hint message" role="status"></p>
-        </div>
-        <aside class="editor-explorer" aria-label="Explorateur de fichiers">
-          <h2>Explorateur</h2>
-          <div class="bar">
-            <select class="files" aria-label="Fichiers du projet"></select
-            ><button class="refresh">Actualiser</button>
-          </div>
-          <details class="project-tree" open>
-            <summary>Arborescence du projet</summary>
-            <nav class="file-tree" aria-label="Arborescence des fichiers"></nav>
-          </details>
-        </aside></div
-    ></template>
-    <template id="sql-template"
-      ><div class="sql-workspace">
-        <aside class="database-explorer">
-          <div class="bar">
-            <h2>Bases de données</h2>
-            <button class="refresh-databases">Actualiser</button>
-          </div>
-          <div class="database-tree"></div>
-          <div class="bar">
-            <button class="create-database">Créer une base</button
-            ><button class="drop-database danger">Supprimer la base</button>
-          </div>
-        </aside>
-        <div class="sql-main">
-          <div class="bar">
-            <label
-              >Base
-              <select class="database" aria-label="Base SQL">
-                <option>test</option>
-              </select></label
-            ><button class="run primary">Exécuter</button>
-          </div>
-          <div class="query code-editor"></div>
-          <div class="bar">
-            <button class="search-sql">Rechercher / remplacer</button
-            ><select class="query-history" aria-label="Historique SQL">
-              <option value="">Requêtes récentes</option></select
-            ><button class="clear-history">Effacer l’historique</button
-            ><span class="hint"
-              >Ctrl+Entrée : exécuter la sélection ou la requête.</span
-            >
-          </div>
-          <div class="bar">
-            <button class="tables">Actualiser les tables</button
-            ><select class="table" aria-label="Table"></select
-            ><button class="browse">Voir les données</button
-            ><button class="structure">Structure et index</button
-            ><button class="export-csv">Exporter le résultat CSV</button
-            ><button class="insert">Insérer une ligne</button
-            ><button class="create-table">Créer une table</button
-            ><button class="manage-table">Modifier la structure</button
-            ><button class="import-sql">Importer SQL</button
-            ><button class="export-sql">Exporter la base SQL</button
-            ><input
-              class="sql-file"
-              type="file"
-              accept=".sql,text/plain"
-              hidden
-            />
-          </div>
-          <details class="data-filter">
-            <summary>Filtrer et trier les lignes</summary>
-            <div class="bar">
-              <label
-                >Colonne
-                <select class="filter-column">
-                  <option value="">Sans filtre</option>
-                </select></label
-              ><label
-                >Opérateur
-                <select class="filter-operator">
-                  <option>=</option>
-                  <option>!=</option>
-                  <option>&lt;</option>
-                  <option>&gt;</option>
-                  <option>LIKE</option>
-                  <option>IS NULL</option>
-                  <option>IS NOT NULL</option>
-                </select></label
-              ><label>Valeur <input class="filter-value" /></label
-              ><label
-                >Trier par
-                <select class="sort-column">
-                  <option value="">Clé primaire</option>
-                </select></label
-              ><select class="sort-direction" aria-label="Sens du tri">
-                <option>ASC</option>
-                <option>DESC</option></select
-              ><button class="filter-apply">Appliquer le filtre</button
-              ><button class="filter-reset">Réinitialiser</button>
-            </div>
-          </details>
-          <p class="hint message" role="status"></p>
-          <dialog class="row-dialog" aria-label="Insérer une ligne">
-            <form method="dialog">
-              <h3>Insérer une ligne</h3>
-              <p class="hint">
-                DEFAULT laisse le serveur choisir la valeur par défaut. NULL
-                reste distinct du texte vide.
-              </p>
-              <div class="row-fields"></div>
-              <p class="message"></p>
-              <div class="bar">
-                <button type="button" class="insert-confirm">Insérer</button
-                ><button value="cancel">Annuler</button>
-              </div>
-            </form>
-          </dialog>
-          <div class="structure-grid" hidden></div>
-          <pre class="structure-output" hidden></pre>
-          <select
-            class="result-sets"
-            aria-label="Jeux de résultats"
-            hidden
-          ></select>
-          <div class="grid"></div>
-          <div class="bar pagination">
-            <button class="previous">Précédent</button><span class="page"></span
-            ><button class="next">Suivant</button>
-          </div>
-          <div class="sql-ddl-host"></div>
-        </div></div
-    ></template>
-    <script type="module" src="/apps/studio/studio.mjs"></script>
+      </div>
+    </div>
+
+    <dialog id="modal"></dialog>
+    <dialog class="pal" id="pal" aria-label="Palette de commandes">
+      <input
+        id="pq"
+        placeholder="Ouvrir un fichier ou lancer une action…"
+        aria-label="Rechercher"
+        autocomplete="off"
+      />
+      <ul id="pl" role="listbox"></ul>
+    </dialog>
+    <div class="toast" id="toast" role="status"></div>
+    <input type="file" id="zipIn" multiple hidden />
+
+    <script type="module" src="/apps/studio/workbench/main.mjs"></script>
   </body>
 </html>

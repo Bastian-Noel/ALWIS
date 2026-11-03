@@ -14,11 +14,9 @@ try{
   const browser=await playwright[name].launch({headless:true,...(name==='chromium'?{args:['--no-sandbox']}:{})});
   try{
    const studio=await browser.newPage();studio.setDefaultTimeout(180000);
-   await studio.goto(origin+'/?project=load-'+crypto.randomUUID());await studio.locator('#status').filter({hasText:'Prêt à ouvrir'}).waitFor();
-   await studio.locator('#open').click();await studio.locator('#status').filter({hasText:'Projet prêt.'}).waitFor();
-   await studio.locator('#import-files').setInputFiles([{name:'load.php',mimeType:'text/plain',buffer:fixture},{name:'client.html',mimeType:'text/html',buffer:Buffer.from('<!doctype html><html><head><title>Load client</title></head><body><h1 id=load-client>Client de charge</h1></body></html>')}]);await studio.locator('#status').filter({hasText:'Fichiers importés.'}).waitFor();
-   await studio.locator('#preview-path').fill('/client.html');
-   async function client(){const pending=studio.waitForEvent('popup');await studio.locator('#new-client').click();const page=await pending;await page.waitForSelector('#load-client');return page;}
+   await studio.goto(origin+'/?project=load-'+crypto.randomUUID());await studio.locator('#pn').waitFor();await studio.locator('[data-act=create]').click();await studio.locator('#ed1 .cm-content').waitFor();
+   await studio.locator('#zipIn').setInputFiles([{name:'load.php',mimeType:'text/plain',buffer:fixture},{name:'client.html',mimeType:'text/html',buffer:Buffer.from('<!doctype html><html><head><title>Load client</title></head><body><h1 id=load-client>Client de charge</h1></body></html>')}]);await studio.locator('#toast').filter({hasText:'importé'}).waitFor();
+   async function client(){const pending=studio.waitForEvent('popup');await studio.evaluate(async()=>{const {A}=await import('/apps/studio/workbench/state.mjs');await A.openWindowNew('/client.html');});const page=await pending;await page.waitForSelector('#load-client');return page;}
    const clients=[await client(),await client()];const stages=[];
    for(const rate of [5,10]){
     const memoryBefore=await readBrowserProcessMemory();
@@ -34,10 +32,10 @@ try{
     const shared=results.flatMap(r=>r.responses.map(v=>v.shared));assert.equal(new Set(shared).size,shared.length);
     for(const r of results)for(let i=1;i<r.responses.length;i++)assert.equal(r.responses[i].calls,r.responses[i-1].calls+1);
     const memoryAfter=await readBrowserProcessMemory();
-    stages.push({ratePerClient:rate,durationMs:10000,memoryBefore,memoryAfter,engineLabel:await studio.locator('#engine-state').textContent(),linearMemoryBytes:Number(await studio.locator('#engine-state').getAttribute('data-linear-memory-bytes')),allocatorUsedBytes:Number(await studio.locator('#engine-state').getAttribute('data-allocator-used-bytes')),clients:results.map(({responses,...r})=>({...r,session:responses[0].session,first:responses[0],last:responses.at(-1)}))});
+    stages.push({ratePerClient:rate,durationMs:10000,memoryBefore,memoryAfter,engine:await studio.evaluate(async()=>{const {ctx}=await import('/apps/studio/workbench/state.mjs');await ctx.engine.measure();return ctx.engine.memory().raw;}),clients:results.map(({responses,...r})=>({...r,session:responses[0].session,first:responses[0],last:responses.at(-1)}))});
     console.log(name,rate,'requests/s/client passed');
    }
-   await studio.locator('.project-menu summary').click();await studio.locator('#close').click();await studio.locator('#status').filter({hasText:'Projet fermé'}).waitFor();
+   await studio.evaluate(async()=>{const {A}=await import('/apps/studio/workbench/state.mjs');await A.save();await A.close();});
    await writeFile(resolve(output,name+'.json'),JSON.stringify({browser:name,version:browser.version(),passed:true,scope:'Two clients; 10 seconds per stage. Short sustained scenario, not a leak endurance proof.',stages},null,2)+'\n');
   }finally{await browser.close();}
  }

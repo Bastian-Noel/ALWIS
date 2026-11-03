@@ -45,8 +45,6 @@ runs:
       run: |
         node tests/browser/editor-services.mjs
         node tests/browser/editor-intelligence.mjs
-        node tests/browser/editor-workbench.mjs
-        node tests/browser/ide-workspace.mjs
-        node tests/browser/studio-shell.mjs chromium
+        node tests/browser/alwis-workbench.mjs
         node tests/browser/mysqli-complete.mjs
-        node tests/browser/editor-accessibility.mjs
+        node tests/browser/alwis-accessibility.mjs

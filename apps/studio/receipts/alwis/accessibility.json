@@ -1,0 +1,48 @@
+{
+  "passed": true,
+  "axe": "4.11.1",
+  "browser": "156.0.8078.4",
+  "scope": "Automated Chromium; screen readers and Safari not verified",
+  "states": [
+    {
+      "name": "launcher light",
+      "violations": []
+    },
+    {
+      "name": "launcher dark",
+      "violations": []
+    },
+    {
+      "name": "code light",
+      "violations": []
+    },
+    {
+      "name": "code dark",
+      "violations": []
+    },
+    {
+      "name": "structure",
+      "violations": []
+    },
+    {
+      "name": "column dialog",
+      "violations": []
+    },
+    {
+      "name": "schema light",
+      "violations": []
+    },
+    {
+      "name": "schema dark",
+      "violations": []
+    },
+    {
+      "name": "sessions",
+      "violations": []
+    },
+    {
+      "name": "resources",
+      "violations": []
+    }
+  ]
+}

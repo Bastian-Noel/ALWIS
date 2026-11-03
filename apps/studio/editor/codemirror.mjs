@@ -1036,19 +1036,25 @@ export function createCodeEditor(
         closeBrackets(),
         syntaxHighlighting(
           HighlightStyle.define([
-            { tag: tags.keyword, color: "#e9c68f" },
-            { tag: [tags.string, tags.regexp], color: "#b9d6a5" },
-            { tag: tags.comment, color: "#a9b0b6" },
-            { tag: [tags.number, tags.bool, tags.null], color: "#c8b6e8" },
+            { tag: tags.keyword, color: "var(--t-k, #e9c68f)" },
+            { tag: [tags.string, tags.regexp], color: "var(--t-s, #b9d6a5)" },
+            { tag: tags.comment, color: "var(--t-c, #a9b0b6)" },
+            {
+              tag: [tags.number, tags.bool, tags.null],
+              color: "var(--t-n, #c8b6e8)",
+            },
             {
               tag: [tags.function(tags.variableName), tags.tagName],
-              color: "#9dd4e7",
+              color: "var(--t-g, #9dd4e7)",
             },
-            { tag: tags.typeName, color: "#dfcfa8" },
-            { tag: tags.variableName, color: "#d6e3ed" },
-            { tag: tags.propertyName, color: "#b7d8ea" },
-            { tag: tags.attributeName, color: "#d5c6a1" },
-            { tag: [tags.operator, tags.punctuation], color: "#c5cbd2" },
+            { tag: tags.typeName, color: "var(--t-n, #dfcfa8)" },
+            { tag: tags.variableName, color: "var(--ink, #d6e3ed)" },
+            { tag: tags.propertyName, color: "var(--t-g, #b7d8ea)" },
+            { tag: tags.attributeName, color: "var(--t-s, #d5c6a1)" },
+            {
+              tag: [tags.operator, tags.punctuation],
+              color: "var(--ink-2, #c5cbd2)",
+            },
           ]),
         ),
         highlightSelectionMatches(),
@@ -1391,6 +1397,9 @@ export function createCodeEditor(
     problems: () => openLintPanel(view),
     signatureHelp,
     navigate,
+    outline,
+    projectSearch,
+    renameSymbol,
     setReadOnly: (readOnly) => {
       paused = readOnly;
       revision++;

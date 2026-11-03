@@ -1,16 +1,20 @@
-# Studio : points d’entrée techniques
+# ALWIS : interface de l’atelier
 
-`index.html` définit la coque et les modèles DOM. `studio.mjs` orchestre les outils et le cycle du projet ; `service-worker.mjs` route les requêtes clientes vers le propriétaire moteur. `database/` regroupe les modèles SQL, DDL, valeurs et schéma ; `editor/` fournit CodeMirror et les services de langage.
+`index.html` est la coque principale. `workbench/main.mjs` branche les vues de l’interface sur les services réels ; aucun moteur simulé n’est livré.
 
-Les URL publiques de l’entrée, du Service Worker et des workers d’édition sont conservées. `scripts/package-studio.mjs` assemble les modules SQL et les bundles d’édition ; `scripts/serve-studio.mjs` sert les sources et associe sql-export.source.txt à database/sql-export.php. Ne pas servir ce dernier comme un backend PHP distant.
+- `workbench/services.mjs` appelle ProjectHub, NativeRuntime, les sessions et le stockage existants.
+- `workbench/views/` : code, explorateur, données, structure, schéma, sessions et panneau Serveur.
+- `workbench/ui.mjs` : dialogues, menus et montage de notre CodeMirror.
+- `database/` : valeurs SQL sans perte, analyse des définitions de colonnes, modèle relationnel, scripts et export PHP.
+- `editor/` : bundles et services de langage existants, sans nouvel interpréteur PHP.
+- `project-hub.mjs`, `service-worker.mjs`, `client-bootstrap.js` : propriétaire du moteur et requêtes clientes.
 
-Pour travailler sur cette application :
+Les URL publiques du studio, du Service Worker et des clients restent compatibles. Les clés de stockage des anciens projets sont conservées. La reprise des brouillons de l’ancien éditeur est prise en charge. Le format ZIP historique reste importable.
 
 ```sh
 node scripts/serve-studio.mjs
-node tests/browser/editor-workbench.mjs
-node tests/browser/ide-workspace.mjs
-node tests/browser/studio-shell.mjs chromium
+node tests/browser/alwis-workbench.mjs
+node tests/browser/alwis-accessibility.mjs
 ```
 
-La préparation du moteur et de Playwright est décrite dans [CONTRIBUTING](../../CONTRIBUTING.md). Le [guide utilisateur](../../docs/README.md) porte les procédures fonctionnelles ; [architecture](../../docs/architecture.md) porte le stockage et les responsabilités. Les reçus locaux sont sous receipts/ et build-work/ ; ils sont liés à la révision testée.
+Voir [CONTRIBUTING](../../CONTRIBUTING.md) pour la préparation des moteurs et navigateurs. Les captures et reçus de cette interface sont sous `receipts/alwis/`. Les anciens reçus décrivent les révisions historiques, pas l’interface courante.

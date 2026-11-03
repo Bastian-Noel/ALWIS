@@ -142,8 +142,8 @@
       "peak": 15
     },
     "linearMemoryBytes": 268435456,
-    "allocatorUsedBytes": 77503464,
-    "allocatorFreeBytes": 19582088,
+    "allocatorUsedBytes": 77503704,
+    "allocatorFreeBytes": 19581848,
     "vfs": {
       "groups": {
         "project": {

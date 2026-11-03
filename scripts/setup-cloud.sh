@@ -61,7 +61,7 @@ checkout_pinned build-work/php https://github.com/joomengine/php-wasm.git 3b8cef
 if [[ ! -s build-work/php/dist/php/8.4/php.wasm ]]; then
   artifact_dir="$repo_dir/build-work/artifacts/baseline-php-8.4"
   if [[ ! -s "$artifact_dir/php/dist/php/8.4/php.wasm" ]]; then
-    gh run download 41212524552 --repo Bastian-Noel/WASMWebServer --name baseline-php-8.4 --dir "$artifact_dir"
+    gh run download 41212524552 --repo Bastian-Noel/ALWIS --name baseline-php-8.4 --dir "$artifact_dir"
   fi
   [[ ! -e build-work/php/dist ]] || { echo 'Preserving existing partial dist; inspect it before restoring.' >&2; exit 1; }
   cp -a "$artifact_dir/php/dist" build-work/php/

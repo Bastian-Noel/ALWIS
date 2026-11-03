@@ -1,0 +1,580 @@
+/** Espace Code : onglets, éditeur, recherche, aperçu lié aux sessions et ouverture de fenêtres clientes. */
+import {
+  $,
+  $$,
+  esc,
+  plural,
+  toast,
+  menu,
+  modal,
+  mkEditor,
+  LANGS,
+  langOf,
+} from "../ui.mjs";
+import {
+  S,
+  A,
+  ctx,
+  eng,
+  log,
+  fail,
+  task,
+  dirty,
+  sessions,
+  sessionOf,
+} from "../state.mjs";
+import { fileIcon, fileKind, isWeb, ui } from "../icons.mjs";
+import { drawExplorer, refreshFiles, dirOf, nameOf } from "./explorer.mjs";
+
+let ed = null,
+  edFile = null;
+const isPage = (p) =>
+  isWeb(p) && !/^\/(lib|includes?|inc|vendor|src|config)\//.test(p);
+const sw = (s) => `<span class="sw" style="background:${s.hue}"></span>`;
+
+function tabsHtml() {
+  return S.tabs
+    .map(
+      (t) =>
+        `<div class="tab" role="group" aria-label="${esc(nameOf(t))}">${fileIcon(t)}<button data-act="openFile" data-arg="${esc(t)}" class="trunc" aria-pressed="${t === S.active}">${esc(nameOf(t))}</button>${dirty(t) ? '<i class="d" title="Brouillon non enregistré"></i>' : ""}<button class="c" data-act="closeTab" data-arg="${esc(t)}" aria-label="Fermer ${esc(nameOf(t))}">✕</button></div>`,
+    )
+    .join("");
+}
+export function drawTabs() {
+  $("#tabs").innerHTML = tabsHtml();
+}
+
+export function drawCode() {
+  const p = S.active,
+    info = p && S.files.find((f) => f.path === p),
+    isText = !!p && info?.kind === "text" && p in S.base;
+  $("#cgrid").className = "cgrid" + (S.pv ? " pv" : "");
+  $("#cgrid").dataset.ex = S.exOpen ? "on" : "";
+  drawExplorer();
+  drawTabs();
+  $("#crumb").innerHTML = p
+    ? p
+        .split("/")
+        .filter(Boolean)
+        .map((s, i, a) =>
+          i === a.length - 1
+            ? `<b>${esc(s)}</b>`
+            : `<span class="mut">${esc(s)}</span><span class="mut">/</span>`,
+        )
+        .join("")
+    : '<span class="mut">Aucun fichier ouvert</span>';
+  $("#ficon").innerHTML = p ? fileIcon(p) : "";
+  const cur = sessionOf(S.pvSessions[0]);
+  $("#runBtn").innerHTML = `${ui.play}<span>Aperçu</span>${cur ? sw(cur) : ""}`;
+  $("#runBtn").setAttribute("aria-pressed", S.pv);
+  $("#runBtn").disabled = false;
+  $("#ed1").hidden = !isText;
+  if (S.editorUnloaded)
+    $("#ed1").innerHTML =
+      '<div class="empty"><b>Éditeur déchargé</b><button class="btn" data-act="activateEditor">Réactiver l’éditeur</button></div>';
+  $("#edEmpty").hidden = !!p;
+  $("#edBin").hidden = !(p && !isText);
+  $("#edFoot").hidden = !isText;
+  $("#findbar").hidden = !S.find.open || !isText;
+  const cf = $("#conflict");
+  cf.hidden = !(p && S.conflict[p]);
+  if (p && S.conflict[p])
+    cf.innerHTML = `<div class="alert" style="margin:0"><div class="grow"><p><b>Ce fichier a changé dans le projet.</b> Un autre onglet ou une fenêtre l’a modifié depuis son ouverture.</p></div><button class="btn sm" data-act="conflictReload">Recharger</button><button class="btn sm" data-act="conflictKeep">Garder mon brouillon</button></div>`;
+  if (p && !isText && info)
+    $("#edBin").innerHTML =
+      info.kind === "bin"
+        ? `<b>${esc(nameOf(p))}</b><span>Image de ${Math.round(info.size / 1024)} Kio. Les fichiers binaires ne s’éditent pas ici.</span><button class="btn" data-act="downloadFile">Télécharger</button>`
+        : `<b>Fichier trop volumineux pour l’éditeur</b><span>${esc(nameOf(p))} fait ${(info.size / 1048576).toFixed(1).replace(".", ",")} Mio ; la limite d’édition est de 1 Mio. Découpez-le avant de l’ouvrir, ou téléchargez-le.</span><button class="btn" data-act="downloadFile">Télécharger</button>`;
+  if (isText) {
+    if (!ed && !S.editorUnloaded)
+      ed = mkEditor($("#ed1"), {
+        lang: "php",
+        onSave: () => A.apply(),
+        onCursor: (l, c) => ($("#pos").textContent = `Ln ${l}, col ${c}`),
+        onInput(v) {
+          if (v === S.base[S.active]) delete S.drafts[S.active];
+          else S.drafts[S.active] = v;
+          drawExplorer();
+          drawTabs();
+          ctx.shell();
+          ctx.schedulePersist?.();
+          if (S.find.open) A.findUpdate();
+        },
+      });
+    if (edFile !== p) {
+      edFile = p;
+      ed?.set(S.drafts[p] ?? S.base[p], langOf(p), p);
+      S.find.i = 0;
+    }
+    $("#lang").innerHTML =
+      `${fileIcon(p)}<span>${LANGS[(p.split(".").pop() || "").toLowerCase()] || fileKind(p)}</span>`;
+  } else edFile = null;
+  drawPv();
+}
+export const resetEditor = () => {
+  ed?.destroy();
+  ed = null;
+  edFile = null;
+};
+
+/* ───────── Aperçu ───────── */
+function frameHead(i) {
+  const s = sessionOf(S.pvSessions[i]),
+    r = S.pvInfo[s.id];
+  return `<div class="fhead"><button class="btn sm" data-act="pvPickSession" data-arg="${i}" aria-haspopup="true">${sw(s)}${esc(s.label)} ▾</button><span class="grow"></span>${r ? `<span class="st2 s${String(r.status)[0]}">${r.status}</span><span class="num mut">${r.ms} ms</span>` : '<span class="mut">pas encore chargé</span>'}</div>`;
+}
+export function updatePreviewStatus() {
+  const box = $("#pvFrames");
+  if (!box) return;
+  $$(".fhead-h", box).forEach((head, i) => (head.innerHTML = frameHead(i)));
+}
+export function drawPv() {
+  const box = $("#pvFrames");
+  const want = S.pvDouble ? 2 : 1;
+  if (box.children.length !== want)
+    box.innerHTML = Array.from(
+      { length: want },
+      (_, i) =>
+        `<div class="pv-cell"><div class="fhead-h" data-i="${i}"></div><div class="pv-frame"><iframe title="Aperçu ${i + 1}" sandbox="allow-scripts allow-forms allow-same-origin"></iframe></div></div>`,
+    ).join("");
+  box.dataset.n = want;
+  $$(".fhead-h", box).forEach((h, i) => (h.innerHTML = frameHead(i)));
+  $("#pvPath").value = S.pvPath;
+  $("#pvFollow").setAttribute("aria-pressed", S.pvFollow);
+  $("#pvDouble").setAttribute("aria-pressed", S.pvDouble);
+}
+Object.assign(A, {
+  activateEditor() {
+    return A.toolState("editor", "active");
+  },
+  editorDefinition() {
+    return ed?.model.navigate("definition");
+  },
+  editorReferences() {
+    return ed?.model.navigate("references");
+  },
+  editorSymbols() {
+    return ed?.model.outline();
+  },
+  editorProjectSearch() {
+    return ed?.model.projectSearch();
+  },
+  editorRename() {
+    return ed?.model.renameSymbol();
+  },
+  editorSearch() {
+    ed?.model.search();
+  },
+  editorProblems() {
+    ed?.model.problems();
+  },
+  async downloadFile() {
+    if (S.active) await eng().fs.download(S.active);
+  },
+  async openFile(p) {
+    if (!S.tabs.includes(p) && S.tabs.length >= 40)
+      throw Error(
+        "40 onglets maximum. Fermez un fichier avant d’en ouvrir un autre.",
+      );
+    const info = S.files.find((f) => f.path === p);
+    if (!info) throw Error("Fichier absent du projet.");
+    if (info.kind === "text" && !(p in S.base)) {
+      const result = await eng().fs.read(p);
+      if (result.text === undefined) info.kind = "bin";
+      else {
+        const retained =
+          Object.values(S.base).reduce((n, t) => n + (t?.length ?? 0), 0) +
+          Object.values(S.drafts).reduce((n, t) => n + t.length, 0);
+        if (retained + result.text.length > 8 * 1024 * 1024)
+          throw Error(
+            "Budget des fichiers ouverts atteint (8 M caractères). Fermez des onglets.",
+          );
+        S.base[p] = result.text;
+      }
+    }
+    if (!S.tabs.includes(p)) S.tabs.push(p);
+    S.active = p;
+    S.view = "code";
+    S.exSel = p;
+    S.exOpen = false;
+    for (let d = dirOf(p); d && d !== "/"; d = dirOf(d)) S.openDirs.add(d);
+    const follow = S.pv && S.pvFollow && isPage(p);
+    if (follow) S.pvPath = p;
+    ctx.draw();
+    if (follow) A.pvReload();
+    ctx.schedulePersist?.();
+    requestAnimationFrame(() => ed?.focus());
+  },
+  async closeTab(p) {
+    if (dirty(p)) {
+      const r = await modal({
+        title: "Fermer ce fichier ?",
+        body: `<p class="sec"><b>${esc(p)}</b> contient un brouillon non enregistré.</p>`,
+        actions: [
+          { label: "Annuler", v: "no" },
+          { label: "Ne pas enregistrer", v: "drop", kind: "bad" },
+          { label: "Enregistrer", v: "save", kind: "pri" },
+        ],
+      });
+      if (!r || r === "no") return;
+      if (r === "save" && !(await A.apply(p, true))) return;
+    }
+    const i = S.tabs.indexOf(p);
+    S.tabs.splice(i, 1);
+    delete S.drafts[p];
+    delete S.base[p];
+    delete S.conflict[p];
+    if (S.active === p) {
+      S.active = S.tabs[Math.max(0, i - 1)] ?? null;
+      edFile = null;
+    }
+    ctx.draw();
+  },
+  async apply(p = S.active, quiet) {
+    if (S.toolModes?.editor === "sleep")
+      throw Error("Réactivez l’éditeur avant d’enregistrer.");
+    if (!p || !dirty(p)) return quiet ? true : toast("Rien à enregistrer");
+    if (S.conflict[p]) {
+      S.alert = {
+        title: "Enregistrement refusé.",
+        msg: "Le fichier a changé dans le projet depuis son ouverture.",
+        recover:
+          "Utilisez « Recharger » ou « Garder mon brouillon » dans le bandeau du fichier.",
+      };
+      ctx.draw();
+      return false;
+    }
+    const ok = await task("Écriture de " + p, async () => {
+      await eng().fs.write(p, S.drafts[p], S.base[p] ?? null);
+      S.base[p] = S.drafts[p];
+      delete S.drafts[p];
+      S.applied.add(p);
+      await refreshFiles();
+      log("i", "Fichier écrit : " + p);
+      return true;
+    });
+    if (ok && !quiet) toast(nameOf(p) + " enregistré");
+    ctx.draw();
+    if (ok && S.pv) A.pvReload();
+    return !!ok;
+  },
+  async applyAll() {
+    const d = Object.keys(S.drafts).filter(dirty);
+    for (const p of d) if (!(await A.apply(p, true))) break;
+    if (d.some(dirty)) return false;
+    if (d.length)
+      toast(plural(d.length, "fichier enregistré", "fichiers enregistrés"));
+    return true;
+  },
+  conflictReload() {
+    const p = S.active;
+    delete S.drafts[p];
+    delete S.conflict[p];
+    delete S.base[p];
+    edFile = null;
+    A.openFile(p);
+    toast("Fichier rechargé depuis le projet");
+  },
+  conflictKeep() {
+    delete S.conflict[S.active];
+    ctx.draw();
+    toast(
+      "Brouillon conservé. Copiez-le vers un nouveau fichier ou rechargez avant d’enregistrer.",
+    );
+  },
+  exToggleMobile() {
+    S.exOpen = !S.exOpen;
+    $("#cgrid").dataset.ex = S.exOpen ? "on" : "";
+  },
+  fileMenu(_, el) {
+    if (!S.active) return;
+    menu(el, [
+      { label: "Renommer", act: "renameStart", arg: S.active, hint: "F2" },
+      { label: "Dupliquer", act: "dupFile", arg: S.active },
+      { label: "Copier le chemin", act: "copyPath", arg: S.active },
+      "-",
+      { label: "Rechercher / remplacer", act: "editorSearch", hint: "Ctrl F" },
+      { label: "Problèmes et corrections", act: "editorProblems" },
+      { label: "Définition", act: "editorDefinition", hint: "F12" },
+      { label: "Références", act: "editorReferences", hint: "Maj F12" },
+      { label: "Renommer le symbole", act: "editorRename", hint: "F2" },
+      { label: "Symboles du fichier", act: "editorSymbols" },
+      { label: "Rechercher dans le projet", act: "editorProjectSearch" },
+      "-",
+      { label: "Supprimer…", act: "deletePath", arg: S.active, bad: 1 },
+    ]);
+  },
+  /* recherche */
+  find() {
+    ed?.model.search();
+  },
+  findIdx() {
+    const q = $("#fq").value;
+    if (!q || !ed) return [];
+    const out = [],
+      t = ed.get().toLowerCase(),
+      n = q.toLowerCase();
+    let i = -1;
+    while ((i = t.indexOf(n, i + 1)) > -1) out.push(i);
+    return out;
+  },
+  findUpdate() {
+    const q = $("#fq").value,
+      ix = A.findIdx();
+    S.find.i = Math.min(S.find.i, Math.max(0, ix.length - 1));
+    ed?.marks(q, S.find.i);
+    $("#fc").textContent = q
+      ? ix.length
+        ? `${S.find.i + 1} / ${ix.length}`
+        : "Aucun résultat"
+      : "";
+    if (ix.length) ed.scrollToIndex(ix[S.find.i]);
+  },
+  findNext() {
+    const n = A.findIdx().length;
+    if (n) {
+      S.find.i = (S.find.i + 1) % n;
+      A.findUpdate();
+    }
+  },
+  findPrev() {
+    const n = A.findIdx().length;
+    if (n) {
+      S.find.i = (S.find.i - 1 + n) % n;
+      A.findUpdate();
+    }
+  },
+  replaceOne() {
+    const ix = A.findIdx();
+    if (!ix.length) return;
+    const q = $("#fq").value,
+      t = ed.get(),
+      i = ix[S.find.i];
+    ed.set(t.slice(0, i) + $("#fr").value + t.slice(i + q.length));
+    ed.ta.dispatchEvent(new Event("input"));
+    A.findUpdate();
+  },
+  replaceAll() {
+    const q = $("#fq").value;
+    if (!q) return;
+    const n = A.findIdx().length;
+    ed.set(
+      ed
+        .get()
+        .replace(
+          new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi"),
+          () => $("#fr").value,
+        ),
+    );
+    ed.ta.dispatchEvent(new Event("input"));
+    A.findUpdate();
+    toast(plural(n, "remplacement", "remplacements"));
+  },
+  /* aperçu et sessions depuis l'éditeur */
+  pvToggle() {
+    S.pv = !S.pv;
+    if (S.pv && S.active && isPage(S.active) && S.pvFollow) S.pvPath = S.active;
+    ctx.draw();
+    if (S.pv) A.pvReload();
+  },
+  pvOpen(path) {
+    S.pv = true;
+    if (path) S.pvPath = path;
+    S.view = "code";
+    ctx.draw();
+    A.pvReload();
+  },
+  runFile(path) {
+    A.pvOpen(path);
+  },
+  pvFollowToggle() {
+    S.pvFollow = !S.pvFollow;
+    drawPv();
+  },
+  async pvDoubleToggle() {
+    S.pvDouble = !S.pvDouble;
+    if (S.pvDouble) {
+      let l = sessions();
+      if (l.length < 2) {
+        await eng().sessions.create();
+        l = sessions();
+      }
+      S.pvSessions = [
+        S.pvSessions[0] || l[0].id,
+        (l.find((s) => s.id !== S.pvSessions[0]) || l[1]).id,
+      ];
+    } else S.pvSessions = [S.pvSessions[0]];
+    S.pv = true;
+    ctx.draw();
+    A.pvReload();
+  },
+  pvPickSession(i, el) {
+    menu(
+      el,
+      sessions()
+        .map((s) => ({
+          label: `<span class="ident">${sw(s)}${esc(s.label)}</span>`,
+          act: "pvSetSession",
+          arg: i + "|" + s.id,
+        }))
+        .concat([
+          "-",
+          {
+            label: "Nouvelle session indépendante",
+            act: "pvNewSession",
+            arg: i,
+          },
+        ]),
+    );
+  },
+  pvSetSession(arg) {
+    const [i, id] = arg.split("|");
+    S.pvSessions[+i] = id;
+    ctx.draw();
+    A.pvReload();
+  },
+  async pvNewSession(i) {
+    const id = await eng().sessions.create();
+    S.pvSessions[+i || 0] = id;
+    ctx.draw();
+    A.pvReload();
+    toast("Nouvelle session : cookies et session PHP distincts");
+  },
+  async pvReload() {
+    if (!S.pv) return;
+    S.pvPath = $("#pvPath").value || S.pvPath || "/index.php";
+    await Promise.all(
+      S.pvSessions.map(async (id, i) => {
+        try {
+          const r = await eng().sessions.frame(id, S.pvPath);
+          const f = $$("#pvFrames iframe")[i];
+          if (!f) return;
+          f.src = r.src;
+          if (r.status) S.pvInfo[id] = { status: r.status, ms: r.ms };
+        } catch (e) {
+          fail("Aperçu impossible.", e);
+        }
+      }),
+    );
+    drawPv();
+    ctx.shell();
+    if (S.dock === "req") ctx.views.dock?.();
+  },
+  runMenu(_, el) {
+    const cur = S.pvSessions[0];
+    menu(el, [
+      {
+        label: S.pv ? "Fermer l’aperçu" : "Aperçu à côté",
+        act: "pvToggle",
+        icon: ui.play,
+        hint: "Ctrl ⏎",
+      },
+      {
+        label: S.pvDouble
+          ? "Aperçu simple"
+          : "Comparer deux sessions côte à côte",
+        act: "pvDoubleToggle",
+      },
+      "-",
+      {
+        label: "Ouvrir dans une fenêtre",
+        act: "openWindow",
+        arg: cur,
+        hint: esc(sessionOf(cur).label),
+      },
+      { label: "Fenêtre avec une nouvelle session", act: "openWindowNew" },
+      "-",
+      ...sessions().map((s) => ({
+        label: `<span class="ident">${sw(s)}${esc(s.label)}</span>`,
+        act: "pvSetSession",
+        arg: "0|" + s.id,
+        hint: s.id === cur ? "✓" : "",
+      })),
+      "-",
+      { label: "Gérer les sessions…", act: "nav", arg: "sessions" },
+    ]);
+  },
+  /** window.open doit être appelé avant tout await, sinon le navigateur bloque la fenêtre. */
+  openWindow(sid, path) {
+    sid = typeof sid === "string" && sid ? sid : S.pvSessions[0];
+    path =
+      typeof path === "string" && path.startsWith("/")
+        ? path
+        : S.active && isPage(S.active)
+          ? S.active
+          : S.pvPath;
+    const popup = window.open("about:blank", "_blank");
+    if (!popup) return blocked();
+    S.wins.push({ id: Date.now() + Math.random(), path, session: sid, popup });
+    if (popup) popup.location.href = eng().sessions.routeURL(sid, path);
+    eng()
+      .sessions.frame(sid, path)
+      .catch(() => {});
+    log("i", `Fenêtre ouverte : ${path} (${sessionOf(sid).label})`);
+    ctx.draw();
+    toast(`Fenêtre ouverte · ${sessionOf(sid).label}`);
+  },
+  openWindowFor(path) {
+    A.openWindow(S.pvSessions[0], path);
+  },
+  async openWindowNew(path) {
+    const popup = window.open("about:blank", "_blank");
+    if (!popup) return blocked();
+    const id = await eng().sessions.create();
+    const p =
+      typeof path === "string" && path.startsWith("/")
+        ? path
+        : S.active && isPage(S.active)
+          ? S.active
+          : S.pvPath;
+    S.wins.push({
+      id: Date.now() + Math.random(),
+      path: p,
+      session: id,
+      popup,
+    });
+    if (popup) popup.location.href = eng().sessions.routeURL(id, p);
+    eng()
+      .sessions.frame(id, p)
+      .catch(() => {});
+    ctx.draw();
+    toast("Fenêtre ouverte avec une nouvelle session");
+  },
+  closeWin(id) {
+    const w = S.wins.find((x) => String(x.id) === String(id));
+    try {
+      w?.popup?.close();
+    } catch {
+      /* déjà fermée */
+    }
+    S.wins = S.wins.filter((x) => x !== w);
+    ctx.draw();
+  },
+});
+function blocked() {
+  S.alert = {
+    title: "Fenêtre bloquée.",
+    msg: "Autorisez les fenêtres pour ouvrir un client.",
+    recover:
+      "Cliquez sur l’icône de fenêtre bloquée dans la barre d’adresse, autorisez ce site, puis relancez.",
+  };
+  log("w", "Fenêtre bloquée par le navigateur");
+  ctx.draw();
+}
+
+export function bindCode() {
+  $("#fq").addEventListener("input", () => {
+    S.find.i = 0;
+    A.findUpdate();
+  });
+  $("#fq").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      e.shiftKey ? A.findPrev() : A.findNext();
+    }
+    if (e.key === "Escape") A.find();
+  });
+  $("#pvPath").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") A.pvReload();
+  });
+}

@@ -1,6 +1,6 @@
 {
-  "name": "php-browser-lab",
-  "version": "0.1.0-reconstructed",
+  "name": "alwis",
+  "version": "0.3.0-preview.1",
   "private": true,
   "type": "module",
   "engines": {

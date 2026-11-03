@@ -35,7 +35,7 @@ with zipfile.ZipFile(archive)as source:
   if path.is_absolute()or'..'in path.parts:raise SystemExit('Unsafe manifest path')
   data=source.read(item['path'])
   if len(data)!=item['bytes'] or hashlib.sha256(data).hexdigest()!=item['sha256']:raise SystemExit('Artifact content mismatch: '+item['path'])
- name='WASMWebServer-'+tag[1:]+'.zip';site=output/name
+ name='ALWIS-'+tag[1:]+'.zip';site=output/name
  with zipfile.ZipFile(site,'w',zipfile.ZIP_DEFLATED,compresslevel=6)as target:
   for item in sorted(entries,key=lambda i:i.filename):
    info=zipfile.ZipInfo(item.filename,date_time=(1980,1,1,0,0,0));info.compress_type=zipfile.ZIP_DEFLATED;info.external_attr=0o100644<<16;target.writestr(info,source.read(item))
@@ -44,7 +44,7 @@ validation_runs=api('actions/workflows/check.yml/runs?head_sha='+revision+'&stat
 if validation_runs:
  validation_run=validation_runs[0]['id'];proof=api(f'actions/runs/{validation_run}/artifacts?per_page=100')['artifacts'];proof=[a for a in proof if a['name']=='studio-validation-'+revision and not a['expired']]
  if proof:
-  validation=output/('WASMWebServer-'+tag[1:]+'-validation.zip')
+  validation=output/('ALWIS-'+tag[1:]+'-validation.zip')
   with validation.open('wb')as stream:subprocess.run(['gh','api',f'repos/{repo}/actions/artifacts/{proof[0]["id"]}/zip'],stdout=stream,check=True)
   assets.append(validation)
 checksums=output/'SHA256SUMS';lines=[]
@@ -52,7 +52,7 @@ for file in assets:
  with file.open('rb')as stream:value=hashlib.file_digest(stream,'sha256').hexdigest()
  lines.append(value+'  '+file.name)
 checksums.write_text('\n'.join(lines)+'\n');assets.append(checksums)
-notes=output/'notes.md';notes.write_text(f'''Prototype fonctionnel de WASMWebServer : PHP/MariaDB dans le navigateur, PDO/MySQLi natifs, éditeurs CodeMirror et services WASM avec définitions jQuery internes, outils SQL et sauvegarde locale.
+notes=output/'notes.md';notes.write_text(f'''Prototype fonctionnel d’ALWIS : PHP/MariaDB dans le navigateur, PDO/MySQLi natifs, éditeurs CodeMirror et services WASM avec définitions jQuery internes, outils SQL et sauvegarde locale.
 
 Source validée : `{revision}`. Build et tests Chromium/Firefox réussis, puis transfert FTP réussi : https://github.com/{repo}/actions/runs/{run}.
 

@@ -7,7 +7,7 @@ source=Path('build-work/native-release')/lock['release']
 source.mkdir(parents=True,exist_ok=True)
 for name in ['artifact.json','pbl-runtime.mjs','pbl-runtime.wasm']:
  if not (source/name).is_file():
-  subprocess.run(['gh','release','download',lock['release'],'--repo','Bastian-Noel/WASMWebServer','--pattern',name,'--dir',str(source)],check=True)
+  subprocess.run(['gh','release','download',lock['release'],'--repo','Bastian-Noel/ALWIS','--pattern',name,'--dir',str(source)],check=True)
 data=(source/'artifact.json').read_bytes()
 if hashlib.sha256(data).hexdigest()!=lock['manifestSha256']:raise SystemExit('Native manifest hash mismatch')
 manifest=json.loads(data)

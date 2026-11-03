@@ -28,7 +28,11 @@ try {
         const { createCodeEditor } = await import(
           "/apps/studio/editor/dist/codemirror.mjs"
         );
+        document.querySelector(".app").style.display = "none";
+        document.body.style.overflow = "auto";
         const host = document.createElement("div");
+        host.style.cssText =
+          "position:fixed;inset:0;background:var(--sheet);z-index:100";
         host.id = "test";
         document.body.append(host);
         window.model = createCodeEditor(host, { path: "/test.php" });

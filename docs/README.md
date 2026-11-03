@@ -57,7 +57,7 @@ Compression et décompression s’exécutent dans un worker court, avec Compress
 
 ## Preuves
 
-`tests/browser/ide-workspace.mjs` vérifie le parcours réel dans Chromium et Firefox ; les reçus et captures sont dans `apps/studio/receipts/ide/`. Les tests de modèle couvrent cardinalités, clés composées, tables de liaison et validation des types de formulaire. Les scénarios existants vérifient aussi la concurrence, les types exacts, la sauvegarde et les sessions. Axe couvre onze états inspectés, dont le schéma et les dialogues DDL/FK, sans remplacer un essai lecteur d’écran ou Safari.
+`tests/browser/alwis-workbench.mjs` vérifie le parcours réel dans Chromium et Firefox ; les reçus et captures actuels sont dans `apps/studio/receipts/alwis/`. Les reçus `ide/` concernent l’ancienne interface. Les tests de modèle couvrent cardinalités, clés composées, tables de liaison et validation des types de formulaire. Les scénarios existants vérifient aussi la concurrence, les types exacts, la sauvegarde et les sessions. Axe couvre onze états inspectés, dont le schéma et les dialogues DDL/FK, sans remplacer un essai lecteur d’écran ou Safari.
 
 Skills appliqués : [anti-ai-slop](https://github.com/Krirox/anti-ai-slop-skills/blob/b7515139a58dd3076588a3981d3d6f8d4e5bb064/SKILL.md), [better-interface](https://github.com/jakubkrehel/skills/blob/592aedc44d7d5b3e29740984252902f3e5402a1c/skills/better-interface/SKILL.md), better-layout et better-accessibility. La direction visuelle est celle d’un IDE sobre, sans décorations ajoutées aux commandes.
 
@@ -96,8 +96,8 @@ Le contexte est un index borné, pas l’intégralité garantie d’un gros proj
 
 - `npm test` : tests existants et tests de portée, ambiguïté et réparation PHP.
 - `node tests/browser/editor-intelligence.mjs` : vrais claviers Chromium/Firefox, snippets, HTML, Emmet, corrections, signatures, documentation, navigation, renommage et Entrée.
-- `node tests/browser/editor-workbench.mjs` : parcours existants code et SQL, conflits, persistance et petits écrans.
-- `node tests/browser/editor-accessibility.mjs` : onze états contrôlés avec axe.
+- `node tests/browser/alwis-workbench.mjs` : parcours existants code et SQL, conflits, persistance et petits écrans.
+- `node tests/browser/alwis-accessibility.mjs` : onze états contrôlés avec axe.
 
 Le parcours de confort est ajouté à la validation commune CI/publication. Ces contrôles ne constituent pas une validation manuelle de tous les lecteurs d’écran ni une équivalence fonctionnelle complète avec VS Code.
 
@@ -134,3 +134,15 @@ Approfondir les variantes avancées de colonnes et index, les formulaires de rou
 
 Le bilan du 1 novembre reste une photographie des capacités ; ce fichier définit l'ordre de travail suivant, pas une déclaration de fonctionnalités terminées.
 
+
+## Interface ALWIS
+
+L’atelier principal utilise la nouvelle présentation : rail Code / Données / Schéma / Sessions, aperçu intégré simple ou comparé, explorateur, palette et panneau Serveur. Les icônes et badges conservent leurs couleurs dans les deux thèmes ; leurs contrastes ont été ajustés.
+
+Dans **Données → Structure**, « Colonne » ouvre le formulaire complet : type avec longueur/précision, NULL, défaut absent/NULL/littéral/expression, AUTO_INCREMENT, clé, commentaire, charset, collation et position. Une modification rapide du type ou de NULL conserve les autres attributs depuis SHOW CREATE TABLE. « Définition complète » permet de modifier les attributs SQL avancés sans les effacer implicitement. Les colonnes générées passent par cette définition complète.
+
+La grille distingue les valeurs exactes ; les binaires s’affichent en hexadécimal et ont leur éditeur dédié. « Insérer avec options » distingue DEFAULT, NULL, texte vide et binaire. Une modification/suppression vérifie les valeurs originales de la ligne. Le schéma conserve les clés composées et propose un formulaire utilisable au clavier en complément du glisser-déposer.
+
+« Enregistrer » applique les brouillons aux fichiers lus par PHP. « Sauvegarder » conserve le projet dans ce navigateur et redémarre le moteur. « Fermer sans sauvegarder » abandonne les modifications du moteur depuis le dernier checkpoint ; les brouillons locaux restent récupérables. Le ZIP inclut les fichiers et les bases utilisateur, même lorsque SQL est dormant après une sauvegarde. Les sessions clientes restent exclues des ZIP.
+
+Les anciens ZIP applicatifs publiés avant ALWIS gardent leur interface d’origine. Les captures actuelles sont celles du code source ALWIS ; elles ne modifient pas rétroactivement ces versions.

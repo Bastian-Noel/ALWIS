@@ -8,7 +8,7 @@ Publication FTP via GitHub Actions : [guide actuel](deployment.md).
 Le site se prépare sans serveur PHP distant : PHP et MariaDB sont compilés dans le moteur WASM et exécutés dans le navigateur. Les projets restent dans le stockage de ce navigateur après sauvegarde.
 
 ```bash
-node scripts/package-studio.mjs
+node scripts/package-workbench/main.mjs
 node scripts/serve-site-package.mjs
 ## http://127.0.0.1:8090
 ```
@@ -102,9 +102,9 @@ Les paquets Actions expirent après 14 jours et les sauvegardes FTP après 7 jou
 
 L'archive `sources-2026-10-31` est une archive de provenance séparée, identifiée comme telle et exclue de la dernière release applicative. La supprimer casserait la restauration des sources. Les reçus historiques et les licences sont conservés ; l'historique Git n'est pas réécrit.
 
-Première version publiée : [v0.1.0](https://github.com/Bastian-Noel/WASMWebServer/releases/tag/v0.1.0), [exécution de versionnement réussie](https://github.com/Bastian-Noel/WASMWebServer/actions/runs/41334230705).
+Première version publiée : [v0.1.0](https://github.com/Bastian-Noel/ALWIS/releases/tag/v0.1.0), [exécution de versionnement réussie](https://github.com/Bastian-Noel/ALWIS/actions/runs/41334230705).
 
-Préversion actuelle de la refonte IDE : [v0.2.0-preview.2](https://github.com/Bastian-Noel/WASMWebServer/releases/tag/v0.2.0-preview.2), source `19b6ee0`, [CI réussie](https://github.com/Bastian-Noel/WASMWebServer/actions/runs/41337154626), [FTP et release réussis](https://github.com/Bastian-Noel/WASMWebServer/actions/runs/41337170552). La préversion intermédiaire de ce lot et son tag ont été retirés après validation de la version corrigée.
+Préversion actuelle de la refonte IDE : [v0.2.0-preview.2](https://github.com/Bastian-Noel/ALWIS/releases/tag/v0.2.0-preview.2), source `19b6ee0`, [CI réussie](https://github.com/Bastian-Noel/ALWIS/actions/runs/41337154626), [FTP et release réussis](https://github.com/Bastian-Noel/ALWIS/actions/runs/41337170552). La préversion intermédiaire de ce lot et son tag ont été retirés après validation de la version corrigée.
 
 
 ## Accélération CI : artefacts et caches (31 octobre 2026)

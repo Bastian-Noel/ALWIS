@@ -171,8 +171,8 @@
           "maxNodes": 4096
         },
         "system": {
-          "bytes": 2773736,
-          "reserved": 2773736,
+          "bytes": 2773732,
+          "reserved": 2773732,
           "nodes": 112,
           "maxBytes": 16777216,
           "maxFileBytes": 16777216,

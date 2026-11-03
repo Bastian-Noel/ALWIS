@@ -30,6 +30,8 @@ jobs:
           path: |
             build-work/site-smoke.json
             build-work/studio-ui/chromium.json
+            apps/studio/receipts/alwis/*.json
+            apps/studio/receipts/alwis/*.png
             apps/studio/receipts/ide/*.json
             apps/studio/receipts/ide/*.png
             apps/studio/receipts/editor/*.json

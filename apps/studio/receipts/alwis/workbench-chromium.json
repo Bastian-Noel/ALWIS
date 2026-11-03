@@ -1,0 +1,23 @@
+{
+  "passed": true,
+  "browser": "chromium",
+  "version": "156.0.8078.4",
+  "checks": [
+    "real SQL scripts, exact decimal and binary",
+    "complete column form applied to native MariaDB",
+    "column modification preserves default/comment and composite keys",
+    "invalid type retains input and blocks invalid DDL",
+    "real composite schema and keyboard movement",
+    "pointer drag creates a real native foreign key",
+    "SQL optimistic conflict preserves the newer row",
+    "production CodeMirror snippets and write",
+    "real service worker routing and PHP sessions",
+    "external write conflict preserves editor draft",
+    "save and engine restart",
+    "ZIP with user SQL export",
+    "editor unload and restoration",
+    "ZIP files and SQL restoration into a new project",
+    "both themes and four workspaces at 320/768/1500"
+  ],
+  "errors": []
+}

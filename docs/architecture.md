@@ -195,3 +195,9 @@ La conversation initiale comparait aussi MySQL/MariaDB sous Wasmtime et MySQL da
 
 Boogie n’avait pas été identifié avec certitude dans la conversation source. Aucun dépôt n’est attribué à ce nom dans cette reconstruction.
 
+
+## Présentation ALWIS et services directs
+
+La nouvelle interface remplace les anciens contrôleurs DOM. Elle conserve NativeRuntime et ProjectHub : aucun pont supplémentaire ni moteur de démonstration en production. Les modules de vues lisent l’état de l’atelier et appellent les services du propriétaire de projet. CodeMirror est monté une seule fois pour le fichier actif ; le modèle de la console est détruit avant remplacement. Les services de langage se déchargent avec leur éditeur.
+
+Les onglets sont limités à 40 et les textes ouverts à 8 M caractères, en plus des limites par fichier et par analyse déjà décrites. L’index de complétion reste borné. Les compteurs de mémoire du panneau Serveur viennent de NativeRuntime ; ils ne représentent pas toute la mémoire du navigateur. Les métadonnées du schéma sont chargées sans COUNT(*) systématique sur chaque table. Le nombre de lignes exact est calculé pour la table consultée.
