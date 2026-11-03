@@ -1,28 +1,144 @@
-const equal=(a,b)=>a.length===b.length&&a.every((v,i)=>v===b[i]);
-export async function readFolder(directory){
- const files=new Map();let total=0;
- async function walk(dir,prefix='',depth=0){
-  if(depth>12)throw Error('Dossier trop profond (12 niveaux maximum).');
-  for await(const [name,entry] of dir.entries()){
-   if(name.startsWith('.')||['node_modules','vendor'].includes(name))continue;
-   const path=prefix+'/'+name;
-   if(entry.kind==='directory')await walk(entry,path,depth+1);
-   else {const f=await entry.getFile();total+=f.size;if(f.size>16*1048576||total>64*1048576||files.size>=1024)throw Error('Dossier limité à 64 Mio, 1 024 fichiers et 16 Mio par fichier.');files.set(path,new Uint8Array(await f.arrayBuffer()));}
+const equal = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
+export async function readFolder(directory) {
+  const files = new Map();
+  let total = 0;
+  async function walk(dir, prefix = "", depth = 0) {
+    if (depth > 12) throw Error("Dossier trop profond (12 niveaux maximum).");
+    for await (const [name, entry] of dir.entries()) {
+      if (name.startsWith(".") || ["node_modules", "vendor"].includes(name))
+        continue;
+      const path = prefix + "/" + name;
+      if (entry.kind === "directory") await walk(entry, path, depth + 1);
+      else {
+        const f = await entry.getFile();
+        total += f.size;
+        if (f.size > 16 * 1048576 || total > 64 * 1048576 || files.size >= 1024)
+          throw Error(
+            "Dossier limité à 64 Mio, 1 024 fichiers et 16 Mio par fichier.",
+          );
+        files.set(path, new Uint8Array(await f.arrayBuffer()));
+      }
+    }
   }
- }
- await walk(directory);return files;
+  await walk(directory);
+  return files;
 }
-export function folderWriter(directory,snapshots){
- return async(path,text)=>{
-  const parts=path.split('/').slice(1);
-  if(!parts.length||parts.some(p=>!p||p==='..'||p.startsWith('.')))throw Error('Chemin local réservé.');
-  let dir=directory;for(const part of parts.slice(0,-1))dir=await dir.getDirectoryHandle(part,{create:true});
-  const name=parts.at(-1);let handle,current;
-  try{handle=await dir.getFileHandle(name);current=new Uint8Array(await(await handle.getFile()).arrayBuffer());}catch(e){if(e.name!=='NotFoundError')throw e;}
-  const expected=snapshots.get(path);
-  if((expected&&!current)||(current&&(!expected||!equal(current,expected))))throw Error('Le fichier du PC a changé : '+path+'. Rouvrez le dossier pour récupérer sa version.');
-  handle??=await dir.getFileHandle(name,{create:true});const stream=await handle.createWritable();
-  try{await stream.write(text);await stream.close();}catch(e){await stream.abort().catch(()=>{});throw e;}
-  snapshots.set(path,new TextEncoder().encode(text));
- };
+export function folderWriter(directory, snapshots) {
+  return async (path, text) => {
+    const parts = path.split("/").slice(1);
+    if (
+      !parts.length ||
+      parts.some((p) => !p || p === ".." || p.startsWith("."))
+    )
+      throw Error("Chemin local réservé.");
+    let dir = directory;
+    for (const part of parts.slice(0, -1))
+      dir = await dir.getDirectoryHandle(part, { create: true });
+    const name = parts.at(-1);
+    let handle, current;
+    try {
+      handle = await dir.getFileHandle(name);
+      current = new Uint8Array(await (await handle.getFile()).arrayBuffer());
+    } catch (e) {
+      if (e.name !== "NotFoundError") throw e;
+    }
+    const expected = snapshots.get(path);
+    if (
+      (expected && !current) ||
+      (current && (!expected || !equal(current, expected)))
+    )
+      throw Error(
+        "Le fichier du PC a changé : " +
+          path +
+          ". Rouvrez le dossier pour récupérer sa version.",
+      );
+    handle ??= await dir.getFileHandle(name, { create: true });
+    const stream = await handle.createWritable();
+    try {
+      await stream.write(text);
+      await stream.close();
+    } catch (e) {
+      await stream.abort().catch(() => {});
+      throw e;
+    }
+    snapshots.set(path, new TextEncoder().encode(text));
+  };
+}
+
+/** Explicit saves only. Generation files + context-last commit avoid torn metadata. */
+export async function folderContext(directory) {
+  let metadataDir,
+    original = null,
+    saved = null;
+  try {
+    metadataDir = await directory.getDirectoryHandle(".alwis");
+    const file = await (
+      await metadataDir.getFileHandle("context.json")
+    ).getFile();
+    if (file.size > 1048576)
+      throw Error("Configuration .alwis trop volumineuse.");
+    original = await file.text();
+    saved = JSON.parse(original);
+    if (saved.version !== 1 || saved.format !== "alwis-folder")
+      throw Error("Configuration .alwis non reconnue.");
+  } catch (error) {
+    if (error.name !== "NotFoundError") throw error;
+  }
+  return {
+    saved,
+    async archive() {
+      if (!saved?.archive) return null;
+      if (!/^databases-[a-f0-9-]+\.zip$/.test(saved.archive))
+        throw Error("Nom de sauvegarde .alwis invalide.");
+      const file = await (
+        await metadataDir.getFileHandle(saved.archive)
+      ).getFile();
+      if (file.size > 65 * 1048576)
+        throw Error("Sauvegarde .alwis trop volumineuse.");
+      return file;
+    },
+    async save(context, archive) {
+      metadataDir ??= await directory.getDirectoryHandle(".alwis", {
+        create: true,
+      });
+      let actual = null;
+      try {
+        actual = await (
+          await (await metadataDir.getFileHandle("context.json")).getFile()
+        ).text();
+      } catch (e) {
+        if (e.name !== "NotFoundError") throw e;
+      }
+      if (actual !== original)
+        throw Error(
+          "La configuration .alwis a changé sur le PC. Rouvrez le dossier avant de la remplacer.",
+        );
+      const write = async (name, data) => {
+        const file = await metadataDir.getFileHandle(name, { create: true }),
+          stream = await file.createWritable();
+        try {
+          await stream.write(data);
+          await stream.close();
+        } catch (e) {
+          await stream.abort().catch(() => {});
+          throw e;
+        }
+      };
+      const archiveName = "databases-" + crypto.randomUUID() + ".zip";
+      await write(archiveName, archive);
+      const previous = saved?.archive;
+      const next = {
+        format: "alwis-folder",
+        version: 1,
+        archive: archiveName,
+        workspace: context,
+      };
+      const serialized = JSON.stringify(next, null, 2) + "\n";
+      await write("context.json", serialized);
+      original = serialized;
+      saved = next;
+      if (previous && /^databases-[a-f0-9-]+\.zip$/.test(previous))
+        await metadataDir.removeEntry(previous).catch(() => {});
+    },
+  };
 }

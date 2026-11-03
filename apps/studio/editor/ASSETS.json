@@ -11,8 +11,8 @@
     },
     {
       "name": "codemirror.mjs",
-      "bytes": 832377,
-      "sha256": "6789b798b31b30fd4ae1f3f920e4c3d185bd7cb57e79738107126b0b8932e804"
+      "bytes": 839959,
+      "sha256": "d12b35163577e7aace07d2c6361a6a8c223d63db7db559f53ad5bd89b39bcc23"
     },
     {
       "name": "definitions.json",
@@ -21,8 +21,8 @@
     },
     {
       "name": "formatter-worker.mjs",
-      "bytes": 1208950,
-      "sha256": "671279748836cda8ae7fb221193925b13ab008d05a587e8a50f64f8bbb5a2758"
+      "bytes": 1735129,
+      "sha256": "a09f95d39a614754590d689ee501964c19efc225f3212ea3473d3d2a74d097e9"
     },
     {
       "name": "javascript-worker.mjs",

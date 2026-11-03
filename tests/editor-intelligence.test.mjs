@@ -60,3 +60,10 @@ test("completion filters variable context and conservatively converts LSP snippe
   assert.equal(snippetTemplate("call(${1:arg}, $0)"), "call(${1:arg}, ${0})");
   assert.equal(snippetTemplate("${1/foo/bar/}"), null);
 });
+test("PHP missing semicolon after a call with string arguments is detected", () => {
+  for (const text of [
+    '<?php header("Location: /")\nexit;',
+    '<?php\nheader("Location: /")\n',
+  ])
+    assert.match(phpSyntaxDiagnostics(text)[0].message, /point-virgule/);
+});

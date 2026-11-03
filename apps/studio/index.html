@@ -7,10 +7,7 @@
       content="width=device-width, initial-scale=1, viewport-fit=cover"
     />
     <title>ALWIS — Atelier Local Web avec IDE et SQL</title>
-    <link
-      rel="icon"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='3' y='9' width='26' height='14' rx='3' fill='none' stroke='%2315191d' stroke-width='2.5'/%3E%3Ccircle cx='23' cy='16' r='3' fill='%23168a4d'/%3E%3Crect x='7' y='14.5' width='9' height='3' rx='1.5' fill='%2315191d'/%3E%3C/svg%3E"
-    />
+    <link rel="icon" href="data:," />
     <script>
       try {
         var t =
@@ -33,7 +30,7 @@
           data-act="home"
           aria-label="ALWIS, retour à l’accueil"
         >
-          <span class="unit" aria-hidden="true"><i></i></span>ALWIS
+          ALWIS
         </button>
         <button
           class="chip"
@@ -44,10 +41,12 @@
           aria-haspopup="menu"
           hidden
         >
-          <span class="project-caption">Projet ouvert</span><span class="ladder" id="ladder" aria-hidden="true"
+          <span class="project-caption">Projet ouvert</span
+          ><span class="ladder" id="ladder" aria-hidden="true"
             ><i></i><i></i><i></i></span
           ><b class="trunc" id="pname"></b
-          ><span class="mut hide-s" id="psum"></span><span class="project-chevron" aria-hidden="true">⌄</span>
+          ><span class="mut hide-s" id="psum"></span
+          ><span class="project-chevron" aria-hidden="true">⌄</span>
         </button>
         <span class="grow"></span>
         <button class="btn quiet hide-s" data-act="palette" id="palBtn">
@@ -83,55 +82,171 @@
             <header class="welcome">
               <p class="welcome-kicker">L’ATELIER ALWIS</p>
               <h1 id="welcomeTitle">Commençons par un projet.</h1>
-              <p class="welcome-intro">Créez un site, explorez un exemple ou ouvrez vos fichiers.</p>
+              <p class="welcome-intro">
+                Créez un site, explorez un exemple ou ouvrez vos fichiers.
+              </p>
             </header>
 
-            <section class="recent-section" id="recentSection" aria-labelledby="recentTitle" hidden>
+            <section
+              class="recent-section"
+              id="recentSection"
+              aria-labelledby="recentTitle"
+              hidden
+            >
               <div class="home-section-head">
-                <h2 id="recentTitle">Reprendre un projet <span id="recentCount" class="home-count"></span></h2>
-                <input class="in" id="projectFilter" type="search" placeholder="Rechercher un projet" aria-label="Rechercher dans les projets de ce navigateur">
+                <h2 id="recentTitle">
+                  Reprendre un projet
+                  <span id="recentCount" class="home-count"></span>
+                </h2>
+                <input
+                  class="in"
+                  id="projectFilter"
+                  type="search"
+                  placeholder="Rechercher un projet"
+                  aria-label="Rechercher dans les projets de ce navigateur"
+                />
               </div>
               <div id="recent" class="recent-grid"></div>
-              <button class="btn quiet" id="showRecent" data-act="toggleRecent" aria-expanded="false" aria-controls="recent" hidden>Voir tous les projets</button>
+              <button
+                class="btn quiet"
+                id="showRecent"
+                data-act="toggleRecent"
+                aria-expanded="false"
+                aria-controls="recent"
+                hidden
+              >
+                Voir tous les projets
+              </button>
             </section>
 
             <div class="home-actions">
               <section class="create-project" aria-labelledby="createTitle">
                 <div class="home-card-heading">
-                  <span class="home-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m8 7-5 5 5 5m8-10 5 5-5 5m-3-13-2 16"/></svg></span>
-                  <div><h2 id="createTitle">Créer un projet</h2><p>Choisissez votre point de départ.</p></div>
+                  <span class="home-icon" aria-hidden="true"
+                    ><svg viewBox="0 0 24 24">
+                      <path d="m8 7-5 5 5 5m8-10 5 5-5 5m-3-13-2 16" /></svg
+                  ></span>
+                  <div>
+                    <h2 id="createTitle">Créer un projet</h2>
+                    <p>Choisissez votre point de départ.</p>
+                  </div>
                 </div>
                 <fieldset class="starter-options">
                   <legend class="sr-only">Point de départ</legend>
                   <label class="starter-choice">
-                    <input type="radio" name="tpl" value="demo" checked>
-                    <span class="starter-copy"><b>Exemple scolaire</b><span>Un site prêt à explorer : élèves, notes et messages.</span><small>Pour découvrir ALWIS</small></span>
+                    <input type="radio" name="tpl" value="demo" checked />
+                    <span class="starter-copy"
+                      ><b>Exemple scolaire</b
+                      ><span
+                        >Un site prêt à explorer : élèves, notes et
+                        messages.</span
+                      ><small>Pour découvrir ALWIS</small></span
+                    >
                   </label>
                   <label class="starter-choice">
-                    <input type="radio" name="tpl" value="empty">
-                    <span class="starter-copy"><b>Projet vide</b><span>Une première page PHP. À vous d’écrire la suite.</span><small>Pour votre propre site</small></span>
+                    <input type="radio" name="tpl" value="empty" />
+                    <span class="starter-copy"
+                      ><b>Projet vide</b
+                      ><span
+                        >Une première page PHP. À vous d’écrire la suite.</span
+                      ><small>Pour votre propre site</small></span
+                    >
                   </label>
                 </fieldset>
-                <label class="field project-name"><span>Nom du projet</span><input class="in" id="pn" maxlength="64" autocomplete="off" spellcheck="false" placeholder="mon-premier-site" aria-describedby="pnh"></label>
-                <p class="hint project-name-help" id="pnh" aria-live="polite"></p>
-                <div class="create-footer"><span>Vous pourrez tout modifier ensuite.</span><button class="btn pri" id="pgo" data-act="create">Créer le projet <span aria-hidden="true">→</span></button></div>
+                <label class="field project-name"
+                  ><span>Nom du projet</span
+                  ><input
+                    class="in"
+                    id="pn"
+                    maxlength="64"
+                    autocomplete="off"
+                    spellcheck="false"
+                    placeholder="mon-premier-site"
+                    aria-describedby="pnh"
+                /></label>
+                <p
+                  class="hint project-name-help"
+                  id="pnh"
+                  aria-live="polite"
+                ></p>
+                <div class="create-footer">
+                  <span>Vous pourrez tout modifier ensuite.</span
+                  ><button class="btn pri" id="pgo" data-act="create">
+                    Créer le projet <span aria-hidden="true">→</span>
+                  </button>
+                </div>
               </section>
 
               <section class="open-project" aria-labelledby="openTitle">
                 <h2 id="openTitle">Vous avez déjà des fichiers ?</h2>
-                <p class="home-card-intro">Retrouvez votre travail dans l’atelier.</p>
-                <button class="open-source" data-act="importZip" aria-describedby="zipHelp">
-                  <span class="home-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 3H6v18h12V7Zm0 0v5h4M9 12h6m-3-3v7m-3-3 3 3 3-3"/></svg></span>
-                  <span><b>Importer un ZIP</b><span id="zipHelp">Fichiers du site et sauvegardes ALWIS.</span></span><svg class="source-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
+                <p class="home-card-intro">
+                  Retrouvez votre travail dans l’atelier.
+                </p>
+                <button
+                  class="open-source"
+                  data-act="importZip"
+                  aria-describedby="zipHelp"
+                >
+                  <span class="home-icon" aria-hidden="true"
+                    ><svg viewBox="0 0 24 24">
+                      <path
+                        d="M14 3H6v18h12V7Zm0 0v5h4M9 12h6m-3-3v7m-3-3 3 3 3-3"
+                      /></svg
+                  ></span>
+                  <span
+                    ><b>Importer un ZIP</b
+                    ><span id="zipHelp"
+                      >Fichiers du site et sauvegardes ALWIS.</span
+                    ></span
+                  ><svg
+                    class="source-arrow"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path d="M5 12h14m-6-6 6 6-6 6" />
+                  </svg>
                 </button>
-                <button class="open-source" data-act="openLocalFolder" aria-describedby="folderHelp">
-                  <span class="home-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 6h7l2 3h9v11H3Zm0 0V4h7l2 2h7v3"/></svg></span>
-                  <span><b>Ouvrir un dossier du PC</b><span id="folderHelp">Modifier vos fichiers avec Chrome ou Edge.</span></span><svg class="source-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
+                <button
+                  class="open-source"
+                  data-act="openLocalFolder"
+                  aria-describedby="folderHelp"
+                >
+                  <span class="home-icon" aria-hidden="true"
+                    ><svg viewBox="0 0 24 24">
+                      <path d="M3 6h7l2 3h9v11H3Zm0 0V4h7l2 2h7v3" /></svg
+                  ></span>
+                  <span
+                    ><b>Ouvrir un dossier du PC</b
+                    ><span id="folderHelp"
+                      >Modifier vos fichiers avec Chrome ou Edge.</span
+                    ></span
+                  ><svg
+                    class="source-arrow"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path d="M5 12h14m-6-6 6 6-6 6" />
+                  </svg>
                 </button>
-                <div class="home-note"><b>Votre travail reste à portée de main.</b><p>Les projets sauvegardés se retrouvent dans ce navigateur. Exportez un ZIP pour les emporter ailleurs.</p></div>
+                <div class="home-note">
+                  <b>Votre travail reste à portée de main.</b>
+                  <p>
+                    Les projets sauvegardés se retrouvent dans ce navigateur.
+                    Exportez un ZIP pour les emporter ailleurs.
+                  </p>
+                </div>
               </section>
             </div>
-            <footer class="home-footer"><span>PHP, HTML, CSS, JavaScript et SQL · sans installer de serveur</span><details class="home-environment"><summary>État de l’atelier</summary><div class="env" id="env"></div></details></footer>
+            <footer class="home-footer">
+              <span
+                >PHP, HTML, CSS, JavaScript et SQL · sans installer de
+                serveur</span
+              >
+              <details class="home-environment">
+                <summary>État de l’atelier</summary>
+                <div class="env" id="env"></div>
+              </details>
+            </footer>
           </div>
         </section>
 
@@ -249,7 +364,25 @@
                     Fichiers</button
                   ><span id="ficon" style="display: flex"></span
                   ><span class="grow" id="crumb"></span>
-                  <button class="btn quiet sm icon-btn" data-act="find" aria-label="Rechercher dans le fichier" title="Rechercher et remplacer dans le fichier"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg></button>
+                  <button
+                    class="btn quiet sm icon-btn"
+                    data-act="find"
+                    aria-label="Rechercher dans le fichier"
+                    title="Rechercher et remplacer dans le fichier"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      width="16"
+                      height="16"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.6"
+                      aria-hidden="true"
+                    >
+                      <circle cx="10.5" cy="10.5" r="6.5" />
+                      <path d="m16 16 4 4" />
+                    </svg>
+                  </button>
                   <span class="split-btn"
                     ><button
                       class="btn sm"
@@ -327,18 +460,30 @@
                     ✕
                   </button>
                 </div>
-                <div class="edwrap" id="ed1" role="tabpanel" tabindex="0" hidden></div>
+                <div
+                  class="edwrap"
+                  id="ed1"
+                  role="tabpanel"
+                  tabindex="0"
+                  hidden
+                ></div>
                 <div class="empty" id="edEmpty">
                   <b>Aucun fichier ouvert</b
                   ><span
-                    >Choisissez un fichier dans l’explorateur, ou utilisez
-                    « Rechercher une action » pour l’ouvrir par son nom. Glissez des
-                    fichiers dans l’explorateur pour les importer.</span
+                    >Choisissez un fichier dans l’explorateur, ou utilisez «
+                    Rechercher une action » pour l’ouvrir par son nom. Glissez
+                    des fichiers dans l’explorateur pour les importer.</span
                   ><button class="btn" data-act="newFile">
                     Nouveau fichier
                   </button>
                 </div>
-                <div class="empty" id="edBin" role="tabpanel" tabindex="0" hidden></div>
+                <div
+                  class="empty"
+                  id="edBin"
+                  role="tabpanel"
+                  tabindex="0"
+                  hidden
+                ></div>
                 <div class="foot" id="edFoot">
                   <span id="pos" class="num">Ln 1, col 1</span
                   ><span id="lang"></span><span>UTF-8</span
@@ -400,8 +545,21 @@
                 <div class="side-h">
                   <span class="grow">Bases de données</span>
                 </div>
-                <div class="table-search"><input class="in" id="tableSearch" type="search" placeholder="Rechercher une table" aria-label="Rechercher une table dans la base ouverte"></div>
-                <div class="tree" id="dbtree" role="tree" aria-label="Bases de données et tables"></div>
+                <div class="table-search">
+                  <input
+                    class="in"
+                    id="tableSearch"
+                    type="search"
+                    placeholder="Rechercher une table"
+                    aria-label="Rechercher une table dans la base ouverte"
+                  />
+                </div>
+                <div
+                  class="tree"
+                  id="dbtree"
+                  role="tree"
+                  aria-label="Bases de données et tables"
+                ></div>
               </aside>
               <div class="side sheet" id="dmain"></div>
             </div>
@@ -415,7 +573,14 @@
                 <select class="in" id="sdb"></select></label
               ><span class="hint num" id="scount"></span
               ><span class="grow"></span>
-              <button class="btn sm" data-act="relationForm" title="Choisir les tables et associer leurs colonnes">Relier des tables</button><button class="btn sm" data-act="schemaLayout">Réorganiser</button
+              <button
+                class="btn sm"
+                data-act="relationForm"
+                title="Choisir les tables et associer leurs colonnes"
+              >
+                Relier des tables</button
+              ><button class="btn sm" data-act="schemaLayout">
+                Réorganiser</button
               ><button class="btn sm" data-act="joinTable">Liaison N–N</button
               ><button class="btn sm hide-s" data-act="schemaSvg">
                 Exporter en SVG
@@ -508,6 +673,8 @@
         ></div>
         <div class="bar tight">
           <span class="seg" role="tablist" aria-label="Panneau serveur"
+            ><button role="tab" data-act="dockTab" data-arg="out">
+              Sortie PHP</button
             ><button role="tab" data-act="dockTab" data-arg="req">
               Requêtes</button
             ><button role="tab" data-act="dockTab" data-arg="log">
@@ -582,7 +749,11 @@
     <dialog id="modal"></dialog>
     <dialog class="pal" id="pal" aria-label="Palette de commandes">
       <input
-        id="pq" role="combobox" aria-autocomplete="list" aria-controls="pl" aria-expanded="true"
+        id="pq"
+        role="combobox"
+        aria-autocomplete="list"
+        aria-controls="pl"
+        aria-expanded="true"
         placeholder="Ouvrir un fichier ou lancer une action…"
         aria-label="Rechercher"
         autocomplete="off"

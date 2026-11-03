@@ -6,6 +6,7 @@ import {
   plural,
   toast,
   menu,
+  at,
   modal,
   mkEditor,
   LANGS,
@@ -26,10 +27,12 @@ import {
 import { fileIcon, fileKind, isWeb, ui } from "../icons.mjs";
 import { drawExplorer, refreshFiles, dirOf, nameOf } from "./explorer.mjs";
 
+let markdownTimer;
 let ed = null,
   edFile = null;
 const isPage = (p) =>
-  isWeb(p) && !/^\/(lib|includes?|inc|vendor|src|config)\//.test(p);
+  (isWeb(p) || /\.md$/i.test(p)) &&
+  !/^\/(lib|includes?|inc|vendor|src|config)\//.test(p);
 const sw = (s) => `<span class="sw" style="background:${s.hue}"></span>`;
 
 function tabsHtml() {
@@ -42,6 +45,7 @@ function tabsHtml() {
 }
 export function drawTabs() {
   $("#tabs").innerHTML = tabsHtml();
+  $('#tabs [aria-selected="true"]')?.scrollIntoView({block:"nearest",inline:"nearest"});
   for (const panel of [$("#ed1"), $("#edBin")]) {
     if (S.tabs.includes(S.active))
       panel.setAttribute(
@@ -107,6 +111,10 @@ export function drawCode() {
           ctx.shell();
           ctx.schedulePersist?.();
           if (S.find.open) A.findUpdate();
+          if (S.pv && S.pvPath === S.active && /\.md$/i.test(S.active)) {
+            clearTimeout(markdownTimer);
+            markdownTimer = setTimeout(() => A.pvReload(), 200);
+          }
         },
       });
     if (edFile !== p) {
@@ -120,6 +128,7 @@ export function drawCode() {
   drawPv();
 }
 export const resetEditor = () => {
+  clearTimeout(markdownTimer);
   ed?.destroy();
   ed = null;
   edFile = null;
@@ -339,18 +348,8 @@ Object.assign(A, {
         act: "editorFormat",
         hint: "Alt Maj F",
       },
-      {
-        label: "Développer une abréviation HTML/CSS",
-        act: "editorEmmet",
-        hint: "Alt E",
-        description: "Emmet : transforme par exemple ul>li*3 en une liste HTML",
-        icon: ui.code,
-      },
       { label: "Rechercher / remplacer", act: "editorSearch", hint: "Ctrl F" },
       { label: "Problèmes et corrections", act: "editorProblems" },
-      { label: "Définition", act: "editorDefinition", hint: "F12" },
-      { label: "Références", act: "editorReferences", hint: "Maj F12" },
-      { label: "Renommer le symbole", act: "editorRename", hint: "F2" },
       { label: "Symboles du fichier", act: "editorSymbols" },
       {
         label: "Rechercher dans le projet",
@@ -506,6 +505,22 @@ Object.assign(A, {
   async pvReload() {
     if (!S.pv) return;
     S.pvPath = $("#pvPath").value || S.pvPath || "/index.php";
+    if (/\.md$/i.test(S.pvPath)) {
+      const path = S.pvPath;
+      const { markdownDocument } = await import("../markdown.mjs");
+      const text =
+        S.drafts[path] ??
+        S.base[path] ??
+        (await eng().fs.read(path)).text ??
+        "";
+      if (path !== S.pvPath || !S.pv) return;
+      for (const frame of $$("#pvFrames iframe")) {
+        frame.removeAttribute("src");
+        frame.srcdoc = markdownDocument(text, S.theme === "dark");
+      }
+      return;
+    }
+    for (const frame of $$("#pvFrames iframe")) frame.removeAttribute("srcdoc");
     await Promise.all(
       S.pvSessions.map(async (id, i) => {
         try {
@@ -523,9 +538,38 @@ Object.assign(A, {
     ctx.shell();
     if (S.dock === "req") ctx.views.dock?.();
   },
+  async executePHP() {
+    const path = S.active,
+      project = S.project;
+    if (!/\.php$/i.test(path) || S.phpRun?.running) return;
+    if (!(await A.applyAll())) return;
+    S.phpRun = { path, running: true, text: "Exécution en cours…" };
+    A.dockTab("out");
+    try {
+      const result = await eng().sessions.run(S.pvSessions[0], path);
+      if (S.project === project) S.phpRun = { path, running: false, ...result };
+    } catch (e) {
+      if (S.project === project)
+        S.phpRun = { path, running: false, text: e.message, error: true };
+    }
+    if (S.project === project) ctx.views.dock?.();
+  },
   runMenu(_, el) {
     const cur = S.pvSessions[0];
     menu(el, [
+      ...(/\.php$/i.test(S.active)
+        ? [
+            {
+              label: "Exécuter PHP · sortie texte",
+              act: "executePHP",
+              icon: ui.play,
+              dis: !!S.phpRun?.running,
+              description:
+                "Requête ponctuelle dans la session active. Vous pouvez continuer à éditer ; le moteur traite les requêtes en série.",
+            },
+            "-",
+          ]
+        : []),
       {
         label: S.pv ? "Fermer l’aperçu" : "Aperçu à côté",
         act: "pvToggle",
@@ -626,6 +670,93 @@ function blocked() {
 }
 
 export function bindCode() {
+  let wheelAt = 0;
+  $("#tabs").addEventListener(
+    "wheel",
+    (event) => {
+      if (
+        event.ctrlKey ||
+        !S.tabs.length ||
+        Math.abs(event.deltaY) + Math.abs(event.deltaX) < 3
+      )
+        return;
+      event.preventDefault();
+      if (performance.now() - wheelAt < 160) return;
+      wheelAt = performance.now();
+      const direction = (event.deltaY || event.deltaX) > 0 ? 1 : -1;
+      const index = Math.max(
+        0,
+        Math.min(S.tabs.length - 1, S.tabs.indexOf(S.active) + direction),
+      );
+      if (S.tabs[index] !== S.active)
+        A.openFile(S.tabs[index]).catch((e) => fail("Ouverture impossible", e));
+    },
+    { passive: false },
+  );
+  $("#tabs").addEventListener("contextmenu", async (event) => {
+    const tab = event.target.closest('[data-act="openFile"]');
+    if (!tab) return;
+    event.preventDefault();
+    await A.openFile(tab.dataset.arg);
+    A.fileMenu(null, at(event.clientX, event.clientY));
+  });
+  $("#ed1").addEventListener("keydown", event => {
+    if(!ed || !(event.key==="ContextMenu" || (event.key==="F10"&&event.shiftKey)))return;
+    event.preventDefault();
+    const view=ed.model.view, coords=view.coordsAtPos(view.state.selection.main.head);
+    view.contentDOM.dispatchEvent(new MouseEvent("contextmenu",{bubbles:true,cancelable:true,clientX:coords?.left??0,clientY:coords?.top??0}));
+  });
+  $("#ed1").addEventListener("contextmenu", (event) => {
+    if (!ed || !event.target.closest(".cm-content")) return;
+    event.preventDefault();
+    const view = ed.model.view,
+      position = view.posAtCoords({ x: event.clientX, y: event.clientY });
+    if (
+      position != null &&
+      (position < view.state.selection.main.from ||
+        position > view.state.selection.main.to)
+    )
+      view.dispatch({ selection: { anchor: position } });
+    const capabilities = ed.model.contextCapabilities();
+    const kind = capabilities.language;
+    const actions = [
+      { label: "Rechercher / remplacer", act: "editorSearch", hint: "Ctrl F" },
+      {
+        label: "Mettre en forme le fichier",
+        act: "editorFormat",
+        hint: "Alt Maj F",
+      },
+    ];
+    if (capabilities.definition)
+      actions.push({
+        label: "Aller à la définition",
+        act: "editorDefinition",
+        hint: "F12",
+      });
+    if (capabilities.references)
+      actions.push({
+        label: "Trouver les références",
+        act: "editorReferences",
+        hint: "Maj F12",
+      });
+    if (capabilities.rename)
+      actions.push({
+        label: "Renommer le symbole",
+        act: "editorRename",
+        hint: "F2",
+      });
+    if (["html", "css"].includes(kind))
+      actions.push({
+        label: "Développer l’abréviation Emmet",
+        act: "editorEmmet",
+        hint: "Alt E",
+      });
+    actions.push("-", {
+      label: "Problèmes et corrections",
+      act: "editorProblems",
+    });
+    menu(at(event.clientX, event.clientY), actions);
+  });
   $("#fq").addEventListener("input", () => {
     S.find.i = 0;
     A.findUpdate();

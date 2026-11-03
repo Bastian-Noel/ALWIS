@@ -1,3 +1,6 @@
+import { cssDiagnostics } from "./css-diagnostics.mjs";
+import { renameClosingTag } from "./tag-rename.mjs";
+import { editorSearch } from "./search-panel.mjs";
 import { ui } from "../workbench/icons.mjs";
 import { EditorState, StateField, Compartment } from "@codemirror/state";
 import {
@@ -50,7 +53,7 @@ import {
   lintGutter,
   setDiagnostics,
   openLintPanel,
-  nextDiagnostic,
+  forEachDiagnostic,
   lintKeymap,
 } from "@codemirror/lint";
 import {
@@ -133,6 +136,7 @@ export function createCodeEditor(
         view.state,
         items.map((d) => ({
           ...d,
+          message: `Ligne ${view.state.doc.lineAt(Math.max(0, Math.min(length, d.from))).number} — ${d.message}`,
           from: Math.min(length, d.from),
           to: Math.min(length, Math.max(d.from, d.to)),
         })),
@@ -253,10 +257,10 @@ export function createCodeEditor(
         );
         await lspService.document(filename, text);
         if (stamp !== revision || destroyed) return;
-        status(engine === "php" ? "PHP LSP WASM" : "SuperHTML WASM");
+        status(engine === "php" ? "Analyse PHP active" : "Analyse HTML active");
       } else {
         closeServices();
-        diagnostics([]);
+        diagnostics(extension === "css" ? cssDiagnostics(text) : []);
         status(
           extension === "sql"
             ? "SQL · complétion MySQL"
@@ -537,7 +541,8 @@ export function createCodeEditor(
       transaction.docChanged ? nextBytes(value, transaction) : value,
   });
   const toolsPanel = new Compartment(),
-    resultsPanel = new Compartment();
+    resultsPanel = new Compartment(),
+    problemsPanel = new Compartment();
   function hideSignature() {
     if (!signatureText || destroyed) return;
     signatureText = "";
@@ -582,6 +587,86 @@ export function createCodeEditor(
       ),
     });
   }
+  function showProblems() {
+    view.dispatch({
+      effects: problemsPanel.reconfigure(
+        showPanel.of(() => {
+          const dom = document.createElement("section");
+          dom.className = "cm-panel-lint alwis-problems";
+          dom.setAttribute("aria-label", "Problèmes du fichier");
+          const header = document.createElement("header"),
+            title = document.createElement("strong"),
+            close = document.createElement("button"),
+            list = document.createElement("div");
+          close.textContent = "×";
+          close.title = "Fermer les problèmes";
+          close.setAttribute("aria-label", "Fermer les problèmes");
+          close.onclick = () => {
+            view.dispatch({ effects: problemsPanel.reconfigure([]) });
+            view.focus();
+          };
+          header.append(title, close);
+          dom.append(header, list);
+          let fingerprint = "",
+            previous = [];
+          const render = () => {
+            const entries = [];
+            forEachDiagnostic(view.state, (diagnostic, from, to) =>
+              entries.push({ diagnostic, from, to }),
+            );
+            const next = JSON.stringify(
+              entries.map(({ diagnostic, from, to }) => [
+                from,
+                to,
+                diagnostic.message,
+              ]),
+            );
+            if (
+              next === fingerprint &&
+              entries.every((e, i) => e.diagnostic === previous[i]?.diagnostic)
+            )
+              return;
+            fingerprint = next;
+            previous = entries;
+            title.textContent = entries.length
+              ? `Problèmes · ${entries.length}`
+              : "Aucun problème détecté";
+            list.replaceChildren();
+            for (const { diagnostic: d, from, to } of entries.slice(0, 100)) {
+              const row = document.createElement("div");
+              row.className = "cm-diagnostic diagnostic-" + d.severity;
+              const jump = document.createElement("button");
+              jump.className = "diagnostic-location";
+              jump.textContent = d.message;
+              jump.title = "Rejoindre cette erreur dans le code";
+              jump.onclick = () => {
+                view.dispatch({
+                  selection: { anchor: from, head: to },
+                  scrollIntoView: true,
+                });
+                view.focus();
+              };
+              row.append(jump);
+              for (const action of d.actions ?? []) {
+                const button = document.createElement("button");
+                button.textContent = action.name;
+                button.className = "diagnostic-fix";
+                button.onclick = () =>
+                  Promise.resolve()
+                    .then(() => action.apply(view, from, to))
+                    .catch((e) => status(e.message));
+                row.append(button);
+              }
+              list.append(row);
+            }
+          };
+          render();
+          return { dom, top: false, update: render };
+        }),
+      ),
+    });
+    return true;
+  }
   function createTools() {
     const dom = document.createElement("div");
     dom.className = "cm-editor-tools";
@@ -590,7 +675,7 @@ export function createCodeEditor(
     for (const [label, run] of [
       ["Formater", formatDocument],
       ["Emmet", emmetCommand],
-      ["Problèmes", () => openLintPanel(view)],
+      ["Problèmes", showProblems],
       ["Définition", () => navigate("definition")],
       ["Références", () => navigate("references")],
       ["Paramètres", signatureHelp],
@@ -737,6 +822,34 @@ export function createCodeEditor(
       !editor.state.selection.main.empty
     )
       return false;
+    if (kind === "html" && editor.state.doc.toString().trim() === "!") {
+      const unit = indent === "tabs" ? "\t" : " ".repeat(Number(indent));
+      const text = [
+        "<!doctype html>",
+        '<html lang="fr">',
+        unit + "<head>",
+        unit.repeat(2) + '<meta charset="utf-8">',
+        unit.repeat(2) +
+          '<meta name="viewport" content="width=device-width, initial-scale=1.0">',
+        unit.repeat(2) + "<title>Document</title>",
+        unit + "</head>",
+        unit + "<body>",
+        unit.repeat(2) + "<!-- Votre contenu -->",
+        unit + "</body>",
+        "</html>",
+        "",
+      ].join("\n");
+      editor.dispatch({
+        changes: { from: 0, to: editor.state.doc.length, insert: text },
+        selection: {
+          anchor: text.indexOf("<!-- Votre contenu -->"),
+          head: text.indexOf("<!-- Votre contenu -->") + 22,
+        },
+        userEvent: "input.complete",
+      });
+      closeCompletion(editor);
+      return true;
+    }
     try {
       const expanded = expandAbbreviation(editor);
       if (expanded) {
@@ -1222,6 +1335,8 @@ export function createCodeEditor(
             },
           ]),
         ),
+        renameClosingTag,
+        editorSearch,
         highlightSelectionMatches(),
         lintGutter(),
         hoverTooltip(
@@ -1276,6 +1391,7 @@ export function createCodeEditor(
         ),
         signaturePanel.of([]),
         resultsPanel.of([]),
+        problemsPanel.of([]),
         EditorView.theme({
           ".cm-panels": { backgroundColor: "#20262d", color: "#e6edf3" },
           ".cm-panels button": {
@@ -1392,7 +1508,11 @@ export function createCodeEditor(
             },
           },
           { key: "Alt-ArrowLeft", run: goBack },
-          ...lintKeymap,
+          ...lintKeymap.map((binding) =>
+            binding.run === openLintPanel
+              ? { ...binding, run: showProblems }
+              : binding,
+          ),
           indentWithTab,
           toggleComment,
           indentSelection,
@@ -1599,13 +1719,33 @@ export function createCodeEditor(
     },
     getLanguageAt: (position) =>
       region(view.state, position ?? view.state.selection.main.head),
+    contextCapabilities: () => {
+      const position = view.state.selection.main.head;
+      const kind = region(view.state, position),
+        symbol = !!view.state.wordAt(position);
+      return {
+        language: kind,
+        definition:
+          symbol &&
+          (kind === "js" ||
+            (kind === "php" && !!lspService?.capabilities?.definitionProvider)),
+        references:
+          symbol &&
+          (kind === "js" ||
+            (kind === "php" && !!lspService?.capabilities?.referencesProvider)),
+        rename:
+          symbol &&
+          (kind === "js" ||
+            (kind === "php" && !!lspService?.capabilities?.renameProvider)),
+      };
+    },
     getSelection: () =>
       view.state.sliceDoc(
         view.state.selection.main.from,
         view.state.selection.main.to,
       ),
     search: () => openSearchPanel(view),
-    problems: () => openLintPanel(view),
+    problems: showProblems,
     signatureHelp,
     format: formatDocument,
     emmet: emmetCommand,

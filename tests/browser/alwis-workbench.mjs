@@ -95,12 +95,13 @@ try {
       await page.locator("[data-act=dmode][data-arg=struct]").click();
       await page.locator("[data-act=columnForm]").first().click();
       await page.locator("[data-f=name]").fill("notes");
-      await page.locator("[data-f=type]").fill("VARCHAR(80)");
+      await page.locator("#column-size").fill("80");
+      await page.getByText("Options avancées", { exact: true }).click();
       await page.locator("[data-f=comment]").fill("user comment");
       await page.locator("[data-f=defaultMode]").selectOption("literal");
       await page.locator("[data-f=defaultValue]").fill("");
       await page
-        .getByRole("button", { name: "Appliquer", exact: true })
+        .getByRole("button", { name: "Ajouter la colonne", exact: true })
         .click();
       await page.locator("#modal").waitFor({ state: "hidden" });
       await page.locator("tr[data-col=notes]").waitFor();
@@ -134,10 +135,10 @@ try {
       await page.locator("[data-act=columnForm]").first().click();
       await page.locator("[data-f=name]").fill("required_value");
       await page.locator("[data-f=nullable]").selectOption("NOT NULL");
-      await page.locator("[data-f=type]").fill("VARCHAR(0)");
+      await page.locator("#column-size").fill("0");
       assert.equal(
         await page
-          .getByRole("button", { name: "Appliquer", exact: true })
+          .getByRole("button", { name: "Ajouter la colonne", exact: true })
           .isDisabled(),
         true,
       );

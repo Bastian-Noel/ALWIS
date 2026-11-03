@@ -34,6 +34,7 @@ jobs:
           path: |
             build-work/site-smoke.json
             build-work/site-updates.json
+            build-work/ux-revision/
   release:
     needs: build
     runs-on: ubuntu-24.04

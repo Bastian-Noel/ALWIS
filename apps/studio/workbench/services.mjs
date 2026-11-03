@@ -1,7 +1,7 @@
 import { relationModel } from "../database/relation-model.mjs";
 /** Direct application services over the existing project owner; no simulated backend. */
 import { ProjectHub } from "../project-hub.mjs";
-import { readState, writeState } from "../state.mjs";
+import { readState, writeState, deleteState } from "../state.mjs";
 import { splitSQL } from "../database/sql-script.mjs";
 import { identifier as id, literal as lit } from "../database/sql-values.mjs";
 import { projectArchives } from "./archives.mjs";
@@ -184,6 +184,44 @@ export function createStudioServices() {
       persistent: !!hub,
     }),
     projects: {
+      async remove(name) {
+        if (!/^[A-Za-z0-9_-]{1,64}$/.test(name))
+          throw Error("Projet invalide.");
+        if (hub?.key === name)
+          throw Error("Fermez ce projet avant de le supprimer.");
+        await navigator.locks.request(
+          "pbl-project:" + name,
+          { mode: "exclusive", ifAvailable: true },
+          async (lock) => {
+            if (!lock)
+              throw Error("Ce projet est ouvert dans une autre fenêtre.");
+            for (const path of [
+              "/.pbl/projects/@v2/" + name,
+              "/.pbl/projects/" + name,
+              "/.pbl/sql/" + name,
+            ])
+              await new Promise((resolve, reject) => {
+                const req = indexedDB.deleteDatabase(path);
+                req.onsuccess = resolve;
+                req.onerror = () => reject(req.error);
+                req.onblocked = () =>
+                  reject(Error("Fermez les autres fenêtres de ce projet."));
+              });
+            await deleteState([
+              "alwis-workspace:" + name,
+              "sessions:" + name,
+              "tool:" + name + ":editor",
+              "tool:" + name + ":schema",
+              "tool:" + name + ":sql",
+            ]);
+            recents = ((await readState("project-index")) ?? []).filter(
+              (p) => p.key !== name,
+            );
+            await writeState("project-index", recents);
+          },
+        );
+      },
+      exportFolderData: () => archives.exportProject({ dataOnly: true }),
       recents: () =>
         recents.map((p) => ({
           name: p.key,
@@ -598,6 +636,20 @@ export function createStudioServices() {
       },
     },
     sessions: {
+      async run(session, path) {
+        validPath(path);
+        if (!/\.php$/i.test(path)) throw Error("Choisissez un fichier PHP.");
+        const result = await hub.route(session, {
+          url: new URL(path, location.origin).href,
+          method: "GET",
+        });
+        emit("changed", {});
+        return {
+          status: result.status,
+          text: new TextDecoder().decode(result.body.subarray(0, 65536)),
+          truncated: result.body.byteLength > 65536,
+        };
+      },
       list: () =>
         hub
           ? [...hub.sessions.sessions.values()].map((s, i) => ({

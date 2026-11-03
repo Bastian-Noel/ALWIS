@@ -75,7 +75,14 @@ try {
       assert.match(await content.innerText(), /<!DOCTYPE html>/i);
       assert.match(await content.innerText(), /lang="fr"/);
       assert.doesNotMatch(await content.innerText(), /<meta[^>]*\/>/);
+      const generatedHtml = await page
+        .locator("#test")
+        .evaluate((e) => e.value);
       assert.equal(await page.evaluate(() => window.model.format()), true);
+      assert.equal(
+        await page.locator("#test").evaluate((e) => e.value),
+        generatedHtml,
+      );
       assert.doesNotMatch(await content.innerText(), /<meta[^>]*\/>/);
       await set("/test.html", "ul>li*3");
       await page.keyboard.press("Tab");
@@ -187,6 +194,25 @@ try {
         false,
       );
       assert.match(await content.innerText(), /draft/);
+      await set("/test.css", "a { color: red;");
+      await page.evaluate(() => window.model.problems());
+      await page
+        .locator(".cm-diagnostic")
+        .filter({ hasText: "Syntaxe CSS" })
+        .first()
+        .waitFor();
+      await set("/test.php", '<?php header("Location: /")\nexit;');
+      await page
+        .locator(".cm-diagnostic")
+        .filter({ hasText: "point-virgule" })
+        .first()
+        .waitFor();
+      await page
+        .locator("button")
+        .filter({ hasText: "Ajouter ;" })
+        .first()
+        .click();
+      assert.match(await content.innerText(), /header\("Location: \/"\);/);
       await set("/test.php", '<?php $utilisateur="Alice"; echo $Utilisateur;');
       await page
         .locator("button")

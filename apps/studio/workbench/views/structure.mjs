@@ -33,63 +33,27 @@ export async function columnForm({
 } = {}) {
   const t = table();
   if (!t) throw Error("Sélectionnez une table.");
-  const fields = [
-    { id: "name", label: "Nom de la colonne", value: name },
-    {
-      id: "type",
-      label:
-        "Type SQL et longueur / précision (ex. VARCHAR(255), DECIMAL(10,2), BIGINT UNSIGNED)",
-      value: type,
-    },
-    {
-      id: "nullable",
-      label: "Valeur nulle",
-      type: "select",
-      options: ["NULL", "NOT NULL"],
-      value: nullable ? "NULL" : "NOT NULL",
-    },
-    {
-      id: "defaultMode",
-      label: "Valeur par défaut",
-      type: "select",
-      options: ["none", "null", "literal", "expression"],
-    },
-    {
-      id: "defaultValue",
-      label:
-        "Contenu du défaut (literal = texte exact ; expression = CURRENT_TIMESTAMP…) ",
-    },
-    {
-      id: "auto",
-      label: "AUTO_INCREMENT",
-      type: "select",
-      options: ["Non", "Oui"],
-    },
-    {
-      id: "key",
-      label: "Clé de la nouvelle colonne",
-      type: "select",
-      options: ["Aucune", "PRIMARY", "UNIQUE"],
-    },
-    { id: "comment", label: "Commentaire" },
-    { id: "charset", label: "Jeu de caractères (facultatif)" },
-    { id: "collation", label: "Collation (facultative)" },
-    { id: "onUpdate", label: "ON UPDATE (facultatif, CURRENT_TIMESTAMP)" },
-    {
-      id: "values",
-      label: 'Valeurs ENUM / SET : liste JSON, ex. ["petit","grand"]',
-    },
-    {
-      id: "position",
-      label: "Position",
-      type: "select",
-      options: [
-        "En dernier",
-        "En premier",
-        ...t.columns.map((c) => "Après " + c.name),
-      ],
-    },
-  ];
+  const parsedType = /^(\w+)(?:\(([^)]+)\))?/i.exec(type);
+  const values = {
+    name,
+    type,
+    nullable: nullable ? "NULL" : "NOT NULL",
+    defaultMode: "none",
+    defaultValue: "",
+    auto: "Non",
+    key: "Aucune",
+    comment: "",
+    charset: "",
+    collation: "",
+    onUpdate: "",
+    values: "",
+    position: "En dernier",
+  };
+  const input = (key, label, hint = "") =>
+    `<label class="field"><span>${label}</span><input class="in" data-f="${key}" value="${esc(values[key])}" ${key === "name" ? 'required maxlength="64" autofocus' : ""} ${key === "type" ? 'list="column-types"' : ""}>${hint ? `<small class="hint">${hint}</small>` : ""}</label>`;
+  const select = (key, label, options) =>
+    `<label class="field"><span>${label}</span><select class="in" data-f="${key}">${options.map(([value, text]) => `<option value="${value}" ${values[key] === value ? "selected" : ""}>${esc(text)}</option>`).join("")}</select></label>`;
+  const pairs = (items) => items.map((x) => [x, x]);
   const build = (v) => {
     const c = {
       ...v,
@@ -109,17 +73,125 @@ export async function columnForm({
       throw Error("Une clé primaire doit être NOT NULL.");
     return `ALTER TABLE ${id(t.name)} ADD COLUMN ${buildColumn(c)}${v.position === "En premier" ? " FIRST" : v.position.startsWith("Après ") ? " AFTER " + id(v.position.slice(6)) : ""};`;
   };
-  await ddl({
+  let statement = "";
+  const paint = (d) => {
+    d.querySelectorAll("[data-f]").forEach(
+      (el) => (values[el.dataset.f] = el.value),
+    );
+    const baseType = d.querySelector("#column-type").value;
+    const size = d.querySelector("#column-size");
+    const sized =
+      /^(VARCHAR|CHAR|VARBINARY|BINARY|DECIMAL|NUMERIC|BIT|DATETIME|TIME|TIMESTAMP)$/.test(
+        baseType,
+      );
+    size.closest("label").hidden = !sized;
+    const unsigned = d.querySelector("#column-unsigned");
+    unsigned.disabled =
+      !/^(TINYINT|SMALLINT|MEDIUMINT|INT|BIGINT|DECIMAL|NUMERIC)$/.test(
+        baseType,
+      );
+    values.type =
+      baseType +
+      (sized && size.value.trim() ? "(" + size.value.trim() + ")" : "") +
+      (!unsigned.disabled && unsigned.checked ? " UNSIGNED" : "");
+    const error = d.querySelector("#column-error");
+    const defaultField = d
+      .querySelector('[data-f="defaultValue"]')
+      .closest("label");
+    defaultField.hidden = !["literal", "expression"].includes(
+      values.defaultMode,
+    );
+    d.querySelector('[data-f="values"]').closest("label").hidden =
+      !/^(ENUM|SET)$/i.test(values.type);
+    try {
+      if (checkName(values.name)) throw Error("Donnez un nom à la colonne.");
+      if (t.columns.some((c) => c.name === values.name))
+        throw Error("Cette colonne existe déjà.");
+      statement = build(values);
+      error.textContent = "";
+      d.querySelector('[data-v="ok"]').disabled = false;
+      d.querySelector("#column-sql").textContent = statement;
+    } catch (e) {
+      error.textContent = e.message;
+      d.querySelector('[data-v="ok"]').disabled = true;
+      d.querySelector("#column-sql").textContent = "";
+    }
+  };
+  await modal({
     title: "Ajouter une colonne",
-    fields,
-    check: (v) =>
-      checkName(v.name)
-        ? "Nom requis, 64 caractères maximum."
-        : t.columns.some((c) => c.name === v.name)
-          ? "Cette colonne existe déjà."
-          : "",
-    sql: build,
-    onApply: async (v) => execute(build(v)),
+    wide: true,
+    body: `<p class="column-target">Table <strong>${esc(t.name)}</strong></p>
+      <div class="column-form">
+        <fieldset><legend>Définition</legend><div class="column-fields">${input("name", "Nom de la colonne")}
+        <label class="field"><span>Type SQL</span><select class="in" id="column-type">${["VARCHAR", "TEXT", "INT", "BIGINT", "DECIMAL", "DATE", "DATETIME", "TIMESTAMP", "BOOLEAN", "JSON", "BLOB", "CHAR", "TINYINT", "SMALLINT", "MEDIUMINT", "FLOAT", "DOUBLE", "NUMERIC", "TIME", "YEAR", "BIT", "BINARY", "VARBINARY", "MEDIUMTEXT", "LONGTEXT", "MEDIUMBLOB", "LONGBLOB", "ENUM", "SET"].map((x) => `<option ${x === parsedType?.[1]?.toUpperCase() ? "selected" : ""}>${x}</option>`).join("")}</select></label>
+        <label class="field"><span>Longueur / précision</span><input class="in" id="column-size" value="${esc(parsedType?.[2] ?? "")}" placeholder="255 ou 10,2"><small class="hint">DECIMAL : nombre de chiffres, puis décimales.</small></label>
+        <label class="chk2"><input type="checkbox" id="column-unsigned" ${/UNSIGNED/i.test(type) ? "checked" : ""}> Nombres positifs uniquement</label>
+        </div>${input("values", "Valeurs autorisées", 'Liste JSON : ["petit", "grand"]')}</fieldset>
+        <fieldset><legend>Valeurs et contraintes</legend><div class="column-fields">
+          ${select("nullable", "Valeur obligatoire", [
+            ["NULL", "Non — NULL autorisé"],
+            ["NOT NULL", "Oui — valeur requise"],
+          ])}
+          ${select("defaultMode", "Valeur par défaut", [
+            ["none", "Aucune"],
+            ["null", "NULL"],
+            ["literal", "Valeur précise"],
+            ["expression", "Expression SQL"],
+          ])}
+          ${input("defaultValue", "Valeur ou expression", "Ex. bonjour ou CURRENT_TIMESTAMP")}
+          ${select("key", "Clé", [
+            ["Aucune", "Aucune"],
+            ["PRIMARY", "Clé primaire"],
+            ["UNIQUE", "Valeur unique"],
+          ])}
+          ${select("auto", "Numérotation automatique", [
+            ["Non", "Non"],
+            ["Oui", "Oui — AUTO_INCREMENT"],
+          ])}
+        </div></fieldset>
+        <details><summary>Options avancées</summary><div class="column-fields">
+          ${select("position", "Position", pairs(["En dernier", "En premier", ...t.columns.map((c) => "Après " + c.name)]))}
+          ${input("comment", "Commentaire")}${input("charset", "Jeu de caractères")}${input("collation", "Collation")}${input("onUpdate", "Mise à jour automatique", "CURRENT_TIMESTAMP")}
+        </div></details>
+        <p id="column-error" role="status"></p><details><summary>Voir la requête SQL</summary><pre id="column-sql" class="pre"></pre></details>
+      </div>`,
+    actions: [
+      { label: "Annuler", v: "no" },
+      { label: "Ajouter la colonne", v: "ok", kind: "pri" },
+    ],
+    onOpen(d) {
+      paint(d);
+      d.addEventListener("input", () => paint(d));
+      d.addEventListener("change", (event) => {
+        if (event.target.id === "column-type")
+          d.querySelector("#column-size").value =
+            {
+              VARCHAR: "255",
+              CHAR: "1",
+              BINARY: "1",
+              VARBINARY: "255",
+              DECIMAL: "10,2",
+              NUMERIC: "10,2",
+              BIT: "1",
+            }[event.target.value] ?? "";
+        paint(d);
+      });
+    },
+    async beforeClose(value, d) {
+      if (value !== "ok") return true;
+      const button = d.querySelector('[data-v="ok"]');
+      button.disabled = true;
+      try {
+        await execute(statement);
+        toast("Colonne ajoutée à " + t.name);
+        return true;
+      } catch (e) {
+        d.querySelector("#column-error").textContent = e.message;
+        return false;
+      } finally {
+        button.disabled = false;
+      }
+    },
   });
 }
 async function definitionForm(name) {
@@ -512,12 +584,7 @@ Object.assign(A, {
   columnForm,
   relationForm,
   colQuick: () => columnForm(),
-  colAdd: () =>
-    columnForm({
-      name: document.querySelector("#ncName").value,
-      type: document.querySelector("#ncType").value,
-      nullable: document.querySelector("#ncNull").checked,
-    }),
+  colAdd: () => columnForm(),
   colSetType: (arg) => {
     const [name, type] = arg.split("|");
     return patch(name, { type });
@@ -530,10 +597,7 @@ Object.assign(A, {
   insertAdvanced: advancedInsert,
   schemaColAdd: (name) => {
     S.table = name;
-    return columnForm({
-      name: document.querySelector("#sqName").value,
-      type: document.querySelector("#sqType").value,
-    });
+    return columnForm();
   },
   async importSQL() {
     const input = document.createElement("input");

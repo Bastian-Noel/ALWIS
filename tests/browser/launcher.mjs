@@ -74,7 +74,7 @@ try {
     await A.save();
     await A.close();
   });
-  await page.locator("#recent [data-arg=portfolio]").waitFor();
+  await page.locator("#recent [data-act=open][data-arg=portfolio]").waitFor();
   assert.equal(await page.locator("#recentSection").isVisible(), true);
   await page.locator("#pn").fill("portfolio");
   assert.match(await page.locator("#pgo").innerText(), /Ouvrir/);
@@ -82,7 +82,7 @@ try {
   await page.locator("#projectFilter").fill("absent");
   await page.locator(".recent-empty").waitFor();
   await page.locator("#projectFilter").fill("PORT");
-  await page.locator("#recent [data-arg=portfolio]").waitFor();
+  await page.locator("#recent [data-act=open][data-arg=portfolio]").waitFor();
   await page.locator("#projectFilter").fill("");
   await page.locator("#pn").fill("");
   const archive = Buffer.from(
@@ -113,7 +113,7 @@ try {
     await A.save();
     await A.close();
   });
-  await page.locator("#recent [data-arg=portfolio]").click();
+  await page.locator("#recent [data-act=open][data-arg=portfolio]").click();
   await page.locator("#ed1 .cm-content").waitFor();
   assert.doesNotMatch(
     await page.locator("#ed1").evaluate((e) => e.value),

@@ -141,10 +141,10 @@ export function projectArchives(hub, files) {
       }
     }
   }
-  async function exportProject() {
+  async function exportProject({ dataOnly = false } = {}) {
     const entries = [];
     let size = 0;
-    for (const name of await files()) {
+    for (const name of dataOnly ? [] : await files()) {
       const bytes = await hub.runtime.read("/workspace" + name);
       size += bytes.length;
       if (size > 64 * 1024 * 1024) throw Error("Export limité à 64 Mio.");

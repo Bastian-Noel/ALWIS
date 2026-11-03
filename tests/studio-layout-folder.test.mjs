@@ -20,3 +20,18 @@ test('folder imports binary files and skips dependencies and hidden entries',asy
  const directory={async *entries(){yield ['.git',{kind:'directory'}];yield ['vendor',{kind:'directory'}];yield ['image.bin',{kind:'file',getFile:async()=>new Blob([new Uint8Array([0,255])])}];}};
  const files=await readFolder(directory);assert.deepEqual([...files.keys()],['/image.bin']);assert.deepEqual([...files.get('/image.bin')],[0,255]);
 });
+test('folder context commits metadata last and refuses external changes',async()=>{
+ const {folderContext}=await import('../apps/studio/workbench/folder-access.mjs');
+ const files=new Map(),order=[];
+ const missing=()=>Object.assign(Error('Missing'),{name:'NotFoundError'});
+ const dir={getFileHandle:async(name,options)=>{
+  if(!files.has(name)&&!options?.create)throw missing();
+  return {getFile:async()=>new Blob([files.get(name)??'']),createWritable:async()=>{let pending;return {write:async data=>{pending=data;},close:async()=>{order.push(name);files.set(name,pending);},abort:async()=>{}};}};
+ },removeEntry:async name=>files.delete(name)};
+ const context=await folderContext({getDirectoryHandle:async()=>dir});
+ await context.save({tabs:['/index.php'],query:'SELECT 42'},new Uint8Array([1,2]));
+ assert.equal(order.at(-1),'context.json');
+ const saved=JSON.parse(files.get('context.json'));assert.equal(saved.workspace.query,'SELECT 42');assert.ok(files.has(saved.archive));
+ files.set('context.json','external');
+ await assert.rejects(context.save({},new Uint8Array()),/a changé/);assert.equal(files.get('context.json'),'external');
+});

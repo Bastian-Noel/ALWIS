@@ -9,6 +9,7 @@ import {
   menu,
   modal,
   closeMenus,
+  confirmDlg,
   clock,
 } from "../ui.mjs";
 import {
@@ -64,7 +65,7 @@ export function drawShell() {
   $("#primary").hidden = !w;
   $("#sPersist").hidden = !w;
   $("#pname").title = ctx.folder
-    ? "Fichiers enregistrés vers le PC ; bases SQL, suppressions et renommages conservés dans le navigateur. Rouvrez le dossier à chaque session."
+    ? "Fichiers enregistrés vers le PC ; bases et contexte conservés dans .alwis. Sélectionnez ce dossier pour le rouvrir."
     : "Projet conservé dans ce navigateur. Exportez un ZIP pour une copie externe.";
   $("#pname").textContent = ctx.folder?.name || S.project || "";
   $(".project-caption").textContent = ctx.folder
@@ -139,7 +140,7 @@ function drawLauncher() {
     ? shown
         .map(
           (r) =>
-            `<button class="proj-row" data-act="open" data-arg="${esc(r.name)}" aria-label="Ouvrir le projet ${esc(r.name)}"><b title="${esc(r.name)}">${esc(r.name)}</b><span class="go" aria-hidden="true">→</span><span class="project-meta">${plural(r.files, "fichier", "fichiers")} · ${r.saved ? "Sauvegardé" : "À sauvegarder"}<br>${esc(r.when)}</span></button>`,
+            `<div class="project-entry"><button class="proj-row" data-act="open" data-arg="${esc(r.name)}" aria-label="Ouvrir le projet ${esc(r.name)}"><b title="${esc(r.name)}">${esc(r.name)}</b><span class="go" aria-hidden="true">→</span><span class="project-meta">${plural(r.files, "fichier", "fichiers")} · ${r.saved ? "Sauvegardé" : "À sauvegarder"}<br>${esc(r.when)}</span></button><button class="btn quiet project-remove" data-act="deleteProject" data-arg="${esc(r.name)}" title="Supprimer le projet du navigateur" aria-label="Supprimer le projet ${esc(r.name)}">${ui.trash}</button></div>`,
         )
         .join("")
     : '<p class="recent-empty" role="status">Aucun projet ne correspond à cette recherche.</p>';
@@ -221,9 +222,47 @@ Object.assign(A, {
         icon: ui.download,
         description: "Télécharger une copie des fichiers et des bases",
       },
+      ...(ctx.folder
+        ? [
+            {
+              label: "Délier le dossier du PC",
+              act: "detachFolder",
+              icon: ui.folder,
+            },
+          ]
+        : []),
       { label: "État de l’enregistrement", act: "persist", icon: ui.save },
       { label: "Fermer le projet", act: "close", icon: ui.close },
     ]);
+  },
+  async deleteProject(name) {
+    if (!name) return;
+    if (
+      !(await confirmDlg(
+        "Supprimer « " + name + " » ?",
+        "Les fichiers et bases de ce projet seront supprimés du navigateur. Les dossiers du PC et leur configuration .alwis sont conservés.",
+        "Supprimer le projet",
+        true,
+      ))
+    )
+      return;
+    await eng().projects.remove(name);
+    draw();
+    toast("Projet supprimé du navigateur");
+  },
+  async detachFolder() {
+    if (!ctx.folder) return;
+    if (
+      !(await confirmDlg(
+        "Délier le dossier du PC ?",
+        "Le projet reste disponible dans le navigateur. Les prochains enregistrements ne modifieront plus le dossier du PC.",
+        "Délier le dossier",
+      ))
+    )
+      return;
+    ctx.folder = null;
+    draw();
+    toast("Dossier délié");
   },
   async switchProject(name) {
     if (!name || name === S.project) return;
@@ -233,7 +272,8 @@ Object.assign(A, {
   async close() {
     const d = drafts().length,
       a = S.applied.size + (S.dbDirty ? 1 : 0);
-    let keep = true;
+    let keep = true,
+      savedDuringClose = false;
     if (d || a) {
       const r = await modal({
         title: "Fermer le projet ?",
@@ -250,9 +290,11 @@ Object.assign(A, {
         if (!(await A.applyAll())) return;
         await A.save();
         if (S.saveFail) return;
+        savedDuringClose = true;
       }
     }
     await ctx.persist?.();
+    if (keep && !savedDuringClose) await ctx.folder?.saveContext?.();
     await eng().db.close();
     await eng().projects.close({ save: keep });
     Object.assign(S, {
@@ -318,6 +360,7 @@ Object.assign(A, {
         pvDouble: false,
         pvPath: "/index.php",
         pvInfo: {},
+        phpRun: null,
         conflict: {},
         find: { open: false, i: 0 },
         exSel: null,
@@ -414,6 +457,7 @@ Object.assign(A, {
           await eng().db.close();
           await eng().projects.save();
           await ctx.persist?.();
+          await ctx.folder?.saveContext?.();
           return true;
         });
         if (!ok) {
@@ -442,7 +486,7 @@ Object.assign(A, {
   persist(_, el) {
     const pending = drafts().length || S.applied.size || S.dbDirty;
     menu(el?.isConnected ? el : $("#chip"), 0, {
-      html: `<div class="ph">Enregistrement du projet</div><div class="save-summary"><b>${esc(S.project)}</b><p>${pending ? "Des modifications sont à enregistrer." : "Toutes les modifications sont enregistrées."}</p><p class="hint">${ctx.folder ? "Les fichiers sont aussi écrits dans votre dossier du PC. Les bases restent dans ce navigateur." : "Votre projet est conservé dans ce navigateur. Exportez un ZIP pour une copie externe."}</p>${pending ? '<button class="btn pri" data-act="save">Enregistrer le projet</button>' : ""}${S.savedAt ? `<p class="hint">Dernier enregistrement à ${clock(new Date(S.savedAt)).slice(0, 5)}.</p>` : ""}</div>`,
+      html: `<div class="ph">Enregistrement du projet</div><div class="save-summary"><b>${esc(S.project)}</b><p>${pending ? "Des modifications sont à enregistrer." : "Toutes les modifications sont enregistrées."}</p><p class="hint">${ctx.folder ? "Les fichiers sont écrits dans votre dossier du PC. Les bases et le contexte sont sauvegardés dans .alwis." : "Votre projet est conservé dans ce navigateur. Exportez un ZIP pour une copie externe."}</p>${pending ? '<button class="btn pri" data-act="save">Enregistrer le projet</button>' : ""}${S.savedAt ? `<p class="hint">Dernier enregistrement à ${clock(new Date(S.savedAt)).slice(0, 5)}.</p>` : ""}</div>`,
     });
   },
   async exportZip() {
@@ -588,17 +632,17 @@ export function bindShell() {
       return;
     const fn = A[b.dataset.act];
     if (!fn) return;
-    Promise.resolve(fn(b.dataset.arg, b, e)).catch((er) =>
-      fail("Action impossible.", er),
-    );
+    Promise.resolve()
+      .then(() => fn(b.dataset.arg, b, e))
+      .catch((er) => fail("Action impossible.", er));
   });
   document.addEventListener("change", (e) => {
     const t = e.target;
     if (t.dataset.actChange) {
       const fn = A[t.dataset.actChange];
-      Promise.resolve(fn?.(t.dataset.arg ?? t.value, t)).catch((er) =>
-        fail("Action impossible.", er),
-      );
+      Promise.resolve()
+        .then(() => fn?.(t.dataset.arg ?? t.value, t))
+        .catch((er) => fail("Action impossible.", er));
     }
   });
   $("#pn").addEventListener("input", drawLauncher);

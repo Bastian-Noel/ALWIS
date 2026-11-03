@@ -132,3 +132,31 @@ La mention **Projet ouvert · dossier PC**, au-dessus du nom du dossier, indique
 </details>
 
 [← Retour au guide](README.md) · [Compatibilité](compatibility.md)
+
+## Édition, recherche et diagnostics
+
+**Ctrl F** ouvre une recherche fixe en haut à droite du code. Le chevron déplie le remplacement ; les flèches parcourent les résultats. **Aa**, **ab** et **.*** activent respectivement la casse, le mot entier et les expressions régulières. Chaque bouton possède une explication au survol et un nom accessible.
+
+Le clic droit dans le code propose les actions adaptées au langage : définition, références et renommage de symbole en PHP/JavaScript, Emmet dans le HTML/CSS. Le menu des fichiers conserve les opérations sur le fichier et les réglages. La molette au-dessus des onglets passe au fichier précédent ou suivant.
+
+Modifier le nom d’une balise HTML ouvrante met à jour sa fermeture correspondante, également dans les modèles PHP. **! puis Entrée** crée une page française avec la même indentation que le formateur. Le formatage PHP/HTML met aussi en forme le HTML lorsque sa structure est analysable, en préservant les blocs PHP. Les diagnostics indiquent la ligne ; les points-virgules PHP manquants après un appel et les erreurs de syntaxe CSS sont signalés.
+
+Un fichier **.md** s’affiche avec le bouton **Aperçu**. Cet aperçu léger gère titres, paragraphes, listes, liens HTTP(S), citations et blocs de code. Il n’exécute pas le HTML ni les scripts et ne charge pas d’images distantes.
+
+## Ajouter une colonne depuis le schéma
+
+Sélectionnez une table puis **Ajouter une colonne**. Le formulaire regroupe le nom et le type, les valeurs et contraintes, puis les options avancées (position, commentaire, jeu de caractères, collation et mise à jour automatique). La requête SQL reste consultable. La table du schéma est actualisée après validation.
+
+## Dossiers du PC et gestion des projets
+
+**Enregistrer** écrit les fichiers modifiés dans le dossier lié et conserve les bases SQL, les onglets, la requête et les positions du schéma dans **.alwis**. Sélectionnez à nouveau ce dossier depuis l’accueil pour restaurer ce contexte, y compris sur un autre navigateur compatible. Les fichiers du dossier sont la source lors de la réouverture ; l’ancienne copie du navigateur reste disponible séparément. Les cookies et sessions des visiteurs ne sont pas exportés dans `.alwis`.
+
+Les écritures refusent de remplacer un fichier ou une configuration modifiés extérieurement depuis l’ouverture. Les suppressions et renommages restent dans la copie du navigateur : ils ne suppriment pas automatiquement les fichiers du PC. La sauvegarde locale est limitée aux mêmes volumes que l’export ZIP (64 Mio ; 8 Mio par sauvegarde SQL).
+
+Le menu du projet permet de **délier le dossier du PC**. Cette action conserve les fichiers du PC et le projet du navigateur. Depuis l’accueil, la corbeille supprime un projet du navigateur après confirmation ; elle ne touche pas au dossier local ni à `.alwis` et refuse un projet ouvert ailleurs.
+
+## Exécuter un script PHP sans aperçu HTML
+
+Dans le menu du bouton **Aperçu**, choisissez **Exécuter PHP · sortie texte**. Le panneau **Sortie PHP** présente le résultat et le statut HTTP, avec au plus 64 Kio de texte. L’exécution utilise les fichiers appliqués et la session active ; vous pouvez continuer à éditer pendant son traitement.
+
+Le moteur actuel traite les requêtes du projet en série. Il ne propose pas de daemon PHP permanent ou de processus parallèle indépendant : les autres requêtes attendent, et le garde-fou du moteur termine le worker après un appel de 180 secondes. Cette commande convient aux scripts ponctuels, pas aux boucles infinies ou aux serveurs persistants.

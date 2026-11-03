@@ -64,13 +64,14 @@ checksums.write_text('\n'.join(lines)+'\n');assets.append(checksums)
 publication_status='Build validé. Le transfert FTP sera exécuté après publication de cette release.' if before_ftp else 'Build et transfert FTP réussis.'
 notes=output/'notes.md';notes.write_text(f'''ALWIS — Atelier Local Web avec IDE et SQL. Cette préversion intègre la nouvelle interface au moteur réel : CodeMirror, aperçu, sessions, administration SQL et schéma relationnel.
 
-- Accueil repensé, projets récents filtrables et import ZIP dans un nouveau projet sans écrasement.
-- Navigation clavier, raccourcis affichés au maintien d’Alt, focus et attributs ARIA consolidés.
+- Projets supprimables depuis l’accueil, dossier PC déliable et contexte/bases SQL restaurables depuis .alwis.
+- Recherche fixe avec remplacement, options casse/mot entier/regex, menu contextuel du code et navigation des onglets à la molette.
 - Documentation illustrée simplifiée et accès aux dossiers du PC avec protection des modifications externes.
 - Exemple Campus : 34 tables liées et remplies, quatre sessions, cours, notes et messagerie.
 - Assets isolés par build, version affichée et mise à jour préservant les projets.
-- CodeMirror : formateur à la demande, indentation réglable, snippets immédiats et développement Emmet prioritaire sur Tab.
-- Formulaires de colonnes enrichis, attributs existants préservés, valeurs SQL exactes et protection contre les conflits.
+- Diagnostics PHP/CSS lisibles et corrections accessibles ; HTML/PHP formatés ensemble, balises liées et modèle HTML cohérent.
+- Aperçu Markdown léger et exécution ponctuelle de scripts PHP avec sortie texte.
+- Formulaire de colonne guidé, ajout depuis le schéma corrigé, bandeaux sans superposition et notifications visibles.
 - Nettoyage natif MySQLi des buffers binaires à la fermeture de connexion ; scénarios PDO natif/émulé, transactions et curseurs consolidés.
 - Export ZIP des fichiers et bases conservées ; un projet PHP pur reste sans démarrage SQL inutile.
 - Thèmes clair/sombre, contrastes corrigés et captures réelles dans le README.

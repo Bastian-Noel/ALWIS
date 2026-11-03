@@ -23,7 +23,7 @@ export function phpSyntaxDiagnostics(text) {
     if (index >= 4) return diagnostic;
     let position = fault.from;
     while (position > 0 && /\s/.test(text[position - 1])) position--;
-    const preceding = tree.resolveInner(Math.max(0, position - 1), -1);
+    const preceding = tree.resolveInner(position, -1);
     if (
       /Comment|String/.test(preceding.name) &&
       !/["']$/.test(text.slice(0, position))
@@ -39,7 +39,7 @@ export function phpSyntaxDiagnostics(text) {
       diagnostic.from = position;
       diagnostic.to = position;
       diagnostic.message =
-        "Un point-virgule manque probablement ici. L’insertion de « ; » réduit les erreurs de syntaxe.\nDiagnostic initial : syntaxe PHP incomplète ou inattendue.";
+        "Un point-virgule « ; » manque probablement à la fin de cette instruction.";
       diagnostic.actions = [
         {
           name: "Ajouter ;",

@@ -1,3 +1,4 @@
+import { formatMixedHtml } from "./mixed-format.mjs";
 import { htmlVoidStyle } from "./html-style.mjs";
 // Loaded only by the explicit format command; the owner terminates this worker.
 import { format } from "prettier/standalone";
@@ -29,7 +30,7 @@ self.onmessage = async ({ data }) => {
       throw Error(
         "Formatage limité à 256 K caractères pour préserver la réactivité.",
       );
-    let text = await format(data.text, {
+    const options = {
       parser,
       plugins: [babel, estree, html, postcss, php],
       tabWidth: data.indent === "2" ? 2 : 4,
@@ -37,7 +38,9 @@ self.onmessage = async ({ data }) => {
       phpVersion: "8.4",
       printWidth: 100,
       endOfLine: "auto",
-    });
+    };
+    let text = await format(data.text, options);
+    if (parser === "php") text = await formatMixedHtml(text, format, options);
     if (parser === "html") text = htmlVoidStyle(text);
     self.postMessage({ text });
   } catch (error) {

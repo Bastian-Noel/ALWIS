@@ -16,7 +16,12 @@ export function drawDock() {
   $("#lvl").hidden = k !== "log";
   const B = $("#dockB");
   B.setAttribute("aria-labelledby", "dock-tab-" + k);
-  if (k === "req")
+  if (k === "out") {
+    const run = S.phpRun;
+    B.innerHTML = run
+      ? `<div class="php-output"><p role="status"><strong>${esc(run.path)}</strong> · ${run.running ? "En cours" : run.error ? "Échec" : "Terminé · HTTP " + run.status}</p><pre>${esc(run.text)}</pre>${run.truncated ? "<p>Sortie limitée aux 64 premiers Kio.</p>" : ""}<p class="hint">Exécution ponctuelle dans la session active. Le moteur ne prend pas en charge les processus permanents ; les autres requêtes attendent leur tour.</p></div>`
+      : '<div class="empty"><b>Sortie PHP</b><span>Ouvrez un fichier PHP, puis choisissez « Exécuter PHP · sortie texte » dans le menu d’aperçu.</span></div>';
+  } else if (k === "req")
     B.innerHTML = S.reqs.length
       ? [...S.reqs]
           .reverse()
@@ -68,7 +73,11 @@ export function drawDock() {
 }
 Object.assign(A, {
   dockToggle() {
-    S.logs.some(l => l.l === "e" && !l.read) ? A.dockTab("log") : S.dock ? A.dockClose() : A.dockTab("req");
+    S.logs.some((l) => l.l === "e" && !l.read)
+      ? A.dockTab("log")
+      : S.dock
+        ? A.dockClose()
+        : A.dockTab("req");
   },
   dockClose() {
     const hadFocus = $("#dock").contains(document.activeElement);
@@ -124,7 +133,7 @@ export function bindDock() {
   let gd = null,
     g = $("#grip");
   const size = (height) => {
-    const max = Math.max(120, Math.round(innerHeight * .7));
+    const max = Math.max(120, Math.round(innerHeight * 0.7));
     const value = Math.max(120, Math.min(max, Math.round(height)));
     $("#dock").style.setProperty("--dh", value + "px");
     g.setAttribute("aria-valuemin", "120");
@@ -136,10 +145,16 @@ export function bindDock() {
   g.setAttribute("aria-controls", "dock");
   size($("#dock").offsetHeight || 240);
   addEventListener("resize", () => size($("#dock").offsetHeight));
-  g.addEventListener("keydown", e => {
+  g.addEventListener("keydown", (e) => {
     if (!["ArrowUp", "ArrowDown", "Home", "End"].includes(e.key)) return;
     e.preventDefault();
-    size(e.key === "Home" ? 120 : e.key === "End" ? innerHeight * .7 : $("#dock").offsetHeight + (e.key === "ArrowUp" ? 24 : -24));
+    size(
+      e.key === "Home"
+        ? 120
+        : e.key === "End"
+          ? innerHeight * 0.7
+          : $("#dock").offsetHeight + (e.key === "ArrowUp" ? 24 : -24),
+    );
   });
   g.addEventListener("pointerdown", (e) => {
     gd = { y: e.clientY, h: $("#dock").offsetHeight };

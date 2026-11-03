@@ -232,7 +232,7 @@ export function drawSchema() {
       `<div style="${hueStyle(t.name)}"><div class="ihead"><i class="td big"></i><div class="grow"><h3 class="trunc">${esc(t.name)}</h3><p class="hint num">${plural(t.columns.length, "colonne", "colonnes")} · ${plural(t.rows, "ligne", "lignes")} · ${plural(t.fks.length, "relation", "relations")}</p></div><button class="btn quiet sm" data-act="schemaSel" data-arg="${esc(t.name)}" aria-label="Fermer la fiche">✕</button></div>
     <div class="sw8" role="group" aria-label="Couleur de la table">${HUES.map((h) => `<button class="hsw ${tableHue(t.name) === h ? "on" : ""}" style="--h:${h}" data-act="tableHue" aria-pressed="${tableHue(t.name) === h}" data-arg="${esc(t.name)}|${h}" aria-label="Couleur ${h}"></button>`).join("")}</div>
     <div class="ibtns"><button class="btn pri" data-act="selectTable" data-arg="${esc(t.name)}">Voir les données</button><button class="btn" data-act="openStruct" data-arg="${esc(t.name)}">Structure</button></div>
-    <button class="btn" data-act="relationForm">Relier des tables</button><button class="btn" data-act="schemaColAdd" data-arg="${esc(t.name)}">Ajouter une colonne dans Données…</button>
+    <button class="btn" data-act="relationForm">Relier des tables</button><button class="btn" data-act="schemaColAdd" data-arg="${esc(t.name)}">Ajouter une colonne</button>
     <p class="hint" style="margin-top:12px">Glissez le point d’un champ vers la clé d’une autre table pour créer une relation. Cliquez un lien pour le modifier.</p></div>`;
 }
 

@@ -110,8 +110,7 @@ try {
       assert.match(await editor.innerText(), /<!doctype html>/i);
       await editor.fill("ul>li*3");
       await editor.press("Control+End");
-      await page.locator("#fileMenuBtn").click();
-      await page.locator('[data-act="editorEmmet"]').click();
+      await editor.press("Alt+e");
       assert.equal((await editor.innerText()).match(/<li>/g)?.length, 3);
       await editor.fill("<?php foreach");
       await editor.press("Control+End");
