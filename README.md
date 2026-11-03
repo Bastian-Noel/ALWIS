@@ -56,7 +56,7 @@ Les types, clés, valeurs nulles et relations ont leurs repères visuels. Les fo
 
 ## Essayer ALWIS
 
-Téléchargez le **[paquet ALWIS v0.3.0-preview.1](https://github.com/Bastian-Noel/ALWIS/releases/tag/v0.3.0-preview.1)** : il inclut la nouvelle interface et le moteur PHP/MariaDB validé. Extrayez le ZIP, lancez `node serve.mjs` dans ce dossier avec **Node 20+**, puis ouvrez **http://127.0.0.1:8080**. Les anciens ZIP conservent leur interface historique.
+Téléchargez le **[paquet ALWIS v0.3.0-preview.2](https://github.com/Bastian-Noel/ALWIS/releases/tag/v0.3.0-preview.2)** : il inclut la nouvelle interface et le moteur PHP/MariaDB validé. Extrayez le ZIP, lancez `node serve.mjs` dans ce dossier avec **Node 20+**, puis ouvrez **http://127.0.0.1:8080**. Les anciens ZIP conservent leur interface historique.
 
 Pour démarrer depuis les sources, prévoyez **Node 24+, Python 3.12+ et GitHub CLI authentifié** pour télécharger le moteur épinglé :
 
