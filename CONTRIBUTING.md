@@ -67,3 +67,7 @@ Les fichiers et empreintes sont générés dans `build-work/native-distribution/
 Les preuves de validation doivent correspondre au WASM exact. Ne changez pas les empreintes pour contourner une vérification.
 
 </details>
+
+## Publier la documentation
+
+Le [wiki GitHub](https://github.com/Bastian-Noel/ALWIS/wiki) suit automatiquement les modifications sur `main` : [configuration et vérification](docs/wiki-publication.md).

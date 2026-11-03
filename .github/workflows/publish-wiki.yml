@@ -1,0 +1,66 @@
+name: Documentation - GitHub Wiki
+on:
+  push:
+    branches: [main]
+    paths: ['docs/**', 'README.md', 'CONTRIBUTING.md', 'scripts/build-wiki.py', 'tests/wiki/**', '.github/workflows/publish-wiki.yml']
+  pull_request:
+    paths: ['docs/**', 'README.md', 'CONTRIBUTING.md', 'scripts/build-wiki.py', 'tests/wiki/**', '.github/workflows/publish-wiki.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: wiki-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  documentation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Test documentation conversion
+        run: python3 -m unittest discover -s tests/wiki -v
+      - name: Generate preview
+        run: python3 scripts/build-wiki.py --repository "$GITHUB_REPOSITORY" --revision "$GITHUB_SHA" --output build-work/wiki-preview
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: github-wiki
+          path: build-work/wiki-preview/
+          include-hidden-files: true
+      - name: Publish Wiki
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        env:
+          WIKI_TOKEN: ${{ secrets.WIKI_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "$WIKI_TOKEN" ]; then
+            echo '::error::Configure the Actions secret WIKI_TOKEN (classic PAT with public_repo access). See docs/wiki-publication.md.'
+            exit 1
+          fi
+          temporary=$(mktemp -d)
+          trap 'rm -rf "$temporary"' EXIT
+          export GIT_ASKPASS="$temporary/askpass"
+          export GIT_TERMINAL_PROMPT=0
+          cat > "$GIT_ASKPASS" <<'ASKPASS'
+          #!/bin/sh
+          case "$1" in
+            *Username*) printf '%s\n' 'x-access-token' ;;
+            *) printf '%s\n' "$WIKI_TOKEN" ;;
+          esac
+          ASKPASS
+          chmod 700 "$GIT_ASKPASS"
+          if ! git clone "https://github.com/${GITHUB_REPOSITORY}.wiki.git" "$temporary/wiki"; then
+            echo '::error::Wiki inaccessible. Enable Wiki, create its first page, and check WIKI_TOKEN access.'
+            exit 1
+          fi
+          python3 scripts/build-wiki.py --repository "$GITHUB_REPOSITORY" --revision "$GITHUB_SHA" --output "$temporary/wiki"
+          cd "$temporary/wiki"
+          git add --all
+          if git diff --cached --quiet; then
+            echo 'Wiki already up to date.'
+            exit 0
+          fi
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m "docs: sync from ${GITHUB_SHA}"
+          git push origin HEAD

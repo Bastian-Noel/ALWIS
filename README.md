@@ -9,7 +9,7 @@ Tout dans le navigateur, avec un éditeur et une base MariaDB.
 [![Validation](https://github.com/Bastian-Noel/ALWIS/actions/workflows/check.yml/badge.svg)](https://github.com/Bastian-Noel/ALWIS/actions/workflows/check.yml)
 [![Préversion](https://img.shields.io/badge/statut-pr%C3%A9version-9a6700)](https://github.com/Bastian-Noel/ALWIS/releases)
 
-[Premiers pas](#démarrer) · [Guide illustré](docs/README.md) · [Exemple Campus](docs/school-example.md)
+[Wiki](https://github.com/Bastian-Noel/ALWIS/wiki) · [Premiers pas](#démarrer) · [Guide illustré](docs/README.md) · [Exemple Campus](docs/school-example.md)
 
 </div>
 
