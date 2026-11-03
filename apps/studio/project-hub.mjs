@@ -1,3 +1,4 @@
+import { inspectBody, networkRecord } from './network-record.mjs';
 import { NativeRuntime } from '/packages/runtime/src/native-runtime.mjs';
 import { ClientSessions } from '/packages/runtime/src/client-sessions.mjs';
 import { readState, writeState } from './state.mjs';
@@ -33,7 +34,14 @@ export class ProjectHub {
     if(this.lastSaveError)return Promise.resolve(this.error(503,'Sauvegarde échouée. Le propriétaire doit réessayer la sauvegarde avant de reprendre les clients.'));
     if(this.busy)return Promise.resolve(this.error(503,'Projet en cours de sauvegarde. Réessayez dans un instant.'));
     const started=performance.now();
-    return this.track(this.serveRequest(sessionId,input).then(response=>{this.onRequest?.({session:sessionId,method:input.method??'GET',path:new URL(input.url).pathname,status:response.status,durationMs:performance.now()-started});return response;}));
+    return this.track(this.serveRequest(sessionId,input).then(response=>{
+      this.onRequest?.(networkRecord(sessionId,input,response,performance.now()-started));
+      delete response.inspection; delete response.inspectHeaders;
+      return response;
+    }, error=>{
+      this.onRequest?.(networkRecord(sessionId,input,this.error(503,error.message),performance.now()-started));
+      throw error;
+    }));
   }
   async serveRequest(sessionId, input) {
     if (this.busy) return { status: 503, headers: [['Content-Type', 'text/plain']], body: encoder.encode('Projet en cours de sauvegarde. Réessayez dans un instant.') };
@@ -46,14 +54,16 @@ export class ProjectHub {
         try { await this.runtime.read('/workspace' + pathname + index); pathname += index; break; } catch { /* Try the documented directory index. */ }
       }
     }
-    let body, headers = [], status = 200, cookiesChanged = false;
+    let body, headers = [], inspectHeaders, status = 200, cookiesChanged = false;
     if (/\.php$/i.test(pathname)) {
       const requestHeaders = (input.headers ?? []).filter(([name]) => name.toLowerCase() !== 'cookie');
       const cookies = session.jar.header(url);
       if (cookies) requestHeaders.push(['Cookie', cookies]);
+      input.headers = requestHeaders;
       const result = await this.runtime.request({ script: '/workspace' + pathname, url: url.href, method: input.method, headers: requestHeaders, body: input.body });
       if(result.stderr?.byteLength)this.onDiagnostic?.(`PHP a signalé un problème dans ${pathname}. Corrigez le fichier puis relancez la requête.`,decoder.decode(result.stderr.subarray(0,8192)));
       status = result.status; body = result.body;
+      inspectHeaders = result.headers.filter(line=>line.indexOf(':')>0).map(line=>[line.slice(0,line.indexOf(':')),line.slice(line.indexOf(':')+1).trim()]);
       for (const line of result.headers) {
         const colon = line.indexOf(':'); if (colon < 1) continue;
         const name = line.slice(0, colon), value = line.slice(colon + 1).trim();
@@ -69,6 +79,7 @@ export class ProjectHub {
       catch { return this.error(404, 'Fichier introuvable'); }
       headers.push(['Content-Type', mime[pathname.split('.').pop()?.toLowerCase()] ?? 'application/octet-stream']);
     }
+    const inspection = inspectBody(body, headers);
     if (['document','iframe'].includes(input.destination) && headers.some(([name, value]) => name.toLowerCase() === 'content-type' && value.toLowerCase().includes('text/html'))) {
       const context = { project: this.key, session: sessionId, prefix: this.routeURL(sessionId, '/'), logicalURL: url.href, cookies: session.jar.publicEntries() };
       const config = JSON.stringify(context).replace(/</g, '\\u003c');
@@ -76,7 +87,7 @@ export class ProjectHub {
       const html = decoder.decode(body);
       body = encoder.encode(/<head(?:\s[^>]*)?>/i.test(html) ? html.replace(/<head(?:\s[^>]*)?>/i, match => match + bootstrap) : bootstrap + html);
     }
-    return { status, headers, body };
+    return { status, headers, body, inspection, inspectHeaders };
   }
   error(status, message) { return { status, headers: [['Content-Type', 'text/plain; charset=utf-8']], body: encoder.encode(message) }; }
   broadcastCookies(id) { navigator.serviceWorker.controller?.postMessage({ type: 'pbl-cookie-state', project: this.key, session: id, cookies: this.sessions.get(id).jar.publicEntries() }); }

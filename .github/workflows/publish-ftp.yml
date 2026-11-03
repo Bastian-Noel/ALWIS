@@ -35,6 +35,7 @@ jobs:
             build-work/site-smoke.json
             build-work/site-updates.json
             build-work/ux-revision/
+            build-work/preview-browser/
   release:
     needs: build
     runs-on: ubuntu-24.04

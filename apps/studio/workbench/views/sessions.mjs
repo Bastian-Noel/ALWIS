@@ -101,6 +101,7 @@ Object.assign(A, {
     if(!S.pvSessions.length)S.pvSessions=[sessions()[0].id];
     if(S.pvSessions.length<2)S.pvDouble=false;
     delete S.pvInfo[id];
+    delete S.pvHistory[id];
     S.dbDirty=true;
     log("i","Session supprimée : "+session.label);
     ctx.draw();

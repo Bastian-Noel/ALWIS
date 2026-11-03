@@ -42,6 +42,10 @@ export const S = {
   pvPath: "/index.php",
   pvSessions: [],
   pvInfo: {},
+  pvHistory: {},
+  networkOpen: false,
+  networkSelected: null,
+  networkTab: "headers",
   wins: [],
   /* données */
   db: "test",

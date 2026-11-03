@@ -162,3 +162,13 @@ Dans le menu du bouton **Aperçu**, choisissez **Exécuter PHP · sortie texte**
 Le moteur actuel traite les requêtes du projet en série. Il ne propose pas de daemon PHP permanent ou de processus parallèle indépendant : les autres requêtes attendent, et le garde-fou du moteur termine le worker après un appel de 180 secondes. Cette commande convient aux scripts ponctuels, pas aux boucles infinies ou aux serveurs persistants.
 
 Dans **Sessions**, chaque carte propose **Supprimer** avec confirmation. Les fenêtres du visiteur sont fermées et l’aperçu revient à une session restante. Enregistrez le projet pour conserver la suppression. La dernière session est protégée ; créez-en une autre pour pouvoir la supprimer.
+
+## Navigateur intégré et Réseau
+
+L’aperçu présente une barre d’adresse avec **Précédent**, **Suivant** et **Recharger**. Les flèches parcourent les adresses visitées par la session principale, y compris les liens et les paramètres d’URL ; revenir à une adresse la recharge en GET. **Suivre** conserve le lien avec le fichier ouvert, **A | B** compare deux sessions et **Fenêtre** ouvre un visiteur séparé. Chaque commande possède une infobulle.
+
+Le bouton **Réseau** ouvre un panneau sous la page. Il liste les requêtes servies par le moteur du projet, y compris les ressources, les appels fetch/XHR et les autres fenêtres du projet. Cliquez sur un nom pour conserver la liste à gauche et afficher à droite les onglets **En-têtes**, **Requête** et **Réponse**. Les corps restent du texte non exécuté ; les contenus binaires sont indiqués avec leur type et leur taille. Le panneau observe le serveur virtuel : les requêtes vers des sites externes et les ressources internes du studio n’y figurent pas. Les durées mesurent le traitement par le moteur, pas les phases DNS/TLS d’un navigateur distant.
+
+Les 200 dernières requêtes restent en mémoire jusqu’à l’effacement ou au changement de projet. Chaque corps textuel est limité à 32 Kio ; ces traces ne sont pas sauvegardées avec le projet.
+
+La poignée à trois points entre l’éditeur et l’aperçu règle leur largeur. Celle au-dessus de Réseau règle la hauteur du panneau. Glissez-les à la souris ou au toucher : la poignée devient bleue. Au clavier, utilisez **Tab**, puis les **flèches** ; **Maj** agrandit le pas et **Début/Fin** vont aux limites. Un double-clic rétablit les proportions initiales. Les proportions sont conservées dans ce navigateur. Sur mobile, l’aperçu remplace l’éditeur et seul le réglage vertical reste affiché.

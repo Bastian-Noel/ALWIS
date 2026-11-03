@@ -55,6 +55,7 @@ runs:
         node tests/browser/keyboard.mjs
         node tests/browser/workspace-design.mjs
         node tests/browser/ux-revision.mjs
+        node tests/browser/preview-browser.mjs
         node tests/browser/launcher.mjs
         node tests/browser/project-loading.mjs
         node tests/browser/project-loading.mjs firefox

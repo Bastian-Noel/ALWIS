@@ -1,3 +1,5 @@
+import { bindPreviewBrowser } from "./preview-browser.mjs";
+import { scheduleNetwork } from "./views/network.mjs";
 import "./local-folder.mjs";
 import { installKeyboard } from "./keyboard.mjs";
 import { installSiteUpdates } from "../site-updates.mjs";
@@ -45,9 +47,10 @@ ctx.schedulePersist = () => {
 ctx.engine.on("request", (r) => {
   S.reqs.push(r);
   if (S.reqs.length > 200) S.reqs.shift();
-  S.pvInfo[r.session] = r;
+  if (["document", "iframe"].includes(r.destination)) S.pvInfo[r.session] = r;
   if (S.pv) updatePreviewStatus();
   if (S.dock === "req") drawDock();
+  scheduleNetwork();
   drawShell();
 });
 ctx.engine.on("changed", (change) => {
@@ -66,6 +69,7 @@ S.theme = document.documentElement.dataset.theme;
 bindShell();
 bindExplorer();
 bindCode();
+bindPreviewBrowser();
 bindData();
 bindSchema();
 bindDock();

@@ -3277,3 +3277,65 @@ button:focus-visible, [role="tab"]:focus-visible, [role="treeitem"]:focus-visibl
 .cm-editor .alwis-problems .diagnostic-location { flex:1; min-width:0; text-align:left; border:0; white-space:pre-wrap; font:inherit; padding:4px; }
 .cm-editor .alwis-problems .diagnostic-fix { padding:6px 10px; border-radius:4px; }
 @media(max-width:600px) { .alwis-problems .cm-diagnostic { flex-wrap:wrap; } }
+
+/* Browser chrome and explicit pane handles. */
+.cgrid { grid-template-columns:260px minmax(0,1fr); }
+.cgrid.pv { grid-template-columns:260px minmax(0,var(--editor-fr,60fr)) 10px minmax(0,var(--preview-fr,40fr)); }
+.pane-resizer { display:none; align-items:center; justify-content:center; border-radius:6px; margin:5px 2px; background:var(--seam-2); color:var(--ink-3); cursor:col-resize; touch-action:none; user-select:none; outline-offset:0; }
+.cgrid.pv > .pane-resizer { display:flex; }
+.pane-resizer span { font:bold 19px/1 sans-serif; pointer-events:none; }
+.pane-resizer:hover,.pane-resizer:focus-visible,.pane-resizer.dragging { background:#2684ff; color:#fff; }
+.pane-resizer.horizontal { display:flex; flex:0 0 9px; margin:0 8px; cursor:row-resize; }
+.pane-resizer[hidden] { display:none; }
+.resize-shield { position:fixed; inset:0; z-index:10000; cursor:col-resize; }
+.resize-shield.y { cursor:row-resize; }
+.pv-col { container-type:inline-size; }
+.pv-head { gap:3px; padding:8px; flex-wrap:wrap; border-bottom:1px solid var(--seam-2); margin-bottom:6px; }
+.browser-btn { display:inline-flex; align-items:center; justify-content:center; gap:5px; flex-shrink:0; min-width:30px; height:30px; padding:0 7px; border:1px solid transparent; border-radius:999px; background:transparent; color:var(--ink-2); font:inherit; font-size:12px; cursor:pointer; }
+.browser-btn svg { width:17px; height:17px; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; }
+.browser-btn:hover:not(:disabled) { background:var(--hover); color:var(--ink); }
+.browser-btn:disabled { opacity:.35; cursor:default; }
+.browser-pill { border-color:var(--seam-2); padding:0 9px; }
+.browser-btn[aria-pressed=true],.browser-btn[aria-expanded=true] { background:var(--sel); color:var(--signal); border-color:var(--signal); }
+.browser-address { display:flex; align-items:center; gap:6px; border:1px solid var(--seam-2); border-radius:999px; background:var(--sheet); padding:0 10px; flex:1 1 150px; min-width:100px; height:32px; color:var(--ink-3); }
+.browser-address:focus-within { outline:2px solid var(--signal); outline-offset:1px; }
+.browser-address input { width:100%; min-width:0; border:0; outline:none; background:transparent; color:var(--ink); font:12px var(--mono); }
+@container (max-width:650px) { .pv-head .browser-pill span { display:none; } .browser-address { flex-basis:120px; } }
+#networkPanel { display:flex; flex-direction:column; flex:0 0 var(--network-height,42%); min-height:100px; min-width:0; overflow:hidden; background:var(--sheet); }
+#networkPanel[hidden] { display:none; }
+.network-toolbar { display:flex; align-items:center; gap:8px; padding:3px 8px; border-bottom:1px solid var(--seam-2); font-size:11px; }
+.network-toolbar strong { font-size:12px; }
+.network-live { width:6px; height:6px; background:var(--signal); border-radius:50%; }
+.network-body { display:flex; flex:1; min-height:0; min-width:0; }
+.network-list { flex:1; overflow:auto; min-width:0; }
+.network-list table { border-collapse:collapse; width:100%; font-size:11px; white-space:nowrap; }
+.network-list th { position:sticky; top:0; z-index:1; text-align:left; background:var(--faceplate); color:var(--ink-2); font-weight:500; }
+.network-list th,.network-list td { padding:5px 7px; border-bottom:1px solid var(--seam); max-width:220px; overflow:hidden; text-overflow:ellipsis; }
+.network-list td:first-child { padding:0; }
+.network-list button { display:flex; align-items:center; gap:7px; padding:6px 8px; width:100%; border:0; background:transparent; color:inherit; text-align:left; font:inherit; cursor:pointer; }
+.network-list tr:hover { background:var(--hover); }
+.network-list tr.selected { background:var(--sel); }
+.network-status { font-size:8px; }
+.network-body.has-selection .network-list { flex:0 0 30%; border-right:1px solid var(--seam-2); }
+.network-detail { display:flex; flex-direction:column; flex:1; min-width:0; overflow:hidden; }
+.network-tabs { display:flex; align-items:center; flex-shrink:0; gap:2px; padding:0 4px; overflow:auto; border-bottom:1px solid var(--seam-2); }
+.network-tabs [role=tab] { padding:9px 8px; border:0; border-bottom:2px solid transparent; background:transparent; color:var(--ink-2); font:inherit; font-size:11px; cursor:pointer; }
+.network-tabs [aria-selected=true] { color:var(--signal); border-bottom-color:var(--signal); }
+#networkDetail { overflow:auto; flex:1; min-height:0; padding:0 10px 12px; font-size:12px; }
+#networkDetail h3 { margin:0 -10px 8px; padding:7px 10px; border-bottom:1px solid var(--seam); background:var(--faceplate); font-size:12px; }
+.network-pairs { display:grid; grid-template-columns:minmax(80px,30%) minmax(0,1fr); gap:7px 10px; margin:10px 0 16px; overflow-wrap:anywhere; }
+.network-pairs dt { color:var(--ink-2); }.network-pairs dd { margin:0; user-select:text; }
+.network-response { margin:10px 0; font:12px/1.6 var(--mono); white-space:pre-wrap; overflow-wrap:anywhere; user-select:text; }
+.network-note { padding:5px 8px; border-top:1px solid var(--seam-2); color:var(--ink-3); font-size:10px; }
+.network-empty { padding:12px; color:var(--ink-2); font-size:12px; }
+@media(max-width:860px) { .cgrid,.cgrid.pv { grid-template-columns:minmax(0,1fr); } .cgrid.pv > .pane-resizer { display:none; } }
+.network-list .s2 {color:var(--signal);} .network-list .s4,.network-list .s5 {color:var(--err);}
+.browser-actions { display:contents; }
+.pane-resizer.horizontal span { font-size:14px; line-height:9px; }
+.network-list table { font-size:12px; }
+@container (max-width:480px) {
+  .browser-actions { display:flex; align-items:center; justify-content:flex-end; gap:3px; width:100%; }
+  .browser-actions .browser-pill span { display:inline; }
+}
+@container (max-width:340px) { .browser-actions .browser-pill span { display:none; } }
+.network-tabs [role=tablist] { display:flex; }

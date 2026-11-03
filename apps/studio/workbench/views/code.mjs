@@ -1,3 +1,5 @@
+import { bindPreviewFrame, updateBrowserButtons, recordPreviewPath } from "../preview-browser.mjs";
+import { drawNetwork } from "./network.mjs";
 /** Espace Code : onglets, éditeur, recherche, aperçu lié aux sessions et ouverture de fenêtres clientes. */
 import {
   $,
@@ -148,17 +150,21 @@ export function updatePreviewStatus() {
 export function drawPv() {
   const box = $("#pvFrames");
   const want = S.pvDouble ? 2 : 1;
-  if (box.children.length !== want)
+  if (box.children.length !== want) {
     box.innerHTML = Array.from(
       { length: want },
       (_, i) =>
         `<div class="pv-cell"><div class="fhead-h" data-i="${i}"></div><div class="pv-frame"><iframe title="Aperçu ${i + 1}" sandbox="allow-scripts allow-forms allow-same-origin"></iframe></div></div>`,
     ).join("");
+    $$("iframe", box).forEach(bindPreviewFrame);
+  }
   box.dataset.n = want;
   $$(".fhead-h", box).forEach((h, i) => (h.innerHTML = frameHead(i)));
   $("#pvPath").value = S.pvPath;
   $("#pvFollow").setAttribute("aria-pressed", S.pvFollow);
   $("#pvDouble").setAttribute("aria-pressed", S.pvDouble);
+  updateBrowserButtons();
+  drawNetwork();
 }
 Object.assign(A, {
   activateEditor() {
@@ -507,6 +513,7 @@ Object.assign(A, {
     S.pvPath = $("#pvPath").value || S.pvPath || "/index.php";
     if (/\.md$/i.test(S.pvPath)) {
       const path = S.pvPath;
+      recordPreviewPath(path);
       const { markdownDocument } = await import("../markdown.mjs");
       const text =
         S.drafts[path] ??
@@ -769,6 +776,10 @@ export function bindCode() {
     if (e.key === "Escape") A.find();
   });
   $("#pvPath").addEventListener("keydown", (e) => {
-    if (e.key === "Enter") A.pvReload();
+    if (e.key === "Enter") {
+      e.preventDefault();
+      e.currentTarget.blur();
+      A.pvReload();
+    }
   });
 }

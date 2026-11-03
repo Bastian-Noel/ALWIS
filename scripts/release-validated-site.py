@@ -67,6 +67,7 @@ notes=output/'notes.md';notes.write_text(f'''ALWIS — Atelier Local Web avec ID
 - Projets supprimables depuis l’accueil, dossier PC déliable et contexte/bases SQL restaurables depuis .alwis.
 - Recherche fixe avec remplacement, options casse/mot entier/regex, menu contextuel du code et navigation des onglets à la molette.
 - Documentation illustrée simplifiée et accès aux dossiers du PC avec protection des modifications externes.
+- Aperçu : barre de navigateur, historique par session, panneau Réseau avec en-têtes et corps, séparateurs redimensionnables accessibles au clavier.
 - Sessions : suppression avec confirmation, fermeture des fenêtres et retour de l’aperçu vers un visiteur restant ; dernière session protégée.
 - Exemple Campus : 34 tables liées et remplies, quatre sessions, cours, notes et messagerie.
 - Assets isolés par build, version affichée et mise à jour préservant les projets.
