@@ -1,5 +1,5 @@
 import { createCodeEditor } from "../editor/dist/codemirror.mjs";
-import { ui } from "./icons.mjs";
+import { ui, icon } from "./icons.mjs";
 import { S, A, eng } from "./state.mjs";
 /** Primitives d'interface partagées. Aucune connaissance du moteur ni de l'état du studio. */
 export const $ = (s, r = document) => r.querySelector(s);
@@ -16,17 +16,100 @@ export const at = (x, y) => ({
   getBoundingClientRect: () => ({ left: x, right: x, top: y, bottom: y }),
 });
 
-let toastTimer;
-export function toast(msg, action) {
-  const t = $("#toast");
-  t.innerHTML =
-    esc(msg) +
-    (action
-      ? ` <button class="toast-act" data-act="${action.act}" data-arg="${esc(action.arg ?? "")}">${esc(action.label)}</button>`
-      : "");
-  t.classList.add("on");
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove("on"), action ? 6000 : 2600);
+const TOAST_ICON = {
+  success: "success",
+  info: "info",
+  warn: "alert",
+  error: "error",
+};
+const TOAST_TITLE = {
+  success: "Terminé",
+  info: "Information",
+  warn: "À savoir",
+  error: "Action impossible",
+};
+/** Déduit la gravité d'après le message, pour que les ~50 appels existants gagnent un style sans changer de signature. */
+function toastKind(msg) {
+  const m = String(msg).toLowerCase();
+  if (
+    /impossible|invalide|refus|échou|erreur|n’existe pas|ne peut pas|interdit|bloqu/.test(
+      m,
+    )
+  )
+    return "error";
+  if (
+    /rien à|il faut|conservez|aucun résultat|disponible avec|seuls les|enregistrez le projet/.test(
+      m,
+    )
+  )
+    return "warn";
+  if (
+    /ajouté|créé|créée|supprimé|supprimée|enregistré|sauvegardé|copié|copiée|ouvert|importé|dupliqué|déplacé|modifié|réorganisé|exporté|rechargé|fermé|délié|conservé|effacé|renommé|enregistrée/.test(
+      m,
+    )
+  )
+    return "success";
+  return "info";
+}
+/** Pile de notifications : icône, message, action, fermeture, pause au survol, durée proportionnelle à la gravité. */
+export function toast(msg, action, opts = {}) {
+  const host = $("#toast");
+  const kind = opts.kind || toastKind(msg);
+  const text = String(msg);
+  const same = [...host.children].find((el) => el.dataset.text === text);
+  if (same) same.remove();
+  const el = document.createElement("div");
+  el.className = "toast-item";
+  el.dataset.kind = kind;
+  el.dataset.text = text;
+  const ms = opts.duration ?? (action ? 8000 : kind === "error" ? 7000 : 3600);
+  el.style.setProperty("--toast-ms", ms + "ms");
+  el.innerHTML = `<span class="toast-ic">${icon(TOAST_ICON[kind])}</span><div class="toast-body"><b class="toast-title">${esc(opts.title || TOAST_TITLE[kind])}</b><span class="toast-msg">${esc(text)}</span></div>${action ? `<button class="toast-act" data-act="${action.act}" data-arg="${esc(action.arg ?? "")}">${esc(action.label)}</button>` : ""}<button class="iconbtn toast-x" aria-label="Fermer la notification">${icon("x", "sm")}</button><i class="toast-bar" aria-hidden="true"></i>`;
+  el.setAttribute("role", kind === "error" ? "alert" : "status");
+  el.setAttribute("aria-atomic", "true");
+  const previousFocus = document.activeElement;
+  let timer,
+    left = ms,
+    started = 0,
+    closed = false;
+  const paused = new Set();
+  const close = () => {
+    if (closed) return;
+    closed = true;
+    clearTimeout(timer);
+    if (el.contains(document.activeElement) && previousFocus?.isConnected)
+      previousFocus.focus({ preventScroll: true });
+    el.classList.add("leaving");
+    setTimeout(() => el.remove(), 220);
+  };
+  const run = () => {
+    if (closed || paused.size) return;
+    started = Date.now();
+    clearTimeout(timer);
+    timer = setTimeout(close, Math.max(0, left));
+    el.classList.remove("paused");
+  };
+  const pause = (reason) => {
+    if (!paused.size) left -= Date.now() - started;
+    paused.add(reason);
+    clearTimeout(timer);
+    el.classList.add("paused");
+  };
+  const resume = (reason) => {
+    paused.delete(reason);
+    run();
+  };
+  el.addEventListener("pointerenter", () => pause("pointer"));
+  el.addEventListener("pointerleave", () => resume("pointer"));
+  el.addEventListener("focusin", () => pause("focus"));
+  el.addEventListener("focusout", (event) => {
+    if (!el.contains(event.relatedTarget)) resume("focus");
+  });
+  el.querySelector(".toast-x").addEventListener("click", close);
+  el.querySelector(".toast-act")?.addEventListener("click", close);
+  host.append(el);
+  while (host.children.length > 3) host.firstElementChild.remove();
+  run();
 }
 
 /** Boîte modale : le nœud <dialog> est recréé à chaque ouverture, donc aucun écouteur ne s'accumule. */
@@ -42,7 +125,7 @@ export function modal({
     const old = $("#modal"),
       d = old.cloneNode(false);
     old.replaceWith(d);
-    d.innerHTML = `<div class="dlg-h"><h1 id="modal-title">${esc(title)}</h1></div><div class="dlg-b">${body}</div><div class="dlg-f">${actions.map((a) => `<button class="btn ${a.kind || ""}" data-v="${a.v}" ${a.dis ? "disabled" : ""}>${a.label}</button>`).join("")}</div>`;
+    d.innerHTML = `<div class="dlg-h"><h1 id="modal-title">${esc(title)}</h1><button class="iconbtn dlg-x" data-v="cancel" aria-label="Fermer">${icon("x")}</button></div><div class="dlg-b">${body}</div><div class="dlg-f">${actions.map((a) => `<button class="btn ${a.kind || ""}" data-v="${a.v}" ${a.dis ? "disabled" : ""}>${a.label}</button>`).join("")}</div>`;
     d.setAttribute("aria-labelledby", "modal-title");
     d.setAttribute("aria-modal", "true");
     d.style.width = wide ? "min(680px,calc(100vw - 24px))" : "";
@@ -50,8 +133,9 @@ export function modal({
     d.onclick = async (e) => {
       const b = e.target.closest("[data-v]");
       if (b && !b.disabled) {
-        if (beforeClose && !(await beforeClose(b.dataset.v, d))) return;
-        val = b.dataset.v;
+        const value = b.dataset.v === "cancel" ? "no" : b.dataset.v;
+        if (beforeClose && !(await beforeClose(value, d))) return;
+        val = value;
         d.close();
       }
     };
@@ -135,7 +219,7 @@ export async function ddl({
     h.innerHTML = vals.cols
       .map(
         (c, i) =>
-          `<div class="column-row"><div class="r"><input class="in" data-c="name" data-i="${i}" value="${esc(c.name)}" aria-label="Nom de colonne ${i + 1}"><input class="in" data-c="type" data-i="${i}" value="${esc(c.type)}" aria-label="Type SQL de colonne ${i + 1}" placeholder="VARCHAR(255)"><label><input type="checkbox" data-c="nul" data-i="${i}" ${c.nul ? "checked" : ""}>NULL</label><label><input type="checkbox" data-c="pk" data-i="${i}" ${c.pk ? "checked" : ""}>Clé primaire</label><label><input type="checkbox" data-c="ai" data-i="${i}" ${c.ai ? "checked" : ""}>AUTO_INCREMENT</label><button class="btn quiet sm" data-delcol="${i}" aria-label="Retirer la colonne ${i + 1}">✕</button></div><details><summary>Défaut et attributs</summary><label class="field"><span>Mode du défaut</span><select class="in" data-c="defaultMode" data-i="${i}" aria-label="Mode du défaut de colonne ${i + 1}">${["none", "null", "literal", "expression"].map((v) => `<option ${v === (c.defaultMode ?? "none") ? "selected" : ""}>${v}</option>`).join("")}</select></label><label class="field"><span>Valeur par défaut</span><input class="in" data-c="defaultValue" data-i="${i}" value="${esc(c.defaultValue ?? "")}"></label><label class="field"><span>Commentaire</span><input class="in" data-c="comment" data-i="${i}" value="${esc(c.comment ?? "")}"></label><label class="field"><span>Collation</span><input class="in" data-c="collation" data-i="${i}" value="${esc(c.collation ?? "")}"></label></details></div>`,
+          `<div class="column-row"><div class="r"><input class="in" data-c="name" data-i="${i}" value="${esc(c.name)}" aria-label="Nom de colonne ${i + 1}"><input class="in" data-c="type" data-i="${i}" value="${esc(c.type)}" aria-label="Type SQL de colonne ${i + 1}" placeholder="VARCHAR(255)"><label><input type="checkbox" data-c="nul" data-i="${i}" ${c.nul ? "checked" : ""}>NULL</label><label><input type="checkbox" data-c="pk" data-i="${i}" ${c.pk ? "checked" : ""}>Clé primaire</label><label><input type="checkbox" data-c="ai" data-i="${i}" ${c.ai ? "checked" : ""}>AUTO_INCREMENT</label><button class="btn quiet sm" data-delcol="${i}" aria-label="Retirer la colonne ${i + 1}">${icon("x")}</button></div><details><summary>Défaut et attributs</summary><label class="field"><span>Mode du défaut</span><select class="in" data-c="defaultMode" data-i="${i}" aria-label="Mode du défaut de colonne ${i + 1}">${["none", "null", "literal", "expression"].map((v) => `<option ${v === (c.defaultMode ?? "none") ? "selected" : ""}>${v}</option>`).join("")}</select></label><label class="field"><span>Valeur par défaut</span><input class="in" data-c="defaultValue" data-i="${i}" value="${esc(c.defaultValue ?? "")}"></label><label class="field"><span>Commentaire</span><input class="in" data-c="comment" data-i="${i}" value="${esc(c.comment ?? "")}"></label><label class="field"><span>Collation</span><input class="in" data-c="collation" data-i="${i}" value="${esc(c.collation ?? "")}"></label></details></div>`,
       )
       .join("");
   };

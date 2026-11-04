@@ -171,4 +171,11 @@ Le bouton **Réseau** ouvre un panneau sous la page. Il liste les requêtes serv
 
 Les 200 dernières requêtes restent en mémoire jusqu’à l’effacement ou au changement de projet. Chaque corps textuel est limité à 32 Kio ; ces traces ne sont pas sauvegardées avec le projet.
 
-La poignée à trois points entre l’éditeur et l’aperçu règle leur largeur. Celle au-dessus de Réseau règle la hauteur du panneau. Glissez-les à la souris ou au toucher : la poignée devient bleue. Au clavier, utilisez **Tab**, puis les **flèches** ; **Maj** agrandit le pas et **Début/Fin** vont aux limites. Un double-clic rétablit les proportions initiales. Les proportions sont conservées dans ce navigateur. Sur mobile, l’aperçu remplace l’éditeur et seul le réglage vertical reste affiché.
+Le séparateur discret entre l’éditeur et l’aperçu règle leur largeur. Sa poignée apparaît au survol, au focus clavier et pendant le déplacement. Celle au-dessus de Réseau règle la hauteur du panneau. Glissez-les à la souris ou au toucher : la poignée devient bleue. Au clavier, utilisez **Tab**, puis les **flèches** ; **Maj** agrandit le pas et **Début/Fin** vont aux limites. Un double-clic rétablit les proportions initiales. Les proportions sont conservées dans ce navigateur. Sur mobile, l’aperçu remplace l’éditeur et seul le réglage vertical reste affiché.
+
+
+## Interface et notifications
+
+L’en-tête et le chargement affichent **ALWIS** en texte, sans logo. Les actions utilisent des icônes SVG accompagnées d’un texte ou d’une infobulle. Les commandes indisponibles sont grisées : replier des dossiers déjà fermés, parcourir une recherche sans résultat ou utiliser les outils d’un schéma vide. Une relation vers la même table reste possible dès qu’une table existe.
+
+Les notifications distinguent réussite, information, avertissement et erreur. Trois messages au maximum restent affichés ; leur durée se suspend au survol et tant que le clavier reste dans la notification. La croix permet de fermer chaque message. Les modales disposent de leur propre bouton de fermeture et conservent Annuler.

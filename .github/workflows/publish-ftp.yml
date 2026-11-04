@@ -36,6 +36,7 @@ jobs:
             build-work/site-updates.json
             build-work/ux-revision/
             build-work/preview-browser/
+            build-work/ui-refinement/
   release:
     needs: build
     runs-on: ubuntu-24.04

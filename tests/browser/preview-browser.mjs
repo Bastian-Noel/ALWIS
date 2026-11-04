@@ -166,8 +166,7 @@ try {
       await page.getByRole("tab", { name: "En-têtes", exact: true }).click();
       await page.waitForFunction(
         () =>
-          Number(getComputedStyle(document.querySelector("#toast")).opacity) ===
-          0,
+          document.querySelector("#toast").children.length === 0,
       );
       await page.screenshot({
         path: `build-work/preview-browser/${engine.name()}-light.png`,

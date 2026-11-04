@@ -25,51 +25,23 @@
     <a class="skip-link" href="#main">Aller à l’espace de travail</a>
     <div class="app" id="app" data-mode="launcher" data-lamp="off">
       <header class="top">
-        <button
-          class="mark"
-          data-act="home"
-          aria-label="ALWIS, retour à l’accueil"
-        >
-          ALWIS
+        <button class="mark" data-act="home" aria-label="ALWIS, retour à l’accueil">
+          <span class="mark-name">ALWIS</span>
         </button>
-        <button
-          class="chip"
-          id="chip"
-          data-act="projectMenu"
-          aria-label="Changer de projet"
-          title="Changer de projet ou revenir à l’accueil"
-          aria-haspopup="menu"
-          hidden
-        >
-          <span class="project-caption">Projet ouvert</span
-          ><span class="ladder" id="ladder" aria-hidden="true"
-            ><i></i><i></i><i></i></span
-          ><b class="trunc" id="pname"></b
-          ><span class="mut hide-s" id="psum"></span
-          ><span class="project-chevron" aria-hidden="true">⌄</span>
+        <button class="chip" id="chip" data-act="projectMenu" aria-label="Changer de projet" title="Changer de projet ou revenir à l’accueil" aria-haspopup="menu" hidden>
+          <svg class="ic chip-ic" aria-hidden="true" focusable="false"><use href="#i-folder"/></svg>
+          <span class="chip-text"><span class="project-caption">Projet ouvert</span><b class="trunc" id="pname"></b></span>
+          <span class="ladder" id="ladder" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span id="psum"></span>
+          <svg class="ic project-chevron" aria-hidden="true" focusable="false"><use href="#i-chevron-down"/></svg>
         </button>
-        <span class="grow"></span>
-        <button class="btn quiet hide-s" data-act="palette" id="palBtn">
-          Rechercher une action <kbd>Ctrl K</kbd>
+        <button class="cmd hide-s" data-act="palette" id="palBtn" aria-keyshortcuts="Control+K">
+          <svg class="ic" aria-hidden="true" focusable="false"><use href="#i-search"/></svg><span>Rechercher une action</span><kbd>Ctrl K</kbd>
         </button>
-        <button
-          class="btn quiet show-s"
-          data-act="palette"
-          aria-label="Palette de commandes"
-        >
-          ⌘
-        </button>
-        <button class="btn pri" id="primary" data-act="primary" hidden>
-          Enregistrer
-        </button>
-        <button
-          class="btn quiet"
-          data-act="theme"
-          id="themeBtn"
-          aria-label="Changer de thème"
-        >
-          Thème
-        </button>
+        <button class="iconbtn show-s" data-act="palette" aria-label="Rechercher une action"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-search"/></svg></button>
+        <span class="top-spacer"></span>
+        <button class="btn pri" id="primary" data-act="primary" hidden>Enregistrer</button>
+        <button class="iconbtn" data-act="theme" id="themeBtn" aria-label="Changer de thème"></button>
       </header>
 
       <nav class="rail" id="rail" aria-label="Espaces du studio"></nav>
@@ -135,6 +107,7 @@
                   <legend class="sr-only">Point de départ</legend>
                   <label class="starter-choice">
                     <input type="radio" name="tpl" value="demo" checked />
+                    <svg class="ic starter-ic" aria-hidden="true" focusable="false"><use href="#i-database"/></svg>
                     <span class="starter-copy"
                       ><b>Exemple scolaire</b
                       ><span
@@ -145,6 +118,7 @@
                   </label>
                   <label class="starter-choice">
                     <input type="radio" name="tpl" value="empty" />
+                    <svg class="ic starter-ic" aria-hidden="true" focusable="false"><use href="#i-file-plus"/></svg>
                     <span class="starter-copy"
                       ><b>Projet vide</b
                       ><span
@@ -172,7 +146,7 @@
                 <div class="create-footer">
                   <span>Vous pourrez tout modifier ensuite.</span
                   ><button class="btn pri" id="pgo" data-act="create">
-                    Créer le projet <span aria-hidden="true">→</span>
+                    Créer le projet <svg class="ic" aria-hidden="true" focusable="false"><use href="#i-arrow-right"/></svg>
                   </button>
                 </div>
               </section>
@@ -198,13 +172,7 @@
                     ><span id="zipHelp"
                       >Fichiers du site et sauvegardes ALWIS.</span
                     ></span
-                  ><svg
-                    class="source-arrow"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                  >
-                    <path d="M5 12h14m-6-6 6 6-6 6" />
-                  </svg>
+                  ><svg class="ic source-arrow" aria-hidden="true" focusable="false"><use href="#i-arrow-right"/></svg>
                 </button>
                 <button
                   class="open-source"
@@ -220,13 +188,7 @@
                     ><span id="folderHelp"
                       >Modifier vos fichiers avec Chrome ou Edge.</span
                     ></span
-                  ><svg
-                    class="source-arrow"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                  >
-                    <path d="M5 12h14m-6-6 6 6-6 6" />
-                  </svg>
+                  ><svg class="ic source-arrow" aria-hidden="true" focusable="false"><use href="#i-arrow-right"/></svg>
                 </button>
                 <div class="home-note">
                   <b>Votre travail reste à portée de main.</b>
@@ -327,9 +289,7 @@
                     class="btn quiet sm show-s"
                     data-act="exToggleMobile"
                     aria-label="Fermer l’explorateur"
-                  >
-                    ✕
-                  </button>
+                  ><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-x"/></svg></button>
                 </div>
                 <div style="padding: 2px 10px 6px">
                   <input
@@ -396,9 +356,7 @@
                       data-act="runMenu"
                       aria-haspopup="true"
                       aria-label="Options d’ouverture : fenêtre, nouvelle session, comparaison"
-                    >
-                      ▾
-                    </button></span
+                    ><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-chevron-down"/></svg></button></span
                   >
                   <div id="codeTools"></div>
                   <button
@@ -441,24 +399,19 @@
                     class="btn sm"
                     data-act="findPrev"
                     aria-label="Précédent"
-                  >
-                    ↑</button
+                  ><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-arrow-up"/></svg></button
                   ><button
                     class="btn sm"
                     data-act="findNext"
                     aria-label="Suivant"
-                  >
-                    ↓
-                  </button>
+                  ><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-arrow-down"/></svg></button>
                   <button class="btn sm" data-act="replaceOne">Remplacer</button
                   ><button class="btn sm" data-act="replaceAll">Tout</button
                   ><button
                     class="btn quiet sm"
                     data-act="find"
                     aria-label="Fermer la recherche"
-                  >
-                    ✕
-                  </button>
+                  ><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-x"/></svg></button>
                 </div>
                 <div
                   class="edwrap"
@@ -503,7 +456,7 @@
                 aria-valuenow="60"
                 title="Glisser pour redimensionner · flèches gauche/droite · double-clic pour réinitialiser"
               >
-                <span aria-hidden="true">⋮</span>
+                <svg class="ic grip" aria-hidden="true" focusable="false"><use href="#i-grip-v"/></svg>
               </div>
               <section class="pv-col" aria-label="Aperçu">
                 <div class="pv-head">
@@ -618,7 +571,7 @@
                   title="Glisser pour redimensionner · flèches haut/bas · double-clic pour réinitialiser"
                   hidden
                 >
-                  <span aria-hidden="true">⋯</span>
+                  <svg class="ic grip" aria-hidden="true" focusable="false"><use href="#i-grip-h"/></svg>
                 </div>
                 <section id="networkPanel" aria-label="Réseau du projet" hidden>
                   <header class="network-toolbar">
@@ -690,25 +643,21 @@
                 <select class="in" id="sdb"></select></label
               ><span class="hint num" id="scount"></span
               ><span class="grow"></span>
-              <button
-                class="btn sm"
-                data-act="relationForm"
-                title="Choisir les tables et associer leurs colonnes"
-              >
-                Relier des tables</button
-              ><button class="btn sm" data-act="schemaLayout">
-                Réorganiser</button
-              ><button class="btn sm" data-act="joinTable">Liaison N–N</button
-              ><button class="btn sm hide-s" data-act="schemaSvg">
-                Exporter en SVG
-              </button>
+              <span class="bar-group" role="group" aria-label="Relations">
+                <button class="btn sm" data-act="relationForm" title="Choisir les tables et associer leurs colonnes"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-relation"/></svg>Relier des tables</button>
+                <button class="btn sm" data-act="joinTable" title="Créer une table de liaison plusieurs-à-plusieurs"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-link"/></svg>Liaison N–N</button>
+              </span>
+              <span class="bar-sep" aria-hidden="true"></span>
+              <span class="bar-group" role="group" aria-label="Affichage">
+                <button class="btn quiet sm" data-act="schemaLayout" title="Réorganiser automatiquement les tables"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-shuffle"/></svg>Réorganiser</button>
+                <button class="btn quiet sm hide-s" data-act="schemaSvg" title="Exporter le schéma en SVG"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-download"/></svg>SVG</button>
+              </span>
               <span class="seg" role="group" aria-label="Zoom"
                 ><button
                   data-act="zoom"
                   data-arg="-1"
                   aria-label="Zoom arrière"
-                >
-                  −</button
+                ><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-minus"/></svg></button
                 ><button
                   data-act="schemaFit"
                   id="zl"
@@ -717,9 +666,7 @@
                   title="Ajuster à l’écran"
                 >
                   100 %</button
-                ><button data-act="zoom" data-arg="1" aria-label="Zoom avant">
-                  +
-                </button></span
+                ><button data-act="zoom" data-arg="1" aria-label="Zoom avant"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-plus"/></svg></button></span
               >
             </div>
             <div class="sgrid" id="sgrid">
@@ -764,14 +711,14 @@
                   Une session est un visiteur : ses cookies, sa session PHP.
                   Deux fenêtres de la même session partagent leur connexion ;
                   deux sessions se comportent comme deux personnes. Ouvrez-les
-                  aussi depuis l’éditeur, avec le bouton ▶ Aperçu.
+                  aussi depuis l’éditeur, avec le bouton <svg class="ic inline-ic" aria-hidden="true" focusable="false"><use href="#i-play"/></svg>&nbsp;Aperçu.
                 </p>
               </div>
               <div class="sess-bar">
                 <button class="btn pri" data-act="newIdent">
-                  Nouvelle session</button
+                  <svg class="ic" aria-hidden="true" focusable="false"><use href="#i-plus"/></svg>Nouvelle session</button
                 ><button class="btn" data-act="compare">
-                  Comparer A et B dans l’éditeur
+                  <svg class="ic" aria-hidden="true" focusable="false"><use href="#i-compare"/></svg>Comparer A et B dans l’éditeur
                 </button>
               </div>
               <div id="sesGrid"></div>
@@ -813,9 +760,7 @@
             class="btn quiet sm"
             data-act="dockClose"
             aria-label="Fermer le panneau"
-          >
-            ✕
-          </button>
+          ><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-x"/></svg></button>
         </div>
         <div class="dock-b" id="dockB" role="tabpanel" tabindex="0"></div>
       </section>
@@ -877,7 +822,7 @@
       />
       <ul id="pl" role="listbox" aria-label="Actions disponibles"></ul>
     </dialog>
-    <div class="toast" id="toast" role="status"></div>
+    <div class="toast-stack" id="toast" role="region" aria-label="Notifications"></div>
     <input type="file" id="zipIn" multiple hidden />
 
     <script type="module" src="/apps/studio/workbench/main.mjs"></script>

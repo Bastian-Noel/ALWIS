@@ -1,7 +1,7 @@
 /** Espace Sessions : une carte par identité (cookies, fenêtres, activité). L'ouverture se fait aussi depuis l'éditeur. */
 import { $, esc, plural, toast, confirmDlg } from "../ui.mjs";
 import { S, A, ctx, eng, log, task, sessions, sessionOf } from "../state.mjs";
-import { ui } from "../icons.mjs";
+import { ui, icon } from "../icons.mjs";
 
 export function drawSessions() {
   const expanded = new Set([...$("#sesGrid").querySelectorAll("article:has(details[open])")].map(el=>el.dataset.id));
@@ -20,11 +20,11 @@ export function drawSessions() {
       <details ${expanded.has(s.id) ? "open" : ""}><summary>Cookies et outils avancés</summary><section><h2 class="session-heading">Cookies <span class="mut num">${s.cookies.length}${s.hidden ? ` + ${s.hidden} masqué` : ""}</span></h2>
         <table class="ck2"><tbody>${s.cookies.map((c) => `<tr><td class="mono">${esc(c.name)}</td><td><input class="in" value="${esc(c.value)}" data-act-change="cookieSet" data-arg="${esc(s.id)}|${esc(c.name)}" aria-label="Valeur de ${esc(c.name)}" spellcheck="false"></td><td class="ra"><button data-act="cookieDel" data-arg="${esc(s.id)}|${esc(c.name)}" aria-label="Supprimer ${esc(c.name)}">${ui.trash}</button></td></tr>`).join("") || '<tr><td colspan="3" class="mut">Aucun cookie visible.</td></tr>'}
         <tr class="addrow"><td><input class="in" data-nc="${esc(s.id)}" data-f="n" placeholder="nom" aria-label="Nom du cookie" spellcheck="false"></td><td><input class="in" data-nc="${esc(s.id)}" data-f="v" placeholder="valeur" aria-label="Valeur du cookie" spellcheck="false"></td><td class="ra"><button class="btn sm" aria-label="Ajouter un cookie" data-act="cookieAdd" data-arg="${esc(s.id)}">${ui.plus}</button></td></tr></tbody></table>
-        <button class="btn quiet sm" data-act="sesClear" data-arg="${esc(s.id)}" style="margin-top:6px">Vider les cookies (déconnecter)</button></section></details>
-      <section><h2 class="session-heading">Fenêtres <span class="mut num">${wins.length}</span></h2>${wins.map((w) => `<div class="winrow"><span class="mono grow trunc">${esc(w.path)}</span><button class="btn quiet sm" data-act="closeWin" data-arg="${w.id}">Fermer</button></div>`).join("") || '<p class="hint">Aucune fenêtre ouverte.</p>'}
-        <div class="openrow"><input class="in" list="sessionPages" data-wp="${esc(s.id)}" value="${esc(S.pvPath)}" aria-label="Page à ouvrir" spellcheck="false"><button class="btn pri sm" data-act="sesOpen" data-arg="${esc(s.id)}">Ouvrir</button></div></section>
+        <button class="btn quiet sm" data-act="sesClear" data-arg="${esc(s.id)}" style="margin-top:6px" ${s.cookies.length || s.hidden ? "" : "disabled"}>${icon("trash","sm")} Vider les cookies (déconnecter)</button></section></details>
+      <section><h2 class="session-heading">Fenêtres <span class="mut num">${wins.length}</span></h2>${wins.map((w) => `<div class="winrow"><span class="mono grow trunc">${esc(w.path)}</span><button class="btn quiet sm" data-act="closeWin" data-arg="${w.id}">${icon("x","sm")} Fermer</button></div>`).join("") || '<p class="hint">Aucune fenêtre ouverte.</p>'}
+        <div class="openrow"><input class="in" list="sessionPages" data-wp="${esc(s.id)}" value="${esc(S.pvPath)}" aria-label="Page à ouvrir" spellcheck="false"><button class="btn pri sm" data-act="sesOpen" data-arg="${esc(s.id)}">${icon("external","sm")} Ouvrir</button></div></section>
       <section><h2 class="session-heading">Dernières requêtes</h2>${reqs.map((r) => `<div class="req2"><span class="st2 s${String(r.status)[0]} num">${r.status}</span><span class="mono trunc grow">${esc(r.path)}</span><span class="num mut">${r.ms} ms</span></div>`).join("") || '<p class="hint">Rien encore pour cette session.</p>'}</section>
-      <footer><button class="btn sm" data-act="sesPreview" data-arg="${esc(s.id)}" aria-pressed="${inPv}">${inPv ? "Dans l’aperçu" : "Afficher dans l’aperçu"}</button>${caps.removeSession ? `<button class="btn quiet sm bad" data-act="sesRemove" data-arg="${esc(s.id)}" aria-label="Supprimer la session ${esc(s.label)}" title="${list.length > 1 ? "Supprimer cette session" : "Créez une autre session avant de supprimer la dernière"}" ${list.length > 1 ? "" : "disabled"}>${ui.trash} Supprimer</button>` : ""}</footer></article>`;
+      <footer><button class="btn sm" data-act="sesPreview" data-arg="${esc(s.id)}" aria-pressed="${inPv}">${icon("play","sm")}${inPv ? "Dans l’aperçu" : "Afficher dans l’aperçu"}</button>${caps.removeSession ? `<button class="btn quiet sm bad" data-act="sesRemove" data-arg="${esc(s.id)}" aria-label="Supprimer la session ${esc(s.label)}" title="${list.length > 1 ? "Supprimer cette session" : "Créez une autre session avant de supprimer la dernière"}" ${list.length > 1 ? "" : "disabled"}>${ui.trash} Supprimer</button>` : ""}</footer></article>`;
     })
     .join("");
 }

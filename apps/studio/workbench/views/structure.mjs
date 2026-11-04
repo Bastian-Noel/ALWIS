@@ -1,5 +1,5 @@
 import * as G from "../sqlgen.mjs";
-import { ui } from "../icons.mjs";
+import { ui, icon } from "../icons.mjs";
 import { ddl, modal, esc, toast } from "../ui.mjs";
 import { S, A, ctx, eng, task, sql } from "../state.mjs";
 import {
@@ -74,6 +74,7 @@ export async function columnForm({
     return `ALTER TABLE ${id(t.name)} ADD COLUMN ${buildColumn(c)}${v.position === "En premier" ? " FIRST" : v.position.startsWith("Après ") ? " AFTER " + id(v.position.slice(6)) : ""};`;
   };
   let statement = "";
+  let touched = false;
   const paint = (d) => {
     d.querySelectorAll("[data-f]").forEach(
       (el) => (values[el.dataset.f] = el.value),
@@ -112,7 +113,7 @@ export async function columnForm({
       d.querySelector('[data-v="ok"]').disabled = false;
       d.querySelector("#column-sql").textContent = statement;
     } catch (e) {
-      error.textContent = e.message;
+      error.textContent = touched || values.name ? e.message : "";
       d.querySelector('[data-v="ok"]').disabled = true;
       d.querySelector("#column-sql").textContent = "";
     }
@@ -125,7 +126,7 @@ export async function columnForm({
         <fieldset><legend>Définition</legend><div class="column-fields">${input("name", "Nom de la colonne")}
         <label class="field"><span>Type SQL</span><select class="in" id="column-type">${["VARCHAR", "TEXT", "INT", "BIGINT", "DECIMAL", "DATE", "DATETIME", "TIMESTAMP", "BOOLEAN", "JSON", "BLOB", "CHAR", "TINYINT", "SMALLINT", "MEDIUMINT", "FLOAT", "DOUBLE", "NUMERIC", "TIME", "YEAR", "BIT", "BINARY", "VARBINARY", "MEDIUMTEXT", "LONGTEXT", "MEDIUMBLOB", "LONGBLOB", "ENUM", "SET"].map((x) => `<option ${x === parsedType?.[1]?.toUpperCase() ? "selected" : ""}>${x}</option>`).join("")}</select></label>
         <label class="field"><span>Longueur / précision</span><input class="in" id="column-size" value="${esc(parsedType?.[2] ?? "")}" placeholder="255 ou 10,2"><small class="hint">DECIMAL : nombre de chiffres, puis décimales.</small></label>
-        <label class="chk2"><input type="checkbox" id="column-unsigned" ${/UNSIGNED/i.test(type) ? "checked" : ""}> Nombres positifs uniquement</label>
+        <label class="chk2 span-all"><input type="checkbox" id="column-unsigned" ${/UNSIGNED/i.test(type) ? "checked" : ""}> Nombres positifs uniquement</label>
         </div>${input("values", "Valeurs autorisées", 'Liste JSON : ["petit", "grand"]')}</fieldset>
         <fieldset><legend>Valeurs et contraintes</legend><div class="column-fields">
           ${select("nullable", "Valeur obligatoire", [
@@ -161,7 +162,10 @@ export async function columnForm({
     ],
     onOpen(d) {
       paint(d);
-      d.addEventListener("input", () => paint(d));
+      d.addEventListener("input", (event) => {
+        if (event.target.dataset?.f === "name") touched = true;
+        paint(d);
+      });
       d.addEventListener("change", (event) => {
         if (event.target.id === "column-type")
           d.querySelector("#column-size").value =
@@ -334,7 +338,7 @@ export async function relationForm(initial = {}) {
     title: initial.name ? "Modifier la relation" : "Relier deux tables",
     wide: true,
     body: `<p class="relation-intro">Choisissez la table qui porte le lien, puis celle qu’elle référence.</p>
-      <div class="relation-tables"><label class="relation-card"><span class="relation-step">1 · Depuis</span><b>Plusieurs lignes de…</b><select class="in" id="rel-child" aria-label="Table qui porte le lien">${tableOptions(value.child)}</select><span class="hint">La table qui contient la clé étrangère</span></label><span class="relation-connector" aria-hidden="true">${ui.link}<span>N → 1</span></span><label class="relation-card"><span class="relation-step">2 · Vers</span><b>Une ligne de…</b><select class="in" id="rel-parent" aria-label="Table référencée">${tableOptions(value.parent)}</select><span class="hint">La table dont on référence une clé</span></label></div>
+      <div class="relation-tables"><label class="relation-card"><span class="relation-step">1 · Depuis</span><b>Plusieurs lignes de…</b><select class="in" id="rel-child" aria-label="Table qui porte le lien">${tableOptions(value.child)}</select><span class="hint">La table qui contient la clé étrangère</span></label><span class="relation-connector" aria-hidden="true">${ui.link}<span>N ${icon("arrow-right","sm")} 1</span></span><label class="relation-card"><span class="relation-step">2 · Vers</span><b>Une ligne de…</b><select class="in" id="rel-parent" aria-label="Table référencée">${tableOptions(value.parent)}</select><span class="hint">La table dont on référence une clé</span></label></div>
       <section class="relation-mapping" aria-labelledby="rel-mapping-title"><h2 id="rel-mapping-title">Associer les colonnes</h2><label class="field"><span>Clé de la table référencée</span><select class="in" id="rel-key"></select></label><div id="rel-pairs"></div><p id="rel-summary" class="hint" aria-live="polite"></p></section>
       <details class="relation-options"><summary>Comportement et nom de la relation</summary><label class="field"><span>Si la ligne référencée est supprimée</span><select class="in" id="rel-delete">${ruleOptions(value.delete)}</select></label><label class="field"><span>Si sa clé est modifiée</span><select class="in" id="rel-update">${ruleOptions(value.update, true)}</select></label><label class="field"><span>Nom de la relation</span><input class="in" id="rel-name" value="${esc(value.name)}" maxlength="64"></label></details>
       <details class="sql-disclosure"><summary>Voir la requête SQL</summary><pre class="pre" id="rel-sql"></pre></details><p class="hint bad" id="rel-error" role="status"></p>`,

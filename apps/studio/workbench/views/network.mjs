@@ -1,5 +1,6 @@
 import { $, esc } from "../ui.mjs";
 import { A, S, ctx, sessionOf } from "../state.mjs";
+import { icon } from "../icons.mjs";
 let scheduled = false;
 const bytes = (n) => (n < 1024 ? `${n} o` : `${(n / 1024).toFixed(1)} Kio`);
 const pairs = (items) =>
@@ -38,7 +39,7 @@ export function drawNetwork() {
   root.classList.toggle("has-selection", !!selected);
   const html = `<div class="network-list"><table><thead><tr><th>Nom</th>${selected ? "" : "<th>Chemin</th><th>Méthode</th><th>État</th><th>Durée</th>"}</tr></thead><tbody>${S.reqs.map((r) => `<tr class="${r === selected ? "selected" : ""}"><td><button data-act="networkSelect" data-arg="${esc(r.id)}" title="${esc(r.method + " " + r.path)}" aria-label="Inspecter ${esc(r.method + " " + r.path)}" aria-pressed="${r === selected}"><span class="network-status s${String(r.status)[0]}" aria-hidden="true">●</span>${esc(r.name ?? r.path)}</button></td>${selected ? "" : `<td title="${esc(r.path)}">${esc(r.path)}</td><td>${esc(r.method)}</td><td class="s${String(r.status)[0]}">${r.status}</td><td>${r.ms} ms</td>`}</tr>`).join("")}</tbody></table>${!S.reqs.length ? '<p class="network-empty">Rechargez la page pour observer ses requêtes, images, scripts et appels API.</p>' : ""}</div>${
     selected
-      ? `<section class="network-detail" data-key="${selected.id}-${S.networkTab}" aria-label="Détails de la requête"><div class="network-tabs"><button class="browser-btn" data-act="networkDeselect" title="Revenir à la liste complète" aria-label="Revenir à la liste complète">×</button><div role="tablist" aria-label="Détails de la requête">${[
+      ? `<section class="network-detail" data-key="${selected.id}-${S.networkTab}" aria-label="Détails de la requête"><div class="network-tabs"><button class="browser-btn" data-act="networkDeselect" title="Revenir à la liste complète" aria-label="Revenir à la liste complète">${icon("x")}</button><div role="tablist" aria-label="Détails de la requête">${[
           ["headers", "En-têtes"],
           ["request", "Requête"],
           ["response", "Réponse"],

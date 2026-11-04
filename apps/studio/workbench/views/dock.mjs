@@ -1,6 +1,7 @@
 /** Panneau Serveur : requêtes (journal d'accès), journal d'événements, ressources. */
 import { $, $$, esc, plural, toast } from "../ui.mjs";
 import { S, A, ctx, eng, sessionOf } from "../state.mjs";
+import { icon } from "../icons.mjs";
 
 export function drawDock() {
   const d = $("#dock"),
@@ -39,7 +40,7 @@ export function drawDock() {
     B.innerHTML = L.length
       ? L.map(
           (l) =>
-            `<button class="log" data-act="logOpen" data-arg="${l.i}" ${l.detail ? "" : 'style="cursor:default"'} aria-expanded="${S.openLog.has(l.i)}"><span class="mut num">${l.t}</span><span class="${l.l}">${{ e: "Erreur", w: "Avertissement", i: "Info" }[l.l]}</span><span>${esc(l.msg)}${l.detail ? ' <span class="mut">▾</span>' : ""}</span></button>${S.openLog.has(l.i) && l.detail ? `<div class="log-d">${esc(l.detail)}</div>` : ""}`,
+            `<button class="log" data-act="logOpen" data-arg="${l.i}" ${l.detail ? "" : 'style="cursor:default"'} aria-expanded="${S.openLog.has(l.i)}"><span class="mut num">${l.t}</span><span class="${l.l}">${{ e: "Erreur", w: "Avertissement", i: "Info" }[l.l]}</span><span>${esc(l.msg)}${l.detail ? ` <span class="mut">${icon("chevron-down", "sm")}</span>` : ""}</span></button>${S.openLog.has(l.i) && l.detail ? `<div class="log-d">${esc(l.detail)}</div>` : ""}`,
         ).join("")
       : '<div class="empty"><b>Journal vide</b><span>Les erreurs PHP et SQL s’afficheront ici avec leur piste de récupération. 200 événements conservés dans cet onglet.</span></div>';
   } else {

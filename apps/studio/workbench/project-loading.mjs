@@ -1,6 +1,6 @@
 /** One visible step, real milestones, and gentle activity feedback during long tasks. */
 let active = false;
-export async function withProjectLoading(run) {
+export async function withProjectLoading(run, { name } = {}) {
   if (active) return;
   active = true;
   const app = document.querySelector('#app');
@@ -11,7 +11,7 @@ export async function withProjectLoading(run) {
   screen.setAttribute('role', 'status');
   screen.setAttribute('aria-live', 'polite');
   screen.setAttribute('aria-atomic', 'true');
-  screen.innerHTML = '<div class="project-loading-content"><p class="project-loading-label">Ouverture du projet</p><div class="project-loading-step"></div><div class="project-loading-dots" aria-hidden="true"><i></i><i></i><i></i></div></div>';
+  screen.innerHTML = `<div class="project-loading-content"><div class="project-loading-brand" aria-hidden="true"><span>ALWIS</span></div><p class="project-loading-label">Ouverture du projet</p>${name ? `<p class="project-loading-name">${name.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c])}</p>` : ""}<div class="project-loading-step"></div><div class="project-loading-track" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="project-loading-dots" aria-hidden="true"><i></i><i></i><i></i></div></div>`;
   document.body.append(screen);
   app.inert = true;
   const slot = screen.querySelector('.project-loading-step');
@@ -31,8 +31,15 @@ export async function withProjectLoading(run) {
     current.textContent = message;
     slot.append(current);
   }
+  let seen = 0;
+  function mark() {
+    const cells = screen.querySelectorAll('.project-loading-track i');
+    seen = Math.min(seen + 1, cells.length);
+    cells.forEach((el, i) => el.className = i < seen - 1 ? 'done' : i === seen - 1 ? 'now' : '');
+  }
   function step(message) {
     clearInterval(timer);
+    mark();
     show(message);
     idle = 0;
     timer = setInterval(() => show(waiting[idle++ % waiting.length]), 7000);

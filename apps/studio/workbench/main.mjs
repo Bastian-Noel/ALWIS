@@ -13,6 +13,8 @@ import { bindSchema } from "./views/schema.mjs";
 import { drawDock, bindDock } from "./views/dock.mjs";
 import "./views/structure.mjs";
 import { editorInstances } from "./ui.mjs";
+import { SPRITE } from "./icons.mjs";
+document.body.insertAdjacentHTML("afterbegin", SPRITE);
 ctx.engine = createStudioServices();
 ctx.draw = draw;
 ctx.shell = drawShell;

@@ -71,7 +71,7 @@ try {
   }
   async function shot(name) {
     // Hide transient toast so captures document the interface, not a notification.
-    await page.locator("#toast").evaluate((el) => el.classList.remove("on"));
+    await page.locator("#toast").evaluate((el) => el.replaceChildren());
     await page.screenshot({ path: resolve(output, name + ".png") });
   }
   await page.goto("http://127.0.0.1:" + server.address().port);

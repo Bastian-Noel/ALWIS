@@ -32,7 +32,7 @@ import { drawSchema } from "./schema.mjs";
 import { drawSessions } from "./sessions.mjs";
 import { drawDock } from "./dock.mjs";
 
-import { ui } from "../icons.mjs";
+import { ui, icon } from "../icons.mjs";
 import { unusedArchiveName } from "../project-name.mjs";
 let launcherExpanded = false;
 let projectSavePromise = null;
@@ -68,9 +68,7 @@ export function drawShell() {
     ? "Fichiers enregistrés vers le PC ; bases et contexte conservés dans .alwis. Sélectionnez ce dossier pour le rouvrir."
     : "Projet conservé dans ce navigateur. Exportez un ZIP pour une copie externe.";
   $("#pname").textContent = ctx.folder?.name || S.project || "";
-  $(".project-caption").textContent = ctx.folder
-    ? "Projet ouvert · dossier PC"
-    : "Projet ouvert";
+  $(".project-caption").textContent = ctx.folder ? "Projet ouvert · dossier PC" : "Projet ouvert";
   $("#chip").setAttribute(
     "aria-label",
     `Projet ouvert : ${ctx.folder?.name || S.project || ""}. Changer de projet`,
@@ -78,8 +76,7 @@ export function drawShell() {
   document
     .querySelectorAll(".project-transfer")
     .forEach((e) => (e.hidden = !w));
-  $("#themeBtn").innerHTML =
-    '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16Z" fill="currentColor"/></svg>';
+  $("#themeBtn").innerHTML = icon(S.theme === "dark" ? "sun" : "moon");
   $("#themeBtn").title =
     S.theme === "dark" ? "Activer le thème clair" : "Activer le thème sombre";
   $("#themeBtn").setAttribute("aria-label", $("#themeBtn").title);
@@ -87,6 +84,7 @@ export function drawShell() {
     const p = persistState();
     $("#ladder").innerHTML = p.l.map((c) => `<i class="${c}"></i>`).join("");
     $("#psum").textContent = p.t;
+    $("#psum").dataset.lvl = p.lvl;
     $("#sPersist").innerHTML =
       `<span class="lamp ${p.lvl === "k" ? "ok" : p.lvl === "e" ? "err" : "warn"}"></span>${p.t}`;
     const d = drafts().length,
@@ -118,7 +116,7 @@ export function drawShell() {
 export function drawAlert() {
   const a = S.alert;
   $("#alertHost").innerHTML = a
-    ? `<div class="alert" role="alert"><div class="grow"><p><b>${esc(a.title)}</b> ${esc(a.msg)}</p>${a.recover ? `<p>${esc(a.recover)}</p>` : ""}</div><button class="btn sm" data-act="dockTab" data-arg="log">Voir les détails</button><button class="btn quiet sm" data-act="alertX" aria-label="Masquer l’erreur">✕</button></div>`
+    ? `<div class="alert" role="alert"><span class="alert-ic">${icon("error")}</span><div class="alert-body"><b>${esc(a.title)}</b><p>${esc(a.msg)}</p>${a.recover ? `<p class="alert-recover">${esc(a.recover)}</p>` : ""}</div><div class="alert-actions"><button class="btn sm" data-act="dockTab" data-arg="log">Voir les détails</button><button class="iconbtn" data-act="alertX" aria-label="Masquer l’erreur">${icon("x")}</button></div></div>`
     : "";
 }
 function drawLauncher() {
@@ -163,7 +161,7 @@ function drawLauncher() {
   b.disabled = !ok;
   b.innerHTML =
     (ex ? "Ouvrir le projet" : "Créer le projet") +
-    ' <span aria-hidden="true">→</span>';
+    icon("arrow-right");
   $("#pn").setAttribute("aria-invalid", String(!!n && !ok));
   $$("input[name=tpl]").forEach((i) => (i.disabled = !!ex));
   const v = eng().env();
@@ -423,7 +421,7 @@ Object.assign(A, {
         await A.openFile("/index.php");
       else draw();
       toast(`« ${name} » ouvert`);
-    });
+    }, { name: name || $("#pn").value.trim() });
   },
   async nav(v) {
     if (!S.project) return;

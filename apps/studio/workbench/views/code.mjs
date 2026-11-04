@@ -26,7 +26,7 @@ import {
   sessions,
   sessionOf,
 } from "../state.mjs";
-import { fileIcon, fileKind, isWeb, ui } from "../icons.mjs";
+import { fileIcon, fileKind, isWeb, ui, icon } from "../icons.mjs";
 import { drawExplorer, refreshFiles, dirOf, nameOf } from "./explorer.mjs";
 
 let markdownTimer;
@@ -41,7 +41,7 @@ function tabsHtml() {
   return S.tabs
     .map(
       (t, i) =>
-        `<div class="tab" role="presentation">${fileIcon(t)}<button id="file-tab-${i}" role="tab" aria-description="Flèches pour choisir un onglet, Entrée pour l’ouvrir, Suppr pour le fermer." data-act="openFile" data-arg="${esc(t)}" class="trunc" aria-selected="${t === S.active}" tabindex="${t === S.active ? 0 : -1}" aria-controls="${S.files.find((f) => f.path === t)?.kind === "text" ? "ed1" : "edBin"}" aria-label="${esc(nameOf(t))}${dirty(t) ? ", modifié" : ""}">${esc(nameOf(t))}</button>${dirty(t) ? '<i class="d" title="Brouillon non enregistré"></i>' : ""}<button class="c" tabindex="-1" aria-hidden="true" data-act="closeTab" data-arg="${esc(t)}" aria-label="Fermer ${esc(nameOf(t))}">✕</button></div>`,
+        `<div class="tab" role="presentation">${fileIcon(t)}<button id="file-tab-${i}" role="tab" aria-description="Flèches pour choisir un onglet, Entrée pour l’ouvrir, Suppr pour le fermer." data-act="openFile" data-arg="${esc(t)}" class="trunc" aria-selected="${t === S.active}" tabindex="${t === S.active ? 0 : -1}" aria-controls="${S.files.find((f) => f.path === t)?.kind === "text" ? "ed1" : "edBin"}" aria-label="${esc(nameOf(t))}${dirty(t) ? ", modifié" : ""}">${esc(nameOf(t))}</button>${dirty(t) ? '<i class="d" title="Brouillon non enregistré"></i>' : ""}<button class="c" tabindex="-1" aria-hidden="true" data-act="closeTab" data-arg="${esc(t)}" aria-label="Fermer ${esc(nameOf(t))}">${icon("x")}</button></div>`,
     )
     .join("");
 }
@@ -140,7 +140,7 @@ export const resetEditor = () => {
 function frameHead(i) {
   const s = sessionOf(S.pvSessions[i]),
     r = S.pvInfo[s.id];
-  return `<div class="fhead"><button class="btn sm" data-act="pvPickSession" data-arg="${i}" aria-haspopup="true">${sw(s)}${esc(s.label)} ▾</button><span class="grow"></span>${r ? `<span class="st2 s${String(r.status)[0]}">${r.status}</span><span class="num mut">${r.ms} ms</span>` : '<span class="mut">pas encore chargé</span>'}</div>`;
+  return `<div class="fhead"><button class="btn sm" data-act="pvPickSession" data-arg="${i}" aria-haspopup="true">${sw(s)}${esc(s.label)}${icon("chevron-down","sm")}</button><span class="grow"></span>${r ? `<span class="st2 s${String(r.status)[0]}">${r.status}</span><span class="num mut">${r.ms} ms</span>` : '<span class="mut">pas encore chargé</span>'}</div>`;
 }
 export function updatePreviewStatus() {
   const box = $("#pvFrames");
@@ -397,6 +397,12 @@ Object.assign(A, {
         : "Aucun résultat"
       : "";
     if (ix.length) ed.scrollToIndex(ix[S.find.i]);
+    for (const a of ["findPrev", "findNext", "replaceOne"]) {
+      const b = $(`[data-act="${a}"]`);
+      if (b) b.disabled = !ix.length;
+    }
+    const all = $('[data-act="replaceAll"]');
+    if (all) all.disabled = !ix.length;
   },
   findNext() {
     const n = A.findIdx().length;
@@ -602,7 +608,7 @@ Object.assign(A, {
         label: `<span class="ident">${sw(s)}${esc(s.label)}</span>`,
         act: "pvSetSession",
         arg: "0|" + s.id,
-        hint: s.id === cur ? "✓" : "",
+        hint: s.id === cur ? icon("check", "sm") : "",
       })),
       "-",
       { label: "Gérer les sessions…", act: "nav", arg: "sessions" },
@@ -764,6 +770,23 @@ export function bindCode() {
     });
     menu(at(event.clientX, event.clientY), actions);
   });
+  const tree = $("#tree");
+  const syncCollapse = () => {
+    const b = $('[data-act="exCollapseAll"]');
+    if (!b || !tree) return;
+    const f = [...tree.querySelectorAll("[role=treeitem][aria-expanded]")];
+    b.disabled = !f.some((x) => x.getAttribute("aria-expanded") === "true");
+  };
+  if (tree) {
+    new MutationObserver(syncCollapse).observe(tree, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      attributeFilter: ["aria-expanded"],
+    });
+    syncCollapse();
+  }
+  A.findUpdate();
   $("#fq").addEventListener("input", () => {
     S.find.i = 0;
     A.findUpdate();
