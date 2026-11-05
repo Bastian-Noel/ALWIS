@@ -80,7 +80,7 @@ jobs:
       - name: Publish the server container to GitHub Packages
         env:
           GH_TOKEN: ${{ github.token }}
-          SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
+          SOURCE_SHA: ${{ github.event.workflow_run.head_sha || inputs.source_sha }}
         run: |
           PACKAGE=$(cat build-work/server-image-name.txt)
           VERSION=$(cat build-work/server-image-version.txt)
