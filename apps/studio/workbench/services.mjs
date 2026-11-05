@@ -417,6 +417,7 @@ export function createStudioServices() {
         download(await runtime().read(validPath(path)), path.split("/").pop());
       },
       async write(path, data, expected = null) {
+        if(expected===null)return runtime().writeNew(validPath(path),data);
         await runtime().call("write", {
           path: validPath(path),
           data,

@@ -104,6 +104,21 @@ try:
   with urllib.request.urlopen(urllib.request.Request(url.rstrip('/')+'/',method='HEAD'),timeout=30)as response:
    if response.headers.get('Cross-Origin-Opener-Policy')!='same-origin' or response.headers.get('Cross-Origin-Embedder-Policy')!='require-corp':raise RuntimeError('FTP upload completed, but the public server does not provide COOP/COEP; configure its web server')
    print('Public HTTPS and isolation headers verified:',url)
+   base=url.rstrip('/')
+   def published(path,limit):
+    request=urllib.request.Request(base+'/'+path+'?verify='+release['revision']+'-'+uuid.uuid4().hex,headers={'Cache-Control':'no-cache'})
+    with urllib.request.urlopen(request,timeout=30) as result:return result.read(limit+1)
+   remote=json.loads(published('release.json',2*1024*1024))
+   if any(remote.get(key)!=release.get(key) for key in ['revision','version','assetBase']):raise RuntimeError('FTP completed, but the public version manifest is stale or belongs to another site')
+   html=published('',1024*1024).decode('utf-8')
+   if 'name="alwis-build" content="'+release['revision']+'"' not in html:raise RuntimeError('FTP completed, but the public entrypoint still serves an older build')
+   checked=0
+   for record in release['files']:
+    if any(record['path'].endswith(suffix) for suffix in ['/site-updates.mjs','/folder-access.mjs','/import-dialog.mjs','/import-plan.mjs','/zip-import.mjs','/zip.mjs','/zip-worker.mjs','/native-runtime.mjs','/native-worker.mjs']):
+     data=published(record['path'],record['bytes'])
+     if len(data)!=record['bytes'] or hashlib.sha256(data).hexdigest()!=record['sha256']:raise RuntimeError('Public asset does not match the published build: '+record['path'])
+     checked+=1
+   print('Public version, entrypoint and',checked,'critical asset hashes verified:',release['version'],release['revision'])
  else:print('FTP upload completed. Set FTP_PUBLIC_URL to verify the public HTTPS site; Nginx must set the isolation headers in its server configuration.')
 except Exception as error:
  ftp.close();print('FTP publication failed: '+str(error).replace(password,'[REDACTED]'),file=sys.stderr);raise SystemExit(1)

@@ -1,9 +1,10 @@
+import { chooseImport } from "./import-dialog.mjs";
 import { A, S, ctx, eng } from "./state.mjs";
 import { toast, modal, esc, plural } from "./ui.mjs";
 import { refreshFiles } from "./views/explorer.mjs";
 import { resetEditor } from "./views/code.mjs";
 import {
-  readFolder,
+  selectFolder,
   folderWriter,
   folderContext,
   folderSizeText,
@@ -18,29 +19,17 @@ A.openLocalFolder = async () => {
   let excludedCount = 0;
   try {
     const directory = await showDirectoryPicker({ mode: "readwrite" });
-    const metadata = await folderContext(directory),
-      files = await readFolder(directory, {
-        async onOversized({ files, retainedCount, retainedBytes }) {
-          const result = await modal({
-            title: "Fichiers trop volumineux",
-            body: `<div class="folder-failure"><p>${plural(files.length, "fichier", "fichiers")} ${files.length === 1 ? "dépasse" : "dépassent"} la limite de 16 Mio par fichier.</p><ul class="folder-exclusions" aria-label="Fichiers exclus">${files
-              .slice(0, 50)
-              .map(
-                (file) =>
-                  `<li><span>${esc(file.path)}</span><small>${folderSizeText(file.size)}</small></li>`,
-              )
-              .join(
-                "",
-              )}</ul>${files.length > 50 ? `<p class="hint">Et ${files.length - 50} autres fichiers trop volumineux.</p>` : ""}<p>${retainedCount ? `Le projet contiendra ${plural(retainedCount, "fichier", "fichiers")}, soit ${folderSizeText(retainedBytes)}.` : "Aucun autre fichier à ouvrir : le projet sera vide."}</p><p class="hint">Les fichiers listés ne seront pas chargés dans ALWIS. Ils resteront sur votre PC et ne seront pas modifiés lors de l’enregistrement du projet.</p></div>`,
-            actions: [
-              { label: "Annuler", v: "no" },
-              { label: "Ouvrir sans ces fichiers", v: "skip", kind: "pri" },
-            ],
-          });
-          if (result === "skip") excludedCount = files.length;
-          return result === "skip";
-        },
+    const selected = await selectFolder(directory, (records, options) =>
+      chooseImport(records, {
+        ...options,
+        title: "Ouvrir le dossier « " + directory.name + " »",
+        source:
+          "Choisissez ce qui sera chargé dans ALWIS. Les éléments écartés restent sur votre PC.",
       }),
+    );
+    excludedCount = selected.excluded;
+    const files = selected.files,
+      metadata = await folderContext(directory),
       archive = await metadata.archive();
     const name = "dossier-" + crypto.randomUUID().slice(0, 8);
     await A.open(name, "existing");
@@ -116,7 +105,7 @@ A.openLocalFolder = async () => {
         " ouvert" +
         (excludedCount
           ? " sans " +
-            plural(excludedCount, "fichier volumineux", "fichiers volumineux")
+            plural(excludedCount, "élément écarté", "éléments écartés")
           : "") +
         ". Enregistrer conserve aussi les bases et le contexte dans .alwis.",
       null,

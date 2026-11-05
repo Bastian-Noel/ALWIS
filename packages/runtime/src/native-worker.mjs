@@ -62,6 +62,15 @@ async function saveProject(metadata) {
   await syncFilesystem(false);vfsQuota.clearDirty();
   return { projectKey, persisted: true, sqlStopped: true,storageLayout };
 }
+let upload;
+function abortUpload() {
+  if(!upload)return;
+  clearTimeout(upload.timer);
+  try{module.FS.close(upload.stream);}catch{}
+  try{module.FS.unlink(upload.stage);}catch{}
+  upload=undefined;
+}
+function touchUpload(){clearTimeout(upload.timer);upload.timer=setTimeout(abortUpload,120000);}
 function projectMetadata(){
   if(!metadataPath)return null;
   try{if(module.FS.stat(metadataPath).size>8*1024*1024)throw Error('Project metadata exceeds byte limit');return JSON.parse(module.FS.readFile(metadataPath,{encoding:'utf8'}));}
@@ -146,7 +155,37 @@ async function dispatch(message) {
     return state();
   }
   if (!module || poisoned) throw Error(poisoned ? 'Native runtime is poisoned; discard it' : 'Runtime is not initialized');
+  if(upload && message.operation==='save')throw Error('Import de fichier en cours. Réessayez l’enregistrement après sa fin.');
   switch (message.operation) {
+    case 'beginFile': {
+      if(upload)throw Error('Un autre fichier est en cours d’import.');
+      const target=path(message.path);
+      if(!Number.isSafeInteger(message.size)||message.size<1||message.size>16*1024*1024)throw Error('Fichier limité à 16 Mio.');
+      if(module.FS.analyzePath(target).exists)throw Error('Ce fichier existe déjà : '+target);
+      const parent=target.slice(0,target.lastIndexOf('/'));module.FS.mkdirTree(parent);
+      const stage=parent+'/.pbl-upload-'+crypto.randomUUID();
+      upload={id:crypto.randomUUID(),target,stage,size:message.size,offset:0,stream:module.FS.open(stage,'w')};touchUpload();
+      return upload.id;
+    }
+    case 'fileChunk': {
+      if(!upload||message.upload!==upload.id)throw Error('Import de fichier expiré.');
+      try {
+        const data=bytes(message.data);
+        if(data.length>2*1024*1024||message.offset!==upload.offset||upload.offset+data.length>upload.size)throw Error('Bloc de fichier invalide.');
+        const n=module.FS.write(upload.stream,data,0,data.length,upload.offset);
+        if(n!==data.length)throw Error('Écriture de fichier incomplète.');upload.offset+=n;touchUpload();return n;
+      }catch(error){abortUpload();if(error.errno===51)throw Object.assign(Error('Le quota de fichiers ou de taille du projet est dépassé. Réduisez la sélection.'),{errno:51});throw error;}
+    }
+    case 'finishFile': {
+      if(!upload||message.upload!==upload.id)throw Error('Import de fichier expiré.');
+      try {
+        if(upload.offset!==upload.size)throw Error('Fichier importé incomplet.');
+        if(module.FS.analyzePath(upload.target).exists)throw Error('Un fichier a été créé pendant l’import. Réessayez avec un nouveau nom.');
+        module.FS.close(upload.stream);module.FS.rename(upload.stage,upload.target);
+        const written=upload.offset;clearTimeout(upload.timer);upload=undefined;return {written};
+      }catch(error){abortUpload();throw error;}
+    }
+    case 'abortFile': if(upload?.id===message.upload)abortUpload();return true;
     case 'write': {
       const data = bytes(message.data);
       if('expected' in message){
@@ -183,7 +222,7 @@ async function dispatch(message) {
     case 'request': return request(message);
     case 'metadata': return projectMetadata();
     case 'save': return saveProject(message.metadata);
-    case 'release': releaseLock?.(); releaseLock = undefined; poisoned = true; return true;
+    case 'release': abortUpload();releaseLock?.(); releaseLock = undefined; poisoned = true; return true;
     case 'closeConsole': await module.ccall('pbl_console_close', null, [], [], { async: true }); return state();
     case 'sql': {
       if (message.database !== undefined && (typeof message.database !== 'string' || message.database.includes('\0'))) throw Error('Invalid database name');

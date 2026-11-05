@@ -70,6 +70,8 @@ notes=output/'notes.md';notes.write_text(f'''ALWIS — Atelier Local Web avec ID
 - Interface : accueil, chargement, modales, ajout de colonne et Sessions harmonisés ; ALWIS reste en texte sans logo. Icônes SVG, notifications accessibles et poignées discrètes au repos.
 - Aperçu : barre de navigateur, historique par session, panneau Réseau avec en-têtes et corps, séparateurs redimensionnables accessibles au clavier.
 - Sessions : suppression avec confirmation, fermeture des fenêtres et retour de l’aperçu vers un visiteur restant ; dernière session protégée.
+- ZIP et dossiers : sélection avant chargement, dépendances proposées à l’exclusion, budgets recalculés et transfert borné des fichiers retenus.
+- Mise à jour : contrôle de l’accueil servi, attente des vérifications en cours et rechargement explicite de la version courante.
 - Exemple Campus : 34 tables liées et remplies, quatre sessions, cours, notes et messagerie.
 - Assets isolés par build, version affichée et mise à jour préservant les projets.
 - Diagnostics PHP/CSS lisibles et corrections accessibles ; HTML/PHP formatés ensemble, balises liées et modèle HTML cohérent.
@@ -83,7 +85,7 @@ Source validée : `{revision}`. Tests Chromium/Firefox réussis. {publication_st
 
 Le ZIP contient le site statique autonome : extraire puis lancer `node serve.mjs` pour un essai local. HTTPS et les en-têtes COOP/COEP sont nécessaires sur un hébergement. Les reçus disponibles et SHA256SUMS accompagnent le paquet. Aucun projet utilisateur ni identifiant FTP n'est inclus.
 
-Version prototype : les limites PDO/MySQLi/PHP et de l'administration SQL restent documentées dans le dépôt. L'URL publique n'étant pas configurée, la vérification du domaine HTTPS réel reste distincte du transfert FTP.
+Version prototype : les limites PDO/MySQLi/PHP et de l'administration SQL restent documentées dans le dépôt. Après le transfert, le workflow vérifie le domaine HTTPS configuré, le manifeste, l’accueil et les empreintes des modules critiques.
 ''')
 if existing.returncode!=0:
  command=['gh','release','create',tag,'--repo',repo,'--target',revision,'--draft','--title',tag+' — Prototype fonctionnel PHP/MariaDB et éditeurs WASM','--notes-file',str(notes)]

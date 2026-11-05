@@ -3389,3 +3389,15 @@ select.in:focus { background-color:var(--sheet); }
 .folder-exclusions li { display:flex; align-items:baseline; justify-content:space-between; gap:12px; padding:8px 10px; border:1px solid var(--seam); border-radius:5px; background:var(--faceplate); }
 .folder-exclusions span { min-width:0; overflow-wrap:anywhere; }
 .folder-exclusions small { flex:none; color:var(--ink-2); font-variant-numeric:tabular-nums; }
+
+.import-picker { display: grid; gap: 12px; }
+.import-picker-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.import-group, .import-file { display: flex; gap: 10px; align-items: start; padding: 8px; border-bottom: 1px solid var(--seam); }
+.import-file > span:first-of-type, .import-group > span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.import-file small, .import-group small { display: block; color: var(--ink-2); }
+.import-file-list { max-height: 280px; overflow: auto; border: 1px solid var(--seam-2); }
+#importIssue { color: var(--err); }
+#importBudget { font-weight: 600; }
+.import-file input, .import-group input { flex: none; margin-top: 4px; }
+.site-updating { position: fixed; inset: 0; z-index: 10000; display: grid; place-content: center; padding: 24px; color: var(--ink); background: var(--sheet); font-size: 18px; }
+.site-update-error { position: fixed; bottom: 32px; left: 12px; right: 12px; max-width: 680px; padding: 12px; color: var(--err); background: var(--sheet); border: 1px solid var(--err); z-index: 1000; }

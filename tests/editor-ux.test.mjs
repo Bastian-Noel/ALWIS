@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { EditorState } from "@codemirror/state";
 import { html } from "@codemirror/lang-html";
+import { ensureSyntaxTree } from "@codemirror/language";
 import { php } from "@codemirror/lang-php";
 import { renameClosingTag } from "../apps/studio/editor/tag-rename.mjs";
 import { cssDiagnostics } from "../apps/studio/editor/css-diagnostics.mjs";
@@ -15,6 +16,9 @@ test("paired tag edits target the matching closing tag, including nested PHP tem
       doc: "<div><div>child</div></div>",
       extensions: [language, renameClosingTag],
     });
+    // Initialize the parse as an EditorView does before interaction; a cold
+    // grammar can exceed the default state parse budget on a busy test runner.
+    assert.ok(ensureSyntaxTree(state, state.doc.length, 1000));
     const tr = state.update({
       changes: { from: 1, to: 4, insert: "section" },
       userEvent: "input.type",

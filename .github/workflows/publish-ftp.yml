@@ -80,7 +80,7 @@ jobs:
           FTP_USERNAME: studio
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
           FTP_REMOTE_DIR: ${{ vars.FTP_REMOTE_DIR || '.' }}
-          FTP_PUBLIC_URL: ${{ vars.FTP_PUBLIC_URL }}
+          FTP_PUBLIC_URL: ${{ vars.FTP_PUBLIC_URL || 'https://studio.mmi.place/' }}
         run: python3 scripts/deploy-static-ftp.py build-work/site
       - name: Record the successful FTP deployment on the release
         env:

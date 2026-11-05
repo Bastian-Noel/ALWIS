@@ -100,6 +100,7 @@ try {
       mimeType: "application/zip",
       buffer: archive,
     });
+  await page.locator("#modal [data-v=open]").click();
   await page.waitForFunction(
     async () =>
       (await import("/apps/studio/workbench/state.mjs")).S.project ===

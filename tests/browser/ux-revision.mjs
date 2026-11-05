@@ -45,26 +45,81 @@ try {
       await page.locator("[data-act=create]").click();
       await page.locator("#ed1 .cm-content").waitFor();
       // Session removal: confirmation, popup cleanup, comparison fallback and persistence.
-      const originalSession=await page.evaluate(async()=>{const {eng}=await import('/apps/studio/workbench/state.mjs');return eng().sessions.list()[0].id;});
-      const keeper=await action('newIdent');
-      await page.evaluate(async id=>{const {eng}=await import('/apps/studio/workbench/state.mjs');await eng().sessions.setCookie(id,'keep','yes');},keeper);
-      await action('pvDoubleToggle'); await action('nav','sessions');
-      const popupPromise=page.waitForEvent('popup');
-      await page.locator(`[data-act="sesOpen"][data-arg="${originalSession}"]`).click();
-      const popup=await popupPromise;
-      await page.locator(`[data-act="sesRemove"][data-arg="${originalSession}"]`).click();
-      await page.locator('#modal [data-v=no]').click();
-      assert.equal(await page.locator('#sesGrid article').count(),2);
-      await page.locator(`[data-act="sesRemove"][data-arg="${originalSession}"]`).click();
-      await page.locator('#modal [data-v=ok]').click();
-      await page.waitForFunction(()=>document.querySelectorAll('#sesGrid article').length===1);
-      await page.waitForFunction(id=>{const frames=document.querySelectorAll("#pvFrames iframe");return frames.length===1 && frames[0].src.includes(id);},keeper);
-      assert.equal(popup.isClosed(),true);
-      assert.equal(await page.locator('[data-act=sesRemove]').isDisabled(),true);
-      assert.deepEqual(await page.evaluate(async()=>{const {S}=await import('/apps/studio/workbench/state.mjs');return {ids:S.pvSessions,double:S.pvDouble,windows:S.wins.length};}),{ids:[keeper],double:false,windows:0});
-      assert.equal(await page.evaluate(async id=>{const {eng}=await import('/apps/studio/workbench/state.mjs');try{await eng().sessions.remove(id);return false;}catch{return true;}},keeper),true);
-      await action('save');await action('close');await action('open','revision');
-      assert.deepEqual(await page.evaluate(async()=>{const {eng}=await import('/apps/studio/workbench/state.mjs');return eng().sessions.list().map(s=>({id:s.id,cookie:s.cookies.find(c=>c.name==='keep')?.value}));}),[{id:keeper,cookie:'yes'}]);
+      const originalSession = await page.evaluate(async () => {
+        const { eng } = await import("/apps/studio/workbench/state.mjs");
+        return eng().sessions.list()[0].id;
+      });
+      const keeper = await action("newIdent");
+      await page.evaluate(async (id) => {
+        const { eng } = await import("/apps/studio/workbench/state.mjs");
+        await eng().sessions.setCookie(id, "keep", "yes");
+      }, keeper);
+      await action("pvDoubleToggle");
+      await action("nav", "sessions");
+      const popupPromise = page.waitForEvent("popup");
+      await page
+        .locator(`[data-act="sesOpen"][data-arg="${originalSession}"]`)
+        .click();
+      const popup = await popupPromise;
+      await page
+        .locator(`[data-act="sesRemove"][data-arg="${originalSession}"]`)
+        .click();
+      await page.locator("#modal [data-v=no]").click();
+      assert.equal(await page.locator("#sesGrid article").count(), 2);
+      await page
+        .locator(`[data-act="sesRemove"][data-arg="${originalSession}"]`)
+        .click();
+      await page.locator("#modal [data-v=ok]").click();
+      await page.waitForFunction(
+        () => document.querySelectorAll("#sesGrid article").length === 1,
+      );
+      await page.waitForFunction((id) => {
+        const frames = document.querySelectorAll("#pvFrames iframe");
+        return frames.length === 1 && frames[0].src.includes(id);
+      }, keeper);
+      assert.equal(popup.isClosed(), true);
+      assert.equal(
+        await page.locator("[data-act=sesRemove]").isDisabled(),
+        true,
+      );
+      assert.deepEqual(
+        await page.evaluate(async () => {
+          const { S } = await import("/apps/studio/workbench/state.mjs");
+          return {
+            ids: S.pvSessions,
+            double: S.pvDouble,
+            windows: S.wins.length,
+          };
+        }),
+        { ids: [keeper], double: false, windows: 0 },
+      );
+      assert.equal(
+        await page.evaluate(async (id) => {
+          const { eng } = await import("/apps/studio/workbench/state.mjs");
+          try {
+            await eng().sessions.remove(id);
+            return false;
+          } catch {
+            return true;
+          }
+        }, keeper),
+        true,
+      );
+      await action("save");
+      await action("close");
+      await action("open", "revision");
+      assert.deepEqual(
+        await page.evaluate(async () => {
+          const { eng } = await import("/apps/studio/workbench/state.mjs");
+          return eng()
+            .sessions.list()
+            .map((s) => ({
+              id: s.id,
+              cookie: s.cookies.find((c) => c.name === "keep")?.value,
+            }));
+        }),
+        [{ id: keeper, cookie: "yes" }],
+      );
 
       await page.evaluate(async () => {
         const { A, eng, sql } =
@@ -213,7 +268,7 @@ try {
       );
       await page.keyboard.press("Escape");
       await page.locator("#ed1 .cm-content").press("Shift+F10");
-      await page.getByRole("menuitem",{name:/Développer.*Emmet/}).waitFor();
+      await page.getByRole("menuitem", { name: /Développer.*Emmet/ }).waitFor();
       await page.keyboard.press("Escape");
       await action("openFile", "/notes.md");
       await action("pvToggle");
@@ -312,7 +367,11 @@ try {
           await w.close();
           window.showDirectoryPicker = async () => testFolder;
         });
-        await action("openLocalFolder");
+        {
+          const opening = action("openLocalFolder");
+          await page.locator("#modal [data-v=open]").click();
+          await opening;
+        }
         await action("nav", "data");
         await page.evaluate(async () => {
           const { sql, S } = await import("/apps/studio/workbench/state.mjs");
@@ -322,7 +381,11 @@ try {
         });
         assert.equal(await action("save"), true);
         await action("close");
-        await action("openLocalFolder");
+        {
+          const opening = action("openLocalFolder");
+          await page.locator("#modal [data-v=open]").click();
+          await opening;
+        }
         await action("nav", "data");
         assert.deepEqual(
           await page.evaluate(async () => {

@@ -131,9 +131,15 @@ La mention **Projet ouvert · dossier PC**, au-dessus du nom du dossier, indique
 - Les gros fichiers peuvent être importés sans être éditables.
 - Sans accès aux dossiers dans votre navigateur, utilisez un ZIP.
 
-Les tailles et le nombre de fichiers sont vérifiés avant de charger leur contenu. Les fichiers de plus de 16 Mio sont listés avec leur taille : **Ouvrir sans ces fichiers** crée le projet avec les autres fichiers, sans charger les gros fichiers ni les modifier sur le PC. **Annuler** laisse le dossier et les projets inchangés. Cette confirmation est proposée à nouveau lors de la réouverture du dossier.
+Le dossier et le ZIP passent par le même écran de préparation **avant tout chargement de contenu et avant création du projet**. Les chemins peuvent être filtrés et cochés, avec un budget recalculé : 64 Mio, 1 024 fichiers retenus, 16 Mio par fichier et 12 niveaux. Les fichiers trop lourds restent visibles mais ne sont pas chargés. Un dossier de 75 Mio peut ainsi s’ouvrir après exclusion d’un fichier de 15 Mio.
 
-Les fichiers retenus doivent respecter les limites de 64 Mio et 1 024 fichiers. Si ces limites ou la profondeur maximale sont dépassées, **Dossier non ouvert** indique le seuil concerné, sans créer de projet. Le bouton **Choisir un autre dossier** permet de recommencer avec un dossier plus petit. Les fichiers exclus ne sont pas inclus dans l’export ZIP du projet.
+`node_modules`, `vendor` (Composer), les environnements Python, caches, fichiers cachés et archives sont proposés à l’exclusion. `composer.json` et `composer.lock` restent sélectionnés. **Attention : vendor/autoload.php peut être nécessaire à PHP** ; les dépendances peuvent être incluses si elles tiennent dans les limites. Pour un dossier local, les arbres recommandés restent non parcourus jusqu’à l’inclusion explicite, puis un nouvel écran présente leurs fichiers.
+
+**Adapter aux limites** propose de retirer d’abord les éléments optionnels et plus volumineux, en préservant autant que possible les points d’entrée et manifestes. Ce tri reste à vérifier : retirer une dépendance ou une ressource peut empêcher le projet de fonctionner. La sélection reste modifiable avant de confirmer. Annuler ne crée aucun projet. Les fichiers exclus restent sur le PC et ne figurent pas dans l’export du projet.
+
+Le ZIP est inspecté par son répertoire central ; seuls les fichiers choisis sont décompressés et contrôlés par CRC. Une archive de plus de 65 Mio peut donc être ouverte si les fichiers retenus respectent le budget. ZIP64 et multi-volumes restent non pris en charge, l’analyse est limitée à 50 000 entrées et 16 Mio de métadonnées. Les liens symboliques, fichiers chiffrés et compressions non prises en charge sont signalés comme non importables. Les chemins dangereux et archives corrompues sont refusés. Les sauvegardes SQL internes d’ALWIS sont conservées ensemble, jamais retirées par le tri automatique.
+
+Les fichiers retenus entre 6 et 16 Mio sont transmis au moteur en blocs de 2 Mio, sans élargir les budgets RPC. Un fichier est rendu visible uniquement après réception complète ; un échec ou abandon nettoie le fichier temporaire. Le moteur refuse l’enregistrement d’un checkpoint pendant cette réception.
 
 </details>
 
@@ -193,3 +199,9 @@ Les règles de suppression et de modification d’une relation affichent leur mo
 Lorsqu’une modification de cellule échoue sur une valeur ou une contrainte reconnue, la saisie reste affichée avec son explication. Échap annule la saisie. Les refus de relation proposent d’ouvrir la table concernée ; une opération bloquée sur la table référencée peut aussi proposer de configurer la propagation dans le formulaire de relation. Ce choix doit être confirmé et ne rejoue pas automatiquement l’opération. Les suppressions bloquées indiquent le nombre réellement supprimé avant le blocage.
 
 L’examen rapide de la RAM et les pistes non engagées sont décrits dans [Mémoire](memory-quick-review.md).
+
+## Vérifier ou réparer la version du site
+
+Le pied de page affiche version et build. Le bouton de mise à jour attend une vérification déjà en cours au lieu d’utiliser un résultat périmé. Avant de fermer le projet, il vérifie que l’accueil servi correspond au build annoncé ; un déploiement incomplet conserve le projet ouvert et affiche une erreur explicite. Les saisies sont bloquées pendant la sauvegarde et la bascule pour protéger le brouillon.
+
+Si le serveur annonce déjà la version courante, une première vérification propose **Recharger cette version**, qui recharge les fichiers de l’application avec une URL fraîche sans effacer projets ou bases. Une ancienne version ne possédant pas ce correctif peut nécessiter une actualisation forcée initiale du navigateur.

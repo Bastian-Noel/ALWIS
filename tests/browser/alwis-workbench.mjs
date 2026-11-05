@@ -374,6 +374,7 @@ try {
         mimeType: "application/zip",
         buffer: await readFile(path),
       });
+      await page.locator("#modal [data-v=open]").click();
       await page.locator("#ed1 .cm-content").waitFor();
       await settled();
       const restored = await page.evaluate(async () => {

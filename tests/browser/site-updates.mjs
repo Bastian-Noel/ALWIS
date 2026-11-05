@@ -80,10 +80,43 @@ for (const name of ["chromium", "firefox"]) {
       );
     }
     await writeFile(join(root, "release.json"), JSON.stringify(next));
+    const completeIndex = await readFile(join(root, "index.html"), "utf8");
+    const staleIndex = completeIndex
+      .replaceAll(next.revision, old.revision)
+      .replaceAll(next.version, old.version);
+    await writeFile(join(root, "index.html"), staleIndex);
     await page.evaluate(() => window.dispatchEvent(new Event("focus")));
     await page.locator("#siteUpdate[data-available=true]").waitFor();
     await page.locator("#siteUpdate").click();
-    await page.waitForURL("**/?build=" + next.revision);
+    await page
+      .locator(".site-update-error")
+      .filter({ hasText: "pas complète" })
+      .waitFor();
+    assert.equal(
+      await page.locator("#ed1").evaluate((el) => el.value),
+      '<?php echo "UNAPPLIED DRAFT";',
+    );
+    assert.equal(await page.locator("#app").evaluate((el) => el.inert), false);
+    await writeFile(join(root, "index.html"), completeIndex);
+    await page.locator("#siteUpdate").click();
+    await page.waitForURL(
+      (url) => url.searchParams.get("build") === next.revision,
+    );
+    await page
+      .locator("#siteVersion")
+      .filter({ hasText: next.version })
+      .waitFor();
+    await page.locator("#siteUpdate").click();
+    await page
+      .locator("#siteUpdate")
+      .filter({ hasText: "Recharger cette version" })
+      .waitFor();
+    const oldURL = page.url();
+    await page.locator("#siteUpdate").click();
+    await page.waitForURL(
+      (url) =>
+        url.href !== oldURL && url.searchParams.get("build") === next.revision,
+    );
     await page
       .locator("#siteVersion")
       .filter({ hasText: next.version })

@@ -35,6 +35,18 @@ export class NativeRuntime {
     });
   }
   write(path, data) { return this.call('write', { path, data }); }
+  async writeNew(path, data) {
+    const input = typeof data === 'string' ? new TextEncoder().encode(data) : data;
+    if (!(input instanceof Uint8Array)) throw Error('Contenu de fichier invalide.');
+    if(input.byteLength<=6*1024*1024)return this.call('write',{path,data:input.byteLength===input.buffer.byteLength?input:input.slice(),expected:null});
+    if(input.byteLength>16*1024*1024)throw Error('Fichier supérieur à 16 Mio.');
+    const id=await this.call('beginFile',{path,size:input.byteLength});
+    try {
+      for(let offset=0;offset<input.byteLength;offset+=2*1024*1024)
+        await this.call('fileChunk',{upload:id,offset,data:input.slice(offset,Math.min(input.byteLength,offset+2*1024*1024))});
+      return await this.call('finishFile',{upload:id});
+    } catch(error){await this.call('abortFile',{upload:id}).catch(()=>{});throw error;}
+  }
   read(path) { return this.call('read', { path }); }
   list(path = '/workspace') { return this.call('list', { path }); }
   rename(path, target) { return this.call('rename', { path, target }); }

@@ -14,6 +14,7 @@ try {
   window.showDirectoryPicker=async()=>({name:'cours',async *entries(){yield ['index.php',file]},getFileHandle:async()=>file});
  });
  await page.locator('[data-act=openLocalFolder]').click();
+ await page.locator('#modal [data-v=open]').click();
  await page.locator('#pname').filter({hasText:'PC : cours'}).waitFor();
  assert.equal(await page.locator('#ed1 .cm-editor-tools').count(),0);
  assert.equal(await page.locator('#codeTools [data-tool=Formater]').count(),1);

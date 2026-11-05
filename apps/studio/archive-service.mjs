@@ -19,7 +19,9 @@ export function zipTask(operation, value) {
         { operation, value },
         value instanceof Uint8Array
           ? [value.buffer]
-          : value.map((e) => e.bytes.buffer),
+          : Array.isArray(value)
+            ? value.map((e) => e.bytes.buffer)
+            : [],
       );
     } catch (error) {
       finish(error);

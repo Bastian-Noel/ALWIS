@@ -1,3 +1,4 @@
+import { exclusion, IMPORT_LIMITS, importSummary } from "./import-plan.mjs";
 const equal = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
 const MiB = 1048576;
 const countText = (value) => new Intl.NumberFormat("fr-FR").format(value);
@@ -83,12 +84,104 @@ export async function readFolder(directory, { onOversized } = {}) {
     files.set(path, new Uint8Array(await file.arrayBuffer()));
   return files;
 }
+/** Interactive scan: recommended trees stay unvisited until explicitly requested. */
+export async function selectFolder(directory, onSelect) {
+  const included = new Set();
+  let selection;
+  for (;;) {
+    const records = [];
+    let scanned = 0;
+    async function walk(dir, prefix = "", depth = 0) {
+      for await (const [name, entry] of dir.entries()) {
+        const path = prefix + "/" + name,
+          rule = exclusion(path);
+        if (rule?.locked) continue;
+        if (++scanned > IMPORT_LIMITS.scan)
+          throw folderLimit(
+            "Analyse limitée à 50 000 entrées. Retirez un dossier de dépendances ou ouvrez un sous-dossier.",
+            "scan",
+            path,
+          );
+        if (entry.kind === "directory") {
+          if (depth >= 12) {
+            records.push({
+              path,
+              size: 0,
+              locked: true,
+              reason: "Dossier trop profond",
+              directory: true,
+            });
+            continue;
+          }
+          if (
+            rule &&
+            ![...included].some((p) => path === p || path.startsWith(p + "/"))
+          ) {
+            records.push({ path, size: 0, directory: true });
+            continue;
+          }
+          await walk(entry, path, depth + 1);
+        } else {
+          const file = await entry.getFile();
+          records.push({
+            path,
+            size: file.size,
+            file,
+            includeRecommended: [...included].some((p) =>
+              path.startsWith(p + "/"),
+            ),
+          });
+        }
+      }
+    }
+    await walk(directory);
+    selection = await onSelect(records, { selection });
+    const directories = records.filter(
+      (e) => e.directory && !e.locked && selection.has(e.path),
+    );
+    if (directories.length) {
+      for (const entry of directories) included.add(entry.path);
+      continue;
+    }
+    const summary = importSummary(records, selection);
+    if (!summary.valid)
+      throw folderLimit(
+        summary.issues.join(" ") || "Aucun fichier sélectionné.",
+        "selection",
+        "/",
+      );
+    const files = new Map();
+    for (const record of records)
+      if (selection.has(record.path) && !record.directory) {
+        if (record.file.size !== record.size)
+          throw Error(
+            "Le fichier a changé pendant la préparation : " + record.path,
+          );
+        const bytes = new Uint8Array(await record.file.arrayBuffer());
+        if (bytes.length !== record.size)
+          throw Error("Taille modifiée pendant la lecture : " + record.path);
+        files.set(record.path, bytes);
+      }
+    return {
+      files,
+      excluded: records.filter((e) => !selection.has(e.path)).length,
+    };
+  }
+}
 export function folderWriter(directory, snapshots) {
   return async (path, text) => {
     const parts = path.split("/").slice(1);
     if (
       !parts.length ||
-      parts.some((p) => !p || p === ".." || p.startsWith("."))
+      parts.some(
+        (p) =>
+          !p ||
+          p === "." ||
+          p === ".." ||
+          [".git", ".alwis", ".sessions"].includes(p) ||
+          p.startsWith(".pbl-") ||
+          /[\x00-\x1f]/.test(p),
+      )
     )
       throw Error("Chemin local réservé.");
     let dir = directory;

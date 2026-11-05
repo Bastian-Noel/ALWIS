@@ -30,13 +30,24 @@ export function projectArchives(hub, files) {
     }
   }
   async function importProjectArchive(file) {
-    if (file.size > 65 * 1024 * 1024)
+    if (!Array.isArray(file) && file.size > 65 * 1024 * 1024)
       throw Error("Archive limitée à 65 Mio compressés.");
-    const entries = await zipTask(
-        "read",
-        new Uint8Array(await file.arrayBuffer()),
-      ),
+    const entries = Array.isArray(file)
+        ? file
+        : await zipTask("read", new Uint8Array(await file.arrayBuffer())),
       metadata = entries.find((e) => e.name === ".pbl-backup/project.json");
+    if (
+      entries.length > 1024 ||
+      entries.reduce((n, e) => n + e.bytes.length, 0) > 64 * 1048576 ||
+      entries.some(
+        (e) =>
+          !(e.bytes instanceof Uint8Array) || e.bytes.length > 16 * 1048576,
+      ) ||
+      new Set(entries.map((e) => e.name)).size !== entries.length
+    )
+      throw Error(
+        "La sélection dépasse les limites du projet ou contient des doublons.",
+      );
     let manifest;
     if (metadata) {
       if (metadata.bytes.length > 65536)
@@ -115,11 +126,7 @@ export function projectArchives(hub, files) {
       }
     }
     for (const entry of imported)
-      await hub.runtime.call("write", {
-        path: "/workspace/" + entry.name,
-        data: entry.bytes,
-        expected: null,
-      });
+      await hub.runtime.writeNew("/workspace/" + entry.name, entry.bytes);
     // DDL cannot be rolled back as a project-wide transaction: a failed import is reported explicitly.
 
     for (const db of sql) {
