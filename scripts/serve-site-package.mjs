@@ -5,7 +5,7 @@ import {createReadStream} from 'node:fs';
 import {pipeline} from 'node:stream/promises';
 import {resolve,extname,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
-const mime={'.html':'text/html; charset=utf-8','.mjs':'text/javascript','.js':'text/javascript','.css':'text/css','.wasm':'application/wasm','.json':'application/json','.php':'text/plain; charset=utf-8'};
+const mime={'.html':'text/html; charset=utf-8','.mjs':'text/javascript','.js':'text/javascript','.css':'text/css','.wasm':'application/wasm','.json':'application/json','.php':'text/plain; charset=utf-8','.png':'image/png'};
 export function createSiteServer(root=resolve(fileURLToPath(new URL('../build-work/site',import.meta.url)))){
 return createServer(async(request,response)=>{
  response.setHeader('Cross-Origin-Opener-Policy','same-origin');response.setHeader('Cross-Origin-Embedder-Policy','require-corp');response.setHeader('Cross-Origin-Resource-Policy','same-origin');response.setHeader('Cache-Control','no-store');response.setHeader('X-Content-Type-Options','nosniff');

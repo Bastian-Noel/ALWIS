@@ -306,7 +306,7 @@ export function createStudioServices() {
             });
             if (installed.exitCode !== 0 || installed.status >= 400)
               throw Error(
-                installed.stderr || "Installation scolaire impossible.",
+                decoder.decode(installed.stderr) || "Installation scolaire impossible.",
               );
             progress("Préparation des sessions de démonstration…");
             const first = [...hub.sessions.sessions.values()][0];

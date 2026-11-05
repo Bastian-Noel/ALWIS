@@ -114,7 +114,7 @@ try:
    if 'name="alwis-build" content="'+release['revision']+'"' not in html:raise RuntimeError('FTP completed, but the public entrypoint still serves an older build')
    checked=0
    for record in release['files']:
-    if any(record['path'].endswith(suffix) for suffix in ['/site-updates.mjs','/folder-access.mjs','/import-dialog.mjs','/import-plan.mjs','/zip-import.mjs','/zip.mjs','/zip-worker.mjs','/native-runtime.mjs','/native-worker.mjs','/project-disk.mjs','/disk-workspace.mjs','/disk-import.mjs','/zip-stream.mjs','/file-response.mjs']):
+    if record['path']=='social-card.png' or any(record['path'].endswith(suffix) for suffix in ['/site-updates.mjs','/folder-access.mjs','/import-dialog.mjs','/import-plan.mjs','/zip-import.mjs','/zip.mjs','/zip-worker.mjs','/native-runtime.mjs','/native-worker.mjs','/project-disk.mjs','/disk-workspace.mjs','/disk-import.mjs','/zip-stream.mjs','/file-response.mjs']):
      data=published(record['path'],record['bytes'])
      if len(data)!=record['bytes'] or hashlib.sha256(data).hexdigest()!=record['sha256']:raise RuntimeError('Public asset does not match the published build: '+record['path'])
      checked+=1

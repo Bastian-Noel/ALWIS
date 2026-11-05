@@ -1,0 +1,7 @@
+CAMPUS DES TILLEULS — Fiche de terrain
+
+1. Choisir une feuille sans l’arracher.
+2. Observer sa forme, ses nervures et sa couleur.
+3. Dessiner une légende et noter la date.
+
+Cette fiche est un fichier texte stocké avec le projet, pas une ligne de base de données.

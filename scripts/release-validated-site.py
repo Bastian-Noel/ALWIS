@@ -74,7 +74,9 @@ notes=output/'notes.md';notes.write_text(f'''ALWIS — Atelier Local Web avec ID
 - ZIP et dossiers : sélection avant chargement, dépendances proposées à l’exclusion, décompression progressive et export ZIP sur disque ; Range/HEAD pour les médias.
 - Limites distinctes : disque 2 Gio/10 000 fichiers, édition 1 Mio, fichiers PHP modifiés 16 Mio ; scénario réel de 256 Mio sous Chromium et Firefox.
 - Mise à jour : contrôle de l’accueil servi, attente des vérifications en cours et rechargement explicite de la version courante.
-- Exemple Campus : 34 tables liées et remplies, quatre sessions, cours, notes et messagerie.
+- Nouveau Campus : 14 tables toutes exploitées, 18 relations, 31 fichiers organisés, quatre sessions ; PDO/MySQLi, conflits de notes, présences, messages, uploads, API et exercices à formater.
+- Partage social : métadonnées Open Graph/Twitter et image PNG 1200 × 630 de l’interface réelle.
+- Adresse de l’aperçu : suppression de la barre oblique décorative en double.
 - Assets isolés par build, version affichée et mise à jour préservant les projets.
 - Diagnostics PHP/CSS lisibles et corrections accessibles ; HTML/PHP formatés ensemble, balises liées et modèle HTML cohérent.
 - Aperçu Markdown léger et exécution ponctuelle de scripts PHP avec sortie texte.

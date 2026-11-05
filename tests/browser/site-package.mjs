@@ -29,6 +29,25 @@ try {
       const page = await context.newPage();
       page.setDefaultTimeout(60000);
       await page.goto(origin);
+      const social = await page.evaluate(() =>
+        Object.fromEntries(
+          [
+            ...document.querySelectorAll(
+              'meta[property^="og:"],meta[name^="twitter:"]',
+            ),
+          ].map((m) => [m.getAttribute("property") ?? m.name, m.content]),
+        ),
+      );
+      assert.equal(social["og:url"], "https://studio.mmi.place/");
+      assert.equal(social["twitter:card"], "summary_large_image");
+      const cardURL = new URL(social["og:image"]);
+      assert.equal(cardURL.origin, "https://studio.mmi.place");
+      const card = await fetch(origin + cardURL.pathname + cardURL.search);
+      assert.equal(card.status, 200);
+      assert.match(card.headers.get("content-type"), /^image\/png/);
+      const image = Buffer.from(await card.arrayBuffer());
+      assert.equal(image.readUInt32BE(16), 1200);
+      assert.equal(image.readUInt32BE(20), 630);
       await page.locator("#stext").filter({ hasText: "Prêt" }).waitFor();
       const core = await page.evaluate(async () => {
         const { assetBase } = await (
@@ -153,7 +172,7 @@ try {
         core,
         school,
         studio:
-          "project/34 tables/4 sessions/production Emmet/snippets/lazy formatter/PDO client/save/close passed",
+          "project/14 tables/4 sessions/production Emmet/snippets/lazy formatter/PDO client/save/close passed",
       });
       console.log(
         name,

@@ -4,7 +4,11 @@ import { format } from "prettier";
 import * as phpPlugin from "@prettier/plugin-php";
 import Engine from "php-parser";
 import { formatMixedHtml } from "../apps/studio/editor/mixed-format.mjs";
-import { files } from "../apps/studio/school-demo.mjs";
+import { readFileSync } from "node:fs";
+const historicalCampus = readFileSync(
+  new URL("./fixtures/mixed-campus.php", import.meta.url),
+  "utf8",
+);
 const options = {
   plugins: [phpPlugin],
   tabWidth: 2,
@@ -50,7 +54,7 @@ const check = async (source, config = options) => {
 };
 test("Campus template: HTML, dynamic attributes and nested PHP are formatted together", async () => {
   // The old first pass produced the same broken layout as the supplied document.
-  const source = await format(files["index.php"], {
+  const source = await format(historicalCampus, {
     ...options,
     parser: "php",
   });

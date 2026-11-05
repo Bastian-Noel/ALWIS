@@ -10,7 +10,7 @@ const version=JSON.parse(await readFile(join(root,'package.json'),'utf8')).versi
 const assetBase='/_alwis/'+revision;
 const files=[];
 async function copy(source,destination){
-  const publicPath=['index.html','service-worker.js'].includes(destination)?destination:assetBase.slice(1)+'/'+destination;
+  const publicPath=['index.html','service-worker.js','social-card.png'].includes(destination)?destination:assetBase.slice(1)+'/'+destination;
   const output=join(target,publicPath);await mkdir(resolve(output,'..'),{recursive:true});
   let data=await readFile(join(root,source));
   if(/\.(mjs|js|css|html)$/.test(source)){
@@ -32,6 +32,7 @@ for(const entry of await readdir(join(root,'apps/studio/database')))if(/\.mjs$/.
 await copy('apps/studio/database/sql-export.php','apps/studio/sql-export.source.txt');
 for(const name of ['codemirror.mjs','formatter-worker.mjs','definitions.json','javascript-worker.mjs','lsp-worker.mjs','php-lsp.wasm','superhtml.wasm','swc.wasm','THIRD-PARTY.txt'])await copy('apps/studio/editor/dist/'+name,'apps/studio/editor/dist/'+name);
 for(const name of ['pbl-runtime.mjs','pbl-runtime.wasm'])await copy('build-work/bridge/.native-build/engine/wasm/runtime-dist/'+name,'engine/'+name);
+await copy('apps/studio/social-card.png','social-card.png');
 await copy('apps/studio/index.html','index.html');await copy('apps/studio/service-worker.mjs','service-worker.js');await copy('apps/studio/client-bootstrap.js','_pbl/client.js');
 await writeFile(join(target,'_headers'),`/*
   Cross-Origin-Opener-Policy: same-origin

@@ -22,6 +22,7 @@ runs:
     - name: Build editors, verify source checks and assemble static files
       shell: bash
       run: |
+        node scripts/build-school.mjs --check
         npm run editor:build
         npm test
         cc -std=c11 -Wall -Wextra -Werror -fsyntax-only -x c packages/sql-native/include/pbl_sql.h

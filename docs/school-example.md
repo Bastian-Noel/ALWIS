@@ -1,70 +1,44 @@
-# Essayer le Campus
+# Essayer le Campus des Tilleuls
 
 [← Guide illustré](README.md)
 
-Un petit site scolaire déjà rempli : élèves, cours, notes, messages, bibliothèque et factures.
+Le nouvel exemple contient **14 tables, 18 clés étrangères, 31 fichiers et quatre sessions**. Chaque table sert à un parcours du site. Les anciens projets restent intacts : créez un **nouveau projet → Exemple scolaire** pour l’essayer.
 
-## Ouvrir l’exemple
+## Un Campus à plusieurs visiteurs
 
-1. Depuis l’accueil, donnez un nom à un **nouveau projet**.
-2. Choisissez **Exemple scolaire**, puis créez-le.
-3. Dans **Code**, cliquez sur **Aperçu**.
-
-![Le site Campus ouvert à côté de son code PHP.](images/alwis-code-light.png)
-
-## Trois choses à essayer
-
-### 1. Explorer les élèves
-
-- Dans le site, ouvrez la liste des élèves.
-- Dans ALWIS, allez dans **Données → school → students**.
-- Retrouvez les mêmes informations dans la table.
-
-### 2. Partager une note
-
-1. Dans **Sessions**, ouvrez une fenêtre **Professeur** et une fenêtre **Élève**.
-2. Côté professeur, modifiez une note de l’élève concerné.
-3. Actualisez sa page côté élève pour voir le résultat.
-
-### 3. Envoyer un message
-
-1. Ouvrez la messagerie du Campus.
-2. Choisissez un destinataire et envoyez un message.
-3. Ouvrez le profil du destinataire pour le lire.
-
-## Qui utilise le site ?
-
-| Session prête à ouvrir | Profil |
+| Session | Profil initial |
 |---|---|
-| Administration | Camille |
-| Professeur | Nora |
-| Élève | Alice |
-| Parent | Emma |
+| Administration | Camille Martin |
+| Professeur | Nora Bernard |
+| Élève | Alice Dupont |
+| Parent | Emma Dupont |
 
-![Les quatre visiteurs du Campus dans l’espace Sessions.](images/alwis-sessions.png)
+Les fenêtres d’une même session partagent leurs cookies ; les sessions différentes gardent leur identité. Les six profils sont librement sélectionnables pour expérimenter : il ne s’agit pas d’une authentification de production.
 
-**Même session :** les fenêtres partagent l’identité. **Sessions différentes :** chaque visiteur garde la sienne.
+## Parcours à essayer
 
-> [!NOTE]
-> Les profils sont librement sélectionnables pour essayer le site. Ce n’est pas un système de connexion destiné à la production.
+- **Le Campus** : ajoutez une note au carnet commun et retrouvez-la depuis une autre session.
+- **Élèves** : recherchez un prénom avec le filtre JavaScript. Les responsables facultatifs montrent la différence entre une valeur et `NULL`.
+- **Cours** : ouvrez leurs documents et retrouvez les inscriptions N:N dans Schéma.
+- **Présences** : le professeur met à jour une présence avec **MySQLi natif**, préparations et paramètres. Un élève peut consulter, mais le serveur refuse sa modification.
+- **Notes** : choisissez un élève puis chargez sa note. Une valeur vide devient `NULL` ; les décimales sont envoyées comme chaînes à MariaDB. Ouvrez la même note dans deux sessions de l’équipe pédagogique : la deuxième modification périmée est refusée, en gardant la saisie et l’élève sélectionné.
+- **Messages** : une transaction PDO crée le message et son destinataire. Un destinataire inexistant annule l’ensemble et garde le brouillon.
+- **Documents** : envoyez un TXT, CSV, PNG ou JPEG de 512 Kio maximum. Le fichier rejoint `uploads/documents`, ses métadonnées sont dans MariaDB et sa lecture passe par le serveur statique du projet.
+- **L’atelier web** : une page HTML autonome, un programme JavaScript et des images PNG/SVG. Le bilan des messages utilise `fetch` vers une API PHP/MySQLi ; observez sa requête et sa réponse dans Réseau.
 
-## Garder vos essais
+## Explorer les fichiers
 
-Cliquez sur **Enregistrer**, puis sur **Exporter ZIP** pour une copie sur le PC.
-Créer un autre Campus ne remplace pas vos projets existants.
-
-<details>
-<summary>Pour explorer le code et les tables</summary>
-
-| Élément | Contenu |
+| Dossier ou fichier | Contenu |
 |---|---|
-| Base `school` | 34 tables remplies et 40 clés étrangères |
-| `schema.sql` | Structure des tables |
-| `data/seed.json` | Données initiales |
-| `install.php` | Installation initiale, sans réinitialiser vos changements à chaque visite |
+| `index.php`, `action.php` | Page principale et traitements de formulaires : CSRF, validation, droits, redirection après POST |
+| `views/`, `lib/`, `api/` | PHP lisible et mis en forme ; PDO et MySQLi ; API JSON |
+| `assets/css/site.css`, `assets/js/site.js` | Styles et JavaScript organisés |
+| `exercices/a-formater.php`, `exercices/a-formater.js`, `assets/css/compact.css` | Fichiers valides volontairement compacts pour essayer **Formater** |
+| `atelier.html` | HTML statique relié aux exercices et aux médias |
+| `assets/icons/`, `assets/images/` | Trois SVG et deux PNG créés pour la démonstration, sans ressource distante |
+| `database/schema.sql`, `data/seed.json` | Structure et données initiales, puis requêtes d’installation générées |
+| `documents/` | Exemple de document texte |
 
-Les données sont fictives. Certaines tables se modifient uniquement depuis **Données** ou **SQL**.
+L’installation conserve les modifications lors des visites suivantes. Cliquez sur **Enregistrer**, puis **Exporter ZIP** pour une sauvegarde externe des fichiers et bases.
 
-Le scénario automatisé vérifie les profils, les notes, les messages et la restauration : [test du Campus](../tests/browser/school-scenario.mjs).
-
-</details>
+Les sources lisibles de l’exemple sont dans [`fixtures/campus`](../fixtures/campus). Après modification, `npm run school:build` reconstruit le module distribué ; la CI refuse un module qui ne correspond plus aux sources. Le [scénario navigateur](../tests/browser/school-scenario.mjs) contrôle les sessions, PDO/MySQLi, conflits, droits, uploads, médias et reprise.

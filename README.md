@@ -13,10 +13,7 @@ Tout dans le navigateur, avec un éditeur et une base MariaDB.
 
 </div>
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/images/alwis-code-dark.png">
-  <img src="docs/images/alwis-code-light.png" alt="Code PHP à gauche et aperçu du site Campus à droite dans ALWIS.">
-</picture>
+![ALWIS : éditeur de code et aperçu réel du Campus des Tilleuls, prêts à tester dans le navigateur.](apps/studio/social-card.png)
 
 ## Démarrer
 

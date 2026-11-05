@@ -113,7 +113,7 @@ Un défaut reproduit a été corrigé en C : fermer une connexion libère les ch
 
 Grille, schéma relationnel, relations composées par glisser-déposer, structure/colonnes/index/contraintes et valeurs exactes sont reliés au moteur. La parité exhaustive phpMyAdmin n’est pas revendiquée ; garder les limites documentées.
 
-Le nouvel exemple Campus est créé uniquement dans les **nouveaux projets** : 34 tables non vides, 40 clés étrangères, dix profils et quatre sessions préparées. Profils indépendants, carnet partagé, notes et messagerie, transaction annulée après destinataire invalide, sauvegarde/restauration vérifiées dans Chromium/Firefox. Les profils librement sélectionnables sont pédagogiques, pas une authentification de production. Voir `docs/school-example.md`.
+Le nouvel exemple Campus est créé uniquement dans les **nouveaux projets** : 14 tables remplies, 18 relations et quatre sessions préparées. Profils indépendants, carnet partagé, notes par devoir, présence, messagerie et ressources partagées. Les profils librement sélectionnables sont pédagogiques, pas une authentification de production. Voir `docs/school-example.md`.
 
 Un défaut réel de formulaires a aussi été corrigé : un champ nommé `action` masquait `form.action`. Le runtime client lit désormais les attributs et préserve les surcharges du bouton de soumission.
 

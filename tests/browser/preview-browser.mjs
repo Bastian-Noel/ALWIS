@@ -40,6 +40,11 @@ try {
         );
         await A.pvOpen("/home.html");
       });
+      assert.equal(
+        await page.locator(".browser-address > span").count(),
+        0,
+        "Address has only its input slash",
+      );
       const frame = page.frameLocator("#pvFrames iframe");
       await frame.getByText("Bienvenue", { exact: true }).waitFor();
       assert.equal(await page.locator("#pvBack").isDisabled(), true);
@@ -165,8 +170,7 @@ try {
       );
       await page.getByRole("tab", { name: "En-têtes", exact: true }).click();
       await page.waitForFunction(
-        () =>
-          document.querySelector("#toast").children.length === 0,
+        () => document.querySelector("#toast").children.length === 0,
       );
       await page.screenshot({
         path: `build-work/preview-browser/${engine.name()}-light.png`,

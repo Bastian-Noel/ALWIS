@@ -10,7 +10,7 @@ export function createStudioServer() {
     response.setHeader('Cross-Origin-Opener-Policy', 'same-origin'); response.setHeader('Cross-Origin-Embedder-Policy', 'require-corp'); response.setHeader('Cache-Control', 'no-store');
     const pathname = new URL(request.url, 'http://localhost').pathname;
     if(pathname === '/release.json'){ response.setHeader('Content-Type','application/json'); response.end(JSON.stringify({version:'development',revision:'development'})); return; }
-    const special = { '/apps/studio/sql-export.source.txt':'apps/studio/database/sql-export.php', '/': 'apps/studio/index.html', '/service-worker.js': 'apps/studio/service-worker.mjs', '/_pbl/client.js': 'apps/studio/client-bootstrap.js' };
+    const special = { '/apps/studio/sql-export.source.txt':'apps/studio/database/sql-export.php', '/': 'apps/studio/index.html', '/social-card.png': 'apps/studio/social-card.png', '/service-worker.js': 'apps/studio/service-worker.mjs', '/_pbl/client.js': 'apps/studio/client-bootstrap.js' };
     const base = pathname.startsWith('/engine/') ? engine : repo;
     let relative = pathname.startsWith('/engine/') ? pathname.slice(8) : special[pathname] ?? pathname.slice(1);
     // Serve only application sources, not Git metadata, upstream checkouts or receipts.
@@ -19,7 +19,7 @@ export function createStudioServer() {
     if (!path.startsWith(base + sep)) { response.writeHead(403).end(); return; }
     try {
       if (!(await stat(path)).isFile()) { response.writeHead(404).end(); return; }
-      const mime = { '.html': 'text/html; charset=utf-8', '.mjs': 'text/javascript', '.js': 'text/javascript', '.css': 'text/css', '.wasm': 'application/wasm', '.php': 'text/plain; charset=utf-8', '.sql': 'text/plain; charset=utf-8', '.json': 'application/json' };
+      const mime = { '.html': 'text/html; charset=utf-8', '.mjs': 'text/javascript', '.js': 'text/javascript', '.css': 'text/css', '.wasm': 'application/wasm', '.php': 'text/plain; charset=utf-8', '.sql': 'text/plain; charset=utf-8', '.json': 'application/json', '.png': 'image/png' };
       response.setHeader('Content-Type', mime[extname(path)] ?? 'application/octet-stream');
       if (pathname === '/service-worker.js') response.setHeader('Service-Worker-Allowed', '/');
       response.end(await readFile(path));

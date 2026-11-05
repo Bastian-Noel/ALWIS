@@ -5,7 +5,11 @@ import {
   firefox,
 } from "../../build-work/php/node_modules/playwright/index.mjs";
 import { createStudioServer } from "../../scripts/serve-studio.mjs";
-import { files } from "../../apps/studio/school-demo.mjs";
+import { readFileSync } from "node:fs";
+const historicalCampus = readFileSync(
+  new URL("../fixtures/mixed-campus.php", import.meta.url),
+  "utf8",
+);
 const server = createStudioServer();
 await new Promise((r) => server.listen(0, "127.0.0.1", r));
 await mkdir("build-work/mixed-format", { recursive: true });
@@ -79,7 +83,7 @@ try {
             campusTwice: read(),
           };
         },
-        { source, campus: files["index.php"] },
+        { source, campus: historicalCampus },
       );
       assert.equal(result.beforeStatus, 200);
       assert.equal(result.afterStatus, 200);
