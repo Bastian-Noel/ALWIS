@@ -6,6 +6,56 @@ ALWIS distribue deux artefacts distincts. Le **ZIP statique** se publie sur le F
 
 Après la réussite du workflow manuel `Publish FTP - validated studio`, le workflow `Publish ALWIS server container` télécharge l’artefact statique exact, vérifie son manifeste, puis construit et publie l’image correspondante dans GitHub Container Registry. Les deux builds sont séparés et ordonnés. Les détails d’installation figurent dans [le guide Docker](server-deployment.md) et les limites de la première édition dans [la spécification collaborative](collaboration-p2p-specification.md).
 
+## Déployer l’édition serveur avec Docker Compose
+
+Le dépôt fournit un Compose prêt à l’emploi dans [`server/compose.yaml`](../server/compose.yaml) et son modèle de variables dans [`server/.env.example`](../server/.env.example). Il lance une image publiée et versionnée, conserve les réglages serveur dans un volume SQLite, lie le port à `127.0.0.1` et fixe par défaut une limite de 640 Mio et 0,75 CPU. Le navigateur exécute toujours PHP et MariaDB ; ce conteneur sert l’interface et sa page d’administration.
+
+Depuis une copie du dépôt :
+
+```bash
+cd server
+cp .env.example .env
+```
+
+Dans `.env`, choisissez le tag précis de l’image et l’adresse HTTPS que vous configurerez sur le reverse proxy :
+
+```dotenv
+ALWIS_SERVER_IMAGE=ghcr.io/bastian-noel/alwis-server:0.3.0-preview.17
+PUBLIC_BASE_URL=https://alwis.example.org
+ALWIS_LOCAL_PORT=3100
+ALLOWED_ORIGINS=
+TRUST_PROXY=true
+ALWIS_ADMIN_USER=admin
+ALWIS_MEMORY_LIMIT=640m
+ALWIS_MEMORY_RESERVATION=256m
+ALWIS_MEMORY_SWAP=640m
+ALWIS_CPUS=0.75
+```
+
+Le tag ci-dessus est un exemple : remplacez-le par le tag de release que vous voulez installer. Laissez `ALLOWED_ORIGINS` vide pour un déploiement de même origine ; si l’interface et le serveur ont des origines différentes, indiquez uniquement les origines HTTPS exactes, séparées par des virgules. Gardez `TRUST_PROXY=true` seulement derrière votre reverse proxy de confiance ; sinon mettez `false`. Le port reste publié sur localhost, même si l’URL publique passe par le proxy.
+
+Créez le secret d’administration hors du dépôt :
+
+```bash
+mkdir -p secrets
+umask 077
+openssl rand -hex 32 > secrets/admin_password
+sudo chown 10001:10001 secrets/admin_password
+chmod 0400 secrets/admin_password
+```
+
+Vérifiez la configuration interpolée, puis démarrez et contrôlez le service :
+
+```bash
+docker compose config
+docker compose pull
+docker compose up -d
+docker compose ps
+docker compose logs --tail=100 alwis
+```
+
+Ouvrez ensuite `https://alwis.example.org/admin/server` derrière HTTPS. Le reverse proxy doit transmettre les en-têtes COOP/COEP nécessaires à WebAssembly. Le tag de l’image, la limite mémoire et le nombre de CPU sont configurables dans `.env` ; conservez le profil par défaut au départ et ajustez les ressources seulement après observation de `docker stats` et des journaux. Les noms et valeurs de toutes les variables sont détaillés dans le [modèle `.env`](../server/.env.example) et le [guide de déploiement serveur](server-deployment.md).
+
 
 ## Paquet statique de test du studio
 
