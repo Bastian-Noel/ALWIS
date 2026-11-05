@@ -142,7 +142,7 @@ class Builder:
 | Découvrir l’interface en quelques étapes | [Premiers pas illustrés]({self.wiki}Premiers-pas) |
 | Relier des clés et visualiser le schéma | [Guide SQL et relations]({self.wiki}Bases-SQL-et-relations) · [Capture du schéma]({self.link('docs/images/alwis-schema-light.png', 'README.md')}) |
 | Enregistrer dans le navigateur ou exporter en ZIP | [Sauvegarder et transporter un projet]({self.wiki}Projets-ZIP-et-dossiers) |
-| Déployer l’interface sur son propre serveur | [Installer l’image Docker]({self.wiki}Serveur-Docker) |
+| Héberger l’édition serveur avec Compose | [Configuration, variables et commandes]({self.wiki}Publication) · [Rôle et limites du conteneur]({self.wiki}Serveur-Docker) |
 | Comprendre les mesures mémoire | [Vue graphique]({self.wiki}Performance) · [Rapport complet]({self.wiki}Mesures-memoire-detaillees) |
 
 ## Le fonctionnement en un coup d’œil
@@ -170,12 +170,17 @@ flowchart LR
             ('Créer et travailler', ['docs/project-workflows.md', 'docs/ide-workflows.md', 'docs/sql-workflows.md', 'docs/school-example.md']),
             ('Sauvegarder et dépanner', ['docs/storage-opfs.md', 'docs/compatibility.md']),
             ('Mémoire et performances', ['docs/performance-summary.md']),
-            ('Héberger et publier', ['docs/server-deployment.md', 'docs/deployment.md']),
+            ('Hébergement et publication', ['docs/server-deployment.md', 'docs/deployment.md']),
         ]
         for heading, sources in groups:
             sidebar += f'**{heading}**\n\n'
             for source in sources:
-                slug, title = PAGES[source]; sidebar += f'- [{title}]({self.wiki}{slug})\n'
+                slug, title = PAGES[source]
+                if source == 'docs/server-deployment.md':
+                    title = 'Édition serveur : rôle et limites'
+                elif source == 'docs/deployment.md':
+                    title = 'Compose, variables et publication'
+                sidebar += f'- [{title}]({self.wiki}{slug})\n'
             sidebar += '\n'
         sidebar += '<details>\n<summary>Développement et documentation technique</summary>\n\n'
         for source in ['CONTRIBUTING.md', 'docs/architecture.md', 'docs/performance.md',

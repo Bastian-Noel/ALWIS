@@ -73,6 +73,7 @@ jobs:
             --label "org.opencontainers.image.source=https://github.com/$GITHUB_REPOSITORY" \
             --tag "$PACKAGE:$TAG" \
             --tag "$PACKAGE:sha-$SHORT_SHA" \
+            --tag "$PACKAGE:latest" \
             --file server/Dockerfile .
           printf '%s\n' "$PACKAGE" > build-work/server-image-name.txt
           printf '%s\n' "$VERSION" > build-work/server-image-version.txt
@@ -88,6 +89,7 @@ jobs:
           printf '%s' "$GH_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
           docker push "$PACKAGE:$VERSION"
           docker push "$PACKAGE:sha-$SHORT_SHA"
+          docker push "$PACKAGE:latest"
           if gh api --method PATCH "/user/packages/container/alwis-server/visibility" -f visibility=public >/dev/null 2>&1; then
             echo 'The GHCR package is public.' >> "$GITHUB_STEP_SUMMARY"
           else
@@ -104,6 +106,8 @@ jobs:
           SOURCE_SHA=$(cat build-work/server-image-source.txt)
           TAG="v$VERSION"
           gh release view "$TAG" --repo "$GH_REPO" --json body --jq .body > build-work/server-release-notes.md
-          printf '\n### Server container\n\nPull the server edition with `docker pull %s:%s`. If GitHub returns an access error, make the package public in GitHub Packages or authenticate with `docker login ghcr.io`. Source: `%s`. See [the server deployment guide](https://github.com/%s/blob/main/docs/server-deployment.md).\n' \
-            "$PACKAGE" "$VERSION" "$SOURCE_SHA" "$GH_REPO" >> build-work/server-release-notes.md
+          awk '/^### Server container$/ {exit} {print}' build-work/server-release-notes.md > build-work/server-release-notes-updated.md
+          mv build-work/server-release-notes-updated.md build-work/server-release-notes.md
+          printf '\n### Server container\n\nPull the latest server edition with `docker pull %s:latest`, or pin this release with `docker pull %s:%s`. Browse tags and package settings in [GitHub Packages](https://github.com/%s/pkgs/container/alwis-server). If GitHub returns an access error, make the package public or authenticate with `docker login ghcr.io`. Source: `%s`. See [deployment instructions](https://github.com/%s/wiki/Publication).\n' \
+            "$PACKAGE" "$PACKAGE" "$VERSION" "$GH_REPO" "$SOURCE_SHA" "$GH_REPO" >> build-work/server-release-notes.md
           gh release edit "$TAG" --repo "$GH_REPO" --notes-file build-work/server-release-notes.md

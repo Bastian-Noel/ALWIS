@@ -1,12 +1,20 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { once } from "node:events";
-import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import test from "node:test";
+
+test("server image publication maintains a latest alias and versioned release notes", async () => {
+  const workflow = await readFile(resolve(import.meta.dirname, "../.github/workflows/publish-server.yml"), "utf8");
+  assert.match(workflow, /--tag "\$PACKAGE:latest"/);
+  assert.match(workflow, /docker push "\$PACKAGE:latest"/);
+  assert.match(workflow, /latest server edition with `docker pull %s:latest`/);
+  assert.match(workflow, /awk '\/\^### Server container\$\/ \{exit\} \{print\}'/);
+});
 
 async function unusedPort() {
   const server = createServer();

@@ -4,18 +4,18 @@
 
 ALWIS distribue deux artefacts distincts. Le **ZIP statique** se publie sur le FTP comme auparavant. L’**édition serveur** est une image Docker Node.js qui sert ce même paquet et ajoute une page d’administration sous `/admin/server`; sa configuration durable utilise SQLite. Les moteurs PHP et MariaDB restent dans le navigateur et le serveur ne reçoit pas les projets enregistrés par l’utilisateur.
 
-Après la réussite du workflow manuel `Publish FTP - validated studio`, le workflow `Publish ALWIS server container` télécharge l’artefact statique exact, vérifie son manifeste, puis construit et publie l’image correspondante dans GitHub Container Registry. Les deux builds sont séparés et ordonnés. Les détails d’installation figurent dans [le guide Docker](server-deployment.md) et les limites de la première édition dans [la spécification collaborative](collaboration-p2p-specification.md).
+Après la réussite du workflow manuel `Publish FTP - validated studio`, le workflow `Publish ALWIS server container` télécharge l’artefact statique exact, vérifie son manifeste, puis construit et publie l’image correspondante dans GitHub Container Registry. Les deux builds sont séparés et ordonnés. Cette page regroupe les réglages Compose et les déploiements ; [la page serveur](server-deployment.md) résume uniquement le rôle et les limites de cette édition.
 
 ## Déployer l’édition serveur avec Docker Compose
 
-Le dépôt fournit un Compose prêt à l’emploi dans [`server/compose.yaml`](../server/compose.yaml) et son modèle de variables dans [`server/.env.example`](../server/.env.example). Il lance une image publiée et versionnée, conserve les réglages serveur dans un volume SQLite, lie le port à `127.0.0.1` et fixe par défaut une limite de 640 Mio et 0,75 CPU. Le navigateur exécute toujours PHP et MariaDB ; ce conteneur sert l’interface et sa page d’administration.
+Le dépôt fournit un Compose prêt à l’emploi dans [`server/compose.yaml`](../server/compose.yaml) et son modèle de variables dans [`server/.env.example`](../server/.env.example). Le tag `latest` suit la dernière image serveur publiée par l’action GitHub ; les tags de versions sont aussi disponibles dans [GitHub Packages](https://github.com/Bastian-Noel/ALWIS/pkgs/container/alwis-server) pour figer une version. Le conteneur conserve les réglages serveur dans un volume SQLite, lie le port à `127.0.0.1` et fixe par défaut une limite de 640 Mio et 0,75 CPU. Le navigateur exécute toujours PHP et MariaDB ; ce conteneur sert l’interface et sa page d’administration.
 
 Voici le fichier Compose complet :
 
 ```yaml
 services:
   alwis:
-    image: ${ALWIS_SERVER_IMAGE:?Définissez ALWIS_SERVER_IMAGE dans .env}
+    image: ${ALWIS_SERVER_IMAGE:-ghcr.io/bastian-noel/alwis-server:latest}
     init: true
     restart: unless-stopped
     read_only: true
@@ -76,7 +76,7 @@ cp .env.example .env
 Dans `.env`, choisissez le tag précis de l’image et l’adresse HTTPS que vous configurerez sur le reverse proxy :
 
 ```dotenv
-ALWIS_SERVER_IMAGE=ghcr.io/bastian-noel/alwis-server:0.3.0-preview.17
+ALWIS_SERVER_IMAGE=ghcr.io/bastian-noel/alwis-server:latest
 PUBLIC_BASE_URL=https://alwis.example.org
 ALWIS_LOCAL_PORT=3100
 ALLOWED_ORIGINS=
@@ -88,7 +88,7 @@ ALWIS_MEMORY_SWAP=640m
 ALWIS_CPUS=0.75
 ```
 
-Le tag ci-dessus est un exemple : remplacez-le par le tag de release que vous voulez installer. Laissez `ALLOWED_ORIGINS` vide pour un déploiement de même origine ; si l’interface et le serveur ont des origines différentes, indiquez uniquement les origines HTTPS exactes, séparées par des virgules. Gardez `TRUST_PROXY=true` seulement derrière votre reverse proxy de confiance ; sinon mettez `false`. Le port reste publié sur localhost, même si l’URL publique passe par le proxy.
+`latest` installe la publication serveur la plus récente ; remplacez cette valeur par un tag de version affiché dans [GitHub Packages](https://github.com/Bastian-Noel/ALWIS/pkgs/container/alwis-server) pour figer votre installation. Laissez `ALLOWED_ORIGINS` vide pour un déploiement de même origine ; si l’interface et le serveur ont des origines différentes, indiquez uniquement les origines HTTPS exactes, séparées par des virgules. Gardez `TRUST_PROXY=true` seulement derrière votre reverse proxy de confiance ; sinon mettez `false`. Le port reste publié sur localhost, même si l’URL publique passe par le proxy.
 
 Créez le secret d’administration hors du dépôt :
 

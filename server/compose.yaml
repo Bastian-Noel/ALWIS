@@ -1,6 +1,6 @@
 services:
   alwis:
-    image: ${ALWIS_SERVER_IMAGE:?Définissez ALWIS_SERVER_IMAGE dans .env}
+    image: ${ALWIS_SERVER_IMAGE:-ghcr.io/bastian-noel/alwis-server:latest}
     init: true
     restart: unless-stopped
     read_only: true

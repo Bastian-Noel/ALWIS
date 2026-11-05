@@ -30,6 +30,7 @@ class WikiTests(unittest.TestCase):
         deployment = (ROOT / 'docs/deployment.md').read_text()
         compose = (ROOT / 'server/compose.yaml').read_text().rstrip()
         self.assertIn('```yaml\n' + compose + '\n```', deployment)
+        self.assertIn('ghcr.io/bastian-noel/alwis-server:latest', compose)
 
     def test_broken_and_escaping_links_fail(self):
         for link in ['missing-file.md', '../../etc/passwd']:
@@ -65,6 +66,7 @@ class WikiTests(unittest.TestCase):
             self.assertIn('https://github.com/Bastian-Noel/ALWIS/wiki/Installation', home)
             self.assertIn('https://github.com/Bastian-Noel/ALWIS/wiki/Premiers-pas', home)
             self.assertIn('https://github.com/Bastian-Noel/ALWIS/wiki/Campus', home)
+            self.assertIn('https://github.com/Bastian-Noel/ALWIS/wiki/Publication', home)
             self.assertIn('https://github.com/Bastian-Noel/ALWIS/wiki/Serveur-Docker', home)
             self.assertIn('https://github.com/Bastian-Noel/ALWIS/wiki/Bases-SQL-et-relations', home)
             self.assertIn('https://github.com/Bastian-Noel/ALWIS/wiki/Performance', home)
