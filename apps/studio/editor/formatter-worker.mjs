@@ -39,8 +39,10 @@ self.onmessage = async ({ data }) => {
       printWidth: 100,
       endOfLine: "auto",
     };
-    let text = await format(data.text, options);
-    if (parser === "php") text = await formatMixedHtml(text, format, options);
+    let text =
+      parser === "php"
+        ? await formatMixedHtml(data.text, format, options)
+        : await format(data.text, options);
     if (parser === "html") text = htmlVoidStyle(text);
     self.postMessage({ text });
   } catch (error) {

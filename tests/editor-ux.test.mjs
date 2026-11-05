@@ -8,6 +8,7 @@ import { cssDiagnostics } from "../apps/studio/editor/css-diagnostics.mjs";
 import { formatMixedHtml } from "../apps/studio/editor/mixed-format.mjs";
 import { markdownDocument } from "../apps/studio/workbench/markdown.mjs";
 import { format } from "prettier";
+import * as phpPlugin from "@prettier/plugin-php";
 test("paired tag edits target the matching closing tag, including nested PHP templates", () => {
   for (const language of [html(), php()]) {
     const state = EditorState.create({
@@ -44,11 +45,20 @@ test("CSS diagnostics catch missing braces while leaving strings and comments al
 test("mixed formatter indents HTML without altering PHP strings containing close delimiters", async () => {
   const text =
     '<main><section><?php echo "?> <span>"; ?><p><?= $name ?></p></section></main>';
-  const result = await formatMixedHtml(text, format, { tabWidth: 2 });
+  const result = await formatMixedHtml(text, format, {
+    tabWidth: 2,
+    plugins: [phpPlugin],
+  });
   assert.match(result, /<main>\n  <section>/);
   assert.match(result, /<\?php echo "\?> <span>"; \?>/);
   assert.match(result, /<\?= \$name \?>/);
-  assert.equal(await formatMixedHtml(result, format, { tabWidth: 2 }), result);
+  assert.equal(
+    await formatMixedHtml(result, format, {
+      tabWidth: 2,
+      plugins: [phpPlugin],
+    }),
+    result,
+  );
 });
 test("Markdown preview never executes raw HTML or javascript links", () => {
   const html = markdownDocument(

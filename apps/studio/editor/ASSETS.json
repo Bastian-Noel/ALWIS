@@ -21,8 +21,8 @@
     },
     {
       "name": "formatter-worker.mjs",
-      "bytes": 1735129,
-      "sha256": "a09f95d39a614754590d689ee501964c19efc225f3212ea3473d3d2a74d097e9"
+      "bytes": 1741013,
+      "sha256": "38ee6484f3087238029ffd7e8d8aed5cf82c2e06d26dc4829fe71440c67fcbd2"
     },
     {
       "name": "javascript-worker.mjs",
