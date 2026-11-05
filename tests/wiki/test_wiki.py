@@ -49,17 +49,19 @@ class WikiTests(unittest.TestCase):
             self.assertTrue((output / '_Sidebar.md').is_file())
             self.assertTrue((output / 'assets/docs/images/alwis-start.png').is_file())
 
-    def test_wiki_home_is_the_installation_readme(self):
+    def test_wiki_home_is_a_welcome_page_with_primary_navigation(self):
         with tempfile.TemporaryDirectory() as tmp:
             output = Path(tmp)
             self.builder.build(output)
             home = (output / 'Home.md').read_text()
             installation = (output / 'Installation.md').read_text()
-            self.assertEqual(home, installation)
+            self.assertNotEqual(home, installation)
+            self.assertIn('# Bienvenue dans ALWIS', home)
+            self.assertIn('https://github.com/Bastian-Noel/ALWIS/wiki/Installation', home)
             self.assertIn('https://github.com/Bastian-Noel/ALWIS/wiki/Premiers-pas', home)
+            self.assertIn('https://github.com/Bastian-Noel/ALWIS/wiki/Campus', home)
             self.assertIn('https://github.com/Bastian-Noel/ALWIS/wiki/Serveur-Docker', home)
-            self.assertNotIn('](docs/', home)
-            self.assertNotIn('](CONTRIBUTING.md)', home)
+            self.assertIn('raw.githubusercontent.com/wiki/Bastian-Noel/ALWIS/assets/docs/images/alwis-start.png', home)
 
     def test_manual_page_collision_fails(self):
         with tempfile.TemporaryDirectory() as tmp:

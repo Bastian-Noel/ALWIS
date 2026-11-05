@@ -119,9 +119,36 @@ class Builder:
         for source, (slug, _) in PAGES.items():
             text = (self.root / source).read_text()
             files[slug + '.md'] = '<!-- Generated from ' + source + '; edit the repository source. -->\n\n' + self.convert(text, source)
-        # GitHub opens Home.md first. Keep it identical to the generated README
-        # page so the full installation guide is the wiki landing page too.
-        files['Home.md'] = files['Installation.md']
+        # GitHub opens Home.md first. Use a compact welcome page that guides
+        # readers to the full installation guide and the most useful topics.
+        files['Home.md'] = f'''# Bienvenue dans ALWIS
+
+**Écrivez du PHP, testez votre site et explorez vos données — directement dans le navigateur.**
+
+[Ouvrir ALWIS](https://studio.mmi.place/) · [Installer ALWIS]({self.wiki}Installation) · [Voir les versions]({self.repo}/releases)
+
+![L’atelier ALWIS avec la création de projet, l’import ZIP et l’ouverture d’un dossier.]({self.link('docs/images/alwis-start.png', 'README.md')})
+
+## Par où commencer ?
+
+| Votre objectif | Guide |
+|---|---|
+| Installer ALWIS et lancer le studio en local | [Guide d’installation]({self.wiki}Installation) |
+| Créer un premier projet et découvrir les outils | [Premiers pas illustrés]({self.wiki}Premiers-pas) |
+| Écrire du code, utiliser les raccourcis et sauvegarder | [Éditeur et sauvegardes]({self.wiki}Editeur-et-sauvegardes) |
+| Explorer un site déjà rempli avec plusieurs visiteurs | [Exemple Campus]({self.wiki}Campus) |
+
+## Choisir comment utiliser ALWIS
+
+- **Dans le navigateur :** téléchargez le paquet statique depuis les [versions publiées]({self.repo}/releases) et lancez-le selon le [guide d’installation]({self.wiki}Installation).
+- **Sur votre propre serveur :** consultez le [guide de l’édition Docker]({self.wiki}Serveur-Docker). Cette édition sert l’interface ; les projets restent dans le navigateur.
+
+> **À retenir :** les projets sont enregistrés dans le navigateur. Exportez un ZIP pour garder une copie ou déplacer votre travail.
+
+## Besoin d’un autre guide ?
+
+[Navigateurs et limites]({self.wiki}Compatibilite) · [Architecture]({self.wiki}Architecture) · [Performance et mémoire]({self.wiki}Performance) · [Contribuer au projet]({self.wiki}Contribuer) · [Signaler un problème]({self.repo}/issues)
+'''
         sidebar = f'**[ALWIS — Documentation]({self.wiki}Home)**\n\n**Utiliser ALWIS**\n\n'
         for source in list(PAGES)[:5]:
             slug, title = PAGES[source]; sidebar += f'- [{title}]({self.wiki}{slug})\n'
