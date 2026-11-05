@@ -1,6 +1,6 @@
 # Code, sauvegardes et dossier du PC
 
-[← Guide illustré](README.md)
+[Accueil Wiki](https://github.com/Bastian-Noel/ALWIS/wiki) · [Premiers pas](README.md) · [Projet, ZIP et dossier PC](project-workflows.md)
 
 ## Se déplacer au clavier
 
@@ -28,6 +28,8 @@ Dans les onglets, les flèches déplacent le focus ; **Entrée** ouvre l’ongle
 Les raccourcis globaux restent inactifs dans les dialogues. **AltGr** garde son rôle de saisie de caractères.
 
 ## Écrire plus vite
+
+![Éditeur de code PHP, explorateur de fichiers et aperçu intégré.](images/alwis-code-light.png)
 
 | Vous voulez… | Faites… |
 |---|---|
@@ -198,7 +200,7 @@ Les règles de suppression et de modification d’une relation affichent leur mo
 
 Lorsqu’une modification de cellule échoue sur une valeur ou une contrainte reconnue, la saisie reste affichée avec son explication. Échap annule la saisie. Les refus de relation proposent d’ouvrir la table concernée ; une opération bloquée sur la table référencée peut aussi proposer de configurer la propagation dans le formulaire de relation. Ce choix doit être confirmé et ne rejoue pas automatiquement l’opération. Les suppressions bloquées indiquent le nombre réellement supprimé avant le blocage.
 
-Les mesures récentes du navigateur, du moteur et des outils sont détaillées dans [Performance et mémoire](performance.md).
+Les mesures récentes du navigateur, du moteur et des outils sont résumées dans [Mémoire et performances](performance-summary.md).
 
 ## Vérifier ou réparer la version du site
 

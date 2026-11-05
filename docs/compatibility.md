@@ -39,7 +39,7 @@ ALWIS est une **préversion**, conçue pour apprendre, faire des exercices et te
 
 La RAM dépend du navigateur, du projet et des outils ouverts. La mémoire affichée pour le moteur n’est pas toute la mémoire du navigateur.
 
-[Lire les mesures de performance →](performance.md)
+[Comprendre les mesures en quelques graphiques →](performance-summary.md)
 
 <details>
 <summary>Références techniques et preuves</summary>

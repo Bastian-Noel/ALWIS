@@ -1,6 +1,6 @@
 # Vos premiers pas avec ALWIS
 
-[← Accueil](../README.md) · [Éditeur et sauvegardes](ide-workflows.md) · [Exemple Campus](school-example.md) · [Stockage et gros projets](storage-opfs.md) · [Déploiement serveur](server-deployment.md)
+[Accueil Wiki](https://github.com/Bastian-Noel/ALWIS/wiki) · [Projets et ZIP](project-workflows.md) · [Code](ide-workflows.md) · [SQL et relations](sql-workflows.md) · [Campus](school-example.md)
 
 ## 1. Créer un projet
 
@@ -42,7 +42,10 @@
 2. Dépliez la base **school**, puis cliquez sur **students**.
 3. Double-cliquez sur une cellule modifiable pour changer sa valeur.
 
-![Données : tables de la base school à gauche et lignes de students à droite.](images/alwis-data-light.png)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/alwis-data-dark.png">
+  <img src="images/alwis-data-light.png" alt="Tables de la base school à gauche et lignes de students dans la grille.">
+</picture>
 
 | Onglet | Pour faire quoi ? |
 |---|---|
@@ -61,6 +64,11 @@ Ouvrez **Schéma** : chaque bloc est une table, chaque trait représente un lien
 - **Ajouter une colonne dans Données…** ouvre le formulaire complet.
 
 **Exemple :** une note appartient à un élève. Le lien relie la table des notes à celle des élèves.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/alwis-schema-dark.png">
+  <img src="images/alwis-schema-light.png" alt="Tables du Campus reliées par leurs clés dans l’outil Schéma.">
+</picture>
 
 ## 5. Essayer plusieurs visiteurs
 
@@ -93,4 +101,4 @@ Sur petit écran, retrouvez le ZIP dans le menu du projet, en haut.
 | Serveur affiche un nombre d’erreurs | Consultez le journal : le compteur revient à zéro, l’historique reste |
 | Un fichier a changé ailleurs | Gardez une copie du brouillon avant de recharger |
 
-[Limites connues](compatibility.md) · [Dossier du PC et ZIP](ide-workflows.md#ouvrir-un-dossier-du-pc) · [Documentation technique](../CONTRIBUTING.md)
+[Limites connues](compatibility.md) · [Dossier du PC et ZIP](project-workflows.md) · [Guide SQL détaillé](sql-workflows.md)

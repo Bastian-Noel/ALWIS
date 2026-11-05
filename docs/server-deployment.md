@@ -1,5 +1,7 @@
 # Distribuer ALWIS en mode serveur
 
+[Accueil Wiki](https://github.com/Bastian-Noel/ALWIS/wiki) · [Édition classique](deployment.md) · [Installation du conteneur](../server/README.md)
+
 ALWIS garde deux distributions distinctes : le ZIP statique pour un hébergement web habituel, et l’image conteneur pour installer ALWIS derrière le reverse proxy de son propre serveur. Les builds ne partagent pas le même artefact : après la validation et la publication FTP du build statique, une seconde action récupère son artefact signé par le manifeste, construit l’image serveur puis la publie dans GitHub Container Registry.
 
 La version serveur de cette première étape contient l’application web et une page protégée de configuration. Le runtime PHP/MariaDB reste dans le navigateur, comme dans la version statique. Les projets restent donc dans le navigateur et ne sont pas placés dans le conteneur. SQLite conserve la configuration du serveur.
@@ -17,6 +19,14 @@ Le fichier [`server/compose.yaml`](../server/compose.yaml) limite le service à 
 Le proxy HTTPS doit préserver les en-têtes COOP/COEP utilisés par WASM. Configurez le proxy et son certificat avant d’ouvrir le service sur Internet. Gardez le port de l’application lié à `127.0.0.1`.
 
 ## Deux distributions, dans l’ordre
+
+```mermaid
+flowchart LR
+  M[Publication manuelle sur main] --> S[Build et validation statique]
+  S --> F[Release puis transfert FTP]
+  F --> V[Build du conteneur depuis le même artefact]
+  V --> G[Image versionnée dans GHCR]
+```
 
 1. Lancez **Publish FTP - validated studio** sur `main` en choisissant un tag de release. Ce workflow construit et valide le paquet statique, publie la release puis met le même paquet à jour sur le site FTP.
 2. Après son succès, **Publish ALWIS server container** télécharge l’artefact statique de cette exécution, en contrôle le SHA-256 et la révision, puis construit et pousse l’image serveur correspondante. Pour relancer uniquement cette seconde étape après un incident, fournissez l’ID de la publication statique réussie et son SHA à **Publish ALWIS server container**.

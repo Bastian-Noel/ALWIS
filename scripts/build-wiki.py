@@ -13,12 +13,16 @@ from urllib.parse import quote, unquote, urlsplit
 PAGES = {
     'README.md': ('Installation', 'Installer ALWIS'),
     'docs/README.md': ('Premiers-pas', 'Premiers pas'),
+    'docs/project-workflows.md': ('Projets-ZIP-et-dossiers', 'Créer, importer et sauvegarder'),
     'docs/ide-workflows.md': ('Editeur-et-sauvegardes', 'Code, clavier et sauvegardes'),
+    'docs/sql-workflows.md': ('Bases-SQL-et-relations', 'Bases, SQL et relations'),
     'docs/school-example.md': ('Campus', 'Explorer le Campus'),
+    'docs/storage-opfs.md': ('Stockage-et-limites', 'Stockage et limites'),
     'docs/compatibility.md': ('Compatibilite', 'Compatibilité et limites'),
+    'docs/performance-summary.md': ('Performance', 'Mémoire et performances en bref'),
     'CONTRIBUTING.md': ('Contribuer', 'Développer ALWIS'),
     'docs/architecture.md': ('Architecture', 'Architecture'),
-    'docs/performance.md': ('Performance', 'Performance et mémoire'),
+    'docs/performance.md': ('Mesures-memoire-detaillees', 'Rapport mémoire complet'),
     'docs/deployment.md': ('Publication', 'Hébergement et publication'),
     'docs/server-deployment.md': ('Serveur-Docker', 'Déployer l’édition serveur'),
     'docs/collaboration-p2p-specification.md': ('Collaboration-P2P', 'Collaboration en direct'),
@@ -119,44 +123,64 @@ class Builder:
         for source, (slug, _) in PAGES.items():
             text = (self.root / source).read_text()
             files[slug + '.md'] = '<!-- Generated from ' + source + '; edit the repository source. -->\n\n' + self.convert(text, source)
-        # GitHub opens Home.md first. Use a compact welcome page that guides
-        # readers to the full installation guide and the most useful topics.
+        # GitHub opens Home.md first. Keep it focused on common tasks and visual entry points.
         files['Home.md'] = f'''# Bienvenue dans ALWIS
 
-**Écrivez du PHP, testez votre site et explorez vos données — directement dans le navigateur.**
+**Écrivez du code, lancez votre site et travaillez avec vos données dans le navigateur.**
 
-[Ouvrir ALWIS](https://studio.mmi.place/) · [Installer ALWIS]({self.wiki}Installation) · [Voir les versions]({self.repo}/releases)
+[Ouvrir le studio](https://studio.mmi.place/) · [Installer ALWIS]({self.wiki}Installation) · [Télécharger une version]({self.repo}/releases)
 
-![L’atelier ALWIS avec la création de projet, l’import ZIP et l’ouverture d’un dossier.]({self.link('docs/images/alwis-start.png', 'README.md')})
+| Créer ou importer un projet | Écrire et prévisualiser | Explorer SQL et les tables | Tester plusieurs visiteurs |
+|---|---|---|---|
+| ![Accueil : projet, ZIP ou dossier local.]({self.link('docs/images/alwis-start.png', 'README.md')}) | ![Éditeur de code et aperçu du site.]({self.link('docs/images/alwis-code-light.png', 'README.md')}) | ![Base, tables et grille de données.]({self.link('docs/images/alwis-data-light.png', 'README.md')}) | ![Sessions de démonstration du Campus.]({self.link('docs/images/alwis-sessions.png', 'README.md')}) |
+| [Projets, ZIP et dossiers PC]({self.wiki}Projets-ZIP-et-dossiers) | [Code, formatage et complétion]({self.wiki}Editeur-et-sauvegardes) | [Bases, requêtes SQL et relations]({self.wiki}Bases-SQL-et-relations) | [Exemple Campus]({self.wiki}Campus) |
 
-## Par où commencer ?
+## Trouver rapidement un guide
 
-| Votre objectif | Guide |
+| Vous voulez… | Ouvrez… |
 |---|---|
-| Installer ALWIS et lancer le studio en local | [Guide d’installation]({self.wiki}Installation) |
-| Créer un premier projet et découvrir les outils | [Premiers pas illustrés]({self.wiki}Premiers-pas) |
-| Écrire du code, utiliser les raccourcis et sauvegarder | [Éditeur et sauvegardes]({self.wiki}Editeur-et-sauvegardes) |
-| Explorer un site déjà rempli avec plusieurs visiteurs | [Exemple Campus]({self.wiki}Campus) |
+| Découvrir l’interface en quelques étapes | [Premiers pas illustrés]({self.wiki}Premiers-pas) |
+| Relier des clés et visualiser le schéma | [Guide SQL et relations]({self.wiki}Bases-SQL-et-relations) · [Capture du schéma]({self.link('docs/images/alwis-schema-light.png', 'README.md')}) |
+| Enregistrer dans le navigateur ou exporter en ZIP | [Sauvegarder et transporter un projet]({self.wiki}Projets-ZIP-et-dossiers) |
+| Déployer l’interface sur son propre serveur | [Installer l’image Docker]({self.wiki}Serveur-Docker) |
+| Comprendre les mesures mémoire | [Vue graphique]({self.wiki}Performance) · [Rapport complet]({self.wiki}Mesures-memoire-detaillees) |
 
-## Choisir comment utiliser ALWIS
+## Le fonctionnement en un coup d’œil
 
-- **Dans le navigateur :** téléchargez le paquet statique depuis les [versions publiées]({self.repo}/releases) et lancez-le selon le [guide d’installation]({self.wiki}Installation).
-- **Sur votre propre serveur :** consultez le [guide de l’édition Docker]({self.wiki}Serveur-Docker). Cette édition sert l’interface ; les projets restent dans le navigateur.
+```mermaid
+flowchart LR
+  P[Projet dans le navigateur] --> C[Éditeur]
+  C --> A[Aperçu du site]
+  A --> PHP[PHP WebAssembly]
+  PHP -->|si le projet utilise SQL| DB[MariaDB WebAssembly]
+  DB --> O[Données · SQL · Schéma]
+  P --> S[Sauvegarde navigateur]
+  S --> Z[Export ZIP]
+```
 
-> **À retenir :** les projets sont enregistrés dans le navigateur. Exportez un ZIP pour garder une copie ou déplacer votre travail.
+**Les projets restent dans le navigateur.** Le conteneur Docker sert l’interface ; il n’héberge pas les projets ni le moteur SQL.
 
-## Besoin d’un autre guide ?
+## Aide et guides avancés
 
-[Navigateurs et limites]({self.wiki}Compatibilite) · [Architecture]({self.wiki}Architecture) · [Performance et mémoire]({self.wiki}Performance) · [Contribuer au projet]({self.wiki}Contribuer) · [Signaler un problème]({self.repo}/issues)
+[Compatibilité]({self.wiki}Compatibilite) · [Mémoire en bref]({self.wiki}Performance) · [Architecture]({self.wiki}Architecture) · [Signaler un problème]({self.repo}/issues)
 '''
-        sidebar = f'**[ALWIS — Documentation]({self.wiki}Home)**\n\n**Utiliser ALWIS**\n\n'
-        for source in list(PAGES)[:5]:
-            slug, title = PAGES[source]; sidebar += f'- [{title}]({self.wiki}{slug})\n'
-        sidebar += '\n**Développer et héberger**\n\n'
-        for source in list(PAGES)[5:11]:
-            slug, title = PAGES[source]; sidebar += f'- [{title}]({self.wiki}{slug})\n'
-        sidebar += '\n<details>\n<summary>Archives techniques</summary>\n\n'
-        for source in list(PAGES)[11:]:
+        sidebar = f'**[Accueil ALWIS]({self.wiki}Home)**\n\n'
+        groups = [
+            ('Commencer', ['README.md', 'docs/README.md']),
+            ('Créer et travailler', ['docs/project-workflows.md', 'docs/ide-workflows.md', 'docs/sql-workflows.md', 'docs/school-example.md']),
+            ('Sauvegarder et dépanner', ['docs/storage-opfs.md', 'docs/compatibility.md']),
+            ('Mémoire et performances', ['docs/performance-summary.md']),
+            ('Héberger et publier', ['docs/server-deployment.md', 'docs/deployment.md']),
+        ]
+        for heading, sources in groups:
+            sidebar += f'**{heading}**\n\n'
+            for source in sources:
+                slug, title = PAGES[source]; sidebar += f'- [{title}]({self.wiki}{slug})\n'
+            sidebar += '\n'
+        sidebar += '<details>\n<summary>Développement et documentation technique</summary>\n\n'
+        for source in ['CONTRIBUTING.md', 'docs/architecture.md', 'docs/performance.md',
+                       'docs/collaboration-p2p-specification.md', 'docs/wiki-publication.md',
+                       'docs/reference-studio.md', 'docs/reference-compatibility.md']:
             slug, title = PAGES[source]; sidebar += f'- [{title}]({self.wiki}{slug})\n'
         files['_Sidebar.md'] = sidebar + f'\n</details>\n\n[Code source]({self.repo}) · [Versions]({self.repo}/releases)\n'
         files['_Footer.md'] = f'[Accueil]({self.wiki}Home) · [Sources de la documentation]({self.repo}/tree/main/docs) · [Version {self.revision[:7]}]({self.repo}/commit/{self.revision})\n\nDocumentation publiée automatiquement. Pour la corriger, modifiez les fichiers du dépôt.\n'

@@ -1,5 +1,7 @@
 # Mémoire et performances mesurées
 
+[← Vue simplifiée avec graphiques](performance-summary.md)
+
 > Dernière campagne intégrée : 5 novembre 2026, Windows 11, révision [`5038537f558e95307f18bd8e9738e20e9ab3fab`](https://github.com/Bastian-Noel/ALWIS/commit/5038537f558e95307f18bd8e9738e20e9ab3fab), Playwright 1.64.1. Les chiffres décrivent cette révision de test, pas automatiquement chaque version publiée.
 
 ## Lire les mesures

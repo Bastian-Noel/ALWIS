@@ -1,10 +1,14 @@
 # Essayer le Campus des Tilleuls
 
+[Accueil Wiki](https://github.com/Bastian-Noel/ALWIS/wiki) · [Créer ou importer un projet](project-workflows.md) · [SQL et relations](sql-workflows.md)
+
 [← Guide illustré](README.md)
 
 Le nouvel exemple contient **14 tables, 18 clés étrangères, 31 fichiers et quatre sessions**. Chaque table sert à un parcours du site. Les anciens projets restent intacts : créez un **nouveau projet → Exemple scolaire** pour l’essayer.
 
 ## Un Campus à plusieurs visiteurs
+
+![Les sessions Administration, Professeur, Élève et Parent sont ouvertes depuis l’atelier.](images/alwis-sessions.png)
 
 | Session | Profil initial |
 |---|---|
@@ -16,6 +20,8 @@ Le nouvel exemple contient **14 tables, 18 clés étrangères, 31 fichiers et qu
 Les fenêtres d’une même session partagent leurs cookies ; les sessions différentes gardent leur identité. Les six profils sont librement sélectionnables pour expérimenter : il ne s’agit pas d’une authentification de production.
 
 ## Parcours à essayer
+
+![Le schéma du Campus montre les tables et leurs relations.](images/alwis-schema-light.png)
 
 - **Le Campus** : ajoutez une note au carnet commun et retrouvez-la depuis une autre session.
 - **Élèves** : recherchez un prénom avec le filtre JavaScript. Les responsables facultatifs montrent la différence entre une valeur et `NULL`.

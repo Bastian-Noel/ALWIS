@@ -61,6 +61,8 @@ class WikiTests(unittest.TestCase):
             self.assertIn('https://github.com/Bastian-Noel/ALWIS/wiki/Premiers-pas', home)
             self.assertIn('https://github.com/Bastian-Noel/ALWIS/wiki/Campus', home)
             self.assertIn('https://github.com/Bastian-Noel/ALWIS/wiki/Serveur-Docker', home)
+            self.assertIn('https://github.com/Bastian-Noel/ALWIS/wiki/Bases-SQL-et-relations', home)
+            self.assertIn('https://github.com/Bastian-Noel/ALWIS/wiki/Performance', home)
             self.assertIn('raw.githubusercontent.com/wiki/Bastian-Noel/ALWIS/assets/docs/images/alwis-start.png', home)
 
     def test_performance_page_uses_the_new_measurement_and_metric(self):
@@ -71,6 +73,21 @@ class WikiTests(unittest.TestCase):
         self.assertIn('354,0 ± 0,4', performance)
         self.assertIn('571,5 ± 6,0', performance)
         self.assertNotIn('542,41', performance)
+
+    def test_simple_performance_guide_links_to_full_report_and_graphs(self):
+        summary = (ROOT / 'docs/performance-summary.md').read_text()
+        self.assertIn('images/memory-situations-2026-11-05.png', summary)
+        self.assertIn('images/memory-module-costs-2026-11-05.png', summary)
+        self.assertTrue((ROOT / 'docs/images/memory-situations-2026-11-05.png').is_file())
+        self.assertTrue((ROOT / 'docs/images/memory-module-costs-2026-11-05.png').is_file())
+        self.assertEqual(
+            self.builder.link('performance-summary.md', 'docs/compatibility.md'),
+            'https://github.com/Bastian-Noel/ALWIS/wiki/Performance',
+        )
+        self.assertEqual(
+            self.builder.link('performance.md', 'docs/compatibility.md'),
+            'https://github.com/Bastian-Noel/ALWIS/wiki/Mesures-memoire-detaillees',
+        )
 
     def test_manual_page_collision_fails(self):
         with tempfile.TemporaryDirectory() as tmp:
