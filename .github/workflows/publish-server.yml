@@ -9,11 +9,15 @@ on:
       static_run_id:
         description: GitHub Actions run ID of the successful static publication
         type: string
-        required: true
+        required: false
       source_sha:
         description: Exact main commit used by that static publication
         type: string
-        required: true
+        required: false
+      image_version:
+        description: Retag an already published version as latest without rebuilding
+        type: string
+        required: false
 permissions:
   actions: read
   contents: write
@@ -23,10 +27,16 @@ concurrency:
   cancel-in-progress: false
 jobs:
   container:
-    if: (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.event == 'workflow_dispatch')
+    if: (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.image_version == '') || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.event == 'workflow_dispatch')
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
+      - name: Require the static publication inputs
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          RUN_ID: ${{ inputs.static_run_id }}
+          SOURCE_SHA: ${{ inputs.source_sha }}
+        run: test -n "$RUN_ID" && test -n "$SOURCE_SHA"
       - name: Check out the exact static release source
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -111,3 +121,33 @@ jobs:
           printf '\n### Server container\n\nPull the latest server edition with `docker pull %s:latest`, or pin this release with `docker pull %s:%s`. Browse tags and package settings in [GitHub Packages](https://github.com/%s/pkgs/container/alwis-server). If GitHub returns an access error, make the package public or authenticate with `docker login ghcr.io`. Source: `%s`. See [deployment instructions](https://github.com/%s/wiki/Publication).\n' \
             "$PACKAGE" "$PACKAGE" "$VERSION" "$GH_REPO" "$SOURCE_SHA" "$GH_REPO" >> build-work/server-release-notes.md
           gh release edit "$TAG" --repo "$GH_REPO" --notes-file build-work/server-release-notes.md
+  latest-alias:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.image_version != ''
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Validate existing version tag
+        env:
+          VERSION: ${{ inputs.image_version }}
+        run: |
+          if [[ ! "$VERSION" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$ ]]; then
+            echo 'Enter a valid existing container version tag.' >&2
+            exit 1
+          fi
+      - name: Retag the existing published image
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.image_version }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          PACKAGE="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/alwis-server"
+          printf '%s' "$GH_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+          docker pull "$PACKAGE:$VERSION"
+          docker tag "$PACKAGE:$VERSION" "$PACKAGE:latest"
+          docker push "$PACKAGE:latest"
+          TAG="v$VERSION"
+          gh release view "$TAG" --repo "$GH_REPO" --json body --jq .body > server-release-notes.md
+          awk '/^### Server container$/ {exit} {print}' server-release-notes.md > server-release-notes-updated.md
+          printf '\n### Server container\n\nPull the latest server edition with `docker pull %s:latest`, or pin this release with `docker pull %s:%s`. Browse tags and package settings in [GitHub Packages](https://github.com/%s/pkgs/container/alwis-server). See [deployment instructions](https://github.com/%s/wiki/Publication).\n' \
+            "$PACKAGE" "$PACKAGE" "$VERSION" "$GH_REPO" "$GH_REPO" >> server-release-notes-updated.md
+          gh release edit "$TAG" --repo "$GH_REPO" --notes-file server-release-notes-updated.md

@@ -14,6 +14,8 @@ test("server image publication maintains a latest alias and versioned release no
   assert.match(workflow, /docker push "\$PACKAGE:latest"/);
   assert.match(workflow, /latest server edition with `docker pull %s:latest`/);
   assert.match(workflow, /awk '\/\^### Server container\$\/ \{exit\} \{print\}'/);
+  assert.match(workflow, /latest-alias:/);
+  assert.match(workflow, /docker tag "\$PACKAGE:\$VERSION" "\$PACKAGE:latest"/);
 });
 
 async function unusedPort() {
