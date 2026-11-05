@@ -63,6 +63,15 @@ class WikiTests(unittest.TestCase):
             self.assertIn('https://github.com/Bastian-Noel/ALWIS/wiki/Serveur-Docker', home)
             self.assertIn('raw.githubusercontent.com/wiki/Bastian-Noel/ALWIS/assets/docs/images/alwis-start.png', home)
 
+    def test_performance_page_uses_the_new_measurement_and_metric(self):
+        performance = (ROOT / 'docs/performance.md').read_text()
+        self.assertIn('5038537f558e95307f18bd8e9738e20e9ab3fab', performance)
+        self.assertIn('mémoire résidente privée', performance)
+        self.assertIn('236,2 ± 0,6', performance)
+        self.assertIn('354,0 ± 0,4', performance)
+        self.assertIn('571,5 ± 6,0', performance)
+        self.assertNotIn('542,41', performance)
+
     def test_manual_page_collision_fails(self):
         with tempfile.TemporaryDirectory() as tmp:
             page = Path(tmp) / 'Installation.md'

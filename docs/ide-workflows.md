@@ -198,7 +198,7 @@ Les règles de suppression et de modification d’une relation affichent leur mo
 
 Lorsqu’une modification de cellule échoue sur une valeur ou une contrainte reconnue, la saisie reste affichée avec son explication. Échap annule la saisie. Les refus de relation proposent d’ouvrir la table concernée ; une opération bloquée sur la table référencée peut aussi proposer de configurer la propagation dans le formulaire de relation. Ce choix doit être confirmé et ne rejoue pas automatiquement l’opération. Les suppressions bloquées indiquent le nombre réellement supprimé avant le blocage.
 
-L’examen rapide de la RAM et les pistes non engagées sont décrits dans [Mémoire](memory-quick-review.md).
+Les mesures récentes du navigateur, du moteur et des outils sont détaillées dans [Performance et mémoire](performance.md).
 
 ## Vérifier ou réparer la version du site
 

@@ -1,177 +1,127 @@
-# Performance : mesures et protocole
+# Mémoire et performances mesurées
 
-> Les séries ci-dessous sont datées et ne constituent pas une nouvelle mesure de main. Le paquet IDE preview.2 pèse 23 109 017 octets ; son WASM natif 38 249 873 octets. Les anciennes tailles ZIP/WASM citées dans les séries ne décrivent pas cette distribution. Aucun profil utilisateur interchangeable ni gain RAM du dernier éditeur n’a été mesuré.
+> Dernière campagne intégrée : 5 novembre 2026, Windows 11, révision [`5038537f558e95307f18bd8e9738e20e9ab3fab`](https://github.com/Bastian-Noel/ALWIS/commit/5038537f558e95307f18bd8e9738e20e9ab3fab), Playwright 1.64.1. Les chiffres décrivent cette révision de test, pas automatiquement chaque version publiée.
 
+## Lire les mesures
 
-## Profils de performance et choix conseillé — 1 novembre 2026
+La mesure principale est la **mémoire résidente privée, en Mio**, additionnée sur les processus du navigateur de test. Les pages partageables sont exclues. Ce n’est ni la PSS Linux des anciens rapports, ni la somme des working sets, ni la capacité mémoire WASM. Un Mio vaut 1 048 576 octets. Les valeurs sont des moyennes ± écart-type des lancements indépendants.
 
-## Ce qui existe réellement
+Le rapport compte 148 exécutions valides et deux écartées. La campagne a été arrêtée avant les cinq répétitions prévues : la plupart des scénarios n’ont que deux ou trois lancements. Les résultats indiquent des coûts et des écarts observés, pas des budgets garantis. Les écrans Données, Schéma et Aperçu ont été mesurés au-dessus d’un moteur déjà actif ; leur coût ne doit pas être attribué au seul SQL.
 
-Il n'existe pas encore de sélecteur de profils dans le studio. Le moteur actuel utilise **un profil réduit**, avec activation SQL et chargement des Workers à la demande. Les profils `original`, `pthread-2m`, `bounded-server`, `system-tables` et `statement-cleanup` sont des révisions/expériences archivées, pas cinq options interchangeables à proposer aux utilisateurs. Leurs binaires et fonctionnalités ont évolué ; ils ne sont pas des choix équivalents d'une même version.
+## Résultats principaux
 
-| Mode actuel | Déclenchement | Conséquence |
-|---|---|---|
-| Interface seule | Aucun projet ouvert | Pas de moteur de projet démarré ; consommation non mesurée séparément |
-| PHP seul | Projet ouvert, aucun besoin SQL | Un Worker moteur ; aucun Worker pthread SQL auxiliaire, MariaDB non initialisée |
-| PHP + MariaDB | Première connexion PDO MySQL/MySQLi ou console SQL | Même WASM, même requête PHP, pool auxiliaire de 16 chargé une fois ; 15 utilisés au pic observé |
-| Outil en veille | Ressources → En veille | Interface conservée et contrôles désactivés ; aucune économie RAM démontrée |
-| Outil déchargé | Ressources → Déchargé | Brouillon conservé, DOM et modèles d'outil retirés ; connexion console fermée si SQL, transaction non validée annulée ; économie totale non quantifiée |
+Chaque navigateur démarrait avec un profil vierge. Le Campus utilise son moteur et ses vraies données. La dernière colonne indique le nombre de lancements Chromium / Firefox.
 
-Décharger un outil ne retire pas ses fonctions JavaScript déjà chargées du module principal du studio. Fermer la console ne coupe pas MariaDB utilisée par PHP. La sauvegarde arrête SQL proprement et recrée le moteur ; la première connexion suivante réactive SQL. Aucun redémarrage SQL dans le même WASM arrêté, aucun rejeu automatique de POST.
+| Configuration | Chromium (Mio) | Firefox (Mio) | Lancements C / F |
+|---|---:|---:|---:|
+| Navigateur et page HTML vide | 52,9 ± 0,1 | 249,8 ± 1,2 | 3 / 2 |
+| Moteur PHP seul, réponse vérifiée | 236,2 ± 0,6 | 430,2 ± 1,1 | 3 / 2 |
+| PHP et fichiers Campus, SQL non initialisé | 236,9 ± 0,2 | 431,9 ± 0,1 | 3 / 2 |
+| PHP et SQL initialisé, `SELECT 42` | 354,0 ± 0,4 | 571,5 ± 6,0 | 3 / 2 |
+| Campus installé, 34 tables | 382,1 ± 1,0 | 564,1 ± 2,0 | 3 / 2 |
+| Studio ouvert, aucun projet | 78,5 ± 0,0 | 289,3 ± 1,9 | 3 / 2 |
+| Studio et projet PHP vide en arrière-plan | 250,5 ± 0,2 | 468,8 ± 7,0 | 3 / 2 |
+| Studio et Campus en arrière-plan | 405,1 ± 0,6 | 611,0 ± 7,0 | 3 / 2 |
+| Campus, écran Sessions, éditeur non créé | 405,1 ± 1,3 | 659,3 ± 8,7 | 3 / 2 |
+| Éditeur PHP, coloration seule, services en veille | 79,6 ± 0,2 | 283,8 ± 0,8 | 3 / 2 |
+| Éditeur PHP avec analyse automatique | 159,2 ± 0,0 | 368,2 ± 7,2 | 3 / 2 |
+| Éditeur HTML avec analyse SuperHTML | 81,1 ± 0,4 | 277,0 ± 2,2 | 3 / 2 |
+| Éditeur CSS avec analyse locale | 70,0 ± 0,2 | 271,9 ± 2,8 | 3 / 2 |
+| Éditeur JavaScript avec TypeScript et SWC | 186,6 ± 0,3 | 445,5 ± 13,2 | 3 / 2 |
+| PHPantom seul, indexation et analyse du Campus | 135,5 ± 0,2 | 332,5 ± 28,8 | 3 / 3 |
+| PHPantom et demande de complétion PDO | 140,1 ± 0,3 | 326,7 ± 14,4 | 3 / 3 |
+| SuperHTML seul, analyse HTML | 68,4 ± 0,1 | 262,5 ± 6,4 | 3 / 3 |
+| TypeScript et SWC seuls, analyse JavaScript | 176,8 ± 1,6 | 426,5 ± 13,8 | 3 / 2 |
+| TypeScript et SWC, complétion jQuery demandée | 176,6 ± 1,5 | 418,2 ± 5,4 | 3 / 2 |
+| Campus et éditeur PHP en veille | 375,4 ± 76,4 | 664,6 ± 3,5 | 3 / 2 |
+| Campus et éditeur PHP avec analyse | 496,6 ± 1,1 | 829,1 ± 2,7 | 3 / 2 |
+| Campus et aperçu PHP, éditeur non créé | 424,6 ± 0,4 | 655,1 ± 1,6 | 3 / 2 |
+| Campus et deux aperçus, éditeur non créé | 427,7 ± 5,1 | 658,3 ± 2,3 | 3 / 2 |
+| Campus et schéma, éditeur non créé | 419,5 ± 0,8 | 669,0 ± 2,2 | 3 / 2 |
+| Campus et grille de données, éditeur non créé | 411,4 ± 3,0 | 652,8 ± 1,9 | 3 / 2 |
+| Campus et structure de table, éditeur non créé | 414,1 ± 0,2 | 653,9 ± 0,8 | 3 / 2 |
+| Campus et console SQL CodeMirror, éditeur PHP non créé | 413,5 ± 1,2 | 653,4 ± 1,7 | 3 / 2 |
+| Session cumulée : éditeur, aperçu, données, console, schéma et réseau | 522,4 ± 2,0 | 805,2 ± 50,9 | 3 / 2 |
 
-## Mesures historiques du 1 novembre 2026
+Firefox démarre ici avec une empreinte plus élevée, même sur une page vide. Il faut comparer chaque navigateur à son propre témoin : l’écart entre les deux colonnes ne mesure pas à lui seul le coût d’ALWIS.
 
-Un navigateur neuf par exécution, Chromium 156.0.8078.4 et Firefox 157.0 sous Linux. Le protocole crée un runtime, exécute PHP seul, initialise SQL, crée 1 000 lignes et mesure 100 requêtes `COUNT(*)`. PSS globale = ensemble des processus descendants du test Playwright ; elle inclut navigateur, JS/JIT, Workers, WASM et VFS. Il ne s'agit ni de la seule RAM du moteur ni d'un pic continu.
+## Modes mesurés et activation SQL
 
-| Mesure | Chromium | Firefox |
+Les configurations du tableau sont des scénarios de mesure, pas des profils sélectionnables dans l’interface. L’ouverture d’un projet PHP démarre le moteur commun ; sans requête SQL, le rapport observe zéro Worker SQL et aucun fichier de base dans le VFS. Quand SQL est utilisé, le pool mesuré crée 16 Workers et le datadir est chargé. Le moteur MariaDB reste donc évité pour les projets qui n’utilisent pas SQL.
+
+La mémoire linéaire WASM mesurée commence à 256 Mio. Le plafond effectif annoncé par le build de test est 512 Mio. Ce sont des capacités de réservation/croissance, pas des quantités de RAM physique à ajouter aux valeurs du tableau.
+
+## Surcoût observé des services et outils
+
+Les différences ci-dessous soustraient un témoin correspondant. Elles ne sont pas additives : initialisation, compilation, collecte mémoire et libérations peuvent se chevaucher.
+
+| Comparaison | Chromium (Mio) | Firefox (Mio) | Lecture |
+|---|---:|---:|---|
+| PHP seul, au-dessus de la page vide | +183,3 | +180,4 | Surcoût observé du moteur commun |
+| MariaDB activée, PHP déjà actif | +117,9 | +141,3 | Mesure appariée : +117,3 ± 0,8 / +141,0 ± 6,0 |
+| Fichiers Campus ajoutés sans démarrer SQL | +0,7 | +1,7 | Faible dans cette fixture |
+| Installation des 34 tables, SQL déjà actif | +28,1 | -7,4 | Firefox : différence non résolue |
+| PHPantom, indexation/analyse seule | +82,6 | +82,8 | Au-dessus de la page vide |
+| SuperHTML, analyse HTML seule | +15,5 | +12,8 | Au-dessus de la page vide |
+| TypeScript et SWC, analyse JavaScript | +123,9 | +176,7 | Au-dessus de la page vide |
+| Complétion PDO après analyse PHP | +4,6 | -5,8 | Firefox : différence non résolue |
+| Éditeur PHP avec analyse ajouté au Campus | +90,2 ± 0,1 | +154,9 ± 9,9 | Mesure appariée dans le studio |
+| Session cumulée ajoutée au témoin Campus | +116,0 ± 0,7 | +139,5 ± 50,6 | Mesure appariée ; forte dispersion Firefox |
+
+Un résultat négatif ou proche de zéro ne signifie pas que l’outil libère de la mémoire : il peut être inférieur aux variations de collecte, de compilation et de ramasse-miettes.
+
+## Ce que le déchargement récupère dans ce test
+
+Après chaque action, le banc attend trois secondes et ne force pas le ramasse-miettes. La séquence porte sur une session cumulée jetable.
+
+| Action | Chromium : différence (Mio) | Firefox : différence (Mio) |
 |---|---:|---:|
-| Capacité WASM, PHP seul / SQL actif | 256 / 256 Mio | 256 / 256 Mio |
-| RAM globale PSS, PHP seul | **278,93 Mio** | **617,85 Mio** |
-| RAM globale PSS, SQL au travail | **542,41 Mio** | **758,26 Mio** |
-| Allocateur C occupé après travail SQL | 74,78 Mio | 74,78 Mio |
-| Démarrage SQL à la demande, dans ce passage | 4 066 ms | 955 ms |
-| Requête SQL médiane / p95, 100 mesures | 2,92 / 10,10 ms | 1,90 / 2,74 ms |
-| Workers auxiliaires avant SQL / après SQL | 0 / 16 | 0 / 16 |
+| Mettre l’éditeur en veille, arrêter le LSP | -115,9 ± 81,9 | -57,0 ± 0,2 |
+| Décharger l’éditeur, retirer DOM et modèle | -0,2 ± 4,1 | -2,7 ± 0,2 |
+| Masquer l’aperçu normalement | -17,7 ± 4,4 | -3,8 ± 0,3 |
+| Retirer l’iframe (expérience du banc, pas le comportement de l’app) | +0,1 ± 0,1 | -0,3 ± 0,4 |
+| Décharger la console SQL | -4,0 ± 7,9 | -14,7 ± 2,0 |
+| Fermer le projet sans sauvegarde, fin du test | -202,6 ± 58,2 | -310,7 ± 3,2 |
 
-Le temps de démarrage SQL comprend ici la création/initialisation des Workers différés et MariaDB ; il exclut le chargement initial du module principal dans la phase de création du runtime. Les 100 requêtes sont des petits COUNT, pas des pages PHP complètes. Une série ne définit ni un débit maximal ni une supériorité générale d'un navigateur. Les écarts avec les anciennes séries ne permettent pas d'isoler la cause d'un gain ou d'une régression.
+La veille du service d’analyse peut rendre une part notable, mais avec une dispersion importante sous Chromium. Décharger le DOM ou masquer une vue ne garantit pas une restitution équivalente. Ces observations courtes ne promettent pas une baisse immédiate de RAM physique sur chaque machine.
 
-CPU, énergie/batterie, pics continus de compilation et taille de transfert HTTP avec compression ne sont pas instrumentés par ces profils. Le ZIP téléchargeable (~9,3 Mio) n'est pas la taille réellement transférée par un hébergement servant le WASM brut (~31,76 Mio).
+## Compteurs WASM et stockage interne
 
-Les observations faites immédiatement après arrêt/destruction ne montrent pas de baisse immédiate de PSS dans ce passage. Terminer un Worker est asynchrone et aucun délai de stabilisation/GC n'est imposé. Ne pas présenter la fermeture comme une restitution garantie de centaines de Mio au navigateur.
+Ces compteurs décrivent des sous-systèmes ; **il ne faut pas les additionner** à la mémoire résidente privée ci-dessus.
 
-## Comparaisons historiques
+| Compteur observé | PHP sans SQL | PHP + `SELECT 42` | Campus installé |
+|---|---:|---:|---:|
+| Capacité mémoire WASM linéaire initiale | 256 Mio | 256 Mio | 256 Mio |
+| Allocateur C occupé, Chromium | 0 | 72,93 Mio | 78,31 Mio |
+| Allocateur C occupé, Firefox | 0 | 72,60 Mio | 73,95 Mio |
+| Fichiers SQL logiques dans le VFS | 0 | 62,84 Mio | 65,61 Mio |
+| Workers SQL créés | 0 | 16 | 16 |
 
-Toutes les valeurs ci-dessous sont prises au stade travail SQL. Une case d'allocateur non instrumenté reste inconnue ; elle ne vaut pas zéro.
+Le rapport indique un plafond WASM effectif de 512 Mio. Les seize Workers partagent la mémoire linéaire WASM ; il ne faut pas multiplier 256 Mio par seize. Ils ont toutefois leurs propres contextes JavaScript, objets de runtime et piles. La capacité annoncée par WASM n’est pas de la RAM résidente.
 
-| Révision/profil | Capacité WASM Chromium / Firefox | PSS Chromium / Firefox | Usage conseillé |
-|---|---:|---:|---|
-| Initial `original` | 737,75 / 732,94 Mio | 1 041,69 / 1 224,39 Mio | Référence historique ; trop coûteux pour le prototype |
-| Piles 2 Mio seulement `pthread-2m` | 626,38 / 626,38 Mio | 975,14 / 1 368,08 Mio | Essai intermédiaire insuffisant ; baisse de capacité sans baisse physique systématique |
-| Serveur réduit `bounded-server` | 256 / 256 Mio | 574,23 / 736,63 Mio | Ancien témoin de réduction des caches ; ne contient pas toutes les consolidations actuelles |
-| Tables système `system-tables` | 256 / 256 Mio | 654,19 / 741,63 Mio | Jalon fonctionnel historique |
-| Nettoyage/quotas `statement-cleanup` | 256 / 256 Mio | 654,82 / 743,06 Mio | Jalon récent avant chargement différé des Workers |
-| Actuel `lazy-sql-workers` | 256 / 256 Mio | 542,41 / 758,26 Mio | **Profil à conserver par défaut** |
+L’inspection a trouvé 167 fichiers SQL : 65,61 Mio logiques et 65,66 Mio de buffers JavaScript non-WASM visibles. Les six plus gros représentent environ 62 Mio : `ibdata1` 12 Mio, `ibtmp1` 12 Mio, trois fichiers undo de 10 Mio chacun et le redo de 8 Mio. C’est nettement plus que les fichiers source du Campus.
 
-Avant le chargement différé, `statement-cleanup` observait PHP seul à 548,62 Mio Chromium / 817,22 Mio Firefox, avec des Workers auxiliaires déjà préchargés. Le passage actuel observe 278,93 / 617,85 Mio et aucun Worker auxiliaire SQL. Le nombre de Workers supprimés au démarrage est établi ; les différences exactes de RAM restent des observations entre passages.
+Les Workers de langage annonçaient les capacités linéaires suivantes après le travail testé : PHPantom 11,75 Mio après analyse, 21,69 Mio après la sonde de complétion PDO ; SuperHTML 16,94 Mio ; TypeScript/SWC 3,06 Mio. Ces valeurs ne comprennent pas le tas JavaScript, le code compilé ni les objets du navigateur.
 
-## Réglages actuels
+## Ce que les résultats suggèrent
 
-- Mémoire WASM initiale 256 Mio ; plafond de croissance 512 Mio.
-- Pile principale 16 Mio, pile par pthread 2 Mio, pile Asyncify 128 Kio.
-- InnoDB : pool et maximum 16 Mio, redo 8 Mio, log buffer 2 Mio.
-- Aria/MyISAM : 1 Mio chacun ; query cache désactivé.
-- Tables temporaires en mémoire : 4 Mio ; buffers de tri/jointure 256 Kio ; lecture 128/256 Kio.
-- Paquet SQL serveur : 16 Mio ; commandes SQL appelantes : 8 Mio.
-- 32 connexions appelantes ; registre partagé de 128 handles préparés natifs, 16 Mio de texte SQL réservé.
-- Collecte d'un résultat : budget de blocs 16 Mio et 10 000 lignes ; la grille demande 100 lignes par page.
-- `memory_limit` PHP 256M : ce n'est pas une limite couvrant MariaDB, VFS et navigateur.
+1. **PHP seul reste coûteux**, car le build publié charge le module WASM fusionné PHP/MariaDB ; le SQL à la demande évite toutefois d’initialiser MariaDB et ses Workers tant qu’ils ne sont pas utilisés.
+2. **Les services de langage sont un poste mesurable.** Garder l’édition et la coloration disponibles, puis rendre l’analyse sémantique plus explicitement activable et déchargeable est une piste à évaluer. Le gain d’une nouvelle architecture n’a pas encore été mesuré.
+3. **Un mode fichiers statiques sans moteur** éviterait de créer le runtime à l’ouverture d’un projet statique. Un build PHP sans MariaDB pourrait aussi réduire le coût fixe ; les deux gains restent à mesurer.
+4. **Le Campus retient un datadir important dans le VFS mémoire.** Étudier OPFS ou une autre stratégie de fichiers sans compromettre durabilité, récupération ni comportement SQL.
+5. **Les paramètres SQL sont déjà réduits sur plusieurs axes.** InnoDB utilise un buffer pool de 16 Mio ; Aria et MyISAM ont un cache de 1 Mio chacun ; les threads I/O sont à lecture 1, écriture 2 et purge 1. Le pool de 16 Workers est utilisé dans les scénarios SQL observés. Une baisse supplémentaire doit passer par un rebuild et des tests de transactions, de reprise et de concurrence.
+6. **Décharger les aperçus et vues pourrait aider**, mais le test n’a pas démontré que retirer une iframe rend davantage que masquer l’aperçu. Mesurer chaque changement sur des sessions identiques.
+7. **Charger CodeMirror et les parseurs uniquement à l’ouverture** reste à évaluer : le code du studio importe actuellement CodeMirror au démarrage. Le formateur a terminé son Worker après usage dans l’application normale ; une mesure qui le garde actif ne décrit donc pas le coût permanent du produit.
 
-Les quotas VFS, les copies réseau et le journal ont aussi leurs limites ; voir [RESOURCE-LIMITS.md](../packages/runtime/RESOURCE-LIMITS.md).
+Ces propositions ne sont pas des optimisations déjà réalisées ni des économies promises. Aucun objectif de RAM inférieur à 300 Mio n’est démontré pour un projet PHP + SQL.
 
-## Recommandation
+## Protocole et limites
 
-**Conserver le profil réduit actuel, le SQL à la demande et les 16 Workers autorisés après activation. Privilégier Chromium pour les premiers essais sur machine limitée en mémoire**, car c'est le navigateur le moins consommateur dans les observations disponibles. Firefox fonctionne et reste une cible à maintenir, mais son coût global est sensiblement plus élevé ici.
+- Windows 11 Pro, noyau 10.0.26300, AMD Ryzen 7 7700, 16 processeurs logiques, 15,1 Gio de RAM.
+- Un navigateur headless neuf et un profil vierge par scénario ; Chromium et Firefox mesurés séparément. Le total couvre les processus descendants du navigateur, mais exclut le serveur Node et le collecteur.
+- Après disponibilité fonctionnelle : huit secondes de repos, puis sept instantanés espacés de 300 ms. Les étapes de fermeture attendent trois secondes et prennent cinq instantanés. Aucun ramasse-miettes forcé, aucun vidage du working set.
+- Le Campus utilise le vrai moteur et ses données. Les tests HTML et JavaScript utilisent des documents synthétiques, car le Campus n’a pas de fichiers autonomes correspondants. Les demandes de complétion PDO sont également des sondes.
+- La campagne a été interrompue après deux ou trois répétitions par configuration. Les deux mesures rejetées pour erreurs de lecture du collecteur ne sont pas incluses.
+- La mémoire résidente privée exclut les pages partageables. La somme des working sets peut compter les pages partagées plusieurs fois. Ne pas comparer ces chiffres directement aux anciennes mesures PSS Linux, à la RAM d’un autre navigateur ou à la capacité du buffer WASM.
 
-Pour les projets sans base : éviter l'ouverture de la console et du schéma, puisque leur interrogation initialise SQL. Pour l'édition occasionnelle : décharger les outils inutilisés, en sachant que leur économie réelle doit encore être mesurée. L'arrêt SQL à chaud ne doit pas devenir un bouton d'optimisation mémoire : le chemin retenu est sauvegarde et nouveau moteur.
-
-Ne pas réduire arbitrairement le pool à 8 : 15 Workers ont été nécessaires dans les scénarios observés. Réduire d'abord expérimentalement les threads internes InnoDB, puis ajuster le pool selon le nouveau pic et vérifier SQL, transactions, stockage et récupération.
-
-La cible **moins de 300 Mio de RAM globale** n'est pas atteinte avec SQL actif. Un seul échantillon PHP seul Chromium est sous cette cible ; il ne prouve pas un budget garanti.
-
-## Profils à ajouter, pas encore disponibles
-
-| Profil envisagé | Travail nécessaire | Consommation connue |
-|---|---|---|
-| Web statique sans moteur PHP | Fichiers/routage/persistance sans instancier le WASM commun | Non mesurée |
-| Initialisation WASM 64/128 Mio | Rebuild, stress de croissance mémoire et vues partagées, buffers, threads, imports | Non mesurée ; ce sont des pistes, pas des budgets acquis |
-| SQL compact | Threads I/O/purge réduits, essais de caches et de pool, comparaison sur projets réels | Non mesurée |
-| SQL capacité accrue | Caches 32/64 Mio et contraintes cohérentes avec VFS/résultats | Non mesurée sur la version actuelle ; réserver aux besoins démontrés |
-| Édition complète | CodeMirror et services de langage réellement intégrés et déchargeables | Non mesurée ; aucun coût LSP fiable à annoncer |
-
-## Preuves
-
-Les nouveaux JSON sont sous `benchmarks/receipts/native-memory/lazy-sql-workers/`. Commande exécutée :
-
-```bash
-PLAYWRIGHT_BROWSERS_PATH=/workspace/.cache/ms-playwright node benchmarks/native/memory.mjs lazy-sql-workers
-```
-
-Les protocoles/limites et anciennes séries sont conservés dans [benchmarks/native/README.md](../benchmarks/native/README.md). Le test de charge historique à deux clients offre 5 puis 10 requêtes/s par client pendant 10 s par palier. Les 100 puis 200 réponses sont vérifiées ; au palier 10, médiane/p95 HTTP : 14,45/22,85 ms Chromium, 15,44/20,62 ms Firefox. Ce résultat ne démontre pas un plafond de débit, une endurance longue ni le coût de N fenêtres arbitraires.
-
-
-## Mémoire et protocole de mesure
-
-## Constats vérifiés dans les sources
-
-| Paramètre | Amont lite4mariadb épinglé | Patch du bridge épinglé | Repère |
-|---|---:|---:|---|
-| Mémoire linéaire initiale | 256 Mio | inchangée dans le patch | SRC-030 |
-| Maximum linéaire | 2 Gio | inchangé dans le patch | SRC-032 |
-| Pile Emscripten principale | 2 Mio | inchangée dans le patch | `wasm/CMakeLists.txt` |
-| Pool pthread initial | 16 | 16, politique stricte modifiée | SRC-031/027 |
-| Buffer pool InnoDB initial | 16 Mio | 64 Mio | SRC-034/027 |
-| Limite pool InnoDB annoncée aux options | 16 Mio | 256 Mio, option `loose` | SRC-034/027 |
-| Sessions supplémentaires | non exposées par ABI d'origine | 32 slots | patch `independent-sessions.patch` |
-| Résultat C | `mysql_store_result` | API JSON conservée | SRC-033 |
-| Stockage navigateur | IDBFS, miroir en mémoire | checkpoint puis persist | SRC-036/024 |
-
-Les pthreads partagent la mémoire linéaire : il ne faut pas multiplier 256 Mio par 16. La pile fait partie de l'espace linéaire et ne doit pas être ajoutée une seconde fois à ce total. Taille allouée, mémoire résidente et mémoire du processus navigateur sont trois mesures différentes.
-
-## Cibles de conception, non mesures
-
-| Poste | Paramètre d'essai |
-|---|---|
-| Cache sources | 4 Mio, 1024 entrées, pas de cache des gros fichiers |
-| Queue HTTP | 32 attentes max, 8 Mio de corps admis actifs+en attente |
-| Bloc résultat SQL | 256 Kio / 256 lignes au maximum, cellule hors budget rejetée explicitement |
-| Pagination console | 100 lignes, plafond taille cellule/historique |
-| Buffer pool InnoDB | comparer 16 et 32 Mio au témoin 64 Mio patché |
-| Pool pthread | comparer 16, 8 puis 4 seulement si le moteur démarre et reste correct |
-| Mémoire initiale MariaDB | comparer 256, 128, 96, 64 Mio ; ne pas supposer les plus petites fonctionnelles |
-| Objectif produit | < 300 Mio sur petite fixture, à préciser par métrique et navigateur |
-
-`config/memory-profiles.json` ne change pas les builds amont. Ses valeurs sont des entrées d'expérience. La réussite des tests JavaScript n'atteste aucune de ces cibles natives.
-
-L'ancien échange évoquait environ 200–350 Mo pour un petit usage optimisé, et davantage avec les builds bruts. Ces enveloppes restent des estimations historiques. Aucun résultat RAM n'a été mesuré dans cette reconstruction.
-
-## Ordre des optimisations
-
-1. Une seule paire PHP/MariaDB par projet ; fenêtres clientes supplémentaires légères.
-2. Éviter le datadir et les sources entièrement dupliqués dans MEMFS/JS.
-3. Borner résultats, curseurs, connexions, uploads, files et métadonnées de fichiers.
-4. Réduire buffers InnoDB et temporaires MariaDB ; inspecter allocations globales et par connexion.
-5. Réduire les pthreads et la mémoire initiale après tests fonctionnels et de reprise.
-6. Remplacer JSON/base64 et les requêtes SQL auxiliaires inutiles ; comparer le build fusionné.
-7. Charger CodeMirror/grille/diagramme uniquement à leur ouverture.
-
-Une mémoire WASM qui a grandi ne rétrécit généralement pas au simple free des objets. Mesurer le pic et le coût de redémarrer proprement un moteur devenu trop gros ; ne pas confondre absence de fuite et réduction immédiate du heap.
-
-## Mesures à collecter
-
-Pour chaque run, enregistrer date, commits, hashes des JS/WASM, options de build, OS/CPU/RAM, navigateur/version, état d'isolation et métrique mémoire exacte. Définir froid (profil/cache vierge) et chaud (assets et DB prêts). Ne pas comparer deux variantes pendant une compilation ou une compression concurrente.
-
-| Scénario | Taille/charge | Mesures |
-|---|---|---|
-| Studio vide | moteurs démarrés, aucune UI SQL | temps download/compile/startup et repos |
-| Import projet | 100/1000/10000 petits fichiers ; média 100 Mio | pic JS/WASM, copies et débit d'import |
-| Base | 1/10/100/500 Mio disque | mémoire au repos, après lectures, checkpoint et reprise |
-| Page PHP | 1/10/100 requêtes SQL, petits résultats | latence de bout en bout, p50/p95 et durée file |
-| Résultats | 100/10000/100000 lignes ; gros BLOB | pic moteur/transport/PHP/UI, free_result et fetch partiel |
-| Deux joueurs | 5 puis 10 Hz chacun pendant 10 min | mémoire, erreurs, file, latence p95, sessions distinctes |
-| Surcharge | doubler progressivement le débit | refus 503 bornés ; pas de croissance indéfinie |
-| Fenêtres | ajouter/fermer console et diagramme | surcoût incrémental, nombre de moteurs inchangé |
-| Durabilité | flush réussi puis arrêt forcé | données retrouvées, intégrité et temps de récupération |
-| Longue session | plusieurs cycles import/requêtes/fenêtres | pente mémoire après repos et ressources non libérées |
-
-La taille `WebAssembly.Memory.buffer.byteLength` est utile mais n'est pas la RAM résidente. Utiliser les outils du navigateur et du processus pour la mesure complète. Les API de mesure mémoire disponibles varient : documenter ce qui est réellement mesuré et éviter d'additionner des mesures de processus qui partagent des pages.
-
-## Polling : calcul de charge
-
-Pour une file mono-exécution, occupation approchée = débit total × durée moyenne par requête. Deux joueurs à 10 Hz = 20 requêtes/s. À 15 ms par requête, cela donne 30 % théoriques ; à 50 ms, 100 % sans marge. Ce sont des calculs, pas des benchmarks.
-
-L'objectif est une file stable avec de la marge, des requêtes courtes, un index de partie et une seule requête en vol par joueur. La fixture ferme la session PHP avant SQL. En arrière-plan, ralentir ; après une notification locale d'écriture, une lecture utile peut remplacer plusieurs polls à vide.
-
-## Comparaison de variantes
-
-Conserver les mêmes données et critères de durabilité pour : référence séparée+IDBFS, IDBFS incrémental, OPFS, puis fusion. Un flush différé ne doit pas être comparé à une persistance attendue par requête sans le signaler. Répéter au moins cinq exécutions indépendantes, garder les bruts et rapporter dispersion et échecs. Les résultats du dépôt Sean Morris sont une source de méthode, pas des performances de notre futur produit.
-
+Les chiffres détaillés proviennent du rapport Windows fourni pour cette révision. Les fichiers JSON bruts associés à ce rapport ne faisaient pas partie du document transmis ; ils ne sont donc pas présentés ici comme artefacts téléchargeables.
