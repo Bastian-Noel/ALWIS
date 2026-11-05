@@ -1,3 +1,4 @@
+import { relationRule, relationRules } from "../relation-rules.mjs";
 /** Espace Schéma : tables colorées, déplacement, relation par glisser-déposer d'un champ vers un autre, panoramique et zoom. */
 import { $, $$, esc, plural, toast, menu, ddl, sqlHtml, at } from "../ui.mjs";
 import {
@@ -224,7 +225,10 @@ export function drawSchema() {
       sy = fg.ry(fi);
     svg += `<path class="rubber" d="M${sx} ${sy} C${sx + (lk.x > sx ? 60 : -60)} ${sy},${lk.x + (lk.x > sx ? -60 : 60)} ${lk.y},${lk.x} ${lk.y}"/><circle class="rubber-dot" cx="${lk.x}" cy="${lk.y}" r="5"/>`;
   }
-  $("#layer").innerHTML = svg;
+  // Last SVG child paints above every table without intercepting pointer input.
+  $("#layer").innerHTML =
+    svg +
+    '<g id="schema-link-overlay" class="lkg schema-link-overlay" aria-hidden="true" pointer-events="none"></g>';
   applyView();
   ctx.schedulePersist?.();
   /* fiche de la table sélectionnée */
@@ -278,16 +282,28 @@ function relPop({ child, parent, fk, x, y }) {
       }),
     ].filter(Boolean);
   const sel = (id, opts, v) =>
-    `<label class="field" style="margin:0"><span>${id === "rd" ? "À la suppression du parent" : "À la modification de la clé"}</span><select class="in" id="${id}" style="width:100%">${opts.map((o) => `<option ${o === v ? "selected" : ""}>${o}</option>`).join("")}</select></label>`;
+    `<label class="field" style="margin:0"><span>${id === "rd" ? "Si la ligne référencée est supprimée" : "Si sa clé est modifiée"}</span><select class="in" id="${id}" aria-describedby="${id}-help" style="width:100%">${opts.map((o) => `<option value="${o}" ${o === v ? "selected" : ""}>${esc(relationRule(o, id === "ru").label)}</option>`).join("")}</select></label><p class="hint relation-rule-help" id="${id}-help" aria-live="polite"></p>`;
   const p = menu(at(x, y), 0, {
     cls: "relpop",
     html: `<div class="ph">${fk ? "Modifier la relation" : existing ? "Remplacer la relation" : "Nouvelle relation"}</div>
     <div class="relhead"><span class="pillt" style="--h:${tableHue(ct.name)}">${esc(ct.name)}.${esc(cc.name)}</span><span class="relarrow">${uiIcon("arrow-right")}</span><span class="pillt" style="--h:${tableHue(pt.name)}">${esc(pt.name)}.${esc(pc.name)}</span></div>
     <p class="pp">Plusieurs <b>${esc(ct.name)}</b> pour un <b>${esc(pt.name)}</b>${cc.nullable ? ", le parent est facultatif" : ", le parent est obligatoire"}.</p>
-    <div style="display:grid;gap:8px;padding:0 10px 6px">${sel("rd", ["RESTRICT", "CASCADE", "SET NULL"], state.del)}${sel("ru", ["CASCADE", "RESTRICT", "SET NULL"], state.upd)}<details class="sql-disclosure"><summary>Voir la requête SQL</summary><pre class="pre sqlh" id="rsql"></pre></details>${warn ? `<p class="hint bad">${esc(warn)}</p>` : ""}</div>
+    <div style="display:grid;gap:8px;padding:0 10px 6px">${sel("rd", relationRules, state.del)}${sel("ru", relationRules, state.upd)}<details class="sql-disclosure"><summary>Voir la requête SQL</summary><pre class="pre sqlh" id="rsql"></pre></details>${warn ? `<p class="hint bad">${esc(warn)}</p>` : ""}</div>
     <div style="display:flex;gap:6px;padding:4px 10px 10px;justify-content:space-between">${fk ? '<button class="btn sm bad" id="rdrop">Supprimer</button>' : "<span></span>"}<span style="display:flex;gap:6px"><button class="btn sm" id="rno">Annuler</button><button class="btn sm pri" id="rok" ${unique ? "" : "disabled"}>${fk ? "Appliquer" : "Créer la relation"}</button></span></div>`,
   });
   const paint = () => {
+    $("#rd-help", p).textContent = relationRule(
+      state.del,
+      false,
+      ct.name,
+      pt.name,
+    ).detail;
+    $("#ru-help", p).textContent = relationRule(
+      state.upd,
+      true,
+      ct.name,
+      pt.name,
+    ).detail;
     $("#rsql", p).innerHTML = sqlHtml(build().join("\n"));
     p.reposition?.();
   };
@@ -472,6 +488,22 @@ export function bindSchema() {
         (e.clientY - r.top - S.pan[1]) / S.zoom,
       ];
     };
+  const showHint = (relation) => {
+    const overlay = $("#schema-link-overlay");
+    if (!overlay) return;
+    overlay.replaceChildren();
+    if (!relation) return;
+    for (const label of relation.querySelectorAll(".lab, .cardinality"))
+      overlay.append(label.cloneNode(true));
+  };
+  sv.addEventListener("pointerover", (e) =>
+    showHint(e.target.closest("[data-rel]")),
+  );
+  sv.addEventListener("pointerleave", () => showHint(null));
+  sv.addEventListener("focusin", (e) =>
+    showHint(e.target.closest("[data-rel]")),
+  );
+  sv.addEventListener("focusout", () => showHint(null));
   sv.addEventListener("pointerdown", (e) => {
     const port = e.target.closest("[data-port]"),
       colEl = e.target.closest("[data-col]"),

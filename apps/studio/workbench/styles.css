@@ -3363,3 +3363,10 @@ select.in:focus { background-color:var(--sheet); }
 .dg tr.ghost td { vertical-align:top; }
 .dg tr.ghost input { display:block; height:32px; padding:4px 6px; }
 .dg tr.ghost .cell-error { max-width:none; }
+
+/* Hover labels paint in a separate final SVG layer, above tables and links. */
+.lkg:hover .lab { opacity:0; }
+.schema-link-overlay, .schema-link-overlay * { pointer-events:none; }
+.schema-link-overlay .lab { opacity:1; }
+.relation-rule-help { margin:0 0 8px; line-height:1.5; }
+.relpop { max-height:calc(100dvh - 24px); overflow:auto; }

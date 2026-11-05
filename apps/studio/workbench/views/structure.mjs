@@ -1,3 +1,4 @@
+import { relationRule, relationRules } from "../relation-rules.mjs";
 import * as G from "../sqlgen.mjs";
 import { ui, icon } from "../icons.mjs";
 import { ddl, modal, esc, toast } from "../ui.mjs";
@@ -321,26 +322,20 @@ export async function relationForm(initial = {}) {
           `<option value="${esc(t.name)}" ${t.name === selected ? "selected" : ""}>${esc(t.name)}</option>`,
       )
       .join("");
-  const rules = {
-    RESTRICT: "Empêcher la suppression",
-    CASCADE: "Supprimer aussi les lignes liées",
-    "SET NULL": "Retirer le lien (NULL)",
-    "NO ACTION": "Refuser si des lignes sont liées",
-  };
   const ruleOptions = (selected, update = false) =>
-    Object.entries(rules)
+    relationRules
       .map(
-        ([code, label]) =>
-          `<option value="${code}" ${code === selected ? "selected" : ""}>${esc(update ? { RESTRICT: "Empêcher la modification", CASCADE: "Mettre à jour les liens", "SET NULL": "Retirer le lien (NULL)", "NO ACTION": "Refuser si des lignes sont liées" }[code] : label)}</option>`,
+        (code) =>
+          `<option value="${code}" ${code === selected ? "selected" : ""}>${esc(relationRule(code, update).label)}</option>`,
       )
       .join("");
   await modal({
     title: initial.name ? "Modifier la relation" : "Relier deux tables",
     wide: true,
     body: `<p class="relation-intro">Choisissez la table qui porte le lien, puis celle qu’elle référence.</p>
-      <div class="relation-tables"><label class="relation-card"><span class="relation-step">1 · Depuis</span><b>Plusieurs lignes de…</b><select class="in" id="rel-child" aria-label="Table qui porte le lien">${tableOptions(value.child)}</select><span class="hint">La table qui contient la clé étrangère</span></label><span class="relation-connector" aria-hidden="true">${ui.link}<span>N ${icon("arrow-right","sm")} 1</span></span><label class="relation-card"><span class="relation-step">2 · Vers</span><b>Une ligne de…</b><select class="in" id="rel-parent" aria-label="Table référencée">${tableOptions(value.parent)}</select><span class="hint">La table dont on référence une clé</span></label></div>
+      <div class="relation-tables"><label class="relation-card"><span class="relation-step">1 · Depuis</span><b>Plusieurs lignes de…</b><select class="in" id="rel-child" aria-label="Table qui porte le lien">${tableOptions(value.child)}</select><span class="hint">La table qui contient la clé étrangère</span></label><span class="relation-connector" aria-hidden="true">${ui.link}<span>N ${icon("arrow-right", "sm")} 1</span></span><label class="relation-card"><span class="relation-step">2 · Vers</span><b>Une ligne de…</b><select class="in" id="rel-parent" aria-label="Table référencée">${tableOptions(value.parent)}</select><span class="hint">La table dont on référence une clé</span></label></div>
       <section class="relation-mapping" aria-labelledby="rel-mapping-title"><h2 id="rel-mapping-title">Associer les colonnes</h2><label class="field"><span>Clé de la table référencée</span><select class="in" id="rel-key"></select></label><div id="rel-pairs"></div><p id="rel-summary" class="hint" aria-live="polite"></p></section>
-      <details class="relation-options"><summary>Comportement et nom de la relation</summary><label class="field"><span>Si la ligne référencée est supprimée</span><select class="in" id="rel-delete">${ruleOptions(value.delete)}</select></label><label class="field"><span>Si sa clé est modifiée</span><select class="in" id="rel-update">${ruleOptions(value.update, true)}</select></label><label class="field"><span>Nom de la relation</span><input class="in" id="rel-name" value="${esc(value.name)}" maxlength="64"></label></details>
+      <details class="relation-options"><summary>Comportement et nom de la relation</summary><label class="field"><span>Si la ligne référencée est supprimée</span><select class="in" id="rel-delete" aria-describedby="rel-delete-help">${ruleOptions(value.delete)}</select></label><p class="hint relation-rule-help" id="rel-delete-help" aria-live="polite"></p><label class="field"><span>Si sa clé est modifiée</span><select class="in" id="rel-update" aria-describedby="rel-update-help">${ruleOptions(value.update, true)}</select></label><p class="hint relation-rule-help" id="rel-update-help" aria-live="polite"></p><label class="field"><span>Nom de la relation</span><input class="in" id="rel-name" value="${esc(value.name)}" maxlength="64"></label></details>
       <details class="sql-disclosure"><summary>Voir la requête SQL</summary><pre class="pre" id="rel-sql"></pre></details><p class="hint bad" id="rel-error" role="status"></p>`,
     actions: [
       { label: "Annuler", v: "no" },
@@ -358,6 +353,18 @@ export async function relationForm(initial = {}) {
         );
         value.delete = get("delete").value;
         value.update = get("update").value;
+        get("delete-help").textContent = relationRule(
+          value.delete,
+          false,
+          value.child,
+          value.parent,
+        ).detail;
+        get("update-help").textContent = relationRule(
+          value.update,
+          true,
+          value.child,
+          value.parent,
+        ).detail;
         value.name = get("name").value.trim();
         try {
           get("sql").textContent = build(value);

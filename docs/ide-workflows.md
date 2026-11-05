@@ -183,3 +183,5 @@ Le séparateur discret entre l’éditeur et l’aperçu règle leur largeur. Sa
 L’en-tête et le chargement affichent **ALWIS** en texte, sans logo. Les actions utilisent des icônes SVG accompagnées d’un texte ou d’une infobulle. Les commandes indisponibles sont grisées : replier des dossiers déjà fermés, parcourir une recherche sans résultat ou utiliser les outils d’un schéma vide. Une relation vers la même table reste possible dès qu’une table existe.
 
 Les notifications distinguent réussite, information, avertissement et erreur. Trois messages au maximum restent affichés ; leur durée se suspend au survol et tant que le clavier reste dans la notification. La croix permet de fermer chaque message. Les modales disposent de leur propre bouton de fermeture et conservent Annuler.
+
+Les règles de suppression et de modification d’une relation sont expliquées en français sous chaque choix, dans le schéma et le formulaire de relation. L’explication nomme les tables concernées : bloquer l’opération, répercuter le changement ou conserver les lignes en retirant leur lien (NULL). Les indications au survol d’une relation restent devant les tables du schéma.
