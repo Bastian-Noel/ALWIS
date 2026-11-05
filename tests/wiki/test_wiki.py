@@ -26,6 +26,11 @@ class WikiTests(unittest.TestCase):
         code = '`[example](missing.md)`\n```html\n<img src="missing.png">\n```\n'
         self.assertEqual(self.builder.convert(code, 'README.md'), code)
 
+    def test_deployment_compose_example_matches_the_shipped_file(self):
+        deployment = (ROOT / 'docs/deployment.md').read_text()
+        compose = (ROOT / 'server/compose.yaml').read_text().rstrip()
+        self.assertIn('```yaml\n' + compose + '\n```', deployment)
+
     def test_broken_and_escaping_links_fail(self):
         for link in ['missing-file.md', '../../etc/passwd']:
             with self.assertRaises(ValueError):

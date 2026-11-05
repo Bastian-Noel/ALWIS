@@ -10,6 +10,62 @@ Après la réussite du workflow manuel `Publish FTP - validated studio`, le work
 
 Le dépôt fournit un Compose prêt à l’emploi dans [`server/compose.yaml`](../server/compose.yaml) et son modèle de variables dans [`server/.env.example`](../server/.env.example). Il lance une image publiée et versionnée, conserve les réglages serveur dans un volume SQLite, lie le port à `127.0.0.1` et fixe par défaut une limite de 640 Mio et 0,75 CPU. Le navigateur exécute toujours PHP et MariaDB ; ce conteneur sert l’interface et sa page d’administration.
 
+Voici le fichier Compose complet :
+
+```yaml
+services:
+  alwis:
+    image: ${ALWIS_SERVER_IMAGE:?Définissez ALWIS_SERVER_IMAGE dans .env}
+    init: true
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    user: "10001:10001"
+    environment:
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:?Définissez PUBLIC_BASE_URL dans .env}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-}
+      TRUST_PROXY: ${TRUST_PROXY:-true}
+      ALWIS_ADMIN_USER: ${ALWIS_ADMIN_USER:-admin}
+      ALWIS_ADMIN_PASSWORD_FILE: /run/secrets/admin_password
+      PORT: "3000"
+      HOST: 0.0.0.0
+      ALWIS_DATA_DIR: /data
+    ports:
+      - "127.0.0.1:${ALWIS_LOCAL_PORT:-3100}:3000"
+    volumes:
+      - alwis-state:/data
+    secrets:
+      - admin_password
+    tmpfs:
+      - /tmp:size=16m,uid=10001,gid=10001,mode=1770
+    mem_limit: ${ALWIS_MEMORY_LIMIT:-640m}
+    mem_reservation: ${ALWIS_MEMORY_RESERVATION:-256m}
+    memswap_limit: ${ALWIS_MEMORY_SWAP:-640m}
+    cpus: ${ALWIS_CPUS:-0.75}
+    pids_limit: 128
+    healthcheck:
+      test: ["CMD", "node", "--disable-warning=ExperimentalWarning", "-e", "fetch('http://127.0.0.1:3000/readyz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    stop_grace_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  alwis-state:
+
+secrets:
+  admin_password:
+    file: ./secrets/admin_password
+```
+
 Depuis une copie du dépôt :
 
 ```bash
