@@ -214,7 +214,7 @@ try {
       await page.locator(".ce").fill("my edit");
       await page.locator(".ce").press("Enter");
       await page
-        .locator("#alertHost")
+        .locator("td.edit .cell-error")
         .filter({ hasText: /changé/ })
         .waitFor();
       const preserved = await page.evaluate(async () => {
@@ -227,6 +227,12 @@ try {
         )[0].rows[0][0];
       });
       assert.equal(preserved, "external row");
+      assert.equal(await page.locator(".ce").inputValue(), "my edit");
+      assert.equal(
+        await page.locator(".ce").getAttribute("aria-invalid"),
+        "true",
+      );
+      await page.locator(".ce").press("Escape");
       checks.push("SQL optimistic conflict preserves the newer row");
       await nav("code");
       await page.locator("#ed1 .cm-content").fill("<?php fore");

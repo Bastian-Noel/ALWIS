@@ -1,4 +1,8 @@
-import { columnValueError, rowConstraintError } from "../input-validation.mjs";
+import {
+  columnValueError,
+  rowConstraintError,
+  foreignKeyIssue,
+} from "../input-validation.mjs";
 /** Espace Données : arbre avec actions rapides, grille éditable au clavier, ligne d'ajout, structure colorée, console SQL. */
 import {
   $,
@@ -36,17 +40,67 @@ function clearInputError(input) {
   input.removeAttribute("aria-describedby");
   input.parentElement.querySelector(".cell-error")?.remove();
 }
+let feedbackSerial = 0;
+export function showDataIssue(container, issue) {
+  const text = document.createElement("span");
+  text.textContent = issue.message;
+  container.replaceChildren(text);
+  if (
+    issue.navigation &&
+    S.cat?.tables.some((t) => t.name === issue.navigation.table)
+  ) {
+    const open = document.createElement("button");
+    open.type = "button";
+    open.className = "btn sm";
+    open.textContent = "Voir « " + issue.navigation.table + " »";
+    open.title = "Quitter cette saisie et ouvrir la table concernée";
+    open.onclick = async () => {
+      container.closest("dialog")?.close();
+      S.table = issue.navigation.table;
+      S.filter = issue.navigation.filter ?? null;
+      S.search = "";
+      S.sort = null;
+      S.page = 1;
+      S.cell = null;
+      S.dmode = "data";
+      S.view = "data";
+      await readRows("Lecture des lignes liées");
+    };
+    container.append(open);
+  }
+  if (issue.relation) {
+    const configure = document.createElement("button");
+    configure.type = "button";
+    configure.className = "btn sm";
+    configure.textContent = "Configurer la propagation…";
+    configure.title =
+      "Choisir explicitement une règle CASCADE ; l’opération devra ensuite être relancée";
+    configure.onclick = () => A.relationForm(issue.relation);
+    const note = document.createElement("small");
+    note.textContent =
+      "Ce réglage ne relance pas l’opération. Vérifiez son effet, puis réessayez.";
+    container.append(configure, note);
+  }
+}
+export function describeRowIssue(error, t, row, operation) {
+  return (
+    foreignKeyIssue(error, {
+      tables: S.cat?.tables ?? [],
+      table: t,
+      row,
+      operation,
+    }) ?? rowConstraintError(error, t.columns, t.indexes)
+  );
+}
 function showInputError(input, message) {
   clearInputError(input);
   input.classList.add("err");
   input.setAttribute("aria-invalid", "true");
   const hint = document.createElement("span");
   hint.className = "cell-error";
-  hint.id =
-    "cell-error-" +
-    Array.from(input.closest("tr").querySelectorAll("input")).indexOf(input);
+  hint.id = "cell-error-" + ++feedbackSerial;
   hint.setAttribute("role", "status");
-  hint.textContent = message;
+  showDataIssue(hint, typeof message === "string" ? { message } : message);
   input.setAttribute("aria-describedby", hint.id);
   input.after(hint);
 }
@@ -253,7 +307,7 @@ function dataHtml(t) {
   const ghost = `<tr class="ghost"><td class="ck">${ui.plus}</td>${cols.map((c) => `<td><input data-g="${esc(c.name)}" ${isAuto(c) ? "disabled" : ""} placeholder="${isAuto(c) ? "auto" : c.nullable ? c.name : c.name + " *"}" aria-label="Nouvelle valeur de ${esc(c.name)}" autocomplete="off" spellcheck="false"></td>`).join("")}<td class="ra"><button class="btn sm pri" data-act="ghostAdd" aria-label="Ajouter la ligne">${icon("enter")}</button></td></tr>`;
   return (
     flt +
-    `<div class="gridwrap" id="gw"><p id="ghost-feedback" class="cell-error" role="status"></p><table class="dg"><thead><tr><th class="ck"><input type="checkbox" data-act-change="rowAll" aria-label="Tout sélectionner" ${S.sel.size && S.sel.size === g.rows.length ? "checked" : ""}></th>${th}<th class="ra"><button data-act="colQuick" aria-label="Ajouter une colonne" title="Ajouter une colonne">${ui.plus}</button></th></tr></thead><tbody>${body}${ghost}</tbody></table>${!g.rows.length && !S.filter && !S.search ? '<p class="hint" style="padding:14px 18px">Table vide : saisissez une première ligne ci-dessus. Une cellule vide prend la valeur par défaut.</p>' : ""}${!g.rows.length && (S.filter || S.search) ? '<p class="hint" style="padding:14px 18px">Aucune ligne ne correspond à votre recherche ou aux filtres.</p>' : ""}</div>
+    `<div class="gridwrap" id="gw"><div id="data-feedback" class="data-feedback" role="status"></div><p id="ghost-feedback" class="cell-error" role="status"></p><table class="dg"><thead><tr><th class="ck"><input type="checkbox" data-act-change="rowAll" aria-label="Tout sélectionner" ${S.sel.size && S.sel.size === g.rows.length ? "checked" : ""}></th>${th}<th class="ra"><button data-act="colQuick" aria-label="Ajouter une colonne" title="Ajouter une colonne">${ui.plus}</button></th></tr></thead><tbody>${body}${ghost}</tbody></table>${!g.rows.length && !S.filter && !S.search ? '<p class="hint" style="padding:14px 18px">Table vide : saisissez une première ligne ci-dessus. Une cellule vide prend la valeur par défaut.</p>' : ""}${!g.rows.length && (S.filter || S.search) ? '<p class="hint" style="padding:14px 18px">Aucune ligne ne correspond à votre recherche ou aux filtres.</p>' : ""}</div>
     <div class="foot"><span class="num">${plural(S.total, "ligne", "lignes")}</span><span class="mono trunc grow sqlecho" title="${esc(S.lastSQL)}" aria-live="polite">${S.gmsg ? esc(S.gmsg) : esc(S.lastSQL)}</span><button class="btn quiet sm" data-act="page" data-arg="-1" ${S.page < 2 ? "disabled" : ""} aria-label="Page précédente">${icon("chevron-left")}</button><span class="num">Page ${S.page} / ${pages}</span><button class="btn quiet sm" data-act="page" data-arg="1" ${S.page >= pages ? "disabled" : ""} aria-label="Page suivante">${icon("chevron-right")}</button></div>`
   );
 }
@@ -533,15 +587,20 @@ Object.assign(A, {
         try {
           await sql(G.insert(t.name, cols, vals));
         } catch (error) {
-          const issue = rowConstraintError(error, t.columns);
+          const issue = describeRowIssue(
+            error,
+            t,
+            Object.fromEntries(cols.map((c, j) => [c, vals[j]])),
+            "insert",
+          );
           if (!issue) throw error;
           const input = inputs.find((i) => i.dataset.g === issue.column);
           if (input) {
-            showInputError(input, issue.message);
+            showInputError(input, issue);
             input.focus();
           } else {
             const feedback = $("#ghost-feedback");
-            feedback.textContent = issue.message;
+            showDataIssue(feedback, issue);
           }
           return false;
         }
@@ -562,16 +621,34 @@ Object.assign(A, {
     const t = cur(),
       row = S.grid.rows[ri],
       cols = t.columns.filter((c) => !isAuto(c));
-    await run("Duplication", async () => {
-      await sql(
-        G.insert(
-          t.name,
-          cols.map((c) => c.name),
-          cols.map((c) => row[t.columns.indexOf(c)]),
-        ),
-      );
+    let issue;
+    const ok = await task("Duplication", async () => {
+      try {
+        await sql(
+          G.insert(
+            t.name,
+            cols.map((c) => c.name),
+            cols.map((c) => row[t.columns.indexOf(c)]),
+          ),
+        );
+      } catch (error) {
+        issue = describeRowIssue(
+          error,
+          t,
+          Object.fromEntries(t.columns.map((c, i) => [c.name, row[i]])),
+          "insert",
+        );
+        if (!issue) throw error;
+        return false;
+      }
+      await refreshDb();
+      return true;
     });
-    toast("Ligne dupliquée");
+    if (issue) showDataIssue($("#data-feedback"), issue);
+    else if (ok) {
+      ctx.draw();
+      toast("Ligne dupliquée");
+    }
   },
   rowMenu(ri, el) {
     menu(el, [
@@ -587,17 +664,44 @@ Object.assign(A, {
     if (keys.some((k) => !k))
       return toast("Suppression impossible sans clé primaire");
     const go = async () => {
-      await run("Suppression", async () => {
-        for (const k of keys) {
-          const results = await sql(G.remove(t.name, k));
-          if (String(results[0].affected) === "0")
-            throw Error(
-              "La ligne a changé : rechargez la grille avant de supprimer.",
+      let deleted = 0,
+        issue = null;
+      const ok = await task("Suppression", async () => {
+        for (let n = 0; n < keys.length; n++) {
+          try {
+            const results = await sql(G.remove(t.name, keys[n]));
+            if (String(results[0].affected) === "0") {
+              issue = {
+                message:
+                  "La ligne a changé. Rechargez la grille avant de supprimer.",
+              };
+              break;
+            }
+            deleted++;
+          } catch (error) {
+            issue = describeRowIssue(
+              error,
+              t,
+              Object.fromEntries(t.columns.map((c, i) => [c.name, rows[n][i]])),
+              "delete",
             );
+            if (!issue) throw error;
+            break;
+          }
         }
-        S.sel = new Set();
+        await refreshDb();
+        return true;
       });
-      toast(plural(keys.length, "ligne supprimée", "lignes supprimées"));
+      if (!ok) return;
+      ctx.draw();
+      if (issue) {
+        if (deleted)
+          issue.message =
+            deleted +
+            " ligne(s) supprimée(s) avant le blocage. " +
+            issue.message;
+        showDataIssue($("#data-feedback"), issue);
+      } else toast(plural(deleted, "ligne supprimée", "lignes supprimées"));
     };
     const p = menu(el || at(innerWidth / 2, 200), 0, {
       html: `<div class="ph">Supprimer ${plural(keys.length, "ligne", "lignes")} ?</div><p class="pp">La suppression vérifie que chaque ligne n’a pas changé depuis son affichage.</p><div style="display:flex;gap:6px;padding:4px 8px 8px;justify-content:flex-end"><button class="btn sm" data-x>Annuler</button><button class="btn sm pri bad" data-ok>Supprimer</button></div>`,
@@ -610,6 +714,11 @@ Object.assign(A, {
   },
   /* édition de cellule */
   cellEdit(td, init) {
+    const active = $("#gw td.edit");
+    if (active && active !== td) {
+      $("input", active)?.focus();
+      return;
+    }
     const t = cur(),
       ri = +td.dataset.r,
       ci = +td.dataset.c,
@@ -628,38 +737,77 @@ Object.assign(A, {
       ? i.select()
       : i.setSelectionRange(i.value.length, i.value.length);
     let done = false,
+      pending = false,
+      invalid = false,
       toNull = false;
+    i.oninput = () => {
+      invalid = false;
+      toNull = false;
+      clearInputError(i);
+    };
     $(".nullb", td).addEventListener("pointerdown", (e) => {
       e.preventDefault();
       toNull = true;
       end(1, 0);
     });
     const end = async (ok, move) => {
-      if (done) return;
-      done = true;
+      if (done || pending) return;
       S.cell = { r: ri, c: ci };
       if (ok && (toNull ? old !== null : String(old ?? "") !== i.value)) {
         const v = toNull ? null : i.value;
-        const r = await run("Mise à jour", async () => {
-          const res = await sql(
-            G.update(t.name, col.name, v, keyOf(t, S.grid.rows[ri])),
-          );
-          if (String(res?.[0]?.affected) === "0")
-            throw Object.assign(
-              new Error(
-                "La ligne a changé depuis son affichage. Rechargez les données avant de modifier.",
-              ),
-              {
-                recover:
-                  "Les valeurs affichées ne sont plus à jour : la grille est rechargée.",
-              },
+        const validation =
+          v === null
+            ? col.nullable
+              ? ""
+              : "Cette colonne ne peut pas être vide (NULL)."
+            : columnValueError(col, v);
+        if (validation) {
+          invalid = true;
+          showInputError(i, validation);
+          i.focus();
+          return;
+        }
+        pending = true;
+        i.readOnly = true;
+        let issue;
+        const success = await task("Mise à jour", async () => {
+          try {
+            const res = await sql(
+              G.update(t.name, col.name, v, keyOf(t, S.grid.rows[ri])),
             );
+            if (String(res?.[0]?.affected) === "0") {
+              issue = {
+                message:
+                  "La ligne a changé depuis son affichage. Annulez avec Échap, puis rechargez la grille.",
+              };
+              return false;
+            }
+          } catch (error) {
+            const row = Object.fromEntries(
+              t.columns.map((c, j) => [c.name, S.grid.rows[ri][j]]),
+            );
+            issue = describeRowIssue(error, t, row, "update");
+            if (!issue) throw error;
+            return false;
+          }
+          await refreshDb();
+          return true;
         });
-        if (!r) {
-          S.focus = "cell";
-          return afterRedraw();
+        pending = false;
+        i.readOnly = false;
+        if (issue) {
+          invalid = true;
+          toNull = false;
+          showInputError(i, issue);
+          i.focus();
+          return;
+        }
+        if (!success) {
+          done = true;
+          return;
         }
       }
+      done = true;
       if (move === "down")
         S.cell = { r: Math.min(ri + 1, S.grid.rows.length - 1), c: ci };
       if (move === "right")
@@ -679,7 +827,16 @@ Object.assign(A, {
         end(0);
       }
     };
-    i.onblur = () => setTimeout(() => !done && end(1), 0);
+    i.onblur = () =>
+      setTimeout(() => {
+        if (
+          !done &&
+          !invalid &&
+          !td.contains(document.activeElement) &&
+          td.isConnected
+        )
+          end(1);
+      }, 0);
   },
   /* colonnes et index */
   colQuick(_, el) {

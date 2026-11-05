@@ -13,7 +13,8 @@ import {
   columnDefinitions,
   patchColumn,
 } from "../../database/column-definition.mjs";
-import { refreshDb } from "./data.mjs";
+import { refreshDb, describeRowIssue, showDataIssue } from "./data.mjs";
+import { columnValueError } from "../input-validation.mjs";
 const table = () => S.cat?.tables.find((t) => t.name === S.table);
 const names = (text) =>
   text
@@ -467,20 +468,40 @@ async function advancedInsert() {
       { label: "Annuler", v: "no" },
       { label: "Insérer", v: "ok", kind: "pri" },
     ],
+    onOpen(d) {
+      const clear = () => {
+        for (const input of d.querySelectorAll("[aria-invalid]")) {
+          input.removeAttribute("aria-invalid");
+          input.removeAttribute("aria-describedby");
+        }
+        d.querySelector("#insert-error").replaceChildren();
+      };
+      d.addEventListener("input", clear);
+      d.addEventListener("change", clear);
+    },
     beforeClose: async (value, d) => {
       if (value !== "ok") return true;
+      const submit = d.querySelector('[data-v="ok"]');
+      submit.disabled = true;
+      const row = {};
       try {
         const cols = [],
           values = [];
         for (let i = 0; i < t.columns.length; i++) {
-          const mode = d.querySelector(`[data-mode="${i}"]`).value;
+          const col = t.columns[i],
+            mode = d.querySelector(`[data-mode="${i}"]`).value;
           if (mode === "default") continue;
-          cols.push(id(t.columns[i].name));
-          values.push(
-            literal(
-              editValue(mode, d.querySelector(`[data-value="${i}"]`).value),
-            ),
-          );
+          const text = d.querySelector(`[data-value="${i}"]`).value;
+          const message =
+            mode === "text"
+              ? columnValueError(col, text)
+              : mode === "null" && !col.nullable
+                ? "Cette colonne ne peut pas être vide (NULL)."
+                : "";
+          if (message) throw Object.assign(Error(message), { field: col.name });
+          row[col.name] = mode === "null" ? null : text;
+          cols.push(id(col.name));
+          values.push(literal(editValue(mode, text)));
         }
         await execute(
           cols.length
@@ -488,9 +509,23 @@ async function advancedInsert() {
             : `INSERT INTO ${id(t.name)} () VALUES ();`,
         );
         return true;
-      } catch (e) {
-        d.querySelector("#insert-error").textContent = e.message;
+      } catch (error) {
+        const issue = error.field
+          ? { message: error.message, column: error.field }
+          : (describeRowIssue(error, t, row, "insert") ?? {
+              message: error.message,
+            });
+        showDataIssue(d.querySelector("#insert-error"), issue);
+        const index = t.columns.findIndex((c) => c.name === issue.column);
+        if (index >= 0) {
+          const input = d.querySelector(`[data-value="${index}"]`);
+          input.setAttribute("aria-invalid", "true");
+          input.setAttribute("aria-describedby", "insert-error");
+          input.focus();
+        }
         return false;
+      } finally {
+        submit.disabled = false;
       }
     },
   });

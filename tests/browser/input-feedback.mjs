@@ -88,9 +88,10 @@ try {
       await name.fill("abc");
       await action("ghostAdd");
       await page
-        .locator("#ghost-feedback")
+        .locator(".cell-error")
         .filter({ hasText: "existe déjà" })
         .waitFor();
+      assert.equal(await name.getAttribute("aria-invalid"), "true");
       assert.equal(await name.inputValue(), "abc");
       await page.evaluate(() =>
         window.dispatchEvent(

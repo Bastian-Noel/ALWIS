@@ -185,3 +185,7 @@ L’en-tête et le chargement affichent **ALWIS** en texte, sans logo. Les actio
 Les notifications distinguent réussite, information, avertissement et erreur. Trois messages au maximum restent affichés ; leur durée se suspend au survol et tant que le clavier reste dans la notification. La croix permet de fermer chaque message. Les modales disposent de leur propre bouton de fermeture et conservent Annuler.
 
 Les règles de suppression et de modification d’une relation sont expliquées en français sous chaque choix, dans le schéma et le formulaire de relation. L’explication nomme les tables concernées : bloquer l’opération, répercuter le changement ou conserver les lignes en retirant leur lien (NULL). Les indications au survol d’une relation restent devant les tables du schéma.
+
+Lorsqu’une modification de cellule échoue sur une valeur ou une contrainte reconnue, la saisie reste affichée avec son explication. Échap annule la saisie. Les refus de relation proposent d’ouvrir la table concernée ; une opération bloquée sur la table référencée peut aussi proposer de configurer la propagation dans le formulaire de relation. Ce choix doit être confirmé et ne rejoue pas automatiquement l’opération. Les suppressions bloquées indiquent le nombre réellement supprimé avant le blocage.
+
+L’examen rapide de la RAM et les pistes non engagées sont décrits dans [Mémoire](memory-quick-review.md).

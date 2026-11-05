@@ -54,6 +54,7 @@ runs:
         node tests/browser/alwis-accessibility.mjs
         node tests/browser/keyboard.mjs
         node tests/browser/workspace-design.mjs
+        node tests/browser/constraint-feedback.mjs
         node tests/browser/schema-hints.mjs
         node tests/browser/input-feedback.mjs
         node tests/browser/mixed-format.mjs

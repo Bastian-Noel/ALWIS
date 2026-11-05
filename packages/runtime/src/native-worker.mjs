@@ -1,3 +1,4 @@
+import { nativeDiagnostics } from "./native-diagnostics.mjs";
 import { enforceAtomicIdbfs } from './idbfs-atomic.mjs';
 import { installVfsQuota } from './vfs-quota.mjs';
 /** Project-owner worker: one native PHP/MariaDB instance, one bounded request queue.
@@ -7,6 +8,7 @@ import { RequestQueue } from './request-queue.mjs';
 import { decodeSqlFrame } from './sql-frame.mjs';
 const queue = new RequestQueue({ maxPending: 32, maxBytes: 8 * 1024 * 1024 });
 const encoder = new TextEncoder();
+const diagnostics = nativeDiagnostics();
 let module;
 let vfsQuota;
 let poisoned = false;
@@ -81,7 +83,7 @@ function copyChunks(chunks) {
   for (const chunk of chunks) { output.set(chunk, offset); offset += chunk.byteLength; }
   return output;
 }
-function state() { return { sqlStarted: module._pbl_mysql_started() !== 0,sqlPhase:['dormant','running','stopped','failed'][module._pbl_mysql_phase?.()??(module._pbl_mysql_started()?1:0)], sqlConnections: module._pbl_mysql_connection_count(),nativeStatements:module._pbl_mysql_statement_count?.()??null,preparedSQLReservedBytes:module._pbl_mysql_statement_bytes?.()??null,pthreadWorkers:module._pbl_sql_threads_created?{used:module._pbl_sql_threads_used(),idle:module._pbl_sql_threads_idle(),created:module._pbl_sql_threads_created(),peak:module._pbl_sql_threads_peak()}:null, linearMemoryBytes: module.HEAPU8.buffer.byteLength, allocatorUsedBytes: module._pbl_heap_used?.() ?? null, allocatorFreeBytes: module._pbl_heap_free?.() ?? null, vfs:vfsQuota?.stats(), hardwareConcurrency: navigator.hardwareConcurrency, projectKey, storageLayout, queue: queue.stats }; }
+function state() { return { diagnostics:diagnostics.stats(), sqlStarted: module._pbl_mysql_started() !== 0,sqlPhase:['dormant','running','stopped','failed'][module._pbl_mysql_phase?.()??(module._pbl_mysql_started()?1:0)], sqlConnections: module._pbl_mysql_connection_count(),nativeStatements:module._pbl_mysql_statement_count?.()??null,preparedSQLReservedBytes:module._pbl_mysql_statement_bytes?.()??null,pthreadWorkers:module._pbl_sql_threads_created?{used:module._pbl_sql_threads_used(),idle:module._pbl_sql_threads_idle(),created:module._pbl_sql_threads_created(),peak:module._pbl_sql_threads_peak()}:null, linearMemoryBytes: module.HEAPU8.buffer.byteLength, allocatorUsedBytes: module._pbl_heap_used?.() ?? null, allocatorFreeBytes: module._pbl_heap_free?.() ?? null, vfs:vfsQuota?.stats(), hardwareConcurrency: navigator.hardwareConcurrency, projectKey, storageLayout, queue: queue.stats }; }
 async function request(input) {
   const script = path(input.script);
   const url = new URL(input.url ?? 'https://project.local' + script.slice('/workspace'.length));
@@ -136,7 +138,7 @@ async function dispatch(message) {
     const url = new URL(message.moduleURL, self.location.href);
     if (url.origin !== self.location.origin) throw Error('Native engine must have the same origin');
     const { default: createRuntime } = await import(url.href);
-    module = await createRuntime({ noInitialRun: true });
+    module = await createRuntime({ noInitialRun: true, printErr: diagnostics.printErr });
     enforceAtomicIdbfs(module.IDBFS,path=>vfsQuota?.isDirty(path));
     if (message.projectKey !== undefined) await mountProject(message.projectKey,message.vfsLimits);
     if(!vfsQuota)vfsQuota=installVfsQuota(module.FS,{limits:message.vfsLimits});
