@@ -158,7 +158,7 @@ export function drawSchema() {
   $("#scount").textContent =
     `${plural(T.length, "table", "tables")} · ${plural(rel, "relation", "relations")}`;
   const sv = $("#sv");
-  sv.hidden = !T.length;
+  sv.toggleAttribute("hidden", !T.length);
   $("#schemaEmpty").hidden = !!T.length;
   $("#schemaHint").hidden = !T.length;
   for (const b of document.querySelectorAll("#v-schema .bar [data-act]")) {
@@ -166,7 +166,13 @@ export function drawSchema() {
     b.disabled = two ? T.length < 2 : !T.length;
   }
   if (!T.length) {
+    $("#layer").replaceChildren();
+    $("#insp").replaceChildren();
     $("#sgrid").classList.remove("has-sel");
+    S.schemaSel = null;
+    S.link = null;
+    S.viewFit = false;
+    drag = pan = null;
     return;
   }
   ensurePos();
@@ -672,7 +678,6 @@ export function bindSchema() {
   $("#sdb").addEventListener("change", async (e) => {
     S.db = e.target.value;
     S.table = null;
-    S.pos = {};
     S.schemaSel = null;
     S.viewFit = false;
     await task("Lecture du schéma", () => refreshDb({ rows: false }));

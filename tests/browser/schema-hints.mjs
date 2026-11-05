@@ -29,8 +29,54 @@ try {
           "CREATE TABLE children (id INT PRIMARY KEY, parent_id INT, CONSTRAINT fk_parent FOREIGN KEY(parent_id) REFERENCES parents(id) ON DELETE RESTRICT ON UPDATE CASCADE)",
         );
         await sql("CREATE TABLE cover (id INT PRIMARY KEY, other INT)");
+        await sql("CREATE DATABASE schema_empty");
+        await sql("CREATE DATABASE schema_other");
+        await sql("CREATE TABLE schema_other.other_table(id INT PRIMARY KEY)");
         await A.nav("schema");
       });
+      // Switch through empty and populated databases using the actual selector.
+      const initialPositions = await page.evaluate(async () => {
+        const { S, A } = await import("/apps/studio/workbench/state.mjs");
+        A.schemaSel("parents");
+        S.pos.parents = [321, 123];
+        return JSON.stringify(S.pos);
+      });
+      await page.locator("#sdb").selectOption("schema_empty");
+      await page.locator("#schemaEmpty").waitFor({ state: "visible" });
+      assert.equal(await page.locator("#sv").isVisible(), false);
+      assert.equal(await page.locator("#layer").locator("*").count(), 0);
+      assert.equal(await page.locator("#insp").locator("*").count(), 0);
+      assert.equal(
+        await page
+          .locator("#sgrid")
+          .evaluate((el) => el.classList.contains("has-sel")),
+        false,
+      );
+      assert.match(
+        await page.locator("#scount").textContent(),
+        /0 table.*0 relation/,
+      );
+      await page.screenshot({
+        animations: "disabled",
+        path: `build-work/schema-hints/empty-${engine.name()}.png`,
+      });
+      await page.locator("#sdb").selectOption("schema_other");
+      await page.locator('[data-drag="other_table"]').waitFor();
+      assert.equal(await page.locator("#schemaEmpty").isVisible(), false);
+      assert.equal(await page.locator("#layer .tb").count(), 1);
+      assert.equal(await page.locator('[data-drag="parents"]').count(), 0);
+      await page.locator("#sdb").selectOption("test");
+      await page.locator('[data-drag="parents"]').waitFor();
+      assert.equal(await page.locator("#sv").isVisible(), true);
+      assert.equal(await page.locator("#layer .tb").count(), 3);
+      assert.equal(
+        await page.evaluate(async () => {
+          const { S } = await import("/apps/studio/workbench/state.mjs");
+          return JSON.stringify(S.pos);
+        }),
+        initialPositions,
+      );
+
       await page.locator('[data-rel="children|fk_parent"]').waitFor();
       await page.evaluate(async () => {
         const { S } = await import("/apps/studio/workbench/state.mjs");
@@ -41,6 +87,17 @@ try {
         S.pos.cover = [x - 116, y - 40];
         drawSchema();
       });
+      // Native select closing events and the fit animation must settle before hover.
+      await page.mouse.move(0, 0);
+      await page.waitForFunction(
+        () => document.querySelector("#app").dataset.lamp !== "busy",
+      );
+      await page.evaluate(
+        () =>
+          new Promise((resolve) =>
+            requestAnimationFrame(() => requestAnimationFrame(resolve)),
+          ),
+      );
       const link = page.locator('[data-rel="children|fk_parent"]');
       await link.dispatchEvent("pointerover");
       const overlay = page.locator("#schema-link-overlay");
@@ -84,6 +141,13 @@ try {
         await page.locator("#rd-help").textContent(),
         /parents.*children/,
       );
+      for (const id of ["rd", "ru"]) {
+        for (const code of ["RESTRICT", "CASCADE", "SET NULL", "NO ACTION"])
+          assert.match(
+            await page.locator(`#${id} option[value="${code}"]`).textContent(),
+            new RegExp("^" + code + " — "),
+          );
+      }
       await page.locator("#rd").selectOption("CASCADE");
       await page.locator("#ru").selectOption("RESTRICT");
       assert.match(
@@ -117,6 +181,13 @@ try {
         A.relationForm({ child: "children", parent: "parents" });
       });
       await page.locator(".relation-options summary").click();
+      for (const id of ["rel-delete", "rel-update"]) {
+        for (const code of ["RESTRICT", "CASCADE", "SET NULL", "NO ACTION"])
+          assert.match(
+            await page.locator(`#${id} option[value="${code}"]`).textContent(),
+            new RegExp("^" + code + " — "),
+          );
+      }
       await page.locator("#rel-delete").selectOption("SET NULL");
       assert.match(
         await page.locator("#rel-delete-help").textContent(),
@@ -137,7 +208,7 @@ try {
       await page.locator("#modal [data-v=no]").click();
       console.log(
         engine.name() +
-          ": tooltip overlay, French rule explanations and saved SQL semantics passed",
+          ": database switching, empty state, saved layouts, tooltip overlay and bilingual SQL rules passed",
       );
     } finally {
       await browser.close();
