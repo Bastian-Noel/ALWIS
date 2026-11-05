@@ -3383,3 +3383,5 @@ select.in:focus { background-color:var(--sheet); }
 .cell-error { text-align:left; }
 .cell-error .btn { color:var(--ink); }
 #modal .in[aria-invalid="true"] { border-color:var(--err); box-shadow:0 0 0 1px var(--err); }
+
+.folder-failure { display:grid; gap:12px; overflow-wrap:anywhere; }

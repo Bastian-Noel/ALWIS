@@ -37,6 +37,7 @@ jobs:
             build-work/ux-revision/
             build-work/preview-browser/
             build-work/ui-refinement/
+            build-work/folder-opening/
   release:
     needs: build
     runs-on: ubuntu-24.04

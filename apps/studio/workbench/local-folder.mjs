@@ -1,5 +1,5 @@
 import { A, S, ctx, eng } from "./state.mjs";
-import { toast } from "./ui.mjs";
+import { toast, modal, esc } from "./ui.mjs";
 import { refreshFiles } from "./views/explorer.mjs";
 import { resetEditor } from "./views/code.mjs";
 import { readFolder, folderWriter, folderContext } from "./folder-access.mjs";
@@ -89,6 +89,23 @@ A.openLocalFolder = async () => {
         " ouvert. Enregistrer conserve aussi les bases et le contexte dans .alwis.",
     );
   } catch (e) {
-    if (e.name !== "AbortError") toast("Ouverture du dossier : " + e.message);
+    if (e.name === "AbortError") return;
+    if (e.code === "FOLDER_LIMIT") {
+      const result = await modal({
+        title: "Dossier non ouvert",
+        body: `<div class="folder-failure"><p role="alert">${esc(e.message)}</p><p>L’ouverture s’est arrêtée avant la création du projet. Aucun fichier de votre PC n’a été modifié.</p><p class="hint">Choisissez un dossier plus petit contenant les fichiers à utiliser. Les dossiers cachés, node_modules et vendor sont déjà ignorés.</p></div>`,
+        actions: [
+          { label: "Fermer", v: "no" },
+          { label: "Choisir un autre dossier", v: "retry", kind: "pri" },
+        ],
+      });
+      if (result === "retry") return A.openLocalFolder();
+      return;
+    }
+    toast("Ouverture du dossier : " + e.message, null, {
+      kind: "error",
+      title: "Dossier non ouvert",
+      duration: 12000,
+    });
   }
 };

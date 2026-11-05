@@ -1,26 +1,71 @@
 const equal = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
+const MiB = 1048576;
+const countText = (value) => new Intl.NumberFormat("fr-FR").format(value);
+const sizeText = (bytes) =>
+  new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 2 }).format(
+    Math.ceil((bytes / MiB) * 100) / 100,
+  ) + " Mio";
+const folderLimit = (message, limit, path) =>
+  Object.assign(Error(message), { code: "FOLDER_LIMIT", limit, path });
 export async function readFolder(directory) {
-  const files = new Map();
+  const pending = [];
   let total = 0;
   async function walk(dir, prefix = "", depth = 0) {
-    if (depth > 12) throw Error("Dossier trop profond (12 niveaux maximum).");
+    if (depth > 12)
+      throw folderLimit(
+        "Le sous-dossier « " +
+          prefix +
+          " » dépasse la limite de 12 niveaux de dossiers.",
+        "depth",
+        prefix,
+      );
     for await (const [name, entry] of dir.entries()) {
       if (name.startsWith(".") || ["node_modules", "vendor"].includes(name))
         continue;
       const path = prefix + "/" + name;
       if (entry.kind === "directory") await walk(entry, path, depth + 1);
       else {
-        const f = await entry.getFile();
-        total += f.size;
-        if (f.size > 16 * 1048576 || total > 64 * 1048576 || files.size >= 1024)
-          throw Error(
-            "Dossier limité à 64 Mio, 1 024 fichiers et 16 Mio par fichier.",
+        const file = await entry.getFile();
+        if (file.size > 16 * MiB)
+          throw folderLimit(
+            "Le fichier « " +
+              path +
+              " » fait " +
+              sizeText(file.size) +
+              ". La limite par fichier est de 16 Mio.",
+            "file",
+            path,
           );
-        files.set(path, new Uint8Array(await f.arrayBuffer()));
+        if (pending.length >= 1024)
+          throw folderLimit(
+            "Le dossier contient au moins " +
+              countText(pending.length + 1) +
+              " fichiers. La limite est de 1 024 fichiers. Limite atteinte avec « " +
+              path +
+              " ».",
+            "count",
+            path,
+          );
+        total += file.size;
+        if (total > 64 * MiB)
+          throw folderLimit(
+            "Les fichiers du dossier dépassent déjà " +
+              sizeText(total) +
+              ". La limite totale est de 64 Mio. Limite atteinte avec « " +
+              path +
+              " ».",
+            "total",
+            path,
+          );
+        pending.push({ path, file });
       }
     }
   }
+  // Validate metadata before allocating file contents or creating a project.
   await walk(directory);
+  const files = new Map();
+  for (const { path, file } of pending)
+    files.set(path, new Uint8Array(await file.arrayBuffer()));
   return files;
 }
 export function folderWriter(directory, snapshots) {

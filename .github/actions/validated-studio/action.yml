@@ -62,5 +62,6 @@ runs:
         node tests/browser/preview-browser.mjs
         node tests/browser/ui-refinement.mjs
         node tests/browser/launcher.mjs
+        node tests/browser/folder-opening.mjs
         node tests/browser/project-loading.mjs
         node tests/browser/project-loading.mjs firefox

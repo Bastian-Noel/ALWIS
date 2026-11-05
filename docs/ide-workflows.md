@@ -131,6 +131,8 @@ La mention **Projet ouvert · dossier PC**, au-dessus du nom du dossier, indique
 - Les gros fichiers peuvent être importés sans être éditables.
 - Sans accès aux dossiers dans votre navigateur, utilisez un ZIP.
 
+Les tailles et le nombre de fichiers sont vérifiés avant de charger leur contenu. Si une limite est dépassée, **Dossier non ouvert** indique le fichier ou le seuil concerné. Aucun projet n’est créé et aucun fichier du PC n’est modifié. Le bouton **Choisir un autre dossier** permet de recommencer avec un dossier plus petit.
+
 </details>
 
 [← Retour au guide](README.md) · [Compatibilité](compatibility.md)
