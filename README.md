@@ -9,7 +9,7 @@ Tout dans le navigateur, avec un éditeur et une base MariaDB.
 [![Validation](https://github.com/Bastian-Noel/ALWIS/actions/workflows/check.yml/badge.svg)](https://github.com/Bastian-Noel/ALWIS/actions/workflows/check.yml)
 [![Préversion](https://img.shields.io/badge/statut-pr%C3%A9version-9a6700)](https://github.com/Bastian-Noel/ALWIS/releases)
 
-[Wiki](https://github.com/Bastian-Noel/ALWIS/wiki) · [Premiers pas](#démarrer) · [Guide illustré](docs/README.md) · [Exemple Campus](docs/school-example.md) · [Image Docker](docs/server-deployment.md)
+[Wiki](https://github.com/Bastian-Noel/ALWIS/wiki) · [Premiers pas](https://github.com/Bastian-Noel/ALWIS/wiki/Premiers-pas) · [Guide illustré](https://github.com/Bastian-Noel/ALWIS/wiki/Premiers-pas) · [Exemple Campus](https://github.com/Bastian-Noel/ALWIS/wiki/Campus) · [Image Docker](https://github.com/Bastian-Noel/ALWIS/wiki/Serveur-Docker)
 
 </div>
 
@@ -30,9 +30,9 @@ Tout dans le navigateur, avec un éditeur et une base MariaDB.
 
 > [!TIP]
 > Aucune installation de PHP ou de MariaDB n’est nécessaire.
-> Le [guide illustré](docs/README.md) vous accompagne ensuite.
+> Le [guide illustré](https://github.com/Bastian-Noel/ALWIS/wiki/Premiers-pas) vous accompagne ensuite.
 
-Pour héberger ALWIS sur votre propre serveur, choisissez la [distribution Docker](docs/server-deployment.md). Elle est publiée après le build statique et a une page de configuration protégée.
+Pour héberger ALWIS sur votre propre serveur, choisissez la [distribution Docker](https://github.com/Bastian-Noel/ALWIS/wiki/Serveur-Docker). Elle est publiée après le build statique et a une page de configuration protégée.
 
 ## Où aller ?
 
@@ -54,15 +54,15 @@ Pour héberger ALWIS sur votre propre serveur, choisissez la [distribution Docke
 
 ## Pour continuer
 
-- [Écrire du code, sauvegarder et ouvrir un dossier du PC](docs/ide-workflows.md)
-- [Essayer le Campus avec plusieurs visiteurs](docs/school-example.md)
-- [Navigateurs et limites](docs/compatibility.md)
-- [Installer les sources et contribuer](CONTRIBUTING.md)
+- [Écrire du code, sauvegarder et ouvrir un dossier du PC](https://github.com/Bastian-Noel/ALWIS/wiki/Editeur-et-sauvegardes)
+- [Essayer le Campus avec plusieurs visiteurs](https://github.com/Bastian-Noel/ALWIS/wiki/Campus)
+- [Navigateurs et limites](https://github.com/Bastian-Noel/ALWIS/wiki/Compatibilite)
+- [Installer les sources et contribuer](https://github.com/Bastian-Noel/ALWIS/wiki/Contribuer)
 
 <details>
 <summary><strong>Documentation technique et licences</strong></summary>
 
-[Architecture](docs/architecture.md) · [Performance](docs/performance.md) · [Hébergement](docs/deployment.md)
+[Architecture](https://github.com/Bastian-Noel/ALWIS/wiki/Architecture) · [Performance](https://github.com/Bastian-Noel/ALWIS/wiki/Performance) · [Hébergement](https://github.com/Bastian-Noel/ALWIS/wiki/Publication)
 
 ALWIS utilise notamment PHP, MariaDB, CodeMirror, PHPantom, SuperHTML, TypeScript, SWC et Emmet.
 Les notices se trouvent dans `provenance/` et dans le fichier `THIRD-PARTY.txt` du paquet.

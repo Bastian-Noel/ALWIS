@@ -119,23 +119,9 @@ class Builder:
         for source, (slug, _) in PAGES.items():
             text = (self.root / source).read_text()
             files[slug + '.md'] = '<!-- Generated from ' + source + '; edit the repository source. -->\n\n' + self.convert(text, source)
-        files['Home.md'] = f'''# Bienvenue dans ALWIS
-
-Écrivez votre site, testez-le et explorez vos données dans le navigateur.
-
-| Pour… | Commencez ici |
-|---|---|
-| Ouvrir ALWIS | [Installer ALWIS]({self.wiki}Installation#d%C3%A9marrer) |
-| Faire vos premiers essais | [Guide illustré]({self.wiki}Premiers-pas) |
-| Écrire du code et sauvegarder | [Éditeur et raccourcis]({self.wiki}Editeur-et-sauvegardes) |
-| Tester un site déjà rempli | [Exemple Campus]({self.wiki}Campus) |
-
-![L’accueil ALWIS : création, import ZIP et dossier du PC.]({self.link('docs/images/alwis-start.png', 'README.md')})
-
-> **Pour garder votre travail :** sauvegardez le projet dans le navigateur et exportez un ZIP sur votre PC.
-
-[Compatibilité et limites]({self.wiki}Compatibilite) · [Signaler un problème]({self.repo}/issues)
-'''
+        # GitHub opens Home.md first. Keep it identical to the generated README
+        # page so the full installation guide is the wiki landing page too.
+        files['Home.md'] = files['Installation.md']
         sidebar = f'**[ALWIS — Documentation]({self.wiki}Home)**\n\n**Utiliser ALWIS**\n\n'
         for source in list(PAGES)[:5]:
             slug, title = PAGES[source]; sidebar += f'- [{title}]({self.wiki}{slug})\n'
