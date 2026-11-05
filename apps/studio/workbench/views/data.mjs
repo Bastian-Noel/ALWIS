@@ -1,3 +1,4 @@
+import { columnValueError, rowConstraintError } from "../input-validation.mjs";
 /** Espace Données : arbre avec actions rapides, grille éditable au clavier, ligne d'ajout, structure colorée, console SQL. */
 import {
   $,
@@ -27,6 +28,28 @@ import {
 } from "../state.mjs";
 import { ui, icon } from "../icons.mjs";
 import * as G from "../sqlgen.mjs";
+
+let ghostPending = false;
+function clearInputError(input) {
+  input.classList.remove("err");
+  input.removeAttribute("aria-invalid");
+  input.removeAttribute("aria-describedby");
+  input.parentElement.querySelector(".cell-error")?.remove();
+}
+function showInputError(input, message) {
+  clearInputError(input);
+  input.classList.add("err");
+  input.setAttribute("aria-invalid", "true");
+  const hint = document.createElement("span");
+  hint.className = "cell-error";
+  hint.id =
+    "cell-error-" +
+    Array.from(input.closest("tr").querySelectorAll("input")).indexOf(input);
+  hint.setAttribute("role", "status");
+  hint.textContent = message;
+  input.setAttribute("aria-describedby", hint.id);
+  input.after(hint);
+}
 
 let edQ = null;
 const cur = () => S.cat?.tables.find((t) => t.name === S.table);
@@ -159,7 +182,7 @@ export function drawData() {
     return;
   }
   const t = cur();
-  const head = `<div class="bar dh"><span class="crumbs" style="padding:0;min-height:0"><span>${esc(S.db)}</span>${t ? `<span class="crumb-sep">${icon("chevron-right","sm")}</span><b style="${hueStyle(t.name)}"><i class="td"></i> ${esc(t.name)}</b>` : ""}</span>
+  const head = `<div class="bar dh"><span class="crumbs" style="padding:0;min-height:0"><span>${esc(S.db)}</span>${t ? `<span class="crumb-sep">${icon("chevron-right", "sm")}</span><b style="${hueStyle(t.name)}"><i class="td"></i> ${esc(t.name)}</b>` : ""}</span>
     <span class="seg" role="group" aria-label="Vue">${[
       ["data", "Données"],
       ["struct", "Structure"],
@@ -230,7 +253,7 @@ function dataHtml(t) {
   const ghost = `<tr class="ghost"><td class="ck">${ui.plus}</td>${cols.map((c) => `<td><input data-g="${esc(c.name)}" ${isAuto(c) ? "disabled" : ""} placeholder="${isAuto(c) ? "auto" : c.nullable ? c.name : c.name + " *"}" aria-label="Nouvelle valeur de ${esc(c.name)}" autocomplete="off" spellcheck="false"></td>`).join("")}<td class="ra"><button class="btn sm pri" data-act="ghostAdd" aria-label="Ajouter la ligne">${icon("enter")}</button></td></tr>`;
   return (
     flt +
-    `<div class="gridwrap" id="gw"><table class="dg"><thead><tr><th class="ck"><input type="checkbox" data-act-change="rowAll" aria-label="Tout sélectionner" ${S.sel.size && S.sel.size === g.rows.length ? "checked" : ""}></th>${th}<th class="ra"><button data-act="colQuick" aria-label="Ajouter une colonne" title="Ajouter une colonne">${ui.plus}</button></th></tr></thead><tbody>${body}${ghost}</tbody></table>${!g.rows.length && !S.filter && !S.search ? '<p class="hint" style="padding:14px 18px">Table vide : saisissez une première ligne ci-dessus. Une cellule vide prend la valeur par défaut.</p>' : ""}${!g.rows.length && (S.filter || S.search) ? '<p class="hint" style="padding:14px 18px">Aucune ligne ne correspond à votre recherche ou aux filtres.</p>' : ""}</div>
+    `<div class="gridwrap" id="gw"><p id="ghost-feedback" class="cell-error" role="status"></p><table class="dg"><thead><tr><th class="ck"><input type="checkbox" data-act-change="rowAll" aria-label="Tout sélectionner" ${S.sel.size && S.sel.size === g.rows.length ? "checked" : ""}></th>${th}<th class="ra"><button data-act="colQuick" aria-label="Ajouter une colonne" title="Ajouter une colonne">${ui.plus}</button></th></tr></thead><tbody>${body}${ghost}</tbody></table>${!g.rows.length && !S.filter && !S.search ? '<p class="hint" style="padding:14px 18px">Table vide : saisissez une première ligne ci-dessus. Une cellule vide prend la valeur par défaut.</p>' : ""}${!g.rows.length && (S.filter || S.search) ? '<p class="hint" style="padding:14px 18px">Aucune ligne ne correspond à votre recherche ou aux filtres.</p>' : ""}</div>
     <div class="foot"><span class="num">${plural(S.total, "ligne", "lignes")}</span><span class="mono trunc grow sqlecho" title="${esc(S.lastSQL)}" aria-live="polite">${S.gmsg ? esc(S.gmsg) : esc(S.lastSQL)}</span><button class="btn quiet sm" data-act="page" data-arg="-1" ${S.page < 2 ? "disabled" : ""} aria-label="Page précédente">${icon("chevron-left")}</button><span class="num">Page ${S.page} / ${pages}</span><button class="btn quiet sm" data-act="page" data-arg="1" ${S.page >= pages ? "disabled" : ""} aria-label="Page suivante">${icon("chevron-right")}</button></div>`
   );
 }
@@ -288,8 +311,8 @@ function structHtml(t) {
   return `<div class="gridwrap st"><div class="chips"><span class="chip2">${plural(t.columns.length, "colonne", "colonnes")}</span><span class="chip2">${plural(pkOf(t).length, "clé primaire", "clés primaires")}</span><span class="chip2">${plural(t.fks.length, "relation sortante", "relations sortantes")}</span><span class="chip2">${plural(t.rows, "ligne", "lignes")}</span></div>
     <table class="sg"><thead><tr><th>Colonne</th><th>Type</th><th>Valeur nulle</th><th>Clés et relations</th><th>Extra</th><th class="ra"><span class="sr-only">Actions</span></th></tr></thead><tbody>${rows}
     <tr class="addrow"><td colspan="6"><button class="btn" data-act="columnForm">Ajouter une colonne…</button></td></tr></tbody></table>
-    <section class="sec2"><h3>Index</h3><div class="pills">${t.indexes.map((i) => `<span class="pillx ${i.name === "PRIMARY" ? "pk" : ""}">${i.name === "PRIMARY" ? ui.key : ""}<b>${esc(i.name)}</b><span class="mono">(${esc(i.columns.join(", "))})</span>${i.unique && i.name !== "PRIMARY" ? "<em>UNIQUE</em>" : ""}${i.name !== "PRIMARY" ? `<button data-act="idxDrop" data-arg="${esc(i.name)}" aria-label="Supprimer l’index ${esc(i.name)}">${icon("x","sm")}</button>` : ""}</span>`).join("") || '<span class="mut">Aucun index.</span>'}<button class="btn sm" data-act="idxAdd">${ui.plus}Index</button></div></section>
-    <section class="sec2"><h3>Relations</h3><div class="pills">${t.fks.map((f) => `<button class="rel2" style="--h:${tableHue(f.refTable)}" data-act="selectTable" data-arg="${esc(f.refTable)}"><b>${esc(f.column)}</b>${icon("arrow-right","sm")}<b>${esc(f.refTable)}.${esc(f.refColumn)}</b><em>ON DELETE ${f.onDelete}</em></button>`).join("")}${incoming.map((f) => `<button class="rel2 in" style="--h:${tableHue(f.table)}" data-act="selectTable" data-arg="${esc(f.table)}"><b>${esc(f.table)}.${esc(f.column)}</b>${icon("arrow-right","sm")}<b>${esc(f.refColumn)}</b><em>référence cette table</em></button>`).join("")}${!t.fks.length && !incoming.length ? '<span class="mut">Aucune relation. Glissez un champ vers un autre dans le Schéma pour en créer une.</span>' : ""}</div></section>
+    <section class="sec2"><h3>Index</h3><div class="pills">${t.indexes.map((i) => `<span class="pillx ${i.name === "PRIMARY" ? "pk" : ""}">${i.name === "PRIMARY" ? ui.key : ""}<b>${esc(i.name)}</b><span class="mono">(${esc(i.columns.join(", "))})</span>${i.unique && i.name !== "PRIMARY" ? "<em>UNIQUE</em>" : ""}${i.name !== "PRIMARY" ? `<button data-act="idxDrop" data-arg="${esc(i.name)}" aria-label="Supprimer l’index ${esc(i.name)}">${icon("x", "sm")}</button>` : ""}</span>`).join("") || '<span class="mut">Aucun index.</span>'}<button class="btn sm" data-act="idxAdd">${ui.plus}Index</button></div></section>
+    <section class="sec2"><h3>Relations</h3><div class="pills">${t.fks.map((f) => `<button class="rel2" style="--h:${tableHue(f.refTable)}" data-act="selectTable" data-arg="${esc(f.refTable)}"><b>${esc(f.column)}</b>${icon("arrow-right", "sm")}<b>${esc(f.refTable)}.${esc(f.refColumn)}</b><em>ON DELETE ${f.onDelete}</em></button>`).join("")}${incoming.map((f) => `<button class="rel2 in" style="--h:${tableHue(f.table)}" data-act="selectTable" data-arg="${esc(f.table)}"><b>${esc(f.table)}.${esc(f.column)}</b>${icon("arrow-right", "sm")}<b>${esc(f.refColumn)}</b><em>référence cette table</em></button>`).join("")}${!t.fks.length && !incoming.length ? '<span class="mut">Aucune relation. Glissez un champ vers un autre dans le Schéma pour en créer une.</span>' : ""}</div></section>
     <section class="sec2"><h3>Définition <button class="btn quiet sm" data-act="copyDdl">Copier</button></h3><pre class="pre sqlh">${sqlHtml(t.ddl)}</pre></section>${S.lastSQL ? `<p class="hint mono" style="padding:0 18px 18px">Dernier SQL : ${esc(S.lastSQL.replace(/\s+/g, " ").slice(0, 160))}</p>` : ""}</div>`;
 }
 
@@ -306,7 +329,7 @@ function drawSql(head) {
   edQ = null;
   $("#dmain").innerHTML =
     head +
-    `<div class="q-ed" id="qwrap"><div class="edwrap" id="edq"></div><div class="bar tight"><button class="btn pri sm" data-act="runSQL">Exécuter <kbd>Ctrl Entrée</kbd></button><button class="btn quiet sm" data-act="histMenu" aria-haspopup="true">Récentes ${icon("chevron-down","sm")}</button><span class="hint hide-s">Exécute la sélection, sinon tout le script.</span><span class="grow"></span><span class="mono mut">${esc(S.db)}</span></div></div><div id="rsb" class="side grow"></div>`;
+    `<div class="q-ed" id="qwrap"><div class="edwrap" id="edq"></div><div class="bar tight"><button class="btn pri sm" data-act="runSQL">Exécuter <kbd>Ctrl Entrée</kbd></button><button class="btn quiet sm" data-act="histMenu" aria-haspopup="true">Récentes ${icon("chevron-down", "sm")}</button><span class="hint hide-s">Exécute la sélection, sinon tout le script.</span><span class="grow"></span><span class="mono mut">${esc(S.db)}</span></div></div><div id="rsb" class="side grow"></div>`;
   edQ?.destroy();
   edQ = mkEditor($("#edq"), {
     lang: "sql",
@@ -468,38 +491,72 @@ Object.assign(A, {
     await run("Lecture de la table", async () => {});
   },
   async ghostAdd() {
+    if (ghostPending) return;
+    const feedback = $("#ghost-feedback");
+    if (feedback) feedback.textContent = "";
     const t = cur(),
       inputs = $$("#gw [data-g]"),
       cols = [],
       vals = [];
     let bad = null;
     for (const i of inputs) {
-      i.classList.remove("err");
+      clearInputError(i);
       const c = t.columns.find((x) => x.name === i.dataset.g);
+      const message =
+        i.value !== ""
+          ? columnValueError(c, i.value)
+          : !c.nullable && !isAuto(c) && c.default == null
+            ? "Cette colonne est obligatoire."
+            : "";
+      if (message) {
+        showInputError(i, message);
+        bad ||= i;
+      }
       if (i.value !== "") {
         cols.push(c.name);
         vals.push(i.value);
-      } else if (!c.nullable && !isAuto(c) && c.default == null) {
-        i.classList.add("err");
-        bad ||= i;
       }
     }
     if (bad) {
       bad.focus();
-      S.gmsg = `Renseignez « ${bad.dataset.g} » : cette colonne est obligatoire.`;
-      $(".sqlecho").textContent = S.gmsg;
       return;
     }
     if (!cols.length && inputs.length) {
       inputs.find((i) => !i.disabled)?.focus();
       return;
     }
-    S.gmsg = "";
-    S.focus = "ghost";
-    await run("Insertion", async () => {
-      await sql(G.insert(t.name, cols, vals));
-      S.page = Math.max(1, Math.ceil((S.total + 1) / 100));
-    });
+    ghostPending = true;
+    const submit = $("#gw [data-act=ghostAdd]");
+    if (submit) submit.disabled = true;
+    try {
+      const ok = await task("Insertion", async () => {
+        try {
+          await sql(G.insert(t.name, cols, vals));
+        } catch (error) {
+          const issue = rowConstraintError(error, t.columns);
+          if (!issue) throw error;
+          const input = inputs.find((i) => i.dataset.g === issue.column);
+          if (input) {
+            showInputError(input, issue.message);
+            input.focus();
+          } else {
+            const feedback = $("#ghost-feedback");
+            feedback.textContent = issue.message;
+          }
+          return false;
+        }
+        S.page = Math.max(1, Math.ceil((S.total + 1) / 100));
+        await refreshDb();
+        return true;
+      });
+      if (ok) {
+        S.focus = "ghost";
+        ctx.draw();
+      }
+    } finally {
+      ghostPending = false;
+      if (submit?.isConnected) submit.disabled = false;
+    }
   },
   async rowInsertDup(ri) {
     const t = cur(),
@@ -1128,6 +1185,13 @@ export function bindData() {
     const td = e.target.closest("td[data-c]");
     if (td && S.dmode === "data" && !td.classList.contains("edit"))
       A.cellEdit(td);
+  });
+  m.addEventListener("input", (e) => {
+    const input = e.target.closest?.("[data-g]");
+    if (!input) return;
+    clearInputError(input);
+    const feedback = $("#ghost-feedback");
+    if (feedback) feedback.textContent = "";
   });
   m.addEventListener("keydown", (e) => {
     const gi = e.target.closest?.("[data-g]");

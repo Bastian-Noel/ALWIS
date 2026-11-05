@@ -1,3 +1,4 @@
+import { isResizeDeliveryNotification } from "./input-validation.mjs";
 import { bindPreviewBrowser } from "./preview-browser.mjs";
 import { scheduleNetwork } from "./views/network.mjs";
 import "./local-folder.mjs";
@@ -76,9 +77,15 @@ bindData();
 bindSchema();
 bindDock();
 installKeyboard();
-window.addEventListener("error", (e) =>
-  fail("Erreur de l’interface", e.error ?? Error(e.message)),
-);
+window.addEventListener("error", (e) => {
+  // A deferred layout notification is not a failed user action. Redrawing the
+  // entire application here can itself trigger another measurement cycle.
+  if (isResizeDeliveryNotification(e)) {
+    e.preventDefault();
+    return;
+  }
+  fail("Erreur de l’interface", e.error ?? Error(e.message));
+});
 window.addEventListener("unhandledrejection", (e) =>
   fail(
     "Action impossible",
@@ -143,6 +150,6 @@ installSiteUpdates({
     if (!S.project) return;
     // Save the applied runtime and SQL, while preserving unapplied drafts in workspace metadata.
     await ctx.engine.projects.save();
-    await ctx.engine.projects.close({save: false});
+    await ctx.engine.projects.close({ save: false });
   },
 });

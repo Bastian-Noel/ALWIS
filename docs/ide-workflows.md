@@ -81,6 +81,8 @@ Les outils secondaires et le réglage d’indentation se trouvent dans **…** a
 
 Dans **Données**, cherchez une table dans le volet de gauche. La recherche au-dessus de la grille porte sur toutes les colonnes et toutes les lignes de la table, y compris les pages suivantes. Vous pouvez la combiner avec **Filtrer par colonne**.
 
+Dans la ligne d’ajout, une valeur entière invalide est signalée directement sous le champ, qui reçoit le focus. Les valeurs saisies restent en place pour correction. Les erreurs de longueur et les contraintes SQL reconnues sont affichées dans la grille ; une correction efface le message du champ.
+
 La sélection des lignes est réinitialisée après un tri, un changement de page ou un rechargement des données : vérifiez votre sélection avant une suppression. Les flèches déplacent le focus dans la grille en conservant la ligne de saisie en cours.
 
 Pour créer une relation, ouvrez **Schéma → Relier des tables** ou **Données → Structure → Relation**. Choisissez les deux tables, puis la clé référencée et les colonnes correspondantes. Les clés composées sont proposées ensemble. Les comportements à la suppression et à la modification restent dans les options ; la requête SQL est consultable à la demande.
@@ -136,6 +138,8 @@ La mention **Projet ouvert · dossier PC**, au-dessus du nom du dossier, indique
 ## Édition, recherche et diagnostics
 
 **Ctrl F** ouvre une recherche fixe en haut à droite du code. Le chevron déplie le remplacement ; les flèches parcourent les résultats. **Aa**, **ab** et **.*** activent respectivement la casse, le mot entier et les expressions régulières. Chaque bouton possède une explication au survol et un nom accessible.
+
+Les panneaux de navigation affichent le fichier, la ligne et la colonne. Leur bouton de fermeture se trouve en haut à droite et rend le focus à l’éditeur.
 
 Le clic droit dans le code propose les actions adaptées au langage : définition, références et renommage de symbole en PHP/JavaScript, Emmet dans le HTML/CSS. Le menu des fichiers conserve les opérations sur le fichier et les réglages. La molette au-dessus des onglets passe au fichier précédent ou suivant.
 

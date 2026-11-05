@@ -548,6 +548,23 @@ export function createCodeEditor(
     signatureText = "";
     view.dispatch({ effects: signaturePanel.reconfigure([]) });
   }
+  function resultsHeader(title) {
+    const heading = document.createElement("strong");
+    heading.textContent = title;
+    const header = document.createElement("header");
+    const close = document.createElement("button");
+    close.type = "button";
+    close.className = "cm-results-close";
+    close.innerHTML = ui.close;
+    close.title = "Fermer " + title.toLowerCase();
+    close.setAttribute("aria-label", close.title);
+    close.onclick = () => {
+      view.dispatch({ effects: resultsPanel.reconfigure([]) });
+      view.focus();
+    };
+    header.append(heading, close);
+    return header;
+  }
   function showResults(title, items, message) {
     if (destroyed) return;
     view.dispatch({
@@ -556,23 +573,20 @@ export function createCodeEditor(
           const dom = document.createElement("section");
           dom.className = "cm-help-results";
           dom.setAttribute("aria-label", title);
-          const heading = document.createElement("strong");
-          heading.textContent = title;
-          dom.append(heading);
-          const close = document.createElement("button");
-          close.textContent = "Fermer";
-          close.onclick = () => {
-            view.dispatch({ effects: resultsPanel.reconfigure([]) });
-            view.focus();
-          };
-          dom.append(close);
+          const header = resultsHeader(title);
+          const list = document.createElement("div");
+          list.className = "cm-results-list";
+          dom.append(header, list);
           if (!items.length)
             dom.append(
               document.createTextNode(message ?? " Aucun résultat disponible."),
             );
           for (const item of items.slice(0, 100)) {
             const button = document.createElement("button");
+            button.className = "cm-result-item";
+            button.type = "button";
             button.textContent = item.label;
+            button.title = item.label;
             button.onclick = () => {
               try {
                 item.run();
@@ -580,7 +594,7 @@ export function createCodeEditor(
                 status(error.message);
               }
             };
-            dom.append(button);
+            list.append(button);
           }
           return { dom, top: false };
         }),
@@ -598,7 +612,7 @@ export function createCodeEditor(
             title = document.createElement("strong"),
             close = document.createElement("button"),
             list = document.createElement("div");
-          close.textContent = "×";
+          close.innerHTML = ui.close;
           close.title = "Fermer les problèmes";
           close.setAttribute("aria-label", "Fermer les problèmes");
           close.onclick = () => {
@@ -1029,7 +1043,21 @@ export function createCodeEditor(
         showResults(
           operation === "definition" ? "Définitions" : "Références",
           targets.map((target) => ({
-            label: target.path + " · position " + target.from,
+            label: (() => {
+              const text =
+                target.path === filename
+                  ? view.state.doc.toString()
+                  : files[target.path];
+              if (typeof text !== "string") return target.path;
+              const before = text.slice(0, target.from);
+              return (
+                target.path +
+                " · ligne " +
+                before.split("\n").length +
+                ", colonne " +
+                (before.length - before.lastIndexOf("\n"))
+              );
+            })(),
             run: () => jump(target),
           })),
         );
@@ -1050,7 +1078,8 @@ export function createCodeEditor(
       effects: resultsPanel.reconfigure(
         showPanel.of(() => {
           const dom = document.createElement("form");
-          dom.className = "cm-help-results";
+          dom.className = "cm-help-results cm-result-form";
+          dom.append(resultsHeader("Renommer le symbole"));
           const label = document.createElement("label");
           label.textContent = "Nouveau nom du symbole ";
           const input = document.createElement("input");
@@ -1192,7 +1221,8 @@ export function createCodeEditor(
       effects: resultsPanel.reconfigure(
         showPanel.of(() => {
           const dom = document.createElement("form");
-          dom.className = "cm-help-results";
+          dom.className = "cm-help-results cm-result-form";
+          dom.append(resultsHeader("Rechercher dans le projet"));
           const label = document.createElement("label");
           label.textContent = "Rechercher dans les fichiers indexés ";
           const input = document.createElement("input");
