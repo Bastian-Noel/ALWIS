@@ -4,6 +4,16 @@ on:
     workflows: ["Publish FTP - validated studio"]
     types: [completed]
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      static_run_id:
+        description: GitHub Actions run ID of the successful static publication
+        type: string
+        required: true
+      source_sha:
+        description: Exact main commit used by that static publication
+        type: string
+        required: true
 permissions:
   actions: read
   contents: write
@@ -13,25 +23,25 @@ concurrency:
   cancel-in-progress: false
 jobs:
   container:
-    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.event == 'workflow_dispatch'
+    if: (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.event == 'workflow_dispatch')
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - name: Check out the exact static release source
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ github.event.workflow_run.head_sha || inputs.source_sha }}
           persist-credentials: false
       - name: Download the validated static artifact
         env:
           GH_TOKEN: ${{ github.token }}
-          RUN_ID: ${{ github.event.workflow_run.id }}
+          RUN_ID: ${{ github.event.workflow_run.id || inputs.static_run_id }}
           GH_REPO: ${{ github.repository }}
-          SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
+          SOURCE_SHA: ${{ github.event.workflow_run.head_sha || inputs.source_sha }}
         run: gh run download "$RUN_ID" --repo "$GH_REPO" --name "studio-static-$SOURCE_SHA" --dir build-work/server-site
       - name: Verify the static release artifact
         env:
-          SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
+          SOURCE_SHA: ${{ github.event.workflow_run.head_sha || inputs.source_sha }}
         run: |
           python3 - <<'PY'
           import hashlib, json
@@ -51,7 +61,7 @@ jobs:
           PY
       - name: Build the isolated server image
         env:
-          SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
+          SOURCE_SHA: ${{ github.event.workflow_run.head_sha || inputs.source_sha }}
         run: |
           VERSION=$(node -p "JSON.parse(require('fs').readFileSync('package.json','utf8')).version")
           TAG="${VERSION}"
@@ -78,7 +88,12 @@ jobs:
           printf '%s' "$GH_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
           docker push "$PACKAGE:$VERSION"
           docker push "$PACKAGE:sha-$SHORT_SHA"
-          gh api --method PATCH "/user/packages/container/alwis-server/visibility" -f visibility=public
+          if gh api --method PATCH "/user/packages/container/alwis-server/visibility" -f visibility=public >/dev/null 2>&1; then
+            echo 'The GHCR package is public.' >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo '::warning::The image was pushed, but GITHUB_TOKEN cannot change GHCR visibility. Make the package public once in its GitHub package settings if anonymous pulls are required.'
+            printf '%s\n' 'The GHCR package was pushed. Anonymous pulls may require setting its visibility to Public under GitHub → Packages → alwis-server → Package settings.' >> "$GITHUB_STEP_SUMMARY"
+          fi
       - name: Add the container pull command to the matching release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -89,6 +104,6 @@ jobs:
           SOURCE_SHA=$(cat build-work/server-image-source.txt)
           TAG="v$VERSION"
           gh release view "$TAG" --repo "$GH_REPO" --json body --jq .body > build-work/server-release-notes.md
-          printf '\n### Server container\n\nPull the server edition with `docker pull %s:%s`. Source: `%s`. See [the server deployment guide](https://github.com/%s/blob/main/docs/server-deployment.md).\n' \
+          printf '\n### Server container\n\nPull the server edition with `docker pull %s:%s`. If GitHub returns an access error, make the package public in GitHub Packages or authenticate with `docker login ghcr.io`. Source: `%s`. See [the server deployment guide](https://github.com/%s/blob/main/docs/server-deployment.md).\n' \
             "$PACKAGE" "$VERSION" "$SOURCE_SHA" "$GH_REPO" >> build-work/server-release-notes.md
           gh release edit "$TAG" --repo "$GH_REPO" --notes-file build-work/server-release-notes.md

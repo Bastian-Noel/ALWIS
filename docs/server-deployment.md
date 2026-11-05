@@ -6,7 +6,7 @@ La version serveur de cette première étape contient l’application web et une
 
 ## Télécharger et installer le conteneur
 
-Les images publiées apparaissent dans [GitHub Packages](https://github.com/Bastian-Noel/ALWIS/pkgs/container/alwis-server). La première publication cible Linux `amd64`. Choisissez un tag de release précis, puis suivez [le guide Docker serveur](../server/README.md). Exemple :
+Les images publiées apparaissent dans [GitHub Packages](https://github.com/Bastian-Noel/ALWIS/pkgs/container/alwis-server). La première publication cible Linux `amd64`. Si `docker pull` signale un accès refusé, ouvrez **Package settings → Change visibility → Public** dans GitHub Packages, ou connectez Docker avec un compte disposant de `read:packages`. Choisissez un tag de release précis, puis suivez [le guide Docker serveur](../server/README.md). Exemple :
 
 ```sh
 docker pull ghcr.io/bastian-noel/alwis-server:0.3.0-preview.17
@@ -19,7 +19,7 @@ Le proxy HTTPS doit préserver les en-têtes COOP/COEP utilisés par WASM. Confi
 ## Deux distributions, dans l’ordre
 
 1. Lancez **Publish FTP - validated studio** sur `main` en choisissant un tag de release. Ce workflow construit et valide le paquet statique, publie la release puis met le même paquet à jour sur le site FTP.
-2. Après son succès, **Publish ALWIS server container** télécharge l’artefact statique de cette exécution, en contrôle le SHA-256 et la révision, puis construit et pousse l’image serveur correspondante.
+2. Après son succès, **Publish ALWIS server container** télécharge l’artefact statique de cette exécution, en contrôle le SHA-256 et la révision, puis construit et pousse l’image serveur correspondante. Pour relancer uniquement cette seconde étape après un incident, fournissez l’ID de la publication statique réussie et son SHA à **Publish ALWIS server container**.
 
 Les deux images portent la même version et révision. Le ZIP statique reste disponible sur la release. Le workflow ajoute aussi la commande `docker pull` correspondante aux notes de cette release. Aucune branche d’upload ni aucun conteneur MariaDB distant n’est ajouté.
 
