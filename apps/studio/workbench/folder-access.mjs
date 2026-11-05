@@ -1,14 +1,15 @@
 const equal = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
 const MiB = 1048576;
 const countText = (value) => new Intl.NumberFormat("fr-FR").format(value);
-const sizeText = (bytes) =>
+export const folderSizeText = (bytes) =>
   new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 2 }).format(
     Math.ceil((bytes / MiB) * 100) / 100,
   ) + " Mio";
 const folderLimit = (message, limit, path) =>
   Object.assign(Error(message), { code: "FOLDER_LIMIT", limit, path });
-export async function readFolder(directory) {
-  const pending = [];
+export async function readFolder(directory, { onOversized } = {}) {
+  const pending = [],
+    oversized = [];
   let total = 0;
   async function walk(dir, prefix = "", depth = 0) {
     if (depth > 12)
@@ -26,16 +27,21 @@ export async function readFolder(directory) {
       if (entry.kind === "directory") await walk(entry, path, depth + 1);
       else {
         const file = await entry.getFile();
-        if (file.size > 16 * MiB)
+        if (file.size > 16 * MiB) {
+          if (onOversized) {
+            oversized.push({ path, size: file.size });
+            continue;
+          }
           throw folderLimit(
             "Le fichier « " +
               path +
               " » fait " +
-              sizeText(file.size) +
+              folderSizeText(file.size) +
               ". La limite par fichier est de 16 Mio.",
             "file",
             path,
           );
+        }
         if (pending.length >= 1024)
           throw folderLimit(
             "Le dossier contient au moins " +
@@ -50,7 +56,7 @@ export async function readFolder(directory) {
         if (total > 64 * MiB)
           throw folderLimit(
             "Les fichiers du dossier dépassent déjà " +
-              sizeText(total) +
+              folderSizeText(total) +
               ". La limite totale est de 64 Mio. Limite atteinte avec « " +
               path +
               " ».",
@@ -63,6 +69,15 @@ export async function readFolder(directory) {
   }
   // Validate metadata before allocating file contents or creating a project.
   await walk(directory);
+  if (
+    oversized.length &&
+    !(await onOversized({
+      files: oversized,
+      retainedCount: pending.length,
+      retainedBytes: total,
+    }))
+  )
+    throw new DOMException("Ouverture du dossier annulée.", "AbortError");
   const files = new Map();
   for (const { path, file } of pending)
     files.set(path, new Uint8Array(await file.arrayBuffer()));
@@ -81,22 +96,27 @@ export function folderWriter(directory, snapshots) {
       dir = await dir.getDirectoryHandle(part, { create: true });
     const name = parts.at(-1);
     let handle, current;
-    try {
-      handle = await dir.getFileHandle(name);
-      current = new Uint8Array(await (await handle.getFile()).arrayBuffer());
-    } catch (e) {
-      if (e.name !== "NotFoundError") throw e;
-    }
     const expected = snapshots.get(path);
-    if (
-      (expected && !current) ||
-      (current && (!expected || !equal(current, expected)))
-    )
-      throw Error(
+    const conflict = () =>
+      Error(
         "Le fichier du PC a changé : " +
           path +
           ". Rouvrez le dossier pour récupérer sa version.",
       );
+    try {
+      handle = await dir.getFileHandle(name);
+      const file = await handle.getFile();
+      // Do not read a potentially huge excluded/new external file just to refuse overwriting it.
+      if (!expected || file.size !== expected.byteLength) throw conflict();
+      current = new Uint8Array(await file.arrayBuffer());
+    } catch (e) {
+      if (e.name !== "NotFoundError") throw e;
+    }
+    if (
+      (expected && !current) ||
+      (current && (!expected || !equal(current, expected)))
+    )
+      throw conflict();
     handle ??= await dir.getFileHandle(name, { create: true });
     const stream = await handle.createWritable();
     try {

@@ -26,32 +26,84 @@ try {
           },
           { name, args },
         );
+      const noProject = async () =>
+        assert.equal(
+          await page.evaluate(async () => {
+            const { S, eng } = await import("/apps/studio/workbench/state.mjs");
+            return S.project === null && eng().projects.recents().length === 0;
+          }),
+          true,
+        );
+      const auditDialog = async (prefix) => {
+        for (const theme of ["light", "dark"]) {
+          await page.evaluate(
+            (t) => (document.documentElement.dataset.theme = t),
+            theme,
+          );
+          await page.locator("#modal").evaluate(
+            async (dialog) =>
+              await Promise.all(
+                dialog
+                  .getAnimations({ subtree: true })
+                  .filter((a) =>
+                    Number.isFinite(a.effect.getComputedTiming().endTime),
+                  )
+                  .map((a) => a.finished.catch(() => {})),
+              ),
+          );
+          assert.deepEqual(
+            await page.evaluate(async () =>
+              (await axe.run(document.querySelector("#modal"))).violations.map(
+                (v) => ({
+                  id: v.id,
+                  nodes: v.nodes.map((n) => n.failureSummary),
+                }),
+              ),
+            ),
+            [],
+          );
+          await page.screenshot({
+            path: `build-work/folder-opening/${prefix}-${theme}-${engine.name()}.png`,
+            animations: "disabled",
+          });
+        }
+        await page.setViewportSize({ width: 390, height: 844 });
+        assert.equal(
+          await page
+            .locator("#modal")
+            .evaluate((el) => el.scrollWidth <= el.clientWidth),
+          true,
+        );
+        await page.setViewportSize({ width: 1440, height: 1000 });
+      };
       await page.goto(`http://127.0.0.1:${server.address().port}`);
       await page.locator("#stext").filter({ hasText: "Prêt" }).waitFor();
+      await page.addScriptTag({ path: "node_modules/axe-core/axe.min.js" });
       await page.evaluate(() => {
         window.contentReads = 0;
         window.pickerCalls = 0;
         window.showDirectoryPicker = async () => {
           pickerCalls++;
           return {
-            name: "Trop volumineux",
+            name: "Total trop important",
             getDirectoryHandle: async () => {
               throw new DOMException("Absent", "NotFoundError");
             },
             async *entries() {
-              yield [
-                "backup.zip",
-                {
-                  kind: "file",
-                  getFile: async () => ({
-                    size: 17 * 1048576,
-                    arrayBuffer: async () => {
-                      contentReads++;
-                      throw Error("Must not read contents");
-                    },
-                  }),
-                },
-              ];
+              for (let i = 0; i < 5; i++)
+                yield [
+                  "part-" + i + ".bin",
+                  {
+                    kind: "file",
+                    getFile: async () => ({
+                      size: 15 * 1048576,
+                      arrayBuffer: async () => {
+                        contentReads++;
+                        throw Error("Must not read contents");
+                      },
+                    }),
+                  },
+                ];
             },
           };
         };
@@ -62,85 +114,95 @@ try {
         .waitFor();
       assert.match(
         await page.locator("#modal [role=alert]").textContent(),
-        /backup.zip.*17 Mio.*16 Mio/,
+        /75 Mio.*64 Mio.*part-4.bin/,
       );
-      assert.equal(
-        await page.evaluate(async () => {
-          const { S, eng } = await import("/apps/studio/workbench/state.mjs");
-          return (
-            S.project === null &&
-            eng().projects.recents().length === 0 &&
-            contentReads === 0
-          );
-        }),
-        true,
-      );
+      await noProject();
+      assert.equal(await page.evaluate(() => contentReads), 0);
       assert.equal(
         await page.locator(".toast-item[data-kind=success]").count(),
         0,
       );
-      await page.addScriptTag({ path: "node_modules/axe-core/axe.min.js" });
-      for (const theme of ["light", "dark"]) {
-        await page.evaluate(
-          (t) => (document.documentElement.dataset.theme = t),
-          theme,
-        );
-        await page.locator("#modal").evaluate(async (dialog) => {
-          await Promise.all(
-            dialog
-              .getAnimations({ subtree: true })
-              .filter((animation) =>
-                Number.isFinite(animation.effect.getComputedTiming().endTime),
-              )
-              .map((animation) => animation.finished.catch(() => {})),
-          );
-        });
-        assert.deepEqual(
-          await page.evaluate(async () =>
-            (await axe.run(document.querySelector("#modal"))).violations.map(
-              (v) => ({
-                id: v.id,
-                nodes: v.nodes.map((n) => ({
-                  html: n.html,
-                  summary: n.failureSummary,
-                })),
-              }),
-            ),
-          ),
-          [],
-        );
-        await page.screenshot({
-          path: `build-work/folder-opening/limit-${theme}-${engine.name()}.png`,
-          animations: "disabled",
-        });
-      }
-      await page.setViewportSize({ width: 390, height: 844 });
-      assert.equal(
-        await page
-          .locator("#modal")
-          .evaluate((el) => el.scrollWidth <= el.clientWidth),
-        true,
-      );
-      await page.setViewportSize({ width: 1440, height: 1000 });
+      await auditDialog("limit");
       if (engine === chromium) {
         await page.evaluate(async () => {
           window.validFolder = await (
             await navigator.storage.getDirectory()
           ).getDirectoryHandle("local-project", { create: true });
-          const handle = await validFolder.getFileHandle("index.php", {
+          const index = await validFolder.getFileHandle("index.php", {
               create: true,
             }),
-            writer = await handle.createWritable();
+            writer = await index.createWritable();
           await writer.write('<?php echo "Dossier prêt";');
           await writer.close();
+          for (const [name, size] of [
+            ["backup.zip", 17 * 1048576],
+            ["video.bin", 30 * 1048576],
+          ]) {
+            const file = await validFolder.getFileHandle(name, {
+                create: true,
+              }),
+              stream = await file.createWritable();
+            await stream.truncate(size);
+            await stream.close();
+          }
           window.showDirectoryPicker = async () => {
             pickerCalls++;
             return validFolder;
           };
         });
+      } else {
+        await page.evaluate(() => {
+          window.showDirectoryPicker = async () => ({
+            name: "Avec archive",
+            getDirectoryHandle: async () => {
+              throw new DOMException("Absent", "NotFoundError");
+            },
+            async *entries() {
+              yield [
+                "backup.zip",
+                {
+                  kind: "file",
+                  getFile: async () => ({
+                    size: 20 * 1048576,
+                    arrayBuffer: async () => {
+                      contentReads++;
+                      throw Error("Must not read contents");
+                    },
+                  }),
+                },
+              ];
+            },
+          });
+        });
+      }
+      await page
+        .getByRole("button", { name: "Choisir un autre dossier", exact: true })
+        .click();
+      await page
+        .getByRole("heading", { name: "Fichiers trop volumineux", exact: true })
+        .waitFor();
+      assert.match(
+        await page.locator(".folder-exclusions").textContent(),
+        /backup.zip/,
+      );
+      await noProject();
+      assert.equal(await page.evaluate(() => contentReads), 0);
+      assert.match(
+        await page.locator(".folder-failure").textContent(),
+        engine === chromium ? /2 fichiers dépassent/ : /1 fichier dépasse/,
+      );
+      assert.doesNotMatch(
+        await page.locator(".folder-failure").textContent(),
+        /undefined/,
+      );
+      await auditDialog("excluded");
+      await page.locator("#modal [data-v=no]").click();
+      await noProject();
+      if (engine === chromium) {
+        await page.locator("[data-act=openLocalFolder]").click();
         await page
           .getByRole("button", {
-            name: "Choisir un autre dossier",
+            name: "Ouvrir sans ces fichiers",
             exact: true,
           })
           .click();
@@ -152,14 +214,40 @@ try {
           await page.locator("#ed1 .cm-content").textContent(),
           /Dossier prêt/,
         );
-        assert.equal(await page.evaluate(() => pickerCalls), 2);
+        assert.deepEqual(
+          await page.evaluate(async () => {
+            const { S } = await import("/apps/studio/workbench/state.mjs");
+            return S.files.map((f) => f.path);
+          }),
+          ["/index.php"],
+        );
+        assert.equal(await page.evaluate(() => pickerCalls), 3);
         await page.evaluate(async () => {
           const { S } = await import("/apps/studio/workbench/state.mjs");
           S.qtext = "SELECT 42;";
         });
         assert.equal(await action("save"), true);
+        const sizes = await page.evaluate(async () =>
+          Promise.all(
+            ["backup.zip", "video.bin"].map(
+              async (n) =>
+                (await (await validFolder.getFileHandle(n)).getFile()).size,
+            ),
+          ),
+        );
+        assert.deepEqual(
+          sizes,
+          [17 * 1048576, 30 * 1048576],
+          "saving must leave excluded files on the PC untouched",
+        );
         await action("close");
         await page.locator("[data-act=openLocalFolder]").click();
+        await page
+          .getByRole("button", {
+            name: "Ouvrir sans ces fichiers",
+            exact: true,
+          })
+          .click();
         await page
           .locator(".project-caption")
           .filter({ hasText: "dossier PC" })
@@ -173,11 +261,7 @@ try {
         );
         assert.equal(await action("save"), true);
         await action("close");
-      } else
-        await page
-          .getByRole("button", { name: "Fermer", exact: true })
-          .last()
-          .click();
+      }
       await page.evaluate(() => {
         window.showDirectoryPicker = async () => {
           throw Error("Lecture du dossier interrompue");
@@ -197,9 +281,9 @@ try {
       assert.deepEqual(errors, []);
       console.log(
         engine.name() +
-          ": explicit folder-limit failure, no partial project, accessible dialog and error notification passed" +
+          ": folder budgets, accessible exclusion preview, cancellation and errors passed" +
           (engine === chromium
-            ? "; retry opens project and .alwis restores context"
+            ? "; accepted files open, .alwis restores, and excluded files remain unchanged"
             : ""),
       );
     } finally {

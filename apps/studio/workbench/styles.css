@@ -3385,3 +3385,7 @@ select.in:focus { background-color:var(--sheet); }
 #modal .in[aria-invalid="true"] { border-color:var(--err); box-shadow:0 0 0 1px var(--err); }
 
 .folder-failure { display:grid; gap:12px; overflow-wrap:anywhere; }
+.folder-exclusions { display:grid; gap:6px; margin:0; padding:0; list-style:none; max-height:220px; overflow:auto; }
+.folder-exclusions li { display:flex; align-items:baseline; justify-content:space-between; gap:12px; padding:8px 10px; border:1px solid var(--seam); border-radius:5px; background:var(--faceplate); }
+.folder-exclusions span { min-width:0; overflow-wrap:anywhere; }
+.folder-exclusions small { flex:none; color:var(--ink-2); font-variant-numeric:tabular-nums; }

@@ -1,6 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFolder } from "../apps/studio/workbench/folder-access.mjs";
+import {
+  readFolder,
+  folderWriter,
+} from "../apps/studio/workbench/folder-access.mjs";
 const MiB = 1048576;
 function directory(entries) {
   return {
@@ -85,4 +88,116 @@ test("exactly 1024 files remain allowed and each validated file is read once", a
   );
   assert.equal(files.size, 1024);
   assert.equal(reads, 1024);
+});
+
+test("large files are omitted only after approval, and never read", async () => {
+  let largeReads = 0,
+    smallReads = 0;
+  const root = directory([
+    [
+      "index.php",
+      file(1, async () => {
+        smallReads++;
+        return new Uint8Array([42]).buffer;
+      }),
+    ],
+    [
+      "archive.zip",
+      file(100 * MiB, async () => {
+        largeReads++;
+        throw Error("must not load");
+      }),
+    ],
+    [
+      "second.zip",
+      file(200 * MiB, async () => {
+        largeReads++;
+        throw Error("must not load");
+      }),
+    ],
+  ]);
+  const files = await readFolder(root, {
+    onOversized: async (report) => {
+      assert.deepEqual(
+        report.files.map((f) => f.path),
+        ["/archive.zip", "/second.zip"],
+      );
+      assert.equal(report.retainedCount, 1);
+      assert.equal(report.retainedBytes, 1);
+      assert.equal(smallReads, 0);
+      return true;
+    },
+  });
+  assert.deepEqual([...files.keys()], ["/index.php"]);
+  assert.equal(largeReads, 0);
+  assert.equal(smallReads, 1);
+  smallReads = 0;
+  await assert.rejects(readFolder(root, { onOversized: async () => false }), {
+    name: "AbortError",
+  });
+  assert.equal(smallReads, 0);
+  assert.equal(largeReads, 0);
+});
+test("oversized exclusions do not consume the accepted file or byte budgets", async () => {
+  const root = directory([
+    [
+      "archive.zip",
+      file(500 * MiB, async () => {
+        throw Error("must not load");
+      }),
+    ],
+    ...Array.from({ length: 1024 }, (_, i) => [
+      "file" + i,
+      file(0, async () => new ArrayBuffer(0)),
+    ]),
+  ]);
+  const files = await readFolder(root, { onOversized: async () => true });
+  assert.equal(files.size, 1024);
+  let prompted = false;
+  await assert.rejects(
+    readFolder(
+      directory(
+        Array.from({ length: 5 }, (_, i) => [
+          "part" + i,
+          file(15 * MiB, async () => {
+            throw Error("must not load");
+          }),
+        ]),
+      ),
+      {
+        onOversized: async () => {
+          prompted = true;
+          return true;
+        },
+      },
+    ),
+    (error) => error.limit === "total",
+  );
+  assert.equal(prompted, false);
+});
+
+test("saving cannot read or overwrite an excluded oversized file", async () => {
+  let reads = 0,
+    writes = 0;
+  const directory = {
+    getFileHandle: async () => ({
+      getFile: async () => ({
+        size: 500 * MiB,
+        arrayBuffer: async () => {
+          reads++;
+          throw Error("must not read");
+        },
+      }),
+      createWritable: async () => {
+        writes++;
+        throw Error("must not write");
+      },
+    }),
+  };
+  await assert.rejects(
+    folderWriter(directory, new Map())("/archive.zip", "replacement"),
+    /a changé/,
+  );
+  assert.equal(reads, 0);
+  assert.equal(writes, 0);
 });

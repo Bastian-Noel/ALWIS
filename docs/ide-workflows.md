@@ -131,7 +131,9 @@ La mention **Projet ouvert · dossier PC**, au-dessus du nom du dossier, indique
 - Les gros fichiers peuvent être importés sans être éditables.
 - Sans accès aux dossiers dans votre navigateur, utilisez un ZIP.
 
-Les tailles et le nombre de fichiers sont vérifiés avant de charger leur contenu. Si une limite est dépassée, **Dossier non ouvert** indique le fichier ou le seuil concerné. Aucun projet n’est créé et aucun fichier du PC n’est modifié. Le bouton **Choisir un autre dossier** permet de recommencer avec un dossier plus petit.
+Les tailles et le nombre de fichiers sont vérifiés avant de charger leur contenu. Les fichiers de plus de 16 Mio sont listés avec leur taille : **Ouvrir sans ces fichiers** crée le projet avec les autres fichiers, sans charger les gros fichiers ni les modifier sur le PC. **Annuler** laisse le dossier et les projets inchangés. Cette confirmation est proposée à nouveau lors de la réouverture du dossier.
+
+Les fichiers retenus doivent respecter les limites de 64 Mio et 1 024 fichiers. Si ces limites ou la profondeur maximale sont dépassées, **Dossier non ouvert** indique le seuil concerné, sans créer de projet. Le bouton **Choisir un autre dossier** permet de recommencer avec un dossier plus petit. Les fichiers exclus ne sont pas inclus dans l’export ZIP du projet.
 
 </details>
 

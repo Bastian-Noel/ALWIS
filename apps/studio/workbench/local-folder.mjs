@@ -1,8 +1,13 @@
 import { A, S, ctx, eng } from "./state.mjs";
-import { toast, modal, esc } from "./ui.mjs";
+import { toast, modal, esc, plural } from "./ui.mjs";
 import { refreshFiles } from "./views/explorer.mjs";
 import { resetEditor } from "./views/code.mjs";
-import { readFolder, folderWriter, folderContext } from "./folder-access.mjs";
+import {
+  readFolder,
+  folderWriter,
+  folderContext,
+  folderSizeText,
+} from "./folder-access.mjs";
 A.openLocalFolder = async () => {
   if (!globalThis.showDirectoryPicker)
     return toast(
@@ -10,10 +15,32 @@ A.openLocalFolder = async () => {
     );
   if (S.project)
     return toast("Fermez le projet actuel avant d’ouvrir un dossier du PC.");
+  let excludedCount = 0;
   try {
     const directory = await showDirectoryPicker({ mode: "readwrite" });
     const metadata = await folderContext(directory),
-      files = await readFolder(directory),
+      files = await readFolder(directory, {
+        async onOversized({ files, retainedCount, retainedBytes }) {
+          const result = await modal({
+            title: "Fichiers trop volumineux",
+            body: `<div class="folder-failure"><p>${plural(files.length, "fichier", "fichiers")} ${files.length === 1 ? "dépasse" : "dépassent"} la limite de 16 Mio par fichier.</p><ul class="folder-exclusions" aria-label="Fichiers exclus">${files
+              .slice(0, 50)
+              .map(
+                (file) =>
+                  `<li><span>${esc(file.path)}</span><small>${folderSizeText(file.size)}</small></li>`,
+              )
+              .join(
+                "",
+              )}</ul>${files.length > 50 ? `<p class="hint">Et ${files.length - 50} autres fichiers trop volumineux.</p>` : ""}<p>${retainedCount ? `Le projet contiendra ${plural(retainedCount, "fichier", "fichiers")}, soit ${folderSizeText(retainedBytes)}.` : "Aucun autre fichier à ouvrir : le projet sera vide."}</p><p class="hint">Les fichiers listés ne seront pas chargés dans ALWIS. Ils resteront sur votre PC et ne seront pas modifiés lors de l’enregistrement du projet.</p></div>`,
+            actions: [
+              { label: "Annuler", v: "no" },
+              { label: "Ouvrir sans ces fichiers", v: "skip", kind: "pri" },
+            ],
+          });
+          if (result === "skip") excludedCount = files.length;
+          return result === "skip";
+        },
+      }),
       archive = await metadata.archive();
     const name = "dossier-" + crypto.randomUUID().slice(0, 8);
     await A.open(name, "existing");
@@ -86,7 +113,14 @@ A.openLocalFolder = async () => {
     toast(
       "Dossier " +
         directory.name +
-        " ouvert. Enregistrer conserve aussi les bases et le contexte dans .alwis.",
+        " ouvert" +
+        (excludedCount
+          ? " sans " +
+            plural(excludedCount, "fichier volumineux", "fichiers volumineux")
+          : "") +
+        ". Enregistrer conserve aussi les bases et le contexte dans .alwis.",
+      null,
+      { kind: "success" },
     );
   } catch (e) {
     if (e.name === "AbortError") return;
