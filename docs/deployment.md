@@ -8,9 +8,9 @@ Après la réussite du workflow manuel `Publish FTP - validated studio`, le work
 
 ## Déployer l’édition serveur avec Docker Compose
 
-Le dépôt fournit un Compose prêt à l’emploi dans [`server/compose.yaml`](../server/compose.yaml) et son modèle de variables dans [`server/.env.example`](../server/.env.example). Le tag `latest` suit la dernière image serveur publiée par l’action GitHub ; les tags de versions sont aussi disponibles dans [GitHub Packages](https://github.com/Bastian-Noel/ALWIS/pkgs/container/alwis-server) pour figer une version. Le conteneur conserve les réglages serveur dans un volume SQLite, lie le port à `127.0.0.1` et fixe par défaut une limite de 640 Mio et 0,75 CPU. Le navigateur exécute toujours PHP et MariaDB ; ce conteneur sert l’interface et sa page d’administration.
+Le Compose recommandé est réduit à l’image, l’URL publique et au mot de passe d’administration. Il utilise `latest` et garde les tags numérotés disponibles dans [GitHub Packages](https://github.com/Bastian-Noel/ALWIS/pkgs/container/alwis-server) pour figer une version. Le port hôte et le dossier de données ont des valeurs par défaut.
 
-Voici le fichier Compose complet :
+Le fichier [`server/compose.yaml`](../server/compose.yaml) :
 
 ```yaml
 services:
@@ -25,25 +25,14 @@ services:
     user: "10001:10001"
     environment:
       PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:?Définissez PUBLIC_BASE_URL dans .env}
-      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-}
       TRUST_PROXY: ${TRUST_PROXY:-true}
-      ALWIS_ADMIN_USER: ${ALWIS_ADMIN_USER:-admin}
-      ALWIS_ADMIN_PASSWORD_FILE: /run/secrets/admin_password
-      PORT: "3000"
-      HOST: 0.0.0.0
-      ALWIS_DATA_DIR: /data
+      ALWIS_ADMIN_PASSWORD: ${ALWIS_ADMIN_PASSWORD:?Définissez ALWIS_ADMIN_PASSWORD dans .env}
     ports:
-      - "127.0.0.1:${ALWIS_LOCAL_PORT:-3100}:3000"
+      - "127.0.0.1:${ALWIS_PORT:-3100}:3000"
     volumes:
-      - alwis-state:/data
-    secrets:
-      - admin_password
+      - ${ALWIS_DATA_DIR:-./data}:/data
     tmpfs:
       - /tmp:size=16m,uid=10001,gid=10001,mode=1770
-    mem_limit: ${ALWIS_MEMORY_LIMIT:-640m}
-    mem_reservation: ${ALWIS_MEMORY_RESERVATION:-256m}
-    memswap_limit: ${ALWIS_MEMORY_SWAP:-640m}
-    cpus: ${ALWIS_CPUS:-0.75}
     pids_limit: 128
     healthcheck:
       test: ["CMD", "node", "--disable-warning=ExperimentalWarning", "-e", "fetch('http://127.0.0.1:3000/readyz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
@@ -57,50 +46,32 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-
-volumes:
-  alwis-state:
-
-secrets:
-  admin_password:
-    file: ./secrets/admin_password
 ```
 
-Depuis une copie du dépôt :
+Depuis une copie du dépôt, préparez le `.env` minimal :
 
 ```bash
 cd server
 cp .env.example .env
 ```
 
-Dans `.env`, choisissez le tag précis de l’image et l’adresse HTTPS que vous configurerez sur le reverse proxy :
+Il contient les deux valeurs à fournir :
 
 ```dotenv
-ALWIS_SERVER_IMAGE=ghcr.io/bastian-noel/alwis-server:latest
 PUBLIC_BASE_URL=https://alwis.example.org
-ALWIS_LOCAL_PORT=3100
-ALLOWED_ORIGINS=
-TRUST_PROXY=true
-ALWIS_ADMIN_USER=admin
-ALWIS_MEMORY_LIMIT=640m
-ALWIS_MEMORY_RESERVATION=256m
-ALWIS_MEMORY_SWAP=640m
-ALWIS_CPUS=0.75
+ALWIS_ADMIN_PASSWORD=
 ```
 
-`latest` installe la publication serveur la plus récente ; remplacez cette valeur par un tag de version affiché dans [GitHub Packages](https://github.com/Bastian-Noel/ALWIS/pkgs/container/alwis-server) pour figer votre installation. Laissez `ALLOWED_ORIGINS` vide pour un déploiement de même origine ; si l’interface et le serveur ont des origines différentes, indiquez uniquement les origines HTTPS exactes, séparées par des virgules. Gardez `TRUST_PROXY=true` seulement derrière votre reverse proxy de confiance ; sinon mettez `false`. Le port reste publié sur localhost, même si l’URL publique passe par le proxy.
+Générez le mot de passe avec `openssl rand -hex 32`, collez la sortie dans `.env`, puis protégez le fichier avec `chmod 600 .env`. Compose passe le mot de passe directement dans `ALWIS_ADMIN_PASSWORD`; aucun fichier de mot de passe ni secret Docker n’est utilisé. Ne versionnez jamais `.env`. Les personnes ayant accès à l’hôte Docker peuvent lire l’environnement du conteneur avec `docker inspect`.
 
-Créez le secret d’administration hors du dépôt :
+Le bind mount conserve SQLite dans `./data` à côté de `compose.yaml`, monté sous `/data` dans le conteneur. Préparez ses permissions pour l’utilisateur non-root :
 
 ```bash
-mkdir -p secrets
-umask 077
-openssl rand -hex 32 > secrets/admin_password
-sudo chown 10001:10001 secrets/admin_password
-chmod 0400 secrets/admin_password
+mkdir -p data
+sudo chown 10001:10001 data
 ```
 
-Vérifiez la configuration interpolée, puis démarrez et contrôlez le service :
+Vérifiez la configuration puis démarrez et contrôlez le service :
 
 ```bash
 docker compose config
@@ -110,7 +81,22 @@ docker compose ps
 docker compose logs --tail=100 alwis
 ```
 
-Ouvrez ensuite `https://alwis.example.org/admin/server` derrière HTTPS. Le reverse proxy doit transmettre les en-têtes COOP/COEP nécessaires à WebAssembly. Le tag de l’image, la limite mémoire et le nombre de CPU sont configurables dans `.env` ; conservez le profil par défaut au départ et ajustez les ressources seulement après observation de `docker stats` et des journaux. Les noms et valeurs de toutes les variables sont détaillés dans le [modèle `.env`](../server/.env.example) et le [guide de déploiement serveur](server-deployment.md).
+Ouvrez `https://alwis.example.org/admin/server` derrière HTTPS. Le reverse proxy doit conserver les en-têtes COOP/COEP nécessaires à WebAssembly. Le port publié reste lié à `127.0.0.1`. Utilisez `docker compose logs -f --tail=100 alwis` pour diagnostiquer et `docker stats alwis` pour observer les ressources.
+
+| Priorité | Variable | Type et valeur conseillée | Rôle |
+|---|---|---|---|
+| Obligatoire | `PUBLIC_BASE_URL` | URL HTTPS publique ; HTTP permis sur localhost | Adresse canonique de l’instance. Le Compose refuse de démarrer si elle n’est pas définie. |
+| Obligatoire | `ALWIS_ADMIN_PASSWORD` | Au moins 20 octets ; `openssl rand -hex 32` produit 32 octets aléatoires | Mot de passe HTTP Basic de `/admin/server`, transmis directement dans l’environnement du conteneur. |
+| Recommandée | `ALWIS_PORT` | Entier, `3100` par défaut | Port hôte auquel se connecte le reverse proxy. Le service n’écoute publiquement que sur la boucle locale; le port interne reste `3000`. |
+| Recommandée | `ALWIS_DATA_DIR` | Dossier hôte, `./data` par défaut | Répertoire bind-mounté vers `/data` dans le conteneur. Il conserve la base SQLite des réglages; l’UID conteneur `10001` doit pouvoir y écrire. |
+| Optionnelle | `ALWIS_SERVER_IMAGE` | `ghcr.io/bastian-noel/alwis-server:latest` par défaut | Permet de choisir un tag de version précis au lieu de `latest`. Les tags sont listés dans [GitHub Packages](https://github.com/Bastian-Noel/ALWIS/pkgs/container/alwis-server). |
+| Optionnelle | `TRUST_PROXY` | Booléen, `true` dans ce Compose derrière le proxy local | Lit `X-Forwarded-Proto` pour reconnaître HTTPS après terminaison TLS. Mettez `false` si aucun proxy de confiance n’est utilisé. |
+| Optionnelle | `ALLOWED_ORIGINS` | Origines HTTPS exactes, séparées par des virgules ; vide par défaut | À configurer seulement si l’interface et l’API sont servies depuis des origines différentes. L’origine de l’instance est déjà autorisée. |
+| Optionnelle | `ALWIS_ADMIN_USER` | `admin` par défaut | Nom utilisé avec le mot de passe pour l’authentification d’administration. |
+| Diagnostic | `ALWIS_LOG_LEVEL` | `info` par défaut ; `warn` ou `error` pour réduire le journal | Niveau initial des logs. Les changements enregistrés dans `/admin/server` sont ensuite conservés dans SQLite. Les commandes `docker compose logs` et `docker stats` servent au diagnostic. |
+| Avancée | `PORT`, `HOST` | `3000` et `0.0.0.0` dans l’image | Port et interface internes du serveur. Gardez ces valeurs sauf si vous modifiez également le port publié et le healthcheck. |
+
+`ALLOWED_ORIGINS`, `ALWIS_ADMIN_USER` et `ALWIS_LOG_LEVEL` ne figurent pas dans le Compose minimal : ajoutez-les sous `environment` uniquement si nécessaire. `ALWIS_DATA_DIR` désigne ici le chemin hôte du bind mount; l’application continue d’utiliser `/data` dans le conteneur. Le serveur accepte les niveaux `info`, `warn` et `error`, sans mode `debug` verbeux.
 
 
 ## Paquet statique de test du studio

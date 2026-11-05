@@ -31,6 +31,10 @@ class WikiTests(unittest.TestCase):
         compose = (ROOT / 'server/compose.yaml').read_text().rstrip()
         self.assertIn('```yaml\n' + compose + '\n```', deployment)
         self.assertIn('ghcr.io/bastian-noel/alwis-server:latest', compose)
+        self.assertIn('${ALWIS_DATA_DIR:-./data}:/data', compose)
+        self.assertIn('ALWIS_ADMIN_PASSWORD:', compose)
+        self.assertNotIn('ALWIS_ADMIN_PASSWORD_FILE', compose)
+        self.assertNotIn('alwis-state:', compose)
 
     def test_broken_and_escaping_links_fail(self):
         for link in ['missing-file.md', '../../etc/passwd']:

@@ -12,19 +12,17 @@ const dataDir = resolve(process.env.ALWIS_DATA_DIR ?? "/data");
 const port = Number(process.env.PORT ?? "3000");
 const host = process.env.HOST ?? "0.0.0.0";
 const username = process.env.ALWIS_ADMIN_USER ?? "admin";
-const passwordFile = process.env.ALWIS_ADMIN_PASSWORD_FILE;
+const adminPassword = process.env.ALWIS_ADMIN_PASSWORD ?? "";
 if (!Number.isInteger(port) || port < 1 || port > 65535)
   throw new Error("PORT doit être compris entre 1 et 65535.");
 if (!/^[^:\u0000-\u001f\u007f]{1,64}$/.test(username))
   throw new Error("ALWIS_ADMIN_USER doit contenir de 1 à 64 caractères sans deux-points.");
-if (process.env.TRUST_PROXY !== undefined && !["true", "false"].includes(process.env.TRUST_PROXY))
+const trustProxy = process.env.TRUST_PROXY ?? "false";
+if (!["true", "false"].includes(trustProxy))
   throw new Error("TRUST_PROXY doit valoir true ou false.");
-if (!passwordFile)
-  throw new Error("ALWIS_ADMIN_PASSWORD_FILE doit pointer vers un secret monté.");
-await mkdir(dataDir, { recursive: true });
-const adminPassword = (await readFile(passwordFile, "utf8")).trim();
 if (Buffer.byteLength(adminPassword) < 20)
-  throw new Error("Le secret administrateur doit contenir au moins 20 caractères.");
+  throw new Error("ALWIS_ADMIN_PASSWORD doit contenir au moins 20 octets.");
+await mkdir(dataDir, { recursive: true });
 
 const db = new DatabaseSync(resolve(dataDir, "server.sqlite"));
 db.exec(`
@@ -45,7 +43,7 @@ const defaults = {
     .map((value) => value.trim())
     .filter(Boolean),
   maintenance: false,
-  logLevel: "info",
+  logLevel: process.env.ALWIS_LOG_LEVEL ?? "info",
 };
 const readSettings = db.prepare("SELECT key,value FROM server_settings");
 const writeSetting = db.prepare(
@@ -141,7 +139,7 @@ const expectedUser = digest(username);
 const expectedPassword = digest(adminPassword);
 function requestOrigin(request) {
   const proxyScheme =
-    process.env.TRUST_PROXY === "true" &&
+    trustProxy === "true" &&
     ["http", "https"].includes(request.headers["x-forwarded-proto"])
       ? request.headers["x-forwarded-proto"]
       : request.socket.encrypted

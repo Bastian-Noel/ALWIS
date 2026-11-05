@@ -31,20 +31,19 @@ test("server edition protects settings, persists SQLite config and serves the st
   const directory = await mkdtemp(resolve(tmpdir(), "alwis-server-test-"));
   const site = resolve(directory, "site");
   const data = resolve(directory, "data");
-  const secretPath = resolve(directory, "admin-password");
   await mkdir(site);
   await writeFile(resolve(site, "index.html"), "<!doctype html><h1>ALWIS test</h1>");
-  await writeFile(secretPath, "a-long-random-test-admin-secret-0123456789\n");
   const port = await unusedPort();
   const address = `http://127.0.0.1:${port}`;
-  const auth = "Basic " + Buffer.from("admin:a-long-random-test-admin-secret-0123456789").toString("base64");
+  const adminPassword = "a-long-random-test-admin-secret-0123456789";
+  const auth = "Basic " + Buffer.from(`admin:${adminPassword}`).toString("base64");
   const env = {
     ...process.env,
     PORT: String(port),
     HOST: "127.0.0.1",
     ALWIS_SITE_DIR: site,
     ALWIS_DATA_DIR: data,
-    ALWIS_ADMIN_PASSWORD_FILE: secretPath,
+    ALWIS_ADMIN_PASSWORD: adminPassword,
     PUBLIC_BASE_URL: address,
     ALLOWED_ORIGINS: "",
     TRUST_PROXY: "false",
