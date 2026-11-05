@@ -5,7 +5,7 @@ export function fileResponse(
   {
     type = file.type || "application/octet-stream",
     version = "",
-    mtime = Date.now(),
+    mtime = file.lastModified ?? Date.now(),
   } = {},
 ) {
   const request = new Headers(headers),

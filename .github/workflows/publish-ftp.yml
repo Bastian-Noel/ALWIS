@@ -35,6 +35,7 @@ jobs:
             build-work/site-smoke.json
             build-work/site-updates.json
             build-work/disk-storage/results.json
+            build-work/disk-storage/global-memory.json
             build-work/ux-revision/
             build-work/preview-browser/
             build-work/ui-refinement/

@@ -1,3 +1,4 @@
+import { readBrowserProcessMemory } from "../../benchmarks/browser-process-memory.mjs";
 import assert from "node:assert/strict";
 import { mkdir, writeFile, stat } from "node:fs/promises";
 import {
@@ -8,7 +9,8 @@ import { createStudioServer } from "../../scripts/serve-studio.mjs";
 const server = createStudioServer();
 await new Promise((r) => server.listen(0, "127.0.0.1", r));
 await mkdir("build-work/disk-storage", { recursive: true });
-const receipts = [];
+const receipts = [],
+  measurements = [];
 try {
   for (const engine of [chromium, firefox]) {
     const browser = await engine.launch({
@@ -17,6 +19,17 @@ try {
     });
     try {
       const page = await browser.newPage();
+      await page.exposeFunction("storageMemoryMark", async (stage) => {
+        if (process.env.ALWIS_STORAGE_MEMORY !== "1") return;
+        const value = {
+          browser: engine.name(),
+          stage,
+          time: new Date().toISOString(),
+          ...(await readBrowserProcessMemory()),
+        };
+        measurements.push(value);
+        console.log("MEMORY", JSON.stringify(value));
+      });
       await page.goto("http://127.0.0.1:" + server.address().port);
       const downloaded = page.waitForEvent("download", { timeout: 180000 });
       const result = await page.evaluate(async () => {
@@ -44,15 +57,18 @@ try {
             c.enqueue(bytes);
           },
         });
+        await storageMemoryMark("before-import");
         const start = performance.now(),
           media = await disk.put("/media.mp4", source, { size });
         const code =
           '<?php $f=fopen(__DIR__."/media.mp4","rb"); fseek($f,-16,SEEK_END);echo json_encode([filesize(__DIR__."/media.mp4"),bin2hex(fread($f,16))]);fclose($f);file_put_contents(__DIR__."/note.txt","saved");';
         const script = await disk.put("/index.php", new Blob([code]));
         await disk.publish(await disk.prepare([media, script]));
+        await storageMemoryMark("files-on-disk");
         const hub = await ProjectHub.open(key),
           before = await hub.runtime.state(),
           session = [...hub.sessions.sessions.keys()][0];
+        await storageMemoryMark("runtime-open");
         const response = await hub.route(session, {
           url: "http://alwis.local/index.php",
           method: "GET",
@@ -95,7 +111,9 @@ try {
         });
         const invalidated = hub.invalidFiles.has("/index.php"),
           after = await hub.runtime.state();
+        await storageMemoryMark("after-PHP-read");
         await hub.saveAndRestart();
+        await storageMemoryMark("runtime-restarted");
         const saved = await hub.runtime.state(),
           note = new TextDecoder().decode(
             await hub.runtime.read("/workspace/note.txt"),
@@ -110,6 +128,7 @@ try {
               open: () => disk.file(script),
             },
           ]);
+        await storageMemoryMark("ZIP-on-disk");
         const central = await inspectZipFile(archive),
           reader = (
             await zipEntryStream(
@@ -217,6 +236,12 @@ try {
       const download = await downloaded,
         downloadPath = "build-work/disk-storage/" + engine.name() + ".zip";
       await download.saveAs(downloadPath);
+      if (process.env.ALWIS_STORAGE_MEMORY === "1")
+        measurements.push({
+          browser: engine.name(),
+          stage: "download-completed",
+          ...(await readBrowserProcessMemory()),
+        });
       assert.equal((await stat(downloadPath)).size, result.archiveSize);
       assert.equal(result.invalidated, true);
       assert.equal(result.parsed[0], result.size);
@@ -256,6 +281,11 @@ try {
   }
 } finally {
   await new Promise((r) => server.close(r));
+  if (measurements.length)
+    await writeFile(
+      "build-work/disk-storage/global-memory.json",
+      JSON.stringify(measurements, null, 2),
+    );
   await writeFile(
     "build-work/disk-storage/results.json",
     JSON.stringify(receipts, null, 2),

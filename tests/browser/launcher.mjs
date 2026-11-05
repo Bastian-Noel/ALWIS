@@ -69,6 +69,7 @@ try {
   await page.locator("input[value=empty]").check();
   await page.locator("#pn").press("Enter");
   await page.locator("#ed1 .cm-content").waitFor();
+  await page.locator(".project-loading").waitFor({ state: "hidden" });
   await page.evaluate(async () => {
     const { A } = await import("/apps/studio/workbench/state.mjs");
     await A.save();
@@ -93,13 +94,11 @@ try {
       },
     ]),
   );
-  await page
-    .locator("#zipIn")
-    .setInputFiles({
-      name: "portfolio.zip",
-      mimeType: "application/zip",
-      buffer: archive,
-    });
+  await page.locator("#zipIn").setInputFiles({
+    name: "portfolio.zip",
+    mimeType: "application/zip",
+    buffer: archive,
+  });
   await page.locator("#modal [data-v=open]").click();
   await page.waitForFunction(
     async () =>
@@ -109,6 +108,7 @@ try {
   await page.waitForFunction(() =>
     document.querySelector("#ed1")?.value?.includes("imported"),
   );
+  await page.locator(".project-loading").waitFor({ state: "hidden" });
   await page.evaluate(async () => {
     const { A } = await import("/apps/studio/workbench/state.mjs");
     await A.save();

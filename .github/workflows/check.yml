@@ -31,6 +31,7 @@ jobs:
             build-work/site-smoke.json
             build-work/site-updates.json
             build-work/disk-storage/results.json
+            build-work/disk-storage/global-memory.json
             build-work/studio-ui/chromium.json
             apps/studio/receipts/alwis/*.json
             apps/studio/receipts/alwis/*.png

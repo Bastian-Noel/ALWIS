@@ -251,7 +251,7 @@ export class ProjectDisk {
         crc = crcStep(crc, bytes);
         for (let i = 0; i < bytes.length; i += DISK_LIMITS.chunk) {
           signal?.throwIfAborted();
-          await writer.write(bytes.slice(i, i + DISK_LIMITS.chunk));
+          await writer.write(bytes.subarray(i, i + DISK_LIMITS.chunk));
         }
         onProgress(read);
       }
