@@ -1,5 +1,11 @@
 # Architecture et décisions
 
+## Distributions
+
+Le paquet statique est l’édition classique : les fichiers sont hébergés en statique et PHP/MariaDB tournent en WASM dans chaque navigateur. L’édition Docker fournit un serveur HTTP Node.js et une page d’administration protégée ; elle conserve les mêmes frontières d’exécution et stocke sa configuration d’instance dans SQLite. L’image serveur est construite après validation et publication du paquet statique, depuis son artefact immuable.
+
+Cette première image ne constitue pas encore le serveur collaboratif décrit dans [la spécification P2P](collaboration-p2p-specification.md). Les salles Yjs, invitations, autorisations, présence, partage des outils SQL et transferts WebRTC demandent une implémentation et des preuves distinctes. La décision actuelle est SQLite sans Redis ni conteneur MariaDB distant.
+
 
 ## Architecture cible
 

@@ -2,6 +2,8 @@
 !/sources/README.md
 /upstream/
 /build-work/
+/server/.env
+/server/secrets/
 /deliverables/
 /node_modules/
 __pycache__/

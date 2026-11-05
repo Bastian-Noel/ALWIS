@@ -20,6 +20,8 @@ PAGES = {
     'docs/architecture.md': ('Architecture', 'Architecture'),
     'docs/performance.md': ('Performance', 'Performance et mémoire'),
     'docs/deployment.md': ('Publication', 'Hébergement et publication'),
+    'docs/server-deployment.md': ('Serveur-Docker', 'Déployer l’édition serveur'),
+    'docs/collaboration-p2p-specification.md': ('Collaboration-P2P', 'Collaboration en direct'),
     'docs/wiki-publication.md': ('Publication-du-wiki', 'Publication du wiki'),
     'docs/reference-studio.md': ('Notes-studio', 'Notes historiques du studio'),
     'docs/reference-compatibility.md': ('Notes-compatibilite', 'Notes historiques de compatibilité'),
@@ -138,10 +140,10 @@ class Builder:
         for source in list(PAGES)[:5]:
             slug, title = PAGES[source]; sidebar += f'- [{title}]({self.wiki}{slug})\n'
         sidebar += '\n**Développer et héberger**\n\n'
-        for source in list(PAGES)[5:10]:
+        for source in list(PAGES)[5:11]:
             slug, title = PAGES[source]; sidebar += f'- [{title}]({self.wiki}{slug})\n'
         sidebar += '\n<details>\n<summary>Archives techniques</summary>\n\n'
-        for source in list(PAGES)[10:]:
+        for source in list(PAGES)[11:]:
             slug, title = PAGES[source]; sidebar += f'- [{title}]({self.wiki}{slug})\n'
         files['_Sidebar.md'] = sidebar + f'\n</details>\n\n[Code source]({self.repo}) · [Versions]({self.repo}/releases)\n'
         files['_Footer.md'] = f'[Accueil]({self.wiki}Home) · [Sources de la documentation]({self.repo}/tree/main/docs) · [Version {self.revision[:7]}]({self.repo}/commit/{self.revision})\n\nDocumentation publiée automatiquement. Pour la corriger, modifiez les fichiers du dépôt.\n'

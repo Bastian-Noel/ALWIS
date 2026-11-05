@@ -9,7 +9,7 @@ Tout dans le navigateur, avec un éditeur et une base MariaDB.
 [![Validation](https://github.com/Bastian-Noel/ALWIS/actions/workflows/check.yml/badge.svg)](https://github.com/Bastian-Noel/ALWIS/actions/workflows/check.yml)
 [![Préversion](https://img.shields.io/badge/statut-pr%C3%A9version-9a6700)](https://github.com/Bastian-Noel/ALWIS/releases)
 
-[Wiki](https://github.com/Bastian-Noel/ALWIS/wiki) · [Premiers pas](#démarrer) · [Guide illustré](docs/README.md) · [Exemple Campus](docs/school-example.md)
+[Wiki](https://github.com/Bastian-Noel/ALWIS/wiki) · [Premiers pas](#démarrer) · [Guide illustré](docs/README.md) · [Exemple Campus](docs/school-example.md) · [Image Docker](docs/server-deployment.md)
 
 </div>
 
@@ -31,6 +31,8 @@ Tout dans le navigateur, avec un éditeur et une base MariaDB.
 > [!TIP]
 > Aucune installation de PHP ou de MariaDB n’est nécessaire.
 > Le [guide illustré](docs/README.md) vous accompagne ensuite.
+
+Pour héberger ALWIS sur votre propre serveur, choisissez la [distribution Docker](docs/server-deployment.md). Elle est publiée après le build statique et a une page de configuration protégée.
 
 ## Où aller ?
 

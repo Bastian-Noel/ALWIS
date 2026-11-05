@@ -1,0 +1,8 @@
+**
+!server
+!server/**
+server/.env
+server/secrets/**
+!build-work
+!build-work/server-site
+!build-work/server-site/**

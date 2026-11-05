@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex,nofollow">
+    <title>Configuration serveur · ALWIS</title>
+    <style>
+      :root{color-scheme:light dark;--bg:#f3f5f2;--surface:#fff;--ink:#182321;--muted:#5a6964;--line:#d6ded9;--accent:#176b53;--danger:#a32d36;--focus:#1468d4}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,sans-serif}main{width:min(760px,calc(100% - 32px));margin:48px auto}header{margin-bottom:24px}a{color:var(--accent)}.eyebrow{color:var(--accent);font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase}h1{font-size:clamp(1.8rem,4vw,2.5rem);line-height:1.1;margin:.4rem 0}header p,.help,.muted{color:var(--muted)}.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:24px;margin:16px 0}h2{font-size:1.15rem;margin:0 0 16px}label{display:block;font-weight:650;margin:18px 0 6px}input,textarea,select{display:block;width:100%;margin-top:6px;padding:10px 12px;border:1px solid #929f99;border-radius:8px;background:var(--surface);color:var(--ink);font:inherit}textarea{min-height:88px;resize:vertical}input:focus-visible,textarea:focus-visible,button:focus-visible,a:focus-visible{outline:3px solid var(--focus);outline-offset:2px}.check{display:flex;align-items:flex-start;gap:10px;margin:18px 0}.check input{width:auto;margin:5px 0 0}.check label{margin:0}.actions{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:22px}button{border:1px solid var(--accent);border-radius:8px;padding:10px 16px;background:var(--accent);color:white;font:inherit;font-weight:700;cursor:pointer}.status{min-height:1.6em;margin:12px 0 0;color:var(--muted)}.status[data-kind=error]{color:var(--danger)}.status[data-kind=success]{color:var(--accent)}.health{display:grid;grid-template-columns:1fr auto;gap:8px;margin:0}.health dt{color:var(--muted)}.health dd{margin:0;font-weight:650}.badge{padding:3px 9px;border-radius:99px;background:#deeee7;color:#145b45;font-size:.85rem}.warning{border-left:4px solid #c78b19;padding:10px 14px;background:color-mix(in srgb,#e1a72b 10%,transparent)}footer{color:var(--muted);font-size:.9rem;margin:24px 4px}@media(prefers-color-scheme:dark){:root{--bg:#151b1a;--surface:#202927;--ink:#e9efeb;--muted:#b2beb8;--line:#3b4742;--accent:#75c9aa;--danger:#ff9494;--focus:#81b7ff}}@media(max-width:560px){main{margin:24px auto}.card{padding:18px}}
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div class="eyebrow">Administration ALWIS</div>
+        <h1>Configuration serveur</h1>
+        <p>Réglages de publication et d’accès de cette instance. Les secrets restent montés par l’administrateur et ne sont jamais affichés ici.</p>
+      </header>
+      <section class="card" aria-labelledby="health-title">
+        <h2 id="health-title">État de l’instance</h2>
+        <dl class="health"><dt>Version</dt><dd id="version">Chargement…</dd><dt>Service</dt><dd><span class="badge" id="health">Vérification…</span></dd><dt>Stockage SQLite</dt><dd id="database">Vérification…</dd></dl>
+      </section>
+      <form id="config">
+        <section class="card" aria-labelledby="network-title">
+          <h2 id="network-title">Adresse et origines</h2>
+          <label for="publicBaseUrl">Adresse publique</label>
+          <input id="publicBaseUrl" name="publicBaseUrl" type="url" autocomplete="url" maxlength="240" required>
+          <p class="help">Utilisez HTTPS derrière votre reverse proxy. HTTP est permis uniquement pour les essais sur localhost.</p>
+          <label for="allowedOrigins">Origines autorisées</label>
+          <textarea id="allowedOrigins" name="allowedOrigins" spellcheck="false" aria-describedby="origin-help"></textarea>
+          <p class="help" id="origin-help">Une origine par ligne, par exemple https://studio.example.org. Laissez vide si seul le même domaine doit accéder au serveur.</p>
+        </section>
+        <section class="card" aria-labelledby="operations-title">
+          <h2 id="operations-title">Exploitation</h2>
+          <div class="check"><input id="maintenance" name="maintenance" type="checkbox"><label for="maintenance">Mode maintenance : suspendre l’application publique tout en gardant cette page d’administration accessible.</label></div>
+          <label for="logLevel">Niveau du journal</label>
+          <select id="logLevel" name="logLevel"><option value="error">Erreurs uniquement</option><option value="warn">Avertissements et erreurs</option><option value="info">Informations et avertissements</option></select>
+          <div class="warning"><strong>Les limites Docker se règlent dans le fichier Compose.</strong> Cette page ne peut pas augmenter la mémoire, le CPU ou l’espace disque du conteneur.</div>
+          <div class="actions"><button type="submit">Enregistrer la configuration</button><a href="/">Retour à ALWIS</a></div>
+          <p class="status" id="status" role="status" aria-live="polite"></p>
+        </section>
+      </form>
+      <footer>Les paramètres sont conservés dans le volume SQLite <code>/data</code>. Protégez l’accès avec HTTPS et gardez une sauvegarde de ce volume.</footer>
+    </main>
+    <script>
+      const $ = (s) => document.querySelector(s);
+      const status = (message, kind = "") => { $("#status").textContent = message; $("#status").dataset.kind = kind; };
+      async function load() {
+        const [config, health] = await Promise.all([
+          fetch("/api/admin/config", { credentials: "same-origin" }),
+          fetch("/healthz", { cache: "no-store" }),
+        ]);
+        if (!config.ok || !health.ok) throw new Error("Impossible de lire la configuration serveur.");
+        const { settings, version } = await config.json();
+        const state = await health.json();
+        $("#publicBaseUrl").value = settings.publicBaseUrl;
+        $("#allowedOrigins").value = settings.allowedOrigins.join("\n");
+        $("#maintenance").checked = settings.maintenance;
+        $("#logLevel").value = settings.logLevel;
+        $("#version").textContent = version;
+        $("#health").textContent = state.status === "ok" ? "Opérationnel" : "Indisponible";
+        $("#database").textContent = state.database === "ok" ? "Disponible" : "Erreur";
+      }
+      $("#config").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        status("Enregistrement…");
+        const payload = {
+          publicBaseUrl: $("#publicBaseUrl").value.trim(),
+          allowedOrigins: $("#allowedOrigins").value.split(/\r?\n/).map((value) => value.trim()).filter(Boolean),
+          maintenance: $("#maintenance").checked,
+          logLevel: $("#logLevel").value,
+        };
+        try {
+          const response = await fetch("/api/admin/config", { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+          const result = await response.json();
+          if (!response.ok) throw new Error(result.error || "Enregistrement refusé.");
+          status("Configuration enregistrée.", "success");
+        } catch (error) {
+          status(error instanceof Error ? error.message : "Enregistrement impossible.", "error");
+        }
+      });
+      load().catch((error) => status(error.message, "error"));
+    </script>
+  </body>
+</html>

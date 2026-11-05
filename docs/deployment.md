@@ -1,5 +1,11 @@
 # Distribution, CI et publication
 
+## Deux éditions
+
+ALWIS distribue deux artefacts distincts. Le **ZIP statique** se publie sur le FTP comme auparavant. L’**édition serveur** est une image Docker Node.js qui sert ce même paquet et ajoute une page d’administration sous `/admin/server`; sa configuration durable utilise SQLite. Les moteurs PHP et MariaDB restent dans le navigateur et le serveur ne reçoit pas les projets enregistrés par l’utilisateur.
+
+Après la réussite du workflow manuel `Publish FTP - validated studio`, le workflow `Publish ALWIS server container` télécharge l’artefact statique exact, vérifie son manifeste, puis construit et publie l’image correspondante dans GitHub Container Registry. Les deux builds sont séparés et ordonnés. Les détails d’installation figurent dans [le guide Docker](server-deployment.md) et les limites de la première édition dans [la spécification collaborative](collaboration-p2p-specification.md).
+
 
 ## Paquet statique de test du studio
 
