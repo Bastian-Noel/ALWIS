@@ -1,6 +1,6 @@
 # Vos premiers pas avec ALWIS
 
-[← Accueil](../README.md) · [Éditeur et sauvegardes](ide-workflows.md) · [Exemple Campus](school-example.md)
+[← Accueil](../README.md) · [Éditeur et sauvegardes](ide-workflows.md) · [Exemple Campus](school-example.md) · [Stockage et gros projets](storage-opfs.md)
 
 ## 1. Créer un projet
 

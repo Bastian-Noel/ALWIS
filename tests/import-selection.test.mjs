@@ -28,27 +28,31 @@ const file = (size, read) => ({
   kind: "file",
   getFile: async () => ({ size, arrayBuffer: read }),
 });
-test("selection trims a 75 MiB folder before any content read", async () => {
+test("selection trims a 2250 MiB folder before any content read", async () => {
   let reads = 0;
   const root = directory(
     Array.from({ length: 5 }, (_, i) => [
       "part" + i,
-      file(15 * MiB, async () => {
+      file(450 * MiB, async () => {
         reads++;
         return new ArrayBuffer(15 * MiB);
       }),
     ]),
   );
-  const result = await selectFolder(root, async (records) => {
-    assert.equal(reads, 0);
-    const chosen = new Set(records.map((e) => e.path));
-    assert.equal(importSummary(records, chosen).valid, false);
-    chosen.delete("/part4");
-    assert.equal(importSummary(records, chosen).valid, true);
-    return chosen;
-  });
-  assert.equal(reads, 4);
-  assert.equal(result.files.size, 4);
+  const result = await selectFolder(
+    root,
+    async (records) => {
+      assert.equal(reads, 0);
+      const chosen = new Set(records.map((e) => e.path));
+      assert.equal(importSummary(records, chosen).valid, false);
+      chosen.delete("/part4");
+      assert.equal(importSummary(records, chosen).valid, true);
+      return chosen;
+    },
+    { metadataOnly: true },
+  );
+  assert.equal(reads, 0);
+  assert.equal(result.records.length, 4);
 });
 test("recommended dependency trees are not scanned or read until explicitly requested", async () => {
   let walked = 0,
@@ -93,7 +97,7 @@ test("recommendations are suggestions and distinguish Composer dependencies from
   assert.ok(exclusion("/node_modules/pkg/a.js"));
   const entries = [
     { path: "/index.php", size: 1 },
-    { path: "/backup.zip", size: 17 * MiB },
+    { path: "/backup.zip", size: 17 * MiB, recommended: true },
     { path: "/vendor/autoload.php", size: 1, recommended: true },
   ];
   assert.deepEqual([...defaultSelection(entries)], ["/index.php"]);
@@ -154,7 +158,7 @@ test("explicit fit proposal keeps entrypoints and trims optional media first", (
     { path: "/composer.json", size: 1 },
     ...Array.from({ length: 5 }, (_, i) => ({
       path: "/video" + i + ".bin",
-      size: 15 * MiB,
+      size: 450 * MiB,
     })),
   ];
   const selected = new Set(entries.map((e) => e.path)),

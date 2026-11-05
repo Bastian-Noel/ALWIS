@@ -1,3 +1,5 @@
+import { ProjectDisk } from "/packages/runtime/src/project-disk.mjs";
+import { discardImportedProject } from "../import-progress.mjs";
 import { prepareZip } from "../zip-import.mjs";
 import { withProjectLoading } from "../project-loading.mjs";
 /** Coque du studio : barre du haut, rail, état, accueil, actions de projet, palette de commandes, raccourcis. */
@@ -661,52 +663,87 @@ export function bindShell() {
     const files = [...e.target.files];
     e.target.value = "";
     if (files.some((f) => /\.zip$/i.test(f.name))) {
-      let created;
+      let created,
+        staged,
+        attached = false;
       try {
         const archive = files.find((f) => /\.zip$/i.test(f.name));
-        const entries = await prepareZip(archive);
-        if (S.mode === "launcher") {
-          created = await unusedArchiveName(
-            archive.name,
-            eng().projects.recents(),
-          );
-          await A.open(created, "archive");
-          if (S.mode !== "work") return;
+        created = await unusedArchiveName(
+          archive.name,
+          eng().projects.recents(),
+        );
+        const occupied = [...eng().projects.recents()];
+        while (await ProjectDisk.has(created)) {
+          occupied.push({ name: created });
+          created = await unusedArchiveName(archive.name, occupied);
         }
-        await eng().projects.importZip(entries);
-        await refreshFiles();
-        S.dbDirty = true;
-        S.applied.add("archive");
-        S.base = {};
-        S.drafts = {};
-        S.tabs = [];
-        S.active = null;
-        resetEditor();
-        ctx.draw();
-        if (S.files.some((f) => f.path === "/index.php"))
-          await A.openFile("/index.php");
+        const project = created;
+        staged = await prepareZip(archive, project);
+        const sources = staged.entries.filter(
+          (e) => !e.path.startsWith("/.pbl-backup/"),
+        );
+        if (S.project) {
+          await A.close();
+          if (S.project) {
+            await staged.discard();
+            await ProjectDisk.remove(created);
+            return;
+          }
+        }
+        await staged.disk.publish(await staged.disk.prepare(sources));
+        await A.open(created, "archive");
+        if (S.mode !== "work")
+          throw Error("Impossible d’ouvrir le projet importé.");
+        attached = true;
+        await withProjectLoading(
+          async (step) => {
+            step("Validation des fichiers et restauration des bases…");
+            const backups = [];
+            for (const entry of staged.entries.filter((e) =>
+              e.path.startsWith("/.pbl-backup/"),
+            )) {
+              if (entry.size > 8 * 1048576)
+                throw Error("Sauvegarde SQL supérieure à 8 Mio.");
+              backups.push({
+                name: entry.path.slice(1),
+                bytes: new Uint8Array(
+                  await (await staged.disk.file(entry)).arrayBuffer(),
+                ),
+              });
+            }
+            if (backups.length) await eng().projects.importZip(backups);
+            await refreshFiles();
+            S.dbDirty = true;
+            S.applied.add("archive");
+            S.base = {};
+            S.drafts = {};
+            S.tabs = [];
+            S.active = null;
+            resetEditor();
+            ctx.draw();
+            if (S.files.some((f) => f.path === "/index.php"))
+              await A.openFile("/index.php");
+            step("Enregistrement du projet importé…");
+            await eng().projects.save();
+            await ctx.persist?.();
+            await staged.disk.discard(
+              staged.entries.filter((e) => e.path.startsWith("/.pbl-backup/")),
+            );
+            S.applied.clear();
+            S.dbDirty = false;
+            S.savedAt = Date.now();
+          },
+          { name: created },
+        );
         toast(
-          "ZIP ouvert : " + entries.length + " fichier(s) retenu(s).",
+          "ZIP ouvert : " + sources.length + " fichier(s) retenu(s).",
           null,
           { kind: "success" },
         );
       } catch (error) {
-        if (created && S.project === created) {
-          await eng().projects.close({ save: false });
-          await eng().projects.remove(created);
-          Object.assign(S, {
-            mode: "launcher",
-            project: null,
-            tabs: [],
-            active: null,
-            drafts: {},
-            base: {},
-            dbDirty: false,
-            applied: new Set(),
-          });
-          resetEditor();
-          ctx.draw();
-        }
+        if (created && (staged || attached))
+          await discardImportedProject(created);
+        else if (staged && !attached) await staged.discard();
         if (error.name !== "AbortError")
           await modal({
             title: "ZIP non ouvert",

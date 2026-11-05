@@ -401,3 +401,14 @@ export async function extractZipFile(file, selected) {
   }
   return result;
 }
+
+/** Streaming source for one chosen entry; the disk sink verifies size and CRC. */
+export async function zipEntryStream(file,entry) {
+ const header=new Uint8Array(await file.slice(entry.local,entry.local+30).arrayBuffer()),h=new DataView(header.buffer);
+ if(header.length!==30||h.getUint32(0,true)!==0x04034b50||h.getUint16(8,true)!==entry.method||h.getUint16(6,true)&1)throw Error('En-tête ZIP invalide : '+entry.name);
+ const n=h.getUint16(26,true),extra=h.getUint16(28,true),start=entry.local+30+n+extra;
+ if(start+entry.compressed>entry.directoryStart)throw Error('Contenu ZIP tronqué : '+entry.name);
+ if(decoder.decode(await file.slice(entry.local+30,entry.local+30+n).arrayBuffer())!==entry.name)throw Error('Chemins ZIP incohérents : '+entry.name);
+ if(entry.size>16*1048576&&entry.size>Math.max(1,entry.compressed)*2000)throw Error('Compression disproportionnée : '+entry.name);
+ const stream=file.slice(start,start+entry.compressed).stream();return entry.method===8?stream.pipeThrough(new DecompressionStream('deflate-raw')):stream;
+}

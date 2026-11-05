@@ -15,7 +15,12 @@ async function copy(source,destination){
   let data=await readFile(join(root,source));
   if(/\.(mjs|js|css|html)$/.test(source)){
     let text=data.toString('utf8');
-    for(const prefix of ['/apps/studio/','/packages/runtime/','/engine/','/_pbl/client.js'])text=text.replaceAll(prefix,assetBase+prefix);
+    // Relative imports already resolve inside this build. Rewriting their '/packages/'
+    // suffix would duplicate the build prefix and break the static application.
+    for(const prefix of ['/apps/studio/','/packages/runtime/','/engine/','/_pbl/client.js']){
+      const escaped=prefix.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+      text=text.replaceAll(new RegExp('(?<![.\\w/-])'+escaped,'g'),assetBase+prefix);
+    }
     if(source.endsWith('.html'))text=text.replace('<head>','<head><meta name="alwis-build" content="'+revision+'"><meta name="alwis-version" content="'+version+'">');
     data=Buffer.from(text);
   }

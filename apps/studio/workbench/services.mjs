@@ -1,3 +1,4 @@
+import { ProjectDisk } from "/packages/runtime/src/project-disk.mjs";
 import { relationModel } from "../database/relation-model.mjs";
 /** Direct application services over the existing project owner; no simulated backend. */
 import { ProjectHub } from "../project-hub.mjs";
@@ -41,7 +42,7 @@ export function download(bytes, name, type = "application/octet-stream") {
   a.href = url;
   a.download = name;
   a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
 }
 export function createStudioServices() {
   let opening = false;
@@ -65,6 +66,26 @@ export function createStudioServices() {
     return result.rows;
   };
   async function walk(path = W, depth = 0) {
+    if (path === W && hub?.diskEnabled) {
+      return (await runtime().call("diskCatalog"))
+        .filter(
+          (e) =>
+            !e.directory &&
+            !e.path
+              .split("/")
+              .some((p) => p === ".sessions" || p.startsWith(".pbl-")),
+        )
+        .map((e) => ({
+          ...e,
+          storeKind: e.kind,
+          kind:
+            e.size > 1048576
+              ? "big"
+              : ["code", "text", "svg"].includes(e.kind)
+                ? "text"
+                : "bin",
+        }));
+    }
     if (depth > 12) throw Error("Arborescence trop profonde.");
     const out = [];
     for (const name of await runtime().list(path)) {
@@ -207,6 +228,7 @@ export function createStudioServices() {
                 req.onblocked = () =>
                   reject(Error("Fermez les autres fenêtres de ce projet."));
               });
+            if (navigator.storage?.getDirectory) await ProjectDisk.remove(name);
             await deleteState([
               "alwis-workspace:" + name,
               "sessions:" + name,
@@ -355,11 +377,28 @@ export function createStudioServices() {
         }
       },
       async exportZip() {
-        download(
-          await archives.exportProject(),
-          hub.key + ".zip",
-          "application/zip",
-        );
+        await hub.freeze();
+        try {
+          download(
+            await archives.exportProject(),
+            hub.key + ".zip",
+            "application/zip",
+          );
+        } finally {
+          hub.busy = false;
+        }
+      },
+      async importDiskEntries(entries) {
+        const existing = new Set(await paths());
+        if (entries.some((e) => existing.has(e.path)))
+          throw Error(
+            "Un fichier sélectionné existe déjà. Ouvrez un projet vide pour préserver ses données.",
+          );
+        for (const entry of entries) {
+          await runtime().call("attachDiskFile", { entry });
+          hub.rememberDiskFile(entry);
+        }
+        await remember();
       },
       async importZip(file) {
         await archives.importProjectArchive(file);
@@ -403,8 +442,37 @@ export function createStudioServices() {
       },
     },
     fs: {
+      async importFile(path, file) {
+        validPath(path);
+        await hub.freeze();
+        let entry;
+        try {
+          const current = await runtime().call("diskCatalog");
+          if (current.some((e) => e.path === path))
+            throw Error("Ce fichier existe déjà. Renommez-le avant l’import.");
+          const files = current.filter(
+            (e) => !e.directory && !e.path.startsWith("/.sessions/"),
+          );
+          if (
+            files.length >= 10000 ||
+            files.reduce((n, e) => n + e.size, 0) + file.size >
+              2 * 1024 * 1048576
+          )
+            throw Error("Le projet dépasse 2 Gio ou 10 000 fichiers.");
+          entry = await hub.diskStore.put(path, file);
+          await runtime().call("attachDiskFile", { entry });
+          hub.rememberDiskFile(entry);
+        } catch (error) {
+          if (entry) await hub.diskStore.discard([entry]);
+          throw error;
+        } finally {
+          hub.busy = false;
+        }
+      },
       list: walk,
       async read(path) {
+        const info = await runtime().call("stat", { path: validPath(path) });
+        if (info.size > 1048576) return { bin: info.size, limited: true };
         const bytes = await runtime().read(validPath(path));
         try {
           if (bytes.includes(0)) return { bin: bytes.length };
@@ -414,18 +482,32 @@ export function createStudioServices() {
         }
       },
       async download(path) {
-        download(await runtime().read(validPath(path)), path.split("/").pop());
+        const value = hub?.diskEnabled
+          ? await runtime().call("diskFile", { path: validPath(path) })
+          : { file: await runtime().read(validPath(path)) };
+        download(value.file, path.split("/").pop(), value.type);
+      },
+      async preview(path) {
+        return new TextDecoder().decode(
+          await runtime().call("previewFile", { path: validPath(path) }),
+        );
       },
       async write(path, data, expected = null) {
-        if(expected===null)return runtime().writeNew(validPath(path),data);
+        if (expected === null) {
+          const result = await runtime().writeNew(validPath(path), data);
+          hub.invalidate(path);
+          return result;
+        }
         await runtime().call("write", {
           path: validPath(path),
           data,
           expected,
         });
+        hub.invalidate(path);
       },
       async remove(path) {
         await runtime().remove(validPath(path));
+        hub.invalidate(path);
         emit("changed", { kind: "files", path });
       },
       async move(a, b) {
@@ -434,6 +516,8 @@ export function createStudioServices() {
           target: validPath(b),
           exclusive: true,
         });
+        hub.invalidate(a);
+        hub.invalidate(b);
       },
       async context() {
         const files = {},

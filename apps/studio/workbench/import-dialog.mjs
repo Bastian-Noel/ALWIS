@@ -1,4 +1,5 @@
-import { modal, esc } from "./ui.mjs";
+import { storageBudget } from "/packages/runtime/src/project-disk.mjs";
+import { modal, esc, toast } from "./ui.mjs";
 import {
   exclusion,
   defaultSelection,
@@ -55,13 +56,38 @@ export async function chooseImport(
   const result = await modal({
     title,
     wide: true,
-    body: `<div class="import-picker"><p>${esc(source)}</p><p class="hint">Aucun contenu n’est chargé avant validation. Gardez les fichiers utiles ; retirez dépendances, archives ou médias pour rester sous 64 Mio et 1 024 fichiers (16 Mio par fichier).</p><p class="hint">Composer utilise généralement vendor/autoload.php : incluez vendor si votre projet en a besoin et s’il tient dans les limites. Les fichiers exclus d’un dossier restent sur votre PC.</p><div id="importGroups"></div><label>Filtrer les chemins<input id="importFilter" class="in" type="search" placeholder="Ex. : .zip, images, vendor…"></label><div class="import-picker-actions"><button class="btn" type="button" id="importNone">Ne rien sélectionner</button><button class="btn" type="button" id="importRecommended">Sélection recommandée</button><button class="btn" type="button" id="importFit">Adapter aux limites</button><button class="btn" type="button" id="importToggle">Inverser les résultats du filtre</button></div><p id="importBudget" role="status" aria-live="polite"></p><div id="importFiles" class="import-file-list"></div><div class="import-picker-actions"><button id="importPrev" class="btn" type="button">Précédent</button><span id="importPage"></span><button id="importNext" class="btn" type="button">Suivant</button></div><p id="importIssue" role="alert"></p></div>`,
+    body: `<div class="import-picker"><p>${esc(source)}</p><p class="hint">Aucun contenu n’est chargé avant validation. Gardez les fichiers utiles ; retirez dépendances, archives ou médias pour rester sous 2 Gio et 10 000 fichiers (512 Mio par fichier sur disque).</p><p class="hint">Composer utilise généralement vendor/autoload.php : incluez vendor si votre projet en a besoin et s’il tient dans les limites. Les fichiers exclus d’un dossier restent sur votre PC.</p><p id="importSpace" class="hint" role="status"></p><div id="importGroups"></div><label>Filtrer les chemins<input id="importFilter" class="in" type="search" placeholder="Ex. : .zip, images, vendor…"></label><div class="import-picker-actions"><button class="btn" type="button" id="importNone">Ne rien sélectionner</button><button class="btn" type="button" id="importRecommended">Sélection recommandée</button><button class="btn" type="button" id="importFit">Adapter aux limites</button><button class="btn" type="button" id="importToggle">Inverser les résultats du filtre</button></div><p id="importBudget" role="status" aria-live="polite"></p><div id="importFiles" class="import-file-list"></div><div class="import-picker-actions"><button id="importPrev" class="btn" type="button">Précédent</button><span id="importPage"></span><button id="importNext" class="btn" type="button">Suivant</button></div><p id="importIssue" role="alert"></p></div>`,
     actions: [
       { label: "Annuler", v: "no" },
       { label: "Ouvrir la sélection", v: "open", kind: "pri" },
     ],
-    beforeClose(value) {
-      if (value === "open") return importSummary(entries, selected).valid;
+    async beforeClose(value, d) {
+      if (value === "open") {
+        const summary = importSummary(entries, selected);
+        if (!summary.valid) return false;
+        try {
+          const info = await storageBudget(summary.bytes);
+          d.querySelector("#importSpace").textContent =
+            "Stockage libre : " + size(info.free);
+          if (navigator.storage.persist && !info.persistent) {
+            navigator.storage
+              .persist()
+              .then((granted) => {
+                if (!granted)
+                  toast(
+                    "Stockage persistant non accordé : exportez régulièrement vos projets en ZIP.",
+                    null,
+                    { duration: 12000 },
+                  );
+              })
+              .catch(() => {});
+          }
+          return true;
+        } catch (error) {
+          d.querySelector("#importIssue").textContent = error.message;
+          return false;
+        }
+      }
       return true;
     },
     onOpen(d) {
@@ -103,7 +129,7 @@ export async function chooseImport(
           .slice(page * perPage, (page + 1) * perPage)
           .map(
             (e) =>
-              `<label class="import-file"><input type="checkbox" data-path="${esc(e.path)}" ${selected.has(e.path) ? "checked" : ""} ${selectable(e) ? "" : "disabled"}><span>${esc(e.path)}<small>${e.directory ? "Dossier non parcouru : cochez-le pour analyser son contenu" : e.backup ? "Sauvegarde SQL : conservée intégralement" : e.locked ? e.reason || "Données réservées, exclues" : e.size > IMPORT_LIMITS.file ? "Trop lourd : exclu (16 Mio maximum)" : e.path.split("/").length > 14 ? "Chemin trop profond" : esc(e.reason)}</small></span><span>${e.directory ? "À analyser" : size(e.size)}</span></label>`,
+              `<label class="import-file"><input type="checkbox" data-path="${esc(e.path)}" ${selected.has(e.path) ? "checked" : ""} ${selectable(e) ? "" : "disabled"}><span>${esc(e.path)}<small>${e.directory ? "Dossier non parcouru : cochez-le pour analyser son contenu" : e.backup ? "Sauvegarde SQL : conservée intégralement" : e.locked ? e.reason || "Données réservées, exclues" : e.size > IMPORT_LIMITS.file ? "Trop lourd : exclu (512 Mio maximum)" : e.path.split("/").length > 14 ? "Chemin trop profond" : esc(e.reason)}</small></span><span>${e.directory ? "À analyser" : size(e.size)}</span></label>`,
           )
           .join("");
         $("#importPage").textContent =

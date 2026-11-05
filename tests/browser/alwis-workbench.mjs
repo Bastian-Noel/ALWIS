@@ -377,6 +377,7 @@ try {
       await page.locator("#modal [data-v=open]").click();
       await page.locator("#ed1 .cm-content").waitFor();
       await settled();
+      await page.locator('.project-loading').waitFor({state:'hidden'});
       const restored = await page.evaluate(async () => {
         const { ctx } = await import("/apps/studio/workbench/state.mjs");
         return (

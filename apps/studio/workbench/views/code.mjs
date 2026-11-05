@@ -1,4 +1,8 @@
-import { bindPreviewFrame, updateBrowserButtons, recordPreviewPath } from "../preview-browser.mjs";
+import {
+  bindPreviewFrame,
+  updateBrowserButtons,
+  recordPreviewPath,
+} from "../preview-browser.mjs";
 import { drawNetwork } from "./network.mjs";
 /** Espace Code : onglets, éditeur, recherche, aperçu lié aux sessions et ouverture de fenêtres clientes. */
 import {
@@ -47,7 +51,10 @@ function tabsHtml() {
 }
 export function drawTabs() {
   $("#tabs").innerHTML = tabsHtml();
-  $('#tabs [aria-selected="true"]')?.scrollIntoView({block:"nearest",inline:"nearest"});
+  $('#tabs [aria-selected="true"]')?.scrollIntoView({
+    block: "nearest",
+    inline: "nearest",
+  });
   for (const panel of [$("#ed1"), $("#edBin")]) {
     if (S.tabs.includes(S.active))
       panel.setAttribute(
@@ -97,8 +104,8 @@ export function drawCode() {
   if (p && !isText && info)
     $("#edBin").innerHTML =
       info.kind === "bin"
-        ? `<b>${esc(nameOf(p))}</b><span>Image de ${Math.round(info.size / 1024)} Kio. Les fichiers binaires ne s’éditent pas ici.</span><button class="btn" data-act="downloadFile">Télécharger</button>`
-        : `<b>Fichier trop volumineux pour l’éditeur</b><span>${esc(nameOf(p))} fait ${(info.size / 1048576).toFixed(1).replace(".", ",")} Mio ; la limite d’édition est de 1 Mio. Découpez-le avant de l’ouvrir, ou téléchargez-le.</span><button class="btn" data-act="downloadFile">Télécharger</button>`;
+        ? `<b>${esc(nameOf(p))}</b><span>Fichier binaire de ${Math.round(info.size / 1024)} Kio. Les fichiers binaires ne s’éditent pas ici.</span><button class="btn" data-act="downloadFile">Télécharger</button>`
+        : `<b>Fichier trop volumineux pour l’éditeur</b><span>${esc(nameOf(p))} fait ${(info.size / 1048576).toFixed(1).replace(".", ",")} Mio ; la limite d’édition est de 1 Mio. Consultez un extrait ou téléchargez-le.</span>${["code", "text", "svg"].includes(info.storeKind) ? '<button class="btn" data-act="previewText">Voir les 64 premiers Kio</button>' : ""}<button class="btn" data-act="downloadFile">Télécharger</button>`;
   if (isText) {
     if (!ed && !S.editorUnloaded)
       ed = mkEditor($("#ed1"), {
@@ -140,7 +147,7 @@ export const resetEditor = () => {
 function frameHead(i) {
   const s = sessionOf(S.pvSessions[i]),
     r = S.pvInfo[s.id];
-  return `<div class="fhead"><button class="btn sm" data-act="pvPickSession" data-arg="${i}" aria-haspopup="true">${sw(s)}${esc(s.label)}${icon("chevron-down","sm")}</button><span class="grow"></span>${r ? `<span class="st2 s${String(r.status)[0]}">${r.status}</span><span class="num mut">${r.ms} ms</span>` : '<span class="mut">pas encore chargé</span>'}</div>`;
+  return `<div class="fhead"><button class="btn sm" data-act="pvPickSession" data-arg="${i}" aria-haspopup="true">${sw(s)}${esc(s.label)}${icon("chevron-down", "sm")}</button><span class="grow"></span>${r ? `<span class="st2 s${String(r.status)[0]}">${r.status}</span><span class="num mut">${r.ms} ms</span>` : '<span class="mut">pas encore chargé</span>'}</div>`;
 }
 export function updatePreviewStatus() {
   const box = $("#pvFrames");
@@ -199,6 +206,19 @@ Object.assign(A, {
   },
   editorProblems() {
     ed?.model.problems();
+  },
+  async previewText() {
+    if (!S.active) return;
+    const text = await eng().fs.preview(S.active);
+    await modal({
+      title: "Extrait de " + nameOf(S.active),
+      wide: true,
+      body:
+        '<p>Lecture limitée à 64 Kio. Le fichier complet reste sur disque.</p><pre style="white-space:pre-wrap;overflow-wrap:anywhere;max-height:55vh;overflow:auto">' +
+        esc(text) +
+        "</pre>",
+      actions: [{ label: "Fermer", v: "no" }],
+    });
   },
   async downloadFile() {
     if (S.active) await eng().fs.download(S.active);
@@ -713,11 +733,23 @@ export function bindCode() {
     await A.openFile(tab.dataset.arg);
     A.fileMenu(null, at(event.clientX, event.clientY));
   });
-  $("#ed1").addEventListener("keydown", event => {
-    if(!ed || !(event.key==="ContextMenu" || (event.key==="F10"&&event.shiftKey)))return;
+  $("#ed1").addEventListener("keydown", (event) => {
+    if (
+      !ed ||
+      !(event.key === "ContextMenu" || (event.key === "F10" && event.shiftKey))
+    )
+      return;
     event.preventDefault();
-    const view=ed.model.view, coords=view.coordsAtPos(view.state.selection.main.head);
-    view.contentDOM.dispatchEvent(new MouseEvent("contextmenu",{bubbles:true,cancelable:true,clientX:coords?.left??0,clientY:coords?.top??0}));
+    const view = ed.model.view,
+      coords = view.coordsAtPos(view.state.selection.main.head);
+    view.contentDOM.dispatchEvent(
+      new MouseEvent("contextmenu", {
+        bubbles: true,
+        cancelable: true,
+        clientX: coords?.left ?? 0,
+        clientY: coords?.top ?? 0,
+      }),
+    );
   });
   $("#ed1").addEventListener("contextmenu", (event) => {
     if (!ed || !event.target.closest(".cm-content")) return;

@@ -125,13 +125,13 @@ La mention **Projet ouvert · dossier PC**, au-dessus du nom du dossier, indique
 <details>
 <summary>Limites du dossier local</summary>
 
-- 64 Mio au total ; 16 Mio par fichier.
-- 1 024 fichiers ; 12 niveaux de dossiers.
+- 2 Gio sur disque ; 512 Mio par fichier.
+- 10 000 fichiers ; 12 niveaux de dossiers.
 - Éléments cachés, `node_modules` et `vendor` ignorés.
 - Les gros fichiers peuvent être importés sans être éditables.
 - Sans accès aux dossiers dans votre navigateur, utilisez un ZIP.
 
-Le dossier et le ZIP passent par le même écran de préparation **avant tout chargement de contenu et avant création du projet**. Les chemins peuvent être filtrés et cochés, avec un budget recalculé : 64 Mio, 1 024 fichiers retenus, 16 Mio par fichier et 12 niveaux. Les fichiers trop lourds restent visibles mais ne sont pas chargés. Un dossier de 75 Mio peut ainsi s’ouvrir après exclusion d’un fichier de 15 Mio.
+Le dossier et le ZIP passent par le même écran de préparation **avant tout chargement de contenu et avant création du projet**. Les chemins peuvent être filtrés et cochés, avec un budget recalculé : 2 Gio sur disque, 10 000 fichiers retenus, 512 Mio par fichier et 12 niveaux. Les fichiers trop lourds restent visibles mais ne sont pas chargés. Un dossier de plus de 64 Mio peut désormais rester sur disque sans être chargé intégralement en RAM.
 
 `node_modules`, `vendor` (Composer), les environnements Python, caches, fichiers cachés et archives sont proposés à l’exclusion. `composer.json` et `composer.lock` restent sélectionnés. **Attention : vendor/autoload.php peut être nécessaire à PHP** ; les dépendances peuvent être incluses si elles tiennent dans les limites. Pour un dossier local, les arbres recommandés restent non parcourus jusqu’à l’inclusion explicite, puis un nouvel écran présente leurs fichiers.
 
@@ -139,7 +139,7 @@ Le dossier et le ZIP passent par le même écran de préparation **avant tout ch
 
 Le ZIP est inspecté par son répertoire central ; seuls les fichiers choisis sont décompressés et contrôlés par CRC. Une archive de plus de 65 Mio peut donc être ouverte si les fichiers retenus respectent le budget. ZIP64 et multi-volumes restent non pris en charge, l’analyse est limitée à 50 000 entrées et 16 Mio de métadonnées. Les liens symboliques, fichiers chiffrés et compressions non prises en charge sont signalés comme non importables. Les chemins dangereux et archives corrompues sont refusés. Les sauvegardes SQL internes d’ALWIS sont conservées ensemble, jamais retirées par le tri automatique.
 
-Les fichiers retenus entre 6 et 16 Mio sont transmis au moteur en blocs de 2 Mio, sans élargir les budgets RPC. Un fichier est rendu visible uniquement après réception complète ; un échec ou abandon nettoie le fichier temporaire. Le moteur refuse l’enregistrement d’un checkpoint pendant cette réception.
+Les fichiers retenus sont écrits successivement dans OPFS ; PHP ne reçoit que leurs métadonnées et lit leur contenu à la demande. Les budgets d’édition et des fichiers modifiés restent distincts. Voir [stockage OPFS et limites](storage-opfs.md).
 
 </details>
 
@@ -165,7 +165,7 @@ Sélectionnez une table puis **Ajouter une colonne**. Le formulaire regroupe le 
 
 **Enregistrer** écrit les fichiers modifiés dans le dossier lié et conserve les bases SQL, les onglets, la requête et les positions du schéma dans **.alwis**. Sélectionnez à nouveau ce dossier depuis l’accueil pour restaurer ce contexte, y compris sur un autre navigateur compatible. Les fichiers du dossier sont la source lors de la réouverture ; l’ancienne copie du navigateur reste disponible séparément. Les cookies et sessions des visiteurs ne sont pas exportés dans `.alwis`.
 
-Les écritures refusent de remplacer un fichier ou une configuration modifiés extérieurement depuis l’ouverture. Les suppressions et renommages restent dans la copie du navigateur : ils ne suppriment pas automatiquement les fichiers du PC. La sauvegarde locale est limitée aux mêmes volumes que l’export ZIP (64 Mio ; 8 Mio par sauvegarde SQL).
+Les écritures refusent de remplacer un fichier ou une configuration modifiés extérieurement depuis l’ouverture. Les suppressions et renommages restent dans la copie du navigateur : ils ne suppriment pas automatiquement les fichiers du PC. Les fichiers du projet restent sur disque ; les dumps SQL du contexte local restent limités à 8 Mio par base et 64 Mio au total.
 
 Le menu du projet permet de **délier le dossier du PC**. Cette action conserve les fichiers du PC et le projet du navigateur. Depuis l’accueil, la corbeille supprime un projet du navigateur après confirmation ; elle ne touche pas au dossier local ni à `.alwis` et refuse un projet ouvert ailleurs.
 

@@ -1,3 +1,4 @@
+import {DiskWorkspace} from "./disk-workspace.mjs";
 import { nativeDiagnostics } from "./native-diagnostics.mjs";
 import { enforceAtomicIdbfs } from './idbfs-atomic.mjs';
 import { installVfsQuota } from './vfs-quota.mjs';
@@ -11,6 +12,7 @@ const encoder = new TextEncoder();
 const diagnostics = nativeDiagnostics();
 let module;
 let vfsQuota;
+let diskWorkspace;
 let poisoned = false;
 let projectKey;
 let storageLayout='volatile',metadataPath;
@@ -45,8 +47,10 @@ async function mountProject(key,limits) {
   vfsQuota=installVfsQuota(module.FS,{projectRoot:files,sqlRoot:sql,limits});
   await syncFilesystem(true);vfsQuota.clearDirty();
   module.FS.mkdirTree(files);module.FS.mkdirTree(sql);
-  module.FS.symlink(files,'/workspace');module.FS.symlink(sql,'/mariadb/data');
   metadataPath=legacy?files+'/.pbl-studio-state.json':root+'/.pbl-studio-state.json';
+  diskWorkspace=await DiskWorkspace.create(module,key,files,vfsQuota,projectMetadata());
+  module.FS.symlink(diskWorkspace?.root??files,'/workspace');module.FS.symlink(sql,'/mariadb/data');
+  storageLayout=diskWorkspace?'opfs-files-atomic-sql':storageLayout;
   projectKey=key;
 }
 async function saveProject(metadata) {
@@ -54,12 +58,18 @@ async function saveProject(metadata) {
   await module.ccall('pbl_console_close', null, [], [], { async: true });
   const stopped=await module.ccall('pbl_mysql_stop','number',[],[],{async:true});
   if(stopped)throw Error(stopped===-2?'SQL initialization failed; export project files before discarding this runtime. The persistent snapshot was not overwritten.':'Cannot save while caller SQL connections are active');
+  const diskSnapshot=diskWorkspace?await diskWorkspace.snapshot():null;
+  if(diskSnapshot)metadata={...(metadata??projectMetadata()??{}),diskGeneration:diskSnapshot.catalog.id};
+  try {
   if(metadata!==undefined){
     const data=JSON.stringify(metadata);if(encoder.encode(data).byteLength>8*1024*1024)throw Error('Project metadata exceeds byte limit');
     const temporary=metadataPath+'.tmp';
     try{module.FS.writeFile(temporary,data);module.FS.rename(temporary,metadataPath);}catch(error){try{module.FS.unlink(temporary);}catch{}throw error;}
   }
-  await syncFilesystem(false);vfsQuota.clearDirty();
+  await syncFilesystem(false);
+  }catch(error){if(diskSnapshot)await diskWorkspace.disk.discard(diskSnapshot.created);throw error;}
+  if(diskSnapshot)await diskWorkspace.commit(diskSnapshot.catalog);
+  vfsQuota.clearDirty();
   return { projectKey, persisted: true, sqlStopped: true,storageLayout };
 }
 let upload;
@@ -92,7 +102,7 @@ function copyChunks(chunks) {
   for (const chunk of chunks) { output.set(chunk, offset); offset += chunk.byteLength; }
   return output;
 }
-function state() { return { diagnostics:diagnostics.stats(), sqlStarted: module._pbl_mysql_started() !== 0,sqlPhase:['dormant','running','stopped','failed'][module._pbl_mysql_phase?.()??(module._pbl_mysql_started()?1:0)], sqlConnections: module._pbl_mysql_connection_count(),nativeStatements:module._pbl_mysql_statement_count?.()??null,preparedSQLReservedBytes:module._pbl_mysql_statement_bytes?.()??null,pthreadWorkers:module._pbl_sql_threads_created?{used:module._pbl_sql_threads_used(),idle:module._pbl_sql_threads_idle(),created:module._pbl_sql_threads_created(),peak:module._pbl_sql_threads_peak()}:null, linearMemoryBytes: module.HEAPU8.buffer.byteLength, allocatorUsedBytes: module._pbl_heap_used?.() ?? null, allocatorFreeBytes: module._pbl_heap_free?.() ?? null, vfs:vfsQuota?.stats(), hardwareConcurrency: navigator.hardwareConcurrency, projectKey, storageLayout, queue: queue.stats }; }
+function state() { return { diagnostics:diagnostics.stats(), sqlStarted: module._pbl_mysql_started() !== 0,sqlPhase:['dormant','running','stopped','failed'][module._pbl_mysql_phase?.()??(module._pbl_mysql_started()?1:0)], sqlConnections: module._pbl_mysql_connection_count(),nativeStatements:module._pbl_mysql_statement_count?.()??null,preparedSQLReservedBytes:module._pbl_mysql_statement_bytes?.()??null,pthreadWorkers:module._pbl_sql_threads_created?{used:module._pbl_sql_threads_used(),idle:module._pbl_sql_threads_idle(),created:module._pbl_sql_threads_created(),peak:module._pbl_sql_threads_peak()}:null, linearMemoryBytes: module.HEAPU8.buffer.byteLength, allocatorUsedBytes: module._pbl_heap_used?.() ?? null, allocatorFreeBytes: module._pbl_heap_free?.() ?? null, vfs:vfsQuota?.stats(), disk:diskWorkspace?.stats(), hardwareConcurrency: navigator.hardwareConcurrency, projectKey, storageLayout, queue: queue.stats }; }
 async function request(input) {
   const script = path(input.script);
   const url = new URL(input.url ?? 'https://project.local' + script.slice('/workspace'.length));
@@ -138,7 +148,7 @@ async function request(input) {
   try {
     await module.ccall('php_wasm_run', 'number', ['string', 'number', 'number', 'number'], [script, 0, 0, 0], { async: true });
     const exitCode = module._php_wasm_exit_code();
-    return { status, headers: responseHeaders, body: copyChunks(stdout), stderr: copyChunks(stderr), exitCode, ...state() };
+    return { status, headers: responseHeaders, body: copyChunks(stdout), stderr: copyChunks(stderr), exitCode, diskChanges:diskWorkspace?.takeChanges()??[], ...state() };
   } catch (error) { console.error(error.stack ?? error); poisoned = true; throw error; }
 }
 async function dispatch(message) {
@@ -186,6 +196,10 @@ async function dispatch(message) {
       }catch(error){abortUpload();throw error;}
     }
     case 'abortFile': if(upload?.id===message.upload)abortUpload();return true;
+    case 'diskCatalog': return diskWorkspace?.catalog()??[];
+    case 'previewFile': {const stream=module.FS.open(path(message.path),'r');try{const output=new Uint8Array(Math.min(65536,module.FS.stat(path(message.path)).size));const n=module.FS.read(stream,output,0,output.length,0);return output.slice(0,n);}finally{module.FS.close(stream);}}
+    case 'diskFile': if(!diskWorkspace)throw Error('Stockage disque non disponible.');return diskWorkspace.file(path(message.path).slice('/workspace'.length));
+    case 'attachDiskFile': if(!diskWorkspace)throw Error('Stockage disque non disponible.');return diskWorkspace.register(message.entry);
     case 'write': {
       const data = bytes(message.data);
       if('expected' in message){
@@ -222,7 +236,7 @@ async function dispatch(message) {
     case 'request': return request(message);
     case 'metadata': return projectMetadata();
     case 'save': return saveProject(message.metadata);
-    case 'release': abortUpload();releaseLock?.(); releaseLock = undefined; poisoned = true; return true;
+    case 'release': abortUpload();await diskWorkspace?.discard();releaseLock?.(); releaseLock = undefined; poisoned = true; return true;
     case 'closeConsole': await module.ccall('pbl_console_close', null, [], [], { async: true }); return state();
     case 'sql': {
       if (message.database !== undefined && (typeof message.database !== 'string' || message.database.includes('\0'))) throw Error('Invalid database name');

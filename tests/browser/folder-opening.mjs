@@ -32,7 +32,7 @@ try {
                 {
                   kind: "file",
                   getFile: async () => ({
-                    size: 15 * 1048576,
+                    size: 450 * 1048576,
                     arrayBuffer: async () => {
                       contentReads++;
                       throw Error("Must not read before selection");
@@ -46,7 +46,7 @@ try {
       await page.locator("[data-act=openLocalFolder]").click();
       await page
         .locator("#importIssue")
-        .filter({ hasText: "64 Mio" })
+        .filter({ hasText: "2 Gio" })
         .waitFor();
       assert.equal(
         await page.locator("#modal [data-v=open]").isDisabled(),
@@ -124,7 +124,7 @@ try {
         );
         assert.equal(
           await page.locator('input[data-path="/backup.zip"]').isDisabled(),
-          true,
+          false,
         );
         assert.equal(
           await page.locator('input[data-path="/vendor"]').isChecked(),
@@ -143,7 +143,9 @@ try {
             },
             { name, args },
           );
+        await page.locator('.project-loading').waitFor({state:'hidden'});
         await page.locator("#ed1 .cm-content").fill('<?php echo "saved";');
+        await page.locator('.project-loading').waitFor({state:'hidden'});
         assert.equal(await action("save"), true);
         assert.equal(
           await page.evaluate(
@@ -156,6 +158,7 @@ try {
           const { S } = await import("/apps/studio/workbench/state.mjs");
           S.qtext = "SELECT 42;";
         });
+        await page.locator('.project-loading').waitFor({state:'hidden'});
         assert.equal(await action("save"), true);
         await action("close");
         await page.locator("[data-act=openLocalFolder]").click();
@@ -171,6 +174,7 @@ try {
           ),
           "SELECT 42;",
         );
+        await page.locator('.project-loading').waitFor({state:'hidden'});
         assert.equal(await action("save"), true);
         await action("close");
         // Explicit inclusion is a two-stage metadata scan, not a silent dependency drop.

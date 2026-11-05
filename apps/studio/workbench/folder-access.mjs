@@ -1,3 +1,4 @@
+import { crcStep } from "../../../packages/runtime/src/project-disk.mjs";
 import { exclusion, IMPORT_LIMITS, importSummary } from "./import-plan.mjs";
 const equal = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
 const MiB = 1048576;
@@ -85,7 +86,11 @@ export async function readFolder(directory, { onOversized } = {}) {
   return files;
 }
 /** Interactive scan: recommended trees stay unvisited until explicitly requested. */
-export async function selectFolder(directory, onSelect) {
+export async function selectFolder(
+  directory,
+  onSelect,
+  { metadataOnly = false } = {},
+) {
   const included = new Set();
   let selection;
   for (;;) {
@@ -150,6 +155,11 @@ export async function selectFolder(directory, onSelect) {
         "selection",
         "/",
       );
+    if (metadataOnly)
+      return {
+        records: records.filter((e) => selection.has(e.path) && !e.directory),
+        excluded: records.filter((e) => !selection.has(e.path)).length,
+      };
     const files = new Map();
     for (const record of records)
       if (selection.has(record.path) && !record.directory) {
@@ -200,14 +210,40 @@ export function folderWriter(directory, snapshots) {
       handle = await dir.getFileHandle(name);
       const file = await handle.getFile();
       // Do not read a potentially huge excluded/new external file just to refuse overwriting it.
-      if (!expected || file.size !== expected.byteLength) throw conflict();
-      current = new Uint8Array(await file.arrayBuffer());
+      if (
+        !expected ||
+        file.size !==
+          (expected instanceof Uint8Array ? expected.byteLength : expected.size)
+      )
+        throw conflict();
+      if (expected instanceof Uint8Array)
+        current = new Uint8Array(await file.arrayBuffer());
+      else {
+        if (
+          expected.mtime !== undefined &&
+          file.lastModified !== expected.mtime
+        )
+          throw conflict();
+        let crc = 0xffffffff;
+        const reader = file.stream().getReader();
+        try {
+          for (;;) {
+            const part = await reader.read();
+            if (part.done) break;
+            crc = crcStep(crc, part.value);
+          }
+        } finally {
+          reader.releaseLock();
+        }
+        if ((crc ^ 0xffffffff) >>> 0 !== expected.crc) throw conflict();
+        current = true;
+      }
     } catch (e) {
       if (e.name !== "NotFoundError") throw e;
     }
     if (
       (expected && !current) ||
-      (current && (!expected || !equal(current, expected)))
+      (current && expected instanceof Uint8Array && !equal(current, expected))
     )
       throw conflict();
     handle ??= await dir.getFileHandle(name, { create: true });
@@ -219,7 +255,17 @@ export function folderWriter(directory, snapshots) {
       await stream.abort().catch(() => {});
       throw e;
     }
-    snapshots.set(path, new TextEncoder().encode(text));
+    const data = new TextEncoder().encode(text);
+    snapshots.set(
+      path,
+      expected instanceof Uint8Array
+        ? data
+        : {
+            size: data.length,
+            crc: (crcStep(0xffffffff, data) ^ 0xffffffff) >>> 0,
+            mtime: (await handle.getFile()).lastModified,
+          },
+    );
   };
 }
 

@@ -14,3 +14,5 @@ La CI commune fixe les versions Playwright et exécute les suites requises. Les 
 `node tests/browser/workspace-design.mjs` vérifie l’enregistrement unifié, le changement de projet sans perte, la création inline, la recherche sur toutes les pages et les relations simples ou composées. Il audite les écrans avec axe en clair, sombre et sur mobile. Les captures et le rapport de l’exécution sont générés dans `build-work/workspace-design/`.
 
 Par défaut, les tests utilisent les navigateurs Playwright de la CI. Pour vérifier localement avec un Chromium système, `ALWIS_CHROMIUM_PATH=/usr/bin/chromium` est pris en charge par ce parcours, `keyboard.mjs` et `site-package.mjs chromium`. Ce contrôle ne remplace pas une exécution sous Firefox.
+
+Les parcours `disk-storage.mjs` et `disk-migration.mjs` contrôlent le stockage OPFS, un média de 256 Mio, les lectures PHP bornées, Range/HEAD, les exports en flux et la migration de checkpoints IDBFS. Voir [les budgets et limites](../../docs/storage-opfs.md).

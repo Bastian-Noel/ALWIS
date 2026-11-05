@@ -1,3 +1,5 @@
+import {ProjectDisk} from "/packages/runtime/src/project-disk.mjs";
+import {fileResponse} from "./file-response.mjs";
 import { inspectBody, networkRecord } from './network-record.mjs';
 import { NativeRuntime } from '/packages/runtime/src/native-runtime.mjs';
 import { ClientSessions } from '/packages/runtime/src/client-sessions.mjs';
@@ -9,10 +11,15 @@ export class ProjectHub {
     const hub=new ProjectHub();hub.key=key;hub.inFlight=new Set();
     hub.runtime=await NativeRuntime.create({moduleURL:new URL('/engine/pbl-runtime.mjs',location.href).href,projectKey:key});
     try{
-      const checkpoint=await hub.runtime.metadata();const saved=checkpoint?.sessions??await readState('sessions:'+key);
+      hub.diskEnabled=!!(await hub.runtime.state()).disk;
+      const checkpoint=await hub.runtime.metadata();
+      await hub.resetDiskView(checkpoint);const saved=checkpoint?.sessions??await readState('sessions:'+key);
       hub.sessions=new ClientSessions(saved??[]);if(!hub.sessions.sessions.size)hub.sessions.create('Session A');return hub;
     }catch(error){hub.runtime.close();throw error;}
   }
+  async resetDiskView(checkpoint){this.invalidFiles=new Set();if(this.diskEnabled){this.diskStore=await ProjectDisk.open(this.key,checkpoint?.diskGeneration);this.liveFiles=new Map((this.diskStore.catalog?.entries??[]).filter(e=>!e.directory).map(e=>[e.path,e]));}}
+  invalidate(path){this.invalidFiles?.add(path);for(const key of this.liveFiles?.keys()??[])if(key.startsWith(path+'/'))this.invalidFiles.add(key);}
+  rememberDiskFile(entry){this.liveFiles?.set(entry.path,entry);this.invalidFiles?.delete(entry.path);}
   track(promise){this.inFlight.add(promise);promise.then(()=>this.inFlight.delete(promise),()=>this.inFlight.delete(promise));return promise;}
   async freeze(){this.busy=true;await Promise.allSettled([...this.inFlight]);}
   snapshot(){return {format:1,sessions:this.sessions.export()};}
@@ -48,10 +55,10 @@ export class ProjectHub {
     const session = this.sessions.get(sessionId), url = new URL(input.url);
     let pathname;
     try { pathname = decodeURIComponent(url.pathname); } catch { return this.error(400, 'Chemin invalide'); }
-    if (pathname.includes('\0') || pathname.split('/').includes('..') || pathname.startsWith('/.pbl-')) return this.error(403, 'Chemin réservé');
+    if (pathname.includes('\0') || pathname.split('/').includes('..') || pathname.split('/').some(p=>p.startsWith('.pbl-')||['.git','.alwis','.sessions'].includes(p))) return this.error(403, 'Chemin réservé');
     if (pathname.endsWith('/')) {
       for (const index of ['index.php', 'index.html']) {
-        try { await this.runtime.read('/workspace' + pathname + index); pathname += index; break; } catch { /* Try the documented directory index. */ }
+        try { const stat=await this.runtime.call('stat',{path:'/workspace'+pathname+index});if(!stat.directory){pathname+=index;break;} } catch { /* Try the documented directory index. */ }
       }
     }
     let body, headers = [], inspectHeaders, status = 200, cookiesChanged = false;
@@ -61,6 +68,7 @@ export class ProjectHub {
       if (cookies) requestHeaders.push(['Cookie', cookies]);
       input.headers = requestHeaders;
       const result = await this.runtime.request({ script: '/workspace' + pathname, url: url.href, method: input.method, headers: requestHeaders, body: input.body });
+      for(const changed of result.diskChanges??[])this.invalidate(changed);
       if(result.stderr?.byteLength)this.onDiagnostic?.(`PHP a signalé un problème dans ${pathname}. Corrigez le fichier puis relancez la requête.`,decoder.decode(result.stderr.subarray(0,8192)));
       status = result.status; body = result.body;
       inspectHeaders = result.headers.filter(line=>line.indexOf(':')>0).map(line=>[line.slice(0,line.indexOf(':')),line.slice(line.indexOf(':')+1).trim()]);
@@ -74,6 +82,17 @@ export class ProjectHub {
         } else if (!['content-length', 'transfer-encoding', 'connection'].includes(name.toLowerCase())) headers.push([name, value]);
       }
       if (cookiesChanged) { await this.saveSessions(); this.broadcastCookies(sessionId); }
+    } else if(this.diskEnabled) {
+      let descriptor;try{const entry=this.liveFiles?.get(pathname);descriptor=entry&&!this.invalidFiles.has(pathname)?{file:await this.diskStore.file(entry),version:entry.version,type:entry.type}:await this.runtime.call('diskFile',{path:'/workspace'+pathname});}catch{return this.error(404,'Fichier introuvable');}
+      const type=descriptor.type??mime[pathname.split('.').pop()?.toLowerCase()]??'application/octet-stream';
+      const response=fileResponse(descriptor.file,input,{type,version:descriptor.version});
+      if(input.method!=='HEAD'&&type.startsWith('text/html')&&['document','iframe'].includes(input.destination)&&response.status===200){
+        if(descriptor.file.size>2*1048576)return this.error(413,'Page HTML trop volumineuse pour l’aperçu instrumenté (2 Mio). Téléchargez-la depuis l’explorateur.');
+        body=new Uint8Array(await descriptor.file.arrayBuffer());headers=response.headers.filter(([name])=>name!=='Content-Length');
+      }else {
+        const textual=/^text\/|json|javascript|xml/i.test(type);
+        return {...response,body:new Uint8Array(),inspection:{bytes:response.size??0,type,text:textual&&response.file?await response.file.slice(0,32768).text():null,truncated:textual&&(response.size??0)>32768}};
+      }
     } else {
       try { body = await this.runtime.read('/workspace' + pathname); }
       catch { return this.error(404, 'Fichier introuvable'); }
@@ -104,7 +123,7 @@ export class ProjectHub {
       await this.saveSessions();
       if(!this.runtime.closed){await this.runtime.shutdown({metadata:this.snapshot()});this.checkpointCommitted=true;}
       else if(!this.checkpointCommitted)throw Error('Moteur perdu : rouvrez le projet depuis sa dernière sauvegarde.');
-      this.runtime = await NativeRuntime.create({ moduleURL: new URL('/engine/pbl-runtime.mjs', location.href).href, projectKey: this.key });this.lastSaveError=null;this.checkpointCommitted=false;
+      this.runtime = await NativeRuntime.create({ moduleURL: new URL('/engine/pbl-runtime.mjs', location.href).href, projectKey: this.key });await this.resetDiskView(await this.runtime.metadata());this.lastSaveError=null;this.checkpointCommitted=false;
     } catch(error){this.lastSaveError=error;throw error;} finally { this.busy = false; for(const session of this.sessions.sessions.values())this.broadcastCookies(session.id); }
   }
   async close({save=true}={}) { await this.freeze();try{if(save)await this.saveSessions();if(!this.runtime.closed)await this.runtime.shutdown({save,metadata:this.snapshot()});}catch(error){this.busy=false;throw error;} }

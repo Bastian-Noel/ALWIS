@@ -70,13 +70,14 @@ try {
       );
       assert.equal(
         await page.locator('input[data-path="/backup.zip"]').isDisabled(),
-        true,
+        false,
       );
       await page.locator("#modal [data-v=open]").click();
       await page
         .locator("#ed1 .cm-content")
         .filter({ hasText: "selected" })
-        .waitFor();
+        .waitFor().catch(async error=>{console.error(engine.name(),'Import state:',await page.locator('body').innerText());throw error;});
+      await page.locator('.project-loading').waitFor({state:'hidden'});
       const paths = await page.evaluate(async () => {
         const { S } = await import("/apps/studio/workbench/state.mjs");
         return S.files.map((f) => f.path);

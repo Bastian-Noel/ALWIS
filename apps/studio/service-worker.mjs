@@ -71,7 +71,7 @@ self.addEventListener('fetch', event => {
       const value = await rpc(await owner(route.project), { type: 'pbl-route', session: route.session, request: { url: logical.href, destination: event.request.destination, method: event.request.method, headers: [...event.request.headers], body } });
       const headers = new Headers(value.headers);
       headers.set('Cross-Origin-Opener-Policy', 'same-origin'); headers.set('Cross-Origin-Embedder-Policy', 'require-corp'); headers.set('Cache-Control', 'no-store');
-      return new Response(event.request.method === 'HEAD' || [204, 205, 304].includes(value.status) ? null : value.body, { status: value.status, headers });
+      return new Response(event.request.method === 'HEAD' || [204, 205, 304].includes(value.status) ? null : (value.file??value.body), { status: value.status, headers });
     } catch (error) { return new Response(error.message, { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8' } }); }
   })());
 });

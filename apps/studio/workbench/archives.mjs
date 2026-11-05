@@ -1,3 +1,4 @@
+import { streamZip } from "../zip-stream.mjs";
 import { zipTask } from "../archive-service.mjs";
 import { splitSQL } from "../database/sql-script.mjs";
 import { identifier } from "../database/sql-values.mjs";
@@ -150,12 +151,27 @@ export function projectArchives(hub, files) {
   }
   async function exportProject({ dataOnly = false } = {}) {
     const entries = [];
-    let size = 0;
+    let size = 0,
+      sqlSize = 0;
     for (const name of dataOnly ? [] : await files()) {
-      const bytes = await hub.runtime.read("/workspace" + name);
-      size += bytes.length;
-      if (size > 64 * 1024 * 1024) throw Error("Export limité à 64 Mio.");
-      entries.push({ name: name.slice(1), bytes });
+      const info = await hub.runtime.call("stat", {
+        path: "/workspace" + name,
+      });
+      size += info.size;
+      if (size > 2 * 1024 * 1048576)
+        throw Error("Export disque limité à 2 Gio de fichiers.");
+      entries.push({
+        name: name.slice(1),
+        size: info.size,
+        open: async () =>
+          hub.diskEnabled
+            ? (
+                await hub.runtime.call("diskFile", {
+                  path: "/workspace" + name,
+                })
+              ).file
+            : new Blob([await hub.runtime.read("/workspace" + name)]),
+      });
     }
     const manifest = {
       format: "wasmwebserver-project",
@@ -177,7 +193,8 @@ export function projectArchives(hub, files) {
           continue;
         const bytes = await exportSQLDatabase(name);
         size += bytes.length;
-        if (size > 64 * 1024 * 1024) throw Error("Export limité à 64 Mio.");
+        sqlSize += bytes.length;
+        if (sqlSize > 64 * 1048576) throw Error("Export SQL limité à 64 Mio.");
         const path =
           ".pbl-backup/database-" + manifest.databases.length + ".sql";
         entries.push({ name: path, bytes });
@@ -187,7 +204,14 @@ export function projectArchives(hub, files) {
       name: ".pbl-backup/project.json",
       bytes: new TextEncoder().encode(JSON.stringify(manifest)),
     });
-    return zipTask("write", entries);
+    if (dataOnly) return zipTask("write", entries);
+    return streamZip(
+      entries.map((e) =>
+        e.bytes
+          ? { name: e.name, size: e.bytes.length, file: new Blob([e.bytes]) }
+          : e,
+      ),
+    );
   }
   return { exportProject, exportSQLDatabase, importProjectArchive };
 }

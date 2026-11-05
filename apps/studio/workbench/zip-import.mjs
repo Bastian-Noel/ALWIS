@@ -1,6 +1,9 @@
+import { zipEntryStream } from "../zip.mjs";
+import { stageFiles } from "../disk-import.mjs";
+import { importProgress } from "./import-progress.mjs";
 import { zipTask } from "../archive-service.mjs";
 import { chooseImport } from "./import-dialog.mjs";
-export async function prepareZip(file) {
+export async function prepareZip(file, project) {
   const entries = await zipTask("inspect", file);
   // Strip a single wrapping folder (typical GitHub/source archives), never ALWIS metadata.
   const first = entries[0]?.name.split("/")[0];
@@ -18,6 +21,11 @@ export async function prepareZip(file) {
     reason: e.reason || undefined,
   }));
   const backups = records.filter((e) => e.path.startsWith("/.pbl-backup/"));
+  if (
+    backups.reduce((n, e) => n + e.size, 0) > 64 * 1048576 ||
+    backups.some((e) => e.size > 8 * 1048576)
+  )
+    throw Error("Sauvegarde SQL limitée à 8 Mio par base et 64 Mio au total.");
   if (backups.length) {
     const manifest = backups.find(
       (e) => e.path === "/.pbl-backup/project.json",
@@ -33,9 +41,19 @@ export async function prepareZip(file) {
     source:
       "Seuls les fichiers sélectionnés seront décompressés. Le ZIP d’origine reste inchangé.",
   });
-  const unpacked = await zipTask("extract", {
-    file,
-    names: records.filter((e) => selected.has(e.path)).map((e) => e.original),
-  });
-  return unpacked.map((e) => ({ ...e, name: e.name.slice(prefix.length) }));
+  const chosen = records.filter((e) => selected.has(e.path));
+  const byName = new Map(entries.map((e) => [e.name, e]));
+  const sources = [];
+  for (const record of chosen) {
+    const entry = byName.get(record.original);
+    sources.push({
+      ...record,
+      crc: entry.crc,
+      stream: () => zipEntryStream(file, entry),
+    });
+  }
+  return importProgress(
+    (options) => stageFiles(project, sources, options),
+    chosen.reduce((n, e) => n + e.size, 0),
+  );
 }

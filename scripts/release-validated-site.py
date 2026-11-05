@@ -70,7 +70,9 @@ notes=output/'notes.md';notes.write_text(f'''ALWIS — Atelier Local Web avec ID
 - Interface : accueil, chargement, modales, ajout de colonne et Sessions harmonisés ; ALWIS reste en texte sans logo. Icônes SVG, notifications accessibles et poignées discrètes au repos.
 - Aperçu : barre de navigateur, historique par session, panneau Réseau avec en-têtes et corps, séparateurs redimensionnables accessibles au clavier.
 - Sessions : suppression avec confirmation, fermeture des fenêtres et retour de l’aperçu vers un visiteur restant ; dernière session protégée.
-- ZIP et dossiers : sélection avant chargement, dépendances proposées à l’exclusion, budgets recalculés et transfert borné des fichiers retenus.
+- Stockage OPFS : fichiers sur disque, catalogue léger et migration vérifiée des anciens projets ; lectures PHP par pages et cache borné.
+- ZIP et dossiers : sélection avant chargement, dépendances proposées à l’exclusion, décompression progressive et export ZIP sur disque ; Range/HEAD pour les médias.
+- Limites distinctes : disque 2 Gio/10 000 fichiers, édition 1 Mio, fichiers PHP modifiés 16 Mio ; scénario réel de 256 Mio sous Chromium et Firefox.
 - Mise à jour : contrôle de l’accueil servi, attente des vérifications en cours et rechargement explicite de la version courante.
 - Exemple Campus : 34 tables liées et remplies, quatre sessions, cours, notes et messagerie.
 - Assets isolés par build, version affichée et mise à jour préservant les projets.

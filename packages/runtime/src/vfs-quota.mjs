@@ -3,15 +3,15 @@
  */
 const MiB=1024*1024;
 export function installVfsQuota(FS,{projectRoot='/workspace',sqlRoot='/mariadb/data',limits={}}={}) {
-  const defaults={projectBytes:64*MiB,projectFileBytes:16*MiB,projectNodes:2048,tempBytes:16*MiB,tempFileBytes:16*MiB,tempNodes:256,sqlBytes:128*MiB,sqlFileBytes:64*MiB,sqlNodes:4096,systemBytes:16*MiB,systemFileBytes:16*MiB,systemNodes:2048,openFiles:512};
+  const defaults={projectBytes:64*MiB,projectFileBytes:16*MiB,projectNodes:32768,tempBytes:16*MiB,tempFileBytes:16*MiB,tempNodes:256,sqlBytes:128*MiB,sqlFileBytes:64*MiB,sqlNodes:4096,systemBytes:16*MiB,systemFileBytes:16*MiB,systemNodes:2048,openFiles:512};
   for(const [key,value] of Object.entries(limits))if(!Object.hasOwn(defaults,key)||!Number.isSafeInteger(value)||value<1||value>defaults[key])throw Error('Invalid VFS limit: '+key);
-  const policy={...defaults,...limits},records=new WeakMap();let dirty=new WeakSet();
+  const policy={...defaults,...limits};let records=new WeakMap();let dirty=new WeakSet();
   const groups=Object.fromEntries(['project','temp','sql','system'].map(name=>[name,{bytes:0,reserved:0,nodes:0,maxBytes:policy[name+'Bytes'],maxFileBytes:policy[name+'FileBytes'],maxNodes:policy[name+'Nodes']} ]));
   const under=(path,root)=>path===root||path.startsWith(root+'/');
   const groupFor=path=>under(path,projectRoot)||under(path,'/workspace')?'project':under(path,sqlRoot)||under(path,'/mariadb/data')?'sql':under(path,'/tmp')?'temp':'system';
   const fail=(errno=51)=>{throw new FS.ErrnoError(errno);}; // Emscripten/WASI ENOSPC=51, EMFILE=33.
-  const size=node=>FS.isFile(node.mode)?node.usedBytes??node.node_ops?.getattr?.(node)?.size??0:0;
-  const reserved=node=>FS.isFile(node.mode)?node.contents?.buffer?.byteLength??size(node):0;
+  const size=node=>node.diskSource&&!node.diskDirty?0:FS.isFile(node.mode)?node.usedBytes??node.node_ops?.getattr?.(node)?.size??0:0;
+  const reserved=node=>node.diskSource&&!node.diskDirty?0:FS.isFile(node.mode)?node.contents?.buffer?.byteLength??size(node):0;
   function check(name,bytes,nodes=0,fileBytes=0){
     if(!name)return;const group=groups[name];
     if(!Number.isSafeInteger(bytes)||fileBytes>group.maxFileBytes||group.bytes+bytes>group.maxBytes||group.nodes+nodes>group.maxNodes)fail();
@@ -82,5 +82,5 @@ export function installVfsQuota(FS,{projectRoot='/workspace',sqlRoot='/mariadb/d
       if(group){groups[group].bytes+=rec.bytes;groups[group].reserved+=rec.reserved;groups[group].nodes++;}rec.group=group;}
     return result;
   });
-  return {scan,isDirty(path){try{return dirty.has(FS.lookupPath(path,{follow:false}).node);}catch{return false;}},clearDirty(){dirty=new WeakSet();},stats:()=>({groups:Object.fromEntries(Object.entries(groups).map(([name,value])=>[name,{...value}])),openFiles:FS.streams.filter(Boolean).length,maxOpenFiles:policy.openFiles})};
+  return {scan,assertMaterialize(node,bytes){const rec=record(node);check(rec.group,bytes-rec.bytes,0,bytes);},relocateProject(root){projectRoot=root;records=new WeakMap();dirty=new WeakSet();for(const g of Object.values(groups)){g.bytes=0;g.reserved=0;g.nodes=0;}for(const path of new Set(['/',projectRoot,sqlRoot,'/tmp']))scan(path);},isDirty(path){try{return dirty.has(FS.lookupPath(path,{follow:false}).node);}catch{return false;}},clearDirty(){dirty=new WeakSet();},stats:()=>({groups:Object.fromEntries(Object.entries(groups).map(([name,value])=>[name,{...value}])),openFiles:FS.streams.filter(Boolean).length,maxOpenFiles:policy.openFiles})};
 }

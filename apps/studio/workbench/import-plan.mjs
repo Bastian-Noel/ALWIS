@@ -1,8 +1,8 @@
 /** Metadata-only selection shared by local folders and ZIPs. Contents stay unread until approval. */
 export const IMPORT_LIMITS = {
-  file: 16 * 1048576,
-  total: 64 * 1048576,
-  count: 1024,
+  file: 512 * 1048576,
+  total: 2 * 1024 * 1048576,
+  count: 10000,
   depth: 12,
   scan: 50000,
 };
@@ -67,7 +67,7 @@ export function importSummary(entries, selected) {
   if (chosen.some((e) => e.locked))
     issues.push("Un élément réservé ne peut pas être importé.");
   if (chosen.some((e) => e.size > IMPORT_LIMITS.file))
-    issues.push("Un fichier dépasse 16 Mio.");
+    issues.push("Un fichier dépasse 512 Mio sur disque.");
   if (
     chosen.some(
       (e) =>
@@ -75,9 +75,15 @@ export function importSummary(entries, selected) {
     )
   )
     issues.push("Un chemin dépasse 12 niveaux.");
-  if (chosen.length > IMPORT_LIMITS.count)
-    issues.push("Plus de 1 024 fichiers sont sélectionnés.");
-  if (bytes > IMPORT_LIMITS.total) issues.push("La sélection dépasse 64 Mio.");
+  if (
+    chosen.filter((e) => !e.backup && !e.directory).length > IMPORT_LIMITS.count
+  )
+    issues.push("Plus de 10 000 fichiers sont sélectionnés.");
+  if (
+    chosen.filter((e) => !e.backup).reduce((n, e) => n + e.size, 0) >
+    IMPORT_LIMITS.total
+  )
+    issues.push("La sélection dépasse 2 Gio sur disque.");
   return {
     count: chosen.length - directories,
     directories,

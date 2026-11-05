@@ -122,7 +122,7 @@ export function drawExplorer() {
       .join("") ||
     `<p class="hint" style="padding:10px 12px">${q ? "Aucun fichier ne correspond." : "Aucun fichier. Créez-en un, ou déposez des fichiers ici."}</p>`;
   $("#treeNote").textContent =
-    plural(S.files.length, "fichier", "fichiers") + " · 1 024 maximum";
+    plural(S.files.length, "fichier", "fichiers") + " · 10 000 maximum";
   const creating = $("#newEntryName");
   if (creating) {
     creating.focus();
@@ -438,17 +438,8 @@ Object.assign(A, {
     let n = 0;
     for (const f of files) {
       try {
-        if (f.size > 8 * 1024 * 1024)
-          throw new Error(`« ${f.name} » dépasse 8 Mio.`);
-        const p = join(dir, f.name),
-          isText =
-            /\.(php|html?|css|js|mjs|json|sql|md|csv|txt|env|xml|svg)$/i.test(
-              f.name,
-            ) || f.name.startsWith(".");
-        await eng().fs.write(
-          p,
-          isText ? await f.text() : new Uint8Array(await f.arrayBuffer()),
-        );
+        const p = join(dir, f.name);
+        await eng().fs.importFile(p, f);
         S.applied.add(p);
         n++;
       } catch (e) {
