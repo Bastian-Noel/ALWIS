@@ -44,12 +44,12 @@ jobs:
           SOURCE_SHA: ${{ github.event.workflow_run.head_sha || inputs.source_sha }}
         run: |
           python3 - <<'PY'
-          import hashlib, json
+          import hashlib, json, os
           from pathlib import Path
           root = Path('build-work/server-site')
           release = json.loads((root / 'release.json').read_text())
           package = json.loads(Path('package.json').read_text())
-          if release['revision'] != '${{ github.event.workflow_run.head_sha }}':
+          if release['revision'] != os.environ['SOURCE_SHA']:
               raise SystemExit('Static artifact revision does not match its validated source run.')
           if release['version'] != package['version'] or release['workingChanges']:
               raise SystemExit('Static artifact version or clean-source check failed.')
