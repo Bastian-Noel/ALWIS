@@ -21,7 +21,7 @@
     },
     {
       "id": "release-notice-verification",
-      "summary": "No release-specific verification yet confirms that the exact corresponding native sources, all license texts, notices, and checksums are present beside every published runtime artifact."
+      "summary": "No release-specific verification yet confirms that the exact corresponding native sources, all license texts, notices, and checksums are present beside every published runtime artifact; config/native-runtime.json must also be refreshed with the manifest hash from the new notice-bearing native artifact."
     }
   ],
   "scope": "This status blocks publication of static, Docker, and native releases containing the runtime. It does not prevent local development or validation builds.",
