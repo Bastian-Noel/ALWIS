@@ -58,6 +58,9 @@ jobs:
           from pathlib import Path
           root = Path('build-work/server-site')
           release = json.loads((root / 'release.json').read_text())
+          licensing = json.loads((root / 'RELEASE-LICENSING-STATUS.json').read_text())
+          if licensing.get('status') != 'ready' or licensing.get('blockers'):
+              raise SystemExit('Server image publication is blocked by licensing status: ' + '; '.join(item['summary'] for item in licensing.get('blockers', [])))
           package = json.loads(Path('package.json').read_text())
           if release['revision'] != os.environ['SOURCE_SHA']:
               raise SystemExit('Static artifact revision does not match its validated source run.')
@@ -127,6 +130,18 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
+      - name: Check out the licensing status
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Require a ready licensing review
+        run: |
+          python3 - <<'PY'
+          import json,pathlib
+          record=json.loads(pathlib.Path('provenance/release-licensing-status.json').read_text())
+          if record.get('status')!='ready' or record.get('blockers'):
+              raise SystemExit('Container alias update blocked by licensing status: '+'; '.join(item.get('summary',item.get('id','unknown blocker')) for item in record.get('blockers',[])))
+          PY
       - name: Validate existing version tag
         env:
           VERSION: ${{ inputs.image_version }}

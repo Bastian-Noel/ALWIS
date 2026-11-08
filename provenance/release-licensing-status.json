@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "status": "blocked",
+  "asOf": "2026-11-08",
+  "blockers": [
+    {
+      "id": "apache2-mariadb-patch",
+      "summary": "The Apache-2.0 independent-sessions patch is applied to GPLv2 MariaDB source; compatible permission or a replacement is required before distributing the combined runtime."
+    },
+    {
+      "id": "native-sbom-and-source",
+      "summary": "The exact license and source correspondence inventory for every linked native component and PHP per-file exception is not yet complete for the release artifact."
+    },
+    {
+      "id": "editor-apache-boundary",
+      "summary": "The distribution relationship between the Apache-2.0 TypeScript/SWC editor assets and the GPLv2 native runtime has not been reviewed and documented for the exact static and Docker packages."
+    },
+    {
+      "id": "source-reuse-review",
+      "summary": "The recorded inspiration/adaptation targets have not all been compared file-by-file with ALWIS to determine whether AGPL or other third-party expression was copied."
+    },
+    {
+      "id": "release-notice-verification",
+      "summary": "No release-specific verification yet confirms that the exact corresponding native sources, all license texts, notices, and checksums are present beside every published runtime artifact."
+    }
+  ],
+  "scope": "This status blocks publication of static, Docker, and native releases containing the runtime. It does not prevent local development or validation builds.",
+  "reopenWhen": "Update this file only after evidence for each blocker is recorded in provenance/component-license-map.md and the exact release notices/source bundle are verified."
+}

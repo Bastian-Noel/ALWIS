@@ -65,7 +65,7 @@ Pour héberger ALWIS sur votre propre serveur, choisissez la [distribution Docke
 [Architecture](https://github.com/Bastian-Noel/ALWIS/wiki/Architecture) · [Performance](https://github.com/Bastian-Noel/ALWIS/wiki/Performance) · [Hébergement](https://github.com/Bastian-Noel/ALWIS/wiki/Publication)
 
 ALWIS utilise notamment PHP, MariaDB, CodeMirror, PHPantom, SuperHTML, TypeScript, SWC et Emmet.
-Les notices se trouvent dans `provenance/` et dans le fichier `THIRD-PARTY.txt` du paquet.
-Aucune licence globale n’a été choisie pour le projet.
+Les licences et la provenance se vérifient dans [`provenance/`](provenance/), ainsi que dans les notices livrées avec chaque paquet.
+Le [registre des licences](LICENSE.md), les [notices tierces](THIRD-PARTY-NOTICES.md), l’[audit](provenance/licensing-decision.md) et la [cartographie par composant](provenance/component-license-map.md) détaillent les licences et les limites d’une restriction non commerciale globale.
 
 </details>

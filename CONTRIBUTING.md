@@ -48,7 +48,9 @@ Les tests navigateur nécessitent Playwright et ses navigateurs. La [CI](.github
 ## Repères
 
 - Suivez les [règles du dépôt](AGENTS.md), notamment le travail sur `main`.
-- Gardez les licences des composants et le `THIRD-PARTY.txt` généré.
+- Suivez le [registre de provenance](provenance/README.md) et consignez toute copie ou adaptation dans `provenance/reuse-ledger.csv`.
+- Gardez les licences de chaque composant et vérifiez les notices dans chaque artefact distribué ; le `THIRD-PARTY.txt` de l'éditeur ne couvre pas automatiquement le moteur natif.
+- Consultez [`LICENSE.md`](LICENSE.md), les [notices tierces](THIRD-PARTY-NOTICES.md), l'[audit des licences](provenance/licensing-decision.md) et la [cartographie par composant](provenance/component-license-map.md) avant toute redistribution. La publication reste bloquée tant que le statut de licence n'est pas `ready`.
 - Ne versionnez pas `build-work/`, `sources/`, `upstream/` ou `node_modules/`.
 - Une validation locale ne prouve pas qu’une version publiée contient la modification.
 

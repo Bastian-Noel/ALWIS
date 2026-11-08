@@ -2,6 +2,10 @@
 """Create an immutable named release from a validated static build."""
 from pathlib import Path,PurePosixPath
 import hashlib,json,os,re,subprocess,zipfile
+licensing=json.loads(Path('provenance/release-licensing-status.json').read_text())
+if licensing.get('status')!='ready' or licensing.get('blockers'):
+ blockers='; '.join(item.get('summary',item.get('id','unknown blocker')) for item in licensing.get('blockers',[]))
+ raise SystemExit('Release blocked by licensing status: '+(blockers or licensing.get('status','unknown')))
 repo=os.environ['GH_REPO'];tag=os.environ.get('RELEASE_TAG','');run=os.environ.get('VALIDATED_RUN','')
 if not re.fullmatch(r'v\d+\.\d+\.\d+(?:-(?:alpha|beta|rc|preview)\.\d+)?',tag):raise SystemExit('Use a version such as v0.1.0 or v0.2.0-preview.1')
 if not run.isdigit():raise SystemExit('A validated workflow run ID is required')

@@ -1,0 +1,1 @@
+record_id,release,local_path,classification,upstream_repository,upstream_commit,upstream_path,upstream_lines,local_lines_or_diff,upstream_license,license_file_url,upstream_copyright,change_summary,attribution_location,distribution_location,source_correspondence,review_status,reviewer,review_date,notes

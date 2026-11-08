@@ -6,6 +6,10 @@ file is promoted by rename, index.html last. No remote project files are deleted
 from pathlib import Path,PurePosixPath
 import os,sys,json,hashlib,ftplib,re,uuid,urllib.request
 source=Path(sys.argv[1] if len(sys.argv)>1 else 'build-work/site').resolve()
+licensing_path=source/'RELEASE-LICENSING-STATUS.json'
+if not licensing_path.is_file():raise SystemExit('Missing release licensing status; refusing FTP publication.')
+licensing=json.loads(licensing_path.read_text())
+if licensing.get('status')!='ready' or licensing.get('blockers'):raise SystemExit('FTP publication blocked by licensing status: '+'; '.join(item.get('summary',item.get('id','unknown blocker')) for item in licensing.get('blockers',[])))
 password=os.environ.get('FTP_PASSWORD','')
 if not password:raise SystemExit('Missing GitHub repository secret FTP_PASSWORD. Add it in Settings > Secrets and variables > Actions, then rerun this workflow.')
 host=os.environ.get('FTP_HOST','141.253.111.13');username=os.environ.get('FTP_USERNAME','studio');port=int(os.environ.get('FTP_PORT','21'))

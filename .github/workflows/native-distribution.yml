@@ -37,17 +37,28 @@ jobs:
           python3 - <<'PY'
           import json,hashlib,pathlib
           root=pathlib.Path('deployment/native')
+          licensing=json.loads(pathlib.Path('provenance/release-licensing-status.json').read_text())
+          assert licensing.get('status')=='ready' and not licensing.get('blockers'), 'Native release blocked by licensing status: '+'; '.join(item.get('summary',item.get('id','unknown blocker')) for item in licensing.get('blockers',[]))
           lock=json.loads(pathlib.Path('config/native-runtime.json').read_text())
           data=(root/'artifact.json').read_bytes()
           assert hashlib.sha256(data).hexdigest()==lock['manifestSha256']
           manifest=json.loads(data)
+          assert manifest.get('licensing',{}).get('status')=='ready', 'Native artifact manifest does not record ready licensing status.'
           for record in manifest['sourceFiles']:
               path=pathlib.Path(lock.get('sourceRelocations',{}).get(record['path'],record['path']))
               assert hashlib.sha256(path.read_bytes()).hexdigest()==record['sha256'],str(path)
           for name,record in manifest['files'].items():
               assert hashlib.sha256((root/name).read_bytes()).hexdigest()==record['sha256']
-          (root/'SHA256SUMS').write_text(''.join(hashlib.sha256((root/name).read_bytes()).hexdigest()+'  '+name+'\n' for name in ['artifact.json','pbl-runtime.mjs','pbl-runtime.wasm']))
+          license_records=manifest.get('licensing',{}).get('files',[])
+          license_paths=[record['path'] for record in license_records]
+          assert license_paths, 'Native artifact manifest has no license or notice file records.'
+          for record in license_records:
+              path=root/record['path']
+              assert path.is_file() and path.stat().st_size==record['bytes'] and hashlib.sha256(path.read_bytes()).hexdigest()==record['sha256'], 'Native release license/notice checksum mismatch: '+record['path']
+          release_files=['artifact.json','pbl-runtime.mjs','pbl-runtime.wasm',*license_paths]
+          (root/'SHA256SUMS').write_text(''.join(hashlib.sha256((root/name).read_bytes()).hexdigest()+'  '+name+'\n' for name in release_files))
+          (root/'release-files.txt').write_text('\n'.join(release_files+['SHA256SUMS'])+'\n')
           PY
           tag=$(python3 -c "import json;print(json.load(open('config/native-runtime.json'))['release'])")
-          gh release upload "$tag" deployment/native/artifact.json deployment/native/pbl-runtime.mjs deployment/native/pbl-runtime.wasm deployment/native/SHA256SUMS
+          while IFS= read -r path; do gh release upload "$tag" "deployment/native/$path" --clobber; done < deployment/native/release-files.txt
           gh release edit "$tag" --draft=false

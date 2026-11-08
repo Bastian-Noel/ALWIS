@@ -19,9 +19,14 @@ for pattern in ['packages/php-native/src/*','packages/sql-native/src/*','package
  sources.extend(p for p in root.glob(pattern) if p.is_file())
 paths=sorted(set(str(p.relative_to(root)) for p in sources))
 if subprocess.run(['git','diff','--quiet','HEAD','--',*paths],cwd=root).returncode:raise SystemExit('Commit native inputs before recording their source revision.')
-manifest={'sourceRevision':subprocess.check_output(['git','rev-parse','HEAD'],cwd=root,text=True).strip(),'files':files,'sourceFiles':[{'path':p,'sha256':hashlib.sha256((root/p).read_bytes()).hexdigest()} for p in paths],'validation':receipts,'build':{'emscripten':'6.0.6 (checked by build.sh)','recipe':'engine/native/build/build.sh','target':'pbl-runtime','drivers':json.loads((dist.parent/'pbl-native-sources/driver-adapter.json').read_text())}}
 out.mkdir(parents=True,exist_ok=True)
+license_files=['LICENSE.md','NOTICE.md','THIRD-PARTY-NOTICES.md','provenance/release-licensing-status.json']
+for name in license_files:shutil.copy2(root/name,out/name)
+shutil.copytree(root/'LICENSES',out/'LICENSES',dirs_exist_ok=True)
+license_paths=license_files+['LICENSES/'+p.name for p in sorted((root/'LICENSES').iterdir()) if p.is_file()]
+license_records=[{'path':name,'bytes':(out/name).stat().st_size,'sha256':hashlib.sha256((out/name).read_bytes()).hexdigest()} for name in license_paths]
+manifest={'sourceRevision':subprocess.check_output(['git','rev-parse','HEAD'],cwd=root,text=True).strip(),'files':files,'sourceFiles':[{'path':p,'sha256':hashlib.sha256((root/p).read_bytes()).hexdigest()} for p in paths],'validation':receipts,'licensing':{'status':json.loads((root/'provenance/release-licensing-status.json').read_text())['status'],'files':license_records,'notes':'Component notices accompany the native artifact; this manifest does not override third-party license terms.'},'build':{'emscripten':'6.0.6 (checked by build.sh)','recipe':'engine/native/build/build.sh','target':'pbl-runtime','drivers':json.loads((dist.parent/'pbl-native-sources/driver-adapter.json').read_text())}}
 for name in files:shutil.copyfile(dist/name,out/name)
 (out/'artifact.json').write_text(json.dumps(manifest,indent=2)+'\n')
-(out/'SHA256SUMS').write_text(''.join(hashlib.sha256((out/name).read_bytes()).hexdigest()+'  '+name+'\n' for name in ['artifact.json',*files]))
+(out/'SHA256SUMS').write_text(''.join(hashlib.sha256((out/name).read_bytes()).hexdigest()+'  '+name+'\n' for name in ['artifact.json',*files,*license_paths]))
 print(out)
