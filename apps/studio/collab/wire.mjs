@@ -279,7 +279,7 @@ export function installWiring(collab) {
     const st = run?.focus?.remote.get(id);
     if (!st) return;
     if (st.db && st.db !== S.db) await A.selectDb(st.db);
-    if (st.pv || st.view === "preview") {
+    if ((st.view === "code" && st.pv) || st.view === "preview") {
       S.view = "code";
       S.pv = true;
       if (st.pvPath) S.pvPath = st.pvPath;

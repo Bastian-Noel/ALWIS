@@ -42,7 +42,11 @@ export class FocusLayer {
       const cell = e.target.closest?.("td[data-r][data-c]");
       if (cell && e.target.matches?.("input.ce")) this.local("cell", { ...ctx(), r: +cell.dataset.r, c: +cell.dataset.c, editing: true, value: e.target.value }, true);
     });
-    on(document, "focusout", (e) => { if (e.target.matches?.("input[data-g]") && !this.#ghostValues(true)) this.local("ghost", { ...ctx(), values: null }); });
+    on(document, "focusout", (e) => {
+      if (e.target.matches?.("input[data-g]") && !this.#ghostValues(true)) this.local("ghost", { ...ctx(), values: null });
+      const cell = e.target.closest?.("td[data-r][data-c]");
+      if (cell && e.target.matches?.("input.ce")) this.local("cell", { ...ctx(), r: +cell.dataset.r, c: +cell.dataset.c, editing: false });
+    });
     on(document, "pointermove", (e) => this.#pointer(e, false), { passive: true });
     on(document, "pointerdown", (e) => this.#pointer(e, true), { passive: true });
     this.poll = setInterval(() => this.#poll(), 400);
@@ -106,14 +110,18 @@ export class FocusLayer {
           const point = (e, click = false) => {
             const box = q("#pvFrames"), f = frame.getBoundingClientRect(), r = box?.getBoundingClientRect();
             if (!box || !r?.width || !r.height) return;
+            this.hadSurface = true;
             const x = (f.left + e.clientX - r.left) / r.width, y = (f.top + e.clientY - r.top) / r.height;
-            this.mouse.set("mouse", { k: "mouse", s: "pv", x, y, click });
+            // Preview interactions use the dedicated preview-event message so
+            // the host does not replay the same click twice from mouse presence.
+            this.mouse.set("mouse", { k: "mouse", s: "pv", x, y, click: false });
             if (click) this.mouse.flushNow();
             return { x, y };
           };
           doc.addEventListener("pointermove", (e) => point(e), { passive: true });
           doc.addEventListener("click", (e) => {
             const at = point(e, true);
+            if (e.target.closest?.("a, form")) e.preventDefault();
             if (at) this.onPreview?.({ kind: "click", ...at, button: e.button });
           }, true);
           for (const type of ["input", "change"]) doc.addEventListener(type, (e) => {
@@ -195,7 +203,7 @@ export class FocusLayer {
   }
   #badges(files) {
     for (const old of qa("#tree .cb-badges")) old.remove();
-      for (const row of qa("#tree [data-path][data-kind=file]")) {
+    for (const row of qa("#tree [data-path][data-kind=file]")) {
       const list = files.get(row.dataset.path);
       if (!list?.length) continue;
       const wrap = document.createElement("span");
