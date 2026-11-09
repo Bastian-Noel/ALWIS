@@ -5,8 +5,11 @@ const root = new URL("../fixtures/campus/", import.meta.url),
   files = {},
   binary = {};
 async function walk(url, prefix = "") {
+  // Use code-unit ordering instead of localeCompare: ICU versions and locales
+  // differ between Windows and GitHub's Linux runner, which made --check fail
+  // for an otherwise unchanged Campus fixture.
   for (const entry of (await readdir(url, { withFileTypes: true })).sort(
-    (a, b) => a.name.localeCompare(b.name, "en"),
+    (a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0),
   )) {
     const path = prefix + entry.name,
       source = new URL(entry.name + (entry.isDirectory() ? "/" : ""), url);
