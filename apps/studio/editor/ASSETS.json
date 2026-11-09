@@ -5,19 +5,14 @@
   },
   "files": [
     {
-      "name": "THIRD-PARTY.txt",
-      "bytes": 48043,
-      "sha256": "2940c8a48b9082b6d6ff2d234752f1c58f16473205366bd64b7265b98fea4b7b"
-    },
-    {
       "name": "codemirror.mjs",
-      "bytes": 841246,
-      "sha256": "f6f1001e7b36d23e9735d818c1422db339f6bc7f00410ca9b3987843af601127"
+      "bytes": 845680,
+      "sha256": "3db3582cf33320ae2be904933c3fa9cfaaaf61a2c8d8f053d0b196e973da9971"
     },
     {
       "name": "definitions.json",
       "bytes": 3575366,
-      "sha256": "5ace2d9103eb38bfdc5ea9953348a2468f5a398b62c927aa647433b645f50ba1"
+      "sha256": "a021eca41dec431356bb8194fa59f1fbbeb39ff4dc80ef6b8d9f6b54ecca86ce"
     },
     {
       "name": "formatter-worker.mjs",
@@ -48,6 +43,11 @@
       "name": "swc.wasm",
       "bytes": 18029480,
       "sha256": "6f5bdba732587254a2e5b563380a3195bf42791ac44953f2318d70054e86b8d4"
+    },
+    {
+      "name": "THIRD-PARTY.txt",
+      "bytes": 48084,
+      "sha256": "b2dd945a3276276ec45658d33c443be79fa356bb816a9ed39d088e3325b32f80"
     }
   ]
 }

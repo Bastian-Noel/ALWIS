@@ -15,6 +15,7 @@ import { drawDock, bindDock } from "./views/dock.mjs";
 import "./views/structure.mjs";
 import { editorInstances } from "./ui.mjs";
 import { SPRITE } from "./icons.mjs";
+import { initCollab } from "../collab/index.mjs";
 document.body.insertAdjacentHTML("afterbegin", SPRITE);
 ctx.engine = createStudioServices();
 ctx.draw = draw;
@@ -138,6 +139,9 @@ try {
   fail("Initialisation impossible", e);
   document.querySelector("#blocked").hidden = false;
 }
+
+// Multi-user mode: only appears on the server edition, never blocks startup.
+initCollab().catch((e) => log("w", "Mode multi-utilisateur indisponible : " + (e?.message ?? e)));
 
 window.addEventListener("focus", () => {
   S.wins = S.wins.filter((w) => w.popup && !w.popup.closed);

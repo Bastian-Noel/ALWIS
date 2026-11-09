@@ -1,0 +1,48 @@
+<!doctype html><html lang="fr"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ALWIS — aperçu du mode multi-utilisateur</title>
+<link rel="stylesheet" href="../apps/studio/collab/collab.css">
+<style>
+:root{--sans:"IBM Plex Sans",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,monospace;--r:5px;--r-l:9px;--ease:cubic-bezier(.23,1,.32,1);--faceplate:#f2f3f0;--sheet:#fff;--recess:#e9ebe6;--raised:#fff;--hover:rgba(21,25,29,.06);--sel:rgba(31,95,224,.1);--ink:#15191d;--ink-2:#4a545d;--ink-3:#66707a;--seam:rgba(21,25,29,.11);--seam-2:rgba(21,25,29,.24);--signal:#1f5fe0;--ok:#168a4d;--warn:#a86d00;--err:#cc3326;--off:#9aa3a9}
+@media(prefers-color-scheme:dark){:root{--faceplate:#1d2227;--sheet:#14181c;--recess:#252b31;--raised:#242a30;--hover:rgba(255,255,255,.07);--ink:#eceeea;--ink-2:#b4bcc3;--ink-3:#8b959e;--seam-2:rgba(255,255,255,.2);--signal:#6b9bff}}
+body{margin:0;font:14px/1.5 var(--sans);background:var(--sheet);color:var(--ink)}
+.top{display:flex;align-items:center;gap:10px;height:48px;padding:0 12px;background:var(--faceplate);border-bottom:1px solid var(--seam-2)}.top b{margin-right:auto}
+.iconbtn{display:inline-grid;place-items:center;width:32px;height:32px;border:0;background:none;border-radius:5px;color:var(--ink-2);cursor:pointer}.iconbtn:hover{background:var(--hover)}
+.ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.btn{padding:8px 12px;border:1px solid var(--seam-2);border-radius:5px;background:var(--raised);color:var(--ink);font:inherit;cursor:pointer}.btn.pri{background:var(--signal);border-color:var(--signal);color:#fff}
+.wrap{display:grid;grid-template-columns:230px 1fr;min-height:420px}.side{background:var(--faceplate);border-right:1px solid var(--seam);padding:8px}
+.row{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:5px;font-size:13px}.row.active{background:var(--sel)}
+.main{padding:16px;display:grid;gap:16px}.code{font:13px/1.7 var(--mono);background:var(--recess);border-radius:9px;padding:12px 14px;white-space:pre}
+table{border-collapse:collapse;font-size:13px;width:100%}td,th{border:1px solid var(--seam);padding:6px 10px;text-align:left}
+h3{margin:0 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3)}
+</style>
+<svg width="0" height="0" style="position:absolute"><symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><circle cx="17" cy="9.5" r="2.5"/><path d="M3 20c.5-3.5 3-5.5 6-5.5s5.5 2 6 5.5M15 14.8c.7-.2 1.3-.3 2-.3 2.4 0 4 1.6 4.5 4.5"/></symbol><symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7L11.7 6.6M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1.3-1.3"/></symbol><symbol id="i-x" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol></svg>
+<div class="cb-banner" data-kind="warn">Connexion perdue. Nouvelle tentative… Votre place est gardée quelques instants.</div>
+<header class="top"><b>ALWIS</b>
+ <div class="cb-root" data-state="live"><div class="cb-stack">
+  <span class="cb-av cb-md me" style="--c:hsl(215 68% 42%);--cb:hsl(215 78% 58%)" title="Vous">N</span>
+  <span class="cb-av cb-md" style="--c:hsl(340 68% 42%);--cb:hsl(340 78% 58%)" title="Bastian">B</span>
+  <span class="cb-av cb-md" style="--c:hsl(152 68% 32%);--cb:hsl(152 78% 48%)" title="Léa">L</span>
+  <span class="cb-av cb-md away" style="--c:hsl(32 74% 40%)" title="Max — reconnexion">M</span>
+  <span class="cb-av cb-md cb-more">+2</span></div>
+ <button class="iconbtn cb-trigger"><svg class="ic"><use href="#i-users"/></svg><i class="cb-dot"></i></button>
+ <div class="cb-pop"><div class="cb-head"><h2 class="cb-h">Votre session</h2><span class="cb-count">3/6 places</span></div>
+  <div class="cb-invite"><input class="cb-input cb-url" readonly value="https://alwis.example/?collab=K7M2QX4P"><button class="btn"><svg class="ic"><use href="#i-link"/></svg> Copier le lien</button></div>
+  <label class="cb-check"><input type="checkbox"> Fermer l’accès aux nouvelles personnes</label>
+  <ul class="cb-list">
+   <li class="cb-row"><span class="cb-av cb-md" style="--c:hsl(215 68% 42%)">N</span><span class="cb-who"><b>Noël</b><small>Hôte · vous</small></span></li>
+   <li class="cb-row"><span class="cb-av cb-md" style="--c:hsl(340 68% 42%)">B</span><span class="cb-who"><b>Bastian</b><small>Connexion directe</small></span></li>
+   <li class="cb-row"><span class="cb-av cb-md" style="--c:hsl(152 68% 32%)">L</span><span class="cb-who"><b>Léa</b><small>Via le serveur (débit limité)</small></span></li>
+   <li class="cb-row away"><span class="cb-av cb-md away" style="--c:hsl(32 74% 40%)">M</span><span class="cb-who"><b>Max</b><small>Reconnexion… place gardée 31 s</small></span></li></ul>
+  <button class="btn" style="width:100%;color:var(--err)">Arrêter la session</button></div></div>
+</header>
+<div class="wrap"><aside class="side">
+ <div class="row">📁 src</div>
+ <div class="row active">📄 index.php <span class="cb-badges"><span class="cb-av cb-sm" style="--c:hsl(340 68% 42%)">B</span><span class="cb-av cb-sm" style="--c:hsl(152 68% 32%)">L</span></span></div>
+ <div class="row">📄 style.css <span class="cb-badges"><span class="cb-av cb-sm" style="--c:hsl(32 74% 40%)">M</span></span></div></aside>
+<main class="main"><section><h3>Éditeur</h3><div class="code">&lt;?php
+$users = <span class="cm-cb-sel" style="--cs:hsl(340 68% 55%/.22)">db()-&gt;query("SELECT *</span><span class="cm-cb-caret recent" style="--c:hsl(340 68% 42%);--cb:hsl(340 78% 58%)"><span class="cm-cb-flag">Bastian</span></span> FROM users");
+foreach ($users as $u) { echo <span class="cm-cb-ins" style="--cf:hsl(152 78% 58%/.38);animation:none">htmlspecialchars($u['name'])</span><span class="cm-cb-caret" style="--c:hsl(152 68% 32%);--cb:hsl(152 78% 48%)"><span class="cm-cb-flag">Léa</span></span>; }</div></section>
+<section><h3>Données</h3><table><tr><th>id</th><th>nom</th><th>email</th></tr>
+<tr><td>1</td><td>Ada</td><td>ada@example.org</td></tr>
+<tr><td>2</td><td data-cb-focus data-cb-name="Bastian" style="--c:hsl(340 68% 42%);--cb:hsl(340 78% 58%)">Grace</td><td>grace@example.org</td></tr>
+<tr class="cb-ghostline" data-cb-focus style="--c:hsl(152 68% 32%);--cb:hsl(152 78% 48%);--cs:hsl(152 68% 55%/.2)"><td>3</td><td>Linus</td><td style="opacity:.4">…</td></tr></table></section></main></div>

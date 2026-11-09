@@ -189,6 +189,8 @@ export function createStudioServices() {
   const services = {
     kind: "native",
     caps: { removeSession: true, mkdir: false },
+    /** Multi-user guests replay the host's change events locally. */
+    emit: (type, data) => emit(type, data),
     on(type, fn) {
       if (!bus.has(type)) bus.set(type, new Set());
       bus.get(type).add(fn);

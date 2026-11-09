@@ -4,82 +4,121 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex,nofollow">
-    <title>Configuration serveur · ALWIS</title>
+    <meta name="color-scheme" content="light dark">
+    <title>Administration serveur · ALWIS</title>
     <style>
-      :root{color-scheme:light dark;--bg:#f3f5f2;--surface:#fff;--ink:#182321;--muted:#5a6964;--line:#d6ded9;--accent:#176b53;--danger:#a32d36;--focus:#1468d4}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,sans-serif}main{width:min(760px,calc(100% - 32px));margin:48px auto}header{margin-bottom:24px}a{color:var(--accent)}.eyebrow{color:var(--accent);font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase}h1{font-size:clamp(1.8rem,4vw,2.5rem);line-height:1.1;margin:.4rem 0}header p,.help,.muted{color:var(--muted)}.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:24px;margin:16px 0}h2{font-size:1.15rem;margin:0 0 16px}label{display:block;font-weight:650;margin:18px 0 6px}input,textarea,select{display:block;width:100%;margin-top:6px;padding:10px 12px;border:1px solid #929f99;border-radius:8px;background:var(--surface);color:var(--ink);font:inherit}textarea{min-height:88px;resize:vertical}input:focus-visible,textarea:focus-visible,button:focus-visible,a:focus-visible{outline:3px solid var(--focus);outline-offset:2px}.check{display:flex;align-items:flex-start;gap:10px;margin:18px 0}.check input{width:auto;margin:5px 0 0}.check label{margin:0}.actions{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:22px}button{border:1px solid var(--accent);border-radius:8px;padding:10px 16px;background:var(--accent);color:white;font:inherit;font-weight:700;cursor:pointer}.status{min-height:1.6em;margin:12px 0 0;color:var(--muted)}.status[data-kind=error]{color:var(--danger)}.status[data-kind=success]{color:var(--accent)}.health{display:grid;grid-template-columns:1fr auto;gap:8px;margin:0}.health dt{color:var(--muted)}.health dd{margin:0;font-weight:650}.badge{padding:3px 9px;border-radius:99px;background:#deeee7;color:#145b45;font-size:.85rem}.warning{border-left:4px solid #c78b19;padding:10px 14px;background:color-mix(in srgb,#e1a72b 10%,transparent)}footer{color:var(--muted);font-size:.9rem;margin:24px 4px}@media(prefers-color-scheme:dark){:root{--bg:#151b1a;--surface:#202927;--ink:#e9efeb;--muted:#b2beb8;--line:#3b4742;--accent:#75c9aa;--danger:#ff9494;--focus:#81b7ff}}@media(max-width:560px){main{margin:24px auto}.card{padding:18px}}
+      :root{color-scheme:light dark;--bg:#f4f6f4;--surface:#fff;--raised:#fff;--inset:#f1f4f2;--ink:#19231f;--muted:#5f6e67;--soft:#7d8983;--line:#dbe2dd;--line-strong:#c5d0c9;--accent:#176b53;--accent-soft:#e6f2ec;--danger:#a83b3d;--warn:#94621a;--focus:#1468d4;--ok:#247650;--shadow:0 8px 26px rgba(25,45,35,.05);--r:9px;--r-lg:14px;--sans:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;--mono:ui-monospace,"Cascadia Code",Consolas,monospace}
+      @media(prefers-color-scheme:dark){:root{--bg:#111815;--surface:#18211d;--raised:#1d2923;--inset:#121a16;--ink:#ecf2ed;--muted:#b1beb6;--soft:#89978f;--line:#2d3b33;--line-strong:#405148;--accent:#80cfaa;--accent-soft:#1d3429;--danger:#ff9a97;--warn:#edc47a;--focus:#82b8ff;--ok:#8dd2a5;--shadow:0 8px 26px rgba(0,0,0,.13)}}
+      *{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:88px}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 var(--sans)}button,input,select,textarea{font:inherit}button,a,input,select,textarea{accent-color:var(--accent)}:focus-visible{outline:3px solid var(--focus);outline-offset:2px}a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}.topbar{height:44px;display:flex;align-items:center;gap:10px;padding:0 12px 0 10px;background:var(--surface);border-bottom:1px solid var(--line)}.brand{display:flex;align-items:center;height:34px;padding:0 8px 0 4px;border-radius:var(--r);color:var(--ink);font-size:13.5px;font-weight:650;letter-spacing:.05em}.brand:hover{background:var(--inset);text-decoration:none}.topbar .crumb{padding-left:14px;border-left:1px solid var(--line);color:var(--muted);font-size:12px}.topbar .grow{flex:1}.topbar a{font-size:12px;font-weight:600}.shell{width:min(1440px,100%);margin:0 auto;padding:30px clamp(16px,3vw,38px) 100px}.pagehead{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:22px}.eyebrow{margin:0 0 5px;color:var(--accent);font-size:10px;font-weight:750;letter-spacing:.13em;text-transform:uppercase}h1{margin:0;font-size:clamp(24px,3vw,32px);line-height:1.14;letter-spacing:-.035em}.lede{max-width:680px;margin:9px 0 0;color:var(--muted);font-size:13px}.head-actions{display:flex;align-items:center;gap:8px}.button{min-height:38px;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:7px 12px;border:1px solid var(--line-strong);border-radius:var(--r);background:var(--surface);color:var(--ink);font-weight:650;cursor:pointer}.button:hover{background:var(--inset)}.button.primary{border-color:var(--accent);background:var(--accent);color:#fff}.button.primary:hover{filter:brightness(1.06)}.icon{width:16px;height:16px;display:inline-block;vertical-align:middle}.layout{display:grid;grid-template-columns:206px minmax(0,1fr);align-items:start;gap:22px}.sidenav{position:sticky;top:18px;padding:10px;border:1px solid var(--line);border-radius:var(--r-lg);background:var(--surface)}.sidenav-label{margin:5px 9px 8px;color:var(--soft);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}.sidenav a{display:flex;align-items:center;gap:9px;padding:9px;border-radius:7px;color:var(--muted);font-size:12px;font-weight:600}.sidenav a:hover,.sidenav a[aria-current=location]{background:var(--accent-soft);color:var(--accent);text-decoration:none}.nav-num{width:20px;height:20px;display:grid;place-items:center;border:1px solid var(--line);border-radius:6px;color:inherit;font:11px var(--mono)}.content{min-width:0}.statusline{display:flex;align-items:center;gap:10px;margin:0 0 14px;padding:11px 14px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);color:var(--muted);font-size:12px}.dot{width:8px;height:8px;flex:none;border-radius:50%;background:var(--soft)}.statusline[data-state=ok] .dot{background:var(--ok)}.statusline[data-state=error] .dot{background:var(--danger)}.statusline strong{color:var(--ink)}.statusline .updated{margin-left:auto;color:var(--soft);font:11px var(--mono)}.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:18px}.metric{min-width:0;padding:14px 15px;border:1px solid var(--line);border-radius:var(--r-lg);background:var(--surface);box-shadow:var(--shadow)}.metric-label{color:var(--muted);font-size:11px}.metric-value{margin-top:5px;font:650 24px/1.1 var(--mono);letter-spacing:-.04em}.metric-note{margin-top:6px;color:var(--soft);font-size:10.5px}.section{scroll-margin-top:20px;margin:14px 0 18px;padding:20px;border:1px solid var(--line);border-radius:var(--r-lg);background:var(--surface);box-shadow:var(--shadow)}.section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:15px;margin-bottom:18px}.section-title{margin:0;font-size:16px;letter-spacing:-.02em}.section-desc{max-width:720px;margin:4px 0 0;color:var(--muted);font-size:12px}.section-tag{flex:none;padding:4px 8px;border:1px solid var(--line);border-radius:99px;color:var(--muted);font-size:10px}.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 18px}.field{min-width:0;margin:0 0 15px}.field label,.field-label{display:block;margin-bottom:5px;font-size:12px;font-weight:650}.field input,.field textarea,.field select{width:100%;min-height:39px;padding:8px 10px;border:1px solid var(--line-strong);border-radius:7px;background:var(--surface);color:var(--ink)}.field textarea{min-height:90px;resize:vertical;font:12px/1.5 var(--mono)}.field input[type=number]{font-family:var(--mono);font-variant-numeric:tabular-nums}.help{margin:5px 0 0;color:var(--soft);font-size:11px;line-height:1.4}.checkrow{display:flex;align-items:flex-start;gap:10px;padding:12px 13px;border:1px solid var(--line);border-radius:8px;background:var(--inset)}.checkrow input{width:17px;height:17px;flex:none;margin:2px 0 0}.checkrow label{font-weight:650}.checkrow p{margin:3px 0 0;color:var(--muted);font-size:11px}.subhead{margin:18px 0 10px;padding-bottom:7px;border-bottom:1px solid var(--line);font-size:11px;font-weight:750;letter-spacing:.04em}.inline-check{display:flex;align-items:flex-start;gap:10px;margin:14px 0}.inline-check input{width:17px;height:17px;flex:none;margin:2px 0 0}.inline-check label{font-weight:650}.inline-check p{margin:3px 0 0;color:var(--muted);font-size:11px}.callout{display:flex;gap:10px;padding:11px 12px;border-left:3px solid var(--warn);border-radius:0 7px 7px 0;background:color-mix(in srgb,var(--warn) 9%,var(--surface));color:var(--muted);font-size:11px}.callout strong{color:var(--ink)}.storage{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px}.meter{height:8px;overflow:hidden;border-radius:999px;background:var(--inset)}.meter>i{display:block;width:0;height:100%;border-radius:inherit;background:var(--accent)}.storage-value{color:var(--muted);font:11px var(--mono)}.ops-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.ops-item{padding:12px;border:1px solid var(--line);border-radius:8px;background:var(--inset)}.ops-item span{display:block;color:var(--muted);font-size:10.5px}.ops-item b{display:block;margin-top:4px;font:600 14px var(--mono);font-variant-numeric:tabular-nums}.warning{border-left-color:var(--warn)}.savebar{position:fixed;right:0;bottom:0;left:0;z-index:5;display:flex;align-items:center;justify-content:center;gap:14px;padding:10px 16px;border-top:1px solid var(--line);background:color-mix(in srgb,var(--surface) 94%,transparent);backdrop-filter:blur(10px)}.savebar[hidden]{display:none}.savebar-inner{width:min(1120px,100%);display:flex;align-items:center;gap:10px}.savebar-copy{flex:1;color:var(--muted);font-size:12px}.savebar-copy strong{color:var(--ink)}.status{margin:0;color:var(--muted);font-size:12px}.status[data-kind=error]{color:var(--danger)}.status[data-kind=success]{color:var(--ok)}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}footer{margin:24px 0 0;color:var(--soft);font-size:11px}
+      @media(max-width:900px){.layout{grid-template-columns:1fr}.sidenav{position:static;display:flex;align-items:center;gap:4px;overflow:auto;padding:6px}.sidenav-label{display:none}.sidenav a{flex:none;padding:8px}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+      @media(max-width:600px){.topbar{height:44px}.shell{padding-top:22px}.pagehead{align-items:flex-start;flex-direction:column}.head-actions{width:100%}.head-actions .button{flex:1}.sidenav{margin:0 -16px;border-right:0;border-left:0;border-radius:0}.sidenav a{font-size:11px}.nav-num{display:none}.metrics{gap:7px}.metric{padding:11px}.metric-value{font-size:20px}.section{padding:15px;margin:10px 0 13px}.section-head{margin-bottom:14px}.fields{grid-template-columns:1fr;gap:0}.ops-grid{grid-template-columns:1fr}.storage{grid-template-columns:1fr}.storage-value{justify-self:start}.savebar-inner{flex-wrap:wrap}.savebar-copy{flex-basis:100%}.savebar .button{flex:1}}
+      @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
     </style>
   </head>
   <body>
-    <main>
-      <header>
-        <div class="eyebrow">Administration ALWIS</div>
-        <h1>Configuration serveur</h1>
-        <p>Réglages de publication et d’accès de cette instance. Les secrets restent montés par l’administrateur et ne sont jamais affichés ici.</p>
-      </header>
-      <section class="card" aria-labelledby="health-title">
-        <h2 id="health-title">État de l’instance</h2>
-        <dl class="health"><dt>Version</dt><dd id="version">Chargement…</dd><dt>Service</dt><dd><span class="badge" id="health">Vérification…</span></dd><dt>Stockage SQLite</dt><dd id="database">Vérification…</dd></dl>
-      </section>
-      <form id="config">
-        <section class="card" aria-labelledby="network-title">
-          <h2 id="network-title">Adresse et origines</h2>
-          <label for="publicBaseUrl">Adresse publique</label>
-          <input id="publicBaseUrl" name="publicBaseUrl" type="url" autocomplete="url" maxlength="240" required>
-          <p class="help">Utilisez HTTPS derrière votre reverse proxy. HTTP est permis uniquement pour les essais sur localhost.</p>
-          <label for="allowedOrigins">Origines autorisées</label>
-          <textarea id="allowedOrigins" name="allowedOrigins" spellcheck="false" aria-describedby="origin-help"></textarea>
-          <p class="help" id="origin-help">Une origine par ligne, par exemple https://studio.example.org. Laissez vide si seul le même domaine doit accéder au serveur.</p>
-        </section>
-        <section class="card" aria-labelledby="operations-title">
-          <h2 id="operations-title">Exploitation</h2>
-          <div class="check"><input id="maintenance" name="maintenance" type="checkbox"><label for="maintenance">Mode maintenance : suspendre l’application publique tout en gardant cette page d’administration accessible.</label></div>
-          <label for="logLevel">Niveau du journal</label>
-          <select id="logLevel" name="logLevel"><option value="error">Erreurs uniquement</option><option value="warn">Avertissements et erreurs</option><option value="info">Informations et avertissements</option></select>
-          <div class="warning"><strong>Les limites Docker se règlent dans le fichier Compose.</strong> Cette page ne peut pas augmenter la mémoire, le CPU ou l’espace disque du conteneur.</div>
-          <div class="actions"><button type="submit">Enregistrer la configuration</button><a href="/">Retour à ALWIS</a></div>
-          <p class="status" id="status" role="status" aria-live="polite"></p>
-        </section>
-      </form>
-      <footer>Les paramètres sont conservés dans SQLite sous <code>/data</code>, dans le dossier monté depuis l’hôte. Protégez l’accès avec HTTPS et sauvegardez ce dossier.</footer>
+    <div class="topbar"><a class="brand" href="/" aria-label="ALWIS, ouvrir l’application">ALWIS</a><span class="crumb">Administration serveur</span><span class="grow"></span><a href="/" aria-label="Retour à l’application">Retour à ALWIS ↗</a></div>
+    <main class="shell">
+      <header class="pagehead"><div><p class="eyebrow">Console d’exploitation</p><h1>Administration du serveur</h1><p class="lede">État réel de l’instance, limites de collaboration et accès public. Les identifiants et secrets Docker restent hors de cette interface.</p></div><div class="head-actions"><button class="button" id="refresh" type="button" aria-label="Actualiser l’état du serveur">↻ <span>Actualiser l’état</span></button></div></header>
+      <div class="layout">
+        <nav class="sidenav" aria-label="Sections de l’administration"><p class="sidenav-label">Administration</p><a href="#overview" aria-current="location"><span class="nav-num">01</span>État du serveur</a><a href="#network"><span class="nav-num">02</span>Accès réseau</a><a href="#collaboration"><span class="nav-num">03</span>Collaboration</a><a href="#operations"><span class="nav-num">04</span>Maintenance</a></nav>
+        <div class="content">
+          <div class="statusline" id="statusline" data-state="loading" role="status"><i class="dot" aria-hidden="true"></i><strong id="health">Vérification en cours</strong><span id="health-detail">Lecture des services et du stockage…</span><time class="updated" id="updated">—</time></div>
+          <section class="metrics" id="overview" aria-label="Indicateurs du serveur">
+            <article class="metric"><div class="metric-label">Sessions actives</div><div class="metric-value" id="rooms">—</div><div class="metric-note" id="rooms-note">sur la limite configurée</div></article>
+            <article class="metric"><div class="metric-label">Participants connectés</div><div class="metric-value" id="participants">—</div><div class="metric-note" id="participants-note">hors personnes en reprise</div></article>
+            <article class="metric"><div class="metric-label">Connexions WebSocket</div><div class="metric-value" id="connections">—</div><div class="metric-note" id="connections-note">signaling et relais</div></article>
+            <article class="metric"><div class="metric-label">Mémoire du processus</div><div class="metric-value" id="memory">—</div><div class="metric-note" id="memory-note">résidente · tas JS —</div></article>
+          </section>
+          <form id="config" autocomplete="off">
+            <section class="section" id="network" aria-labelledby="network-title">
+              <div class="section-head"><div><h2 class="section-title" id="network-title">Accès réseau</h2><p class="section-desc">Adresse annoncée aux personnes invitées et règles de requêtes intersites.</p></div><span class="section-tag">Publication</span></div>
+              <div class="fields">
+                <div class="field"><label for="publicBaseUrl">Adresse publique du serveur</label><input id="publicBaseUrl" name="publicBaseUrl" type="url" autocomplete="url" maxlength="240" required aria-describedby="public-help"><p class="help" id="public-help">L’URL est utilisée pour former les liens d’invitation. En production, utilisez HTTPS derrière votre proxy.</p></div>
+                <div class="field"><label for="allowedOrigins">Origines autorisées</label><textarea id="allowedOrigins" name="allowedOrigins" spellcheck="false" aria-describedby="origin-help"></textarea><p class="help" id="origin-help">Une origine par ligne, avec protocole et hôte. Vide : même origine uniquement.</p></div>
+              </div>
+            </section>
+            <section class="section" id="collaboration" aria-labelledby="collab-title">
+              <div class="section-head"><div><h2 class="section-title" id="collab-title">Travail à plusieurs</h2><p class="section-desc">Le serveur gère les invitations et le signalement. Il ne stocke pas les fichiers du projet.</p></div><span class="section-tag" id="collab-status">Chargement…</span></div>
+              <div class="checkrow"><input id="collabEnabled" name="collabEnabled" type="checkbox"><div><label for="collabEnabled">Autoriser les sessions de collaboration</label><p>Les nouvelles connexions sont refusées si cette option est coupée. Les limites ci-dessous s’appliquent par instance ou par session selon leur libellé.</p></div></div>
+              <h3 class="subhead">Capacité et admission</h3>
+              <div class="fields">
+                <div class="field"><label for="collabMaxGuests">Invités maximum par session</label><input id="collabMaxGuests" type="number" min="1" max="12" step="1"><p class="help">En plus de l’hôte. Une limite basse réduit la charge sur son ordinateur.</p></div>
+                <div class="field"><label for="collabMaxRooms">Sessions simultanées maximum</label><input id="collabMaxRooms" type="number" min="1" max="10000" step="1"><p class="help">Nombre de projets partagés ouverts sur ce serveur.</p></div>
+                <div class="field"><label for="collabMaxConnections">Connexions WebSocket maximum</label><input id="collabMaxConnections" type="number" min="1" max="100000" step="1"><p class="help">Inclut le signalement et les échanges relayés.</p></div>
+                <div class="field"><label for="collabMaxPerIp">Connexions maximum par adresse IP</label><input id="collabMaxPerIp" type="number" min="1" max="10000" step="1"><p class="help">Le proxy doit transmettre l’adresse client si la confiance proxy est activée.</p></div>
+              </div>
+              <h3 class="subhead">Reprise et relais</h3>
+              <div class="fields">
+                <div class="field"><label for="collabGraceSeconds">Délai de reprise d’un invité (secondes)</label><input id="collabGraceSeconds" type="number" min="5" max="600" step="1"><p class="help">La place est réservée pendant une coupure réseau.</p></div>
+                <div class="field"><label for="collabHostGraceSeconds">Délai de reprise de l’hôte (secondes)</label><input id="collabHostGraceSeconds" type="number" min="5" max="1800" step="1"><p class="help">La session se ferme à la fin de ce délai si l’hôte ne revient pas.</p></div>
+                <div class="field"><label for="collabRelayKbps">Débit maximum du relais par session (Kio/s)</label><input id="collabRelayKbps" type="number" min="8" max="16384" step="1"><p class="help">Le P2P ne consomme pas cette limite. Le relais est utilisé si la liaison directe échoue.</p></div>
+                <div class="field"><label for="collabRelayBurstKib">Rafale autorisée par session (Kio)</label><input id="collabRelayBurstKib" type="number" min="4" max="65536" step="1"><p class="help">Permet d’absorber brièvement les messages groupés.</p></div>
+                <div class="field"><label for="collabMaxMessageKib">Taille maximale d’un message (Kio)</label><input id="collabMaxMessageKib" type="number" min="1" max="4096" step="1"><p class="help">Les données plus grandes doivent être découpées côté client.</p></div>
+                <div class="field"><label for="collabMessagesPerSecond">Messages maximum par seconde et connexion</label><input id="collabMessagesPerSecond" type="number" min="5" max="5000" step="1"><p class="help">Contrôle de débit avec une courte marge pour les pointes.</p></div>
+              </div>
+              <h3 class="subhead">Occupation actuelle</h3>
+              <div class="ops-grid" aria-live="polite"><div class="ops-item"><span>Places occupées</span><b id="seats">—</b></div><div class="ops-item"><span>Personnes en reprise</span><b id="away">—</b></div><div class="ops-item"><span>Sessions verrouillées</span><b id="locked">—</b></div><div class="ops-item"><span>Processus actif depuis</span><b id="uptime">—</b></div></div>
+            </section>
+            <section class="section" id="operations" aria-labelledby="operations-title">
+              <div class="section-head"><div><h2 class="section-title" id="operations-title">Maintenance et stockage</h2><p class="section-desc">Les réglages sont enregistrés dans SQLite. Les limites CPU, mémoire et le secret d’administration restent gérés dans l’environnement Docker.</p></div><span class="section-tag">Exploitation</span></div>
+              <div class="inline-check"><input id="maintenance" name="maintenance" type="checkbox"><div><label for="maintenance">Activer le mode maintenance</label><p>Suspension de l’application publique et des nouvelles sessions. L’administration et les vérifications de santé restent accessibles.</p></div></div>
+              <div class="fields"><div class="field"><label for="logLevel">Détail des journaux du serveur</label><select id="logLevel"><option value="error">Erreurs uniquement</option><option value="warn">Avertissements et erreurs</option><option value="info">Informations, avertissements et erreurs</option></select><p class="help">Les journaux sont écrits sur la sortie du conteneur, selon la politique de rotation Docker.</p></div></div>
+              <h3 class="subhead">Volume monté pour les données ALWIS</h3>
+              <div class="storage"><div class="meter" role="meter" aria-label="Espace utilisé sur le système de fichiers de données" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="storage-meter"></i></div><span class="storage-value" id="storage-value">Mesure en cours…</span></div>
+              <p class="help">La capacité affichée est celle du système de fichiers contenant le volume monté ; elle peut être partagée avec d’autres conteneurs.</p>
+              <div class="callout" style="margin-top:16px"><span aria-hidden="true">ⓘ</span><div><strong>Secrets et ressources Docker</strong><br>Le mot de passe administrateur, les serveurs STUN/TURN et les limites mémoire/CPU se règlent dans l’environnement du conteneur. Cette page ne les lit pas et ne les expose pas.</div></div>
+            </section>
+          </form>
+          <footer>Statut actualisé automatiquement. L’administration est protégée par l’authentification HTTP Basic du serveur.</footer>
+        </div>
+      </div>
     </main>
+    <div class="savebar" id="savebar" hidden><div class="savebar-inner"><p class="savebar-copy"><strong>Modifications non enregistrées</strong> · vérifiez les nouvelles limites avant de les appliquer.</p><button class="button" id="discard" type="button">Annuler</button><button class="button primary" id="save" type="submit" form="config">Enregistrer les réglages</button><p class="status" id="status" role="status" aria-live="polite"></p></div></div>
     <script>
       const $ = (s) => document.querySelector(s);
-      const status = (message, kind = "") => { $("#status").textContent = message; $("#status").dataset.kind = kind; };
-      async function load() {
-        const [config, health] = await Promise.all([
-          fetch("/api/admin/config", { credentials: "same-origin" }),
-          fetch("/healthz", { cache: "no-store" }),
-        ]);
-        if (!config.ok || !health.ok) throw new Error("Impossible de lire la configuration serveur.");
-        const { settings, version } = await config.json();
-        const state = await health.json();
-        $("#publicBaseUrl").value = settings.publicBaseUrl;
-        $("#allowedOrigins").value = settings.allowedOrigins.join("\n");
-        $("#maintenance").checked = settings.maintenance;
-        $("#logLevel").value = settings.logLevel;
-        $("#version").textContent = version;
-        $("#health").textContent = state.status === "ok" ? "Opérationnel" : "Indisponible";
-        $("#database").textContent = state.database === "ok" ? "Disponible" : "Erreur";
-      }
-      $("#config").addEventListener("submit", async (event) => {
-        event.preventDefault();
-        status("Enregistrement…");
-        const payload = {
-          publicBaseUrl: $("#publicBaseUrl").value.trim(),
-          allowedOrigins: $("#allowedOrigins").value.split(/\r?\n/).map((value) => value.trim()).filter(Boolean),
-          maintenance: $("#maintenance").checked,
-          logLevel: $("#logLevel").value,
-        };
+      const keys = ["collabMaxGuests","collabGraceSeconds","collabHostGraceSeconds","collabRelayKbps","collabRelayBurstKib","collabMaxRooms","collabMaxConnections","collabMaxPerIp","collabMaxMessageKib","collabMessagesPerSecond"];
+      let saved = null;
+      const setStatus = (message, kind = "") => { $("#status").textContent = message; $("#status").dataset.kind = kind; };
+      const bytes = (n) => { if (!Number.isFinite(n)) return "—"; const units=["o","Kio","Mio","Gio","Tio"]; let i=0; while(n>=1024&&i<units.length-1){n/=1024;i++;} return `${new Intl.NumberFormat("fr-FR",{maximumFractionDigits:i?1:0}).format(n)} ${units[i]}`; };
+      const duration = (n) => { const d=Math.floor(n/86400),h=Math.floor(n%86400/3600),m=Math.floor(n%3600/60); return d?`${d} j ${h} h`:`${h} h ${m} min`; };
+      const applySettings = (s) => { $("#publicBaseUrl").value=s.publicBaseUrl; $("#allowedOrigins").value=s.allowedOrigins.join("\n"); $("#maintenance").checked=s.maintenance; $("#logLevel").value=s.logLevel; $("#collabEnabled").checked=s.collabEnabled; for(const k of keys) $("#"+k).value=s[k]; };
+      const readSettings = () => ({ publicBaseUrl:$("#publicBaseUrl").value.trim(),allowedOrigins:$("#allowedOrigins").value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean),maintenance:$("#maintenance").checked,logLevel:$("#logLevel").value,collabEnabled:$("#collabEnabled").checked,...Object.fromEntries(keys.map(k=>[k,Number($("#"+k).value)])) });
+      const signature = (s) => JSON.stringify([s.publicBaseUrl,s.allowedOrigins,s.maintenance,s.logLevel,s.collabEnabled,...keys.map(k=>s[k])]);
+      const changed = () => { if(saved) $("#savebar").hidden=signature(readSettings())===signature(saved); };
+      async function loadSettings() { const r=await fetch("/api/admin/config",{credentials:"same-origin",cache:"no-store"}); if(!r.ok) throw Error("Impossible de lire la configuration serveur."); const data=await r.json(); saved=data.settings; applySettings(saved); changed(); }
+      async function refreshStatus() {
+        const line=$("#statusline");
         try {
-          const response = await fetch("/api/admin/config", { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-          const result = await response.json();
-          if (!response.ok) throw new Error(result.error || "Enregistrement refusé.");
-          status("Configuration enregistrée.", "success");
-        } catch (error) {
-          status(error instanceof Error ? error.message : "Enregistrement impossible.", "error");
-        }
+          const [healthR,opsR]=await Promise.all([fetch("/healthz",{cache:"no-store"}),fetch("/api/admin/status",{credentials:"same-origin",cache:"no-store"})]);
+          if(!healthR.ok||!opsR.ok) throw Error("État serveur indisponible");
+          const [health,ops]=await Promise.all([healthR.json(),opsR.json()]); const c=ops.collaboration;
+          line.dataset.state="ok"; $("#health").textContent=health.status==="ok"?"Services opérationnels":"Service indisponible"; $("#health-detail").textContent=health.database==="ok"?"SQLite répond · serveur accessible":"Le stockage SQLite ne répond pas";
+          $("#rooms").textContent=c.rooms; $("#rooms-note").textContent=`sur ${c.maxRooms.toLocaleString("fr-FR")} autorisées`;
+          $("#participants").textContent=c.onlineParticipants; $("#participants-note").textContent=`${c.awayParticipants} en reprise · ${c.guests} places invité occupées`;
+          $("#connections").textContent=c.connections; $("#connections-note").textContent=`maximum ${c.maxConnections.toLocaleString("fr-FR")} · ${c.lockedRooms} sessions verrouillées`;
+          $("#memory").textContent=bytes(ops.memory.rssBytes); $("#memory-note").textContent=`résidente · tas JS ${bytes(ops.memory.heapUsedBytes)} / ${bytes(ops.memory.heapTotalBytes)}`;
+          $("#seats").textContent=c.rooms?`${c.guests} / ${c.rooms*c.maxGuests} places invité`:`${c.guests} invité · aucune session`; $("#away").textContent=c.awayParticipants; $("#locked").textContent=c.lockedRooms;
+          $("#uptime").textContent=duration(ops.uptimeSeconds);
+          $("#collab-status").textContent=c.enabled?"Sessions autorisées":"Sessions désactivées";
+          const total=ops.storage.totalBytes, free=ops.storage.freeBytes, used=Math.max(0,total-free), percent=total?Math.min(100,used/total*100):0;
+          $("#storage-meter").style.width=percent.toFixed(1)+"%"; $(".meter").setAttribute("aria-valuenow",String(Math.round(percent))); $("#storage-value").textContent=`${bytes(free)} libres sur ${bytes(total)}`;
+          const time=new Date(); $("#updated").textContent=time.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+        } catch(error) { line.dataset.state="error"; $("#health").textContent="État incomplet"; $("#health-detail").textContent=error.message; }
+      }
+      $("#config").addEventListener("input",changed); $("#config").addEventListener("change",changed);
+      $("#discard").addEventListener("click",async()=>{try{await loadSettings();setStatus("");}catch(e){setStatus(e.message,"error");}});
+      $("#refresh").addEventListener("click",()=>{refreshStatus();});
+      $("#config").addEventListener("submit",async(event)=>{
+        event.preventDefault(); if(!$("#config").reportValidity()) return;
+        const save=$("#save"); save.disabled=true; save.textContent="Enregistrement…"; setStatus("Enregistrement des réglages…");
+        try { const r=await fetch("/api/admin/config",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify(readSettings())}); const result=await r.json(); if(!r.ok) throw Error(result.error||"Enregistrement refusé."); saved=result.settings; applySettings(saved); changed(); setStatus("Réglages enregistrés.","success"); await refreshStatus(); }
+        catch(error){setStatus(error instanceof Error?error.message:"Enregistrement impossible.","error");}
+        finally{save.disabled=false;save.textContent="Enregistrer les réglages";}
       });
-      load().catch((error) => status(error.message, "error"));
+      const anchorObserver=new IntersectionObserver((entries)=>{for(const e of entries)if(e.isIntersecting){document.querySelectorAll(".sidenav a").forEach(a=>{if(a.hash==="#"+e.target.id)a.setAttribute("aria-current","location");else a.removeAttribute("aria-current");});}}, {rootMargin:"-20% 0px -65% 0px"});
+      document.querySelectorAll(".section,#overview").forEach(section=>anchorObserver.observe(section));
+      Promise.all([loadSettings(),refreshStatus()]).catch(error=>{ $("#statusline").dataset.state="error"; $("#health").textContent=error.message; });
+      setInterval(refreshStatus,15000);
     </script>
   </body>
 </html>

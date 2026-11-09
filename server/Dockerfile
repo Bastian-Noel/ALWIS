@@ -16,7 +16,7 @@ ENV NODE_ENV=production \
     HOST=0.0.0.0
 
 WORKDIR /app
-COPY --chown=10001:10001 server/server.mjs server/server-config.html ./
+COPY --chown=10001:10001 server/server.mjs server/collab-hub.mjs server/server-config.html ./
 COPY --chown=10001:10001 build-work/server-site/ ./site/
 RUN mkdir -p /data /tmp && chown 10001:10001 /data /tmp && chmod 0750 /data
 

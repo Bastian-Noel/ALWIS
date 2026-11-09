@@ -294,10 +294,14 @@ function dataHtml(t) {
       (r, ri) =>
         `<tr class="${S.sel.has(ri) ? "sel" : ""}" data-r="${ri}"><td class="ck"><input type="checkbox" ${S.sel.has(ri) ? "checked" : ""} data-act-change="rowSel" data-arg="${ri}" aria-label="Sélectionner la ligne ${ri + 1}"></td>${r
           .map((v, ci) => {
-            const f = fkOf(cols[ci].name);
+            const col = cols[ci];
+            // A remote refresh can briefly expose a row before its schema.
+            // Ignore surplus values rather than crashing the complete pane.
+            if (!col) return "";
+            const f = fkOf(col.name);
             return v === null
               ? `<td class="nul" tabindex="-1" data-r="${ri}" data-c="${ci}"><span class="nulchip">NULL</span></td>`
-              : `<td tabindex="-1" data-r="${ri}" data-c="${ci}" class="${f ? "fkc" : ""} ${/int|decimal/i.test(cols[ci].type) ? "r" : ""}" title="${esc(v instanceof Uint8Array ? "Binaire : " + v.length + " octets" : v)}">${f ? `<i class="fkd" style="--h:${tableHue(f.refTable)}"></i>` : ""}${esc(v instanceof Uint8Array ? "0x" + [...v].map((x) => x.toString(16).padStart(2, "0")).join("") : v)}</td>`;
+              : `<td tabindex="-1" data-r="${ri}" data-c="${ci}" class="${f ? "fkc" : ""} ${/int|decimal/i.test(col.type) ? "r" : ""}" title="${esc(v instanceof Uint8Array ? "Binaire : " + v.length + " octets" : v)}">${f ? `<i class="fkd" style="--h:${tableHue(f.refTable)}"></i>` : ""}${esc(v instanceof Uint8Array ? "0x" + [...v].map((x) => x.toString(16).padStart(2, "0")).join("") : v)}</td>`;
           })
           .join(
             "",
@@ -437,6 +441,10 @@ function drawResults() {
 
 /* ───────── actions ───────── */
 Object.assign(A, {
+  async refreshData() {
+    await refreshDb();
+    ctx.draw?.();
+  },
   activateSQL() {
     return A.toolState("sql", "active");
   },

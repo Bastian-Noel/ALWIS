@@ -518,7 +518,9 @@ export function mkEditor(root, { lang, onInput, onRun, onSave, onCursor }) {
       root.removeEventListener("select", select);
     },
   };
+  result.path = () => (lang === "sql" ? "#sql" : current);
   editors.add(result);
+  document.dispatchEvent(new CustomEvent("alwis:editor", { detail: result }));
   (lang === "sql" ? Promise.resolve(null) : eng()?.fs.context())
     .then((context) => {
       if (context && editors.has(result)) model.setProjectContext(context);

@@ -1,10 +1,11 @@
 import { createReadStream } from "node:fs";
-import { mkdir, readFile, stat } from "node:fs/promises";
+import { mkdir, readFile, stat, statfs } from "node:fs/promises";
 import { createHash, timingSafeEqual } from "node:crypto";
 import { createServer } from "node:http";
 import { extname, resolve, sep } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { fileURLToPath } from "node:url";
+import { createCollabHub } from "./collab-hub.mjs";
 
 const root = fileURLToPath(new URL("./", import.meta.url));
 const site = resolve(process.env.ALWIS_SITE_DIR ?? resolve(root, "site"));
@@ -43,6 +44,17 @@ const defaults = {
     .map((value) => value.trim())
     .filter(Boolean),
   maintenance: false,
+  collabEnabled: process.env.ALWIS_COLLAB !== "false",
+  collabMaxGuests: Number(process.env.ALWIS_COLLAB_MAX_GUESTS ?? "6"),
+  collabGraceSeconds: Number(process.env.ALWIS_COLLAB_GRACE_SECONDS ?? "45"),
+  collabRelayKbps: Number(process.env.ALWIS_COLLAB_RELAY_KBPS ?? "192"),
+  collabRelayBurstKib: Number(process.env.ALWIS_COLLAB_RELAY_BURST_KIB ?? "512"),
+  collabMaxRooms: Number(process.env.ALWIS_COLLAB_MAX_ROOMS ?? "500"),
+  collabMaxConnections: Number(process.env.ALWIS_COLLAB_MAX_CONNECTIONS ?? "2000"),
+  collabMaxPerIp: Number(process.env.ALWIS_COLLAB_MAX_PER_IP ?? "40"),
+  collabMaxMessageKib: Number(process.env.ALWIS_COLLAB_MAX_MESSAGE_KIB ?? "256"),
+  collabMessagesPerSecond: Number(process.env.ALWIS_COLLAB_MESSAGES_PER_SECOND ?? "120"),
+  collabHostGraceSeconds: Number(process.env.ALWIS_COLLAB_HOST_GRACE_SECONDS ?? "90"),
   logLevel: process.env.ALWIS_LOG_LEVEL ?? "info",
 };
 const readSettings = db.prepare("SELECT key,value FROM server_settings");
@@ -63,7 +75,7 @@ function validateSettings(input) {
   if (!input || typeof input !== "object" || Array.isArray(input))
     throw new Error("Les réglages doivent être un objet JSON.");
   const keys = Object.keys(input);
-  if (keys.some((key) => !["publicBaseUrl", "allowedOrigins", "maintenance", "logLevel"].includes(key)))
+  if (keys.some((key) => !["publicBaseUrl", "allowedOrigins", "maintenance", "logLevel", "collabEnabled", "collabMaxGuests", "collabGraceSeconds", "collabHostGraceSeconds", "collabRelayKbps", "collabRelayBurstKib", "collabMaxRooms", "collabMaxConnections", "collabMaxPerIp", "collabMaxMessageKib", "collabMessagesPerSecond"].includes(key)))
     throw new Error("Un réglage inattendu a été fourni.");
   const current = getSettings();
   const result = { ...current };
@@ -113,6 +125,26 @@ function validateSettings(input) {
       throw new Error("Le mode maintenance doit être activé ou désactivé.");
     result.maintenance = input.maintenance;
   }
+  if (Object.hasOwn(input, "collabEnabled")) {
+    if (typeof input.collabEnabled !== "boolean") throw new Error("Le mode multi-utilisateur doit être activé ou désactivé.");
+    result.collabEnabled = input.collabEnabled;
+  }
+  for (const [key, lo, hi, label] of [
+    ["collabMaxGuests", 1, 12, "Invités par session : de 1 à 12."],
+    ["collabGraceSeconds", 5, 600, "Délai de reprise : de 5 à 600 secondes."],
+    ["collabHostGraceSeconds", 5, 1800, "Reprise de l’hôte : de 5 à 1800 secondes."],
+    ["collabRelayKbps", 8, 16384, "Débit du relais : de 8 à 16384 Kio/s."],
+    ["collabRelayBurstKib", 4, 65536, "Rafale du relais : de 4 à 65536 Kio."],
+    ["collabMaxRooms", 1, 10000, "Sessions simultanées : de 1 à 10000."],
+    ["collabMaxConnections", 1, 100000, "Connexions simultanées : de 1 à 100000."],
+    ["collabMaxPerIp", 1, 10000, "Connexions par adresse : de 1 à 10000."],
+    ["collabMaxMessageKib", 1, 4096, "Message maximum : de 1 à 4096 Kio."],
+    ["collabMessagesPerSecond", 5, 5000, "Messages par seconde : de 5 à 5000."],
+  ])
+    if (Object.hasOwn(input, key)) {
+      if (!Number.isInteger(input[key]) || input[key] < lo || input[key] > hi) throw new Error(label);
+      result[key] = input[key];
+    }
   if (Object.hasOwn(input, "logLevel")) {
     if (!["error", "warn", "info"].includes(input.logLevel))
       throw new Error("Le niveau de journal doit être error, warn ou info.");
@@ -234,6 +266,36 @@ async function staticFile(request, response, pathname) {
   }
 }
 
+const iceServers = (() => {
+  try {
+    const parsed = JSON.parse(process.env.ALWIS_ICE_SERVERS ?? "null");
+    if (Array.isArray(parsed)) return parsed.slice(0, 8);
+  } catch {}
+  return [{ urls: "stun:stun.l.google.com:19302" }];
+})();
+const collab = createCollabHub({
+  log,
+  getConfig: () => {
+    const s = getSettings();
+    return {
+      enabled: s.collabEnabled && !s.maintenance,
+      maxGuests: s.collabMaxGuests,
+      graceMs: s.collabGraceSeconds * 1000,
+      hostGraceMs: s.collabHostGraceSeconds * 1000,
+      relayBytesPerSec: s.collabRelayKbps * 1024,
+      relayBurstBytes: s.collabRelayBurstKib * 1024,
+      maxRooms: s.collabMaxRooms,
+      maxConnections: s.collabMaxConnections,
+      maxPerIp: s.collabMaxPerIp,
+      maxMessageBytes: s.collabMaxMessageKib * 1024,
+      messagesPerSec: s.collabMessagesPerSecond,
+    };
+  },
+  clientIp: (request) =>
+    (trustProxy === "true" && String(request.headers["x-forwarded-for"] ?? "").split(",")[0].trim()) || request.socket.remoteAddress || "?",
+  originOk: (request) => originAllowed(request, getSettings()),
+});
+
 const server = createServer(async (request, response) => {
   response.setHeader("Cross-Origin-Opener-Policy", "same-origin");
   response.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
@@ -253,7 +315,7 @@ const server = createServer(async (request, response) => {
     log("warn", "origin_denied");
     return;
   }
-  if (settings.maintenance && !["/healthz", "/readyz", "/admin/server", "/api/admin/config"].includes(pathname)) {
+  if (settings.maintenance && !["/healthz", "/readyz", "/admin/server", "/api/admin/config", "/api/admin/status"].includes(pathname)) {
     response.writeHead(503, { "Retry-After": "60" }).end("ALWIS est temporairement en maintenance.");
     return;
   }
@@ -266,7 +328,7 @@ const server = createServer(async (request, response) => {
     }
     return;
   }
-  if (pathname === "/admin/server" || pathname === "/api/admin/config") {
+  if (pathname === "/admin/server" || pathname === "/api/admin/config" || pathname === "/api/admin/status") {
     if (!authenticated(request)) return basicChallenge(response);
     if (pathname === "/admin/server" && request.method !== "POST") {
       response.setHeader("Content-Type", "text/html; charset=utf-8");
@@ -276,6 +338,21 @@ const server = createServer(async (request, response) => {
     }
     if (pathname === "/api/admin/config" && request.method === "GET") {
       json(response, 200, { settings: getSettings(), version: process.env.ALWIS_VERSION ?? "server" });
+      return;
+    }
+    if (pathname === "/api/admin/status" && request.method === "GET") {
+      try {
+        const disk = await statfs(dataDir);
+        const memory = process.memoryUsage();
+        json(response, 200, {
+          uptimeSeconds: Math.floor(process.uptime()),
+          memory: { rssBytes: memory.rss, heapUsedBytes: memory.heapUsed, heapTotalBytes: memory.heapTotal },
+          storage: { totalBytes: disk.blocks * disk.bsize, freeBytes: disk.bavail * disk.bsize },
+          collaboration: { enabled: getSettings().collabEnabled && !getSettings().maintenance, ...collab.publicConfig(), ...collab.stats() },
+        });
+      } catch (error) {
+        json(response, 503, { error: error instanceof Error ? error.message : "État indisponible." });
+      }
       return;
     }
     if (pathname === "/api/admin/config" && request.method === "POST") {
@@ -303,6 +380,10 @@ const server = createServer(async (request, response) => {
       return;
     }
   }
+  if (pathname === "/api/collab/config" && (request.method === "GET" || request.method === "HEAD")) {
+    json(response, 200, { ...collab.publicConfig(), iceServers, path: "/collab" });
+    return;
+  }
   if (pathname === "/admin" || pathname === "/admin/") {
     response.writeHead(308, { Location: "/admin/server" }).end();
     return;
@@ -314,11 +395,17 @@ const server = createServer(async (request, response) => {
   await staticFile(request, response, pathname);
 });
 
+server.on("upgrade", (request, socket, head) => {
+  const pathname = new URL(request.url ?? "/", "http://localhost").pathname;
+  if (pathname !== "/collab") return socket.destroy();
+  collab.handleUpgrade(request, socket, head);
+});
 server.listen(port, host, () =>
   log("info", "server_started", { host, port, version: process.env.ALWIS_VERSION ?? "server" }),
 );
 function shutdown(signal) {
   log("info", "shutdown_started", { signal });
+  collab.close();
   server.close(() => {
     db.close();
     process.exit(0);

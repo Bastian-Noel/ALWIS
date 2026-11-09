@@ -88,11 +88,17 @@ test("server edition protects settings, persists SQLite config and serves the st
   assert.match(locked.headers.get("www-authenticate"), /Basic realm="ALWIS Server"/);
   const page = await fetch(address + "/admin/server", { headers: { Authorization: auth } });
   assert.equal(page.status, 200);
-  assert.match(await page.text(), /Configuration serveur/);
+  assert.match(await page.text(), /Administration du serveur/);
 
   const initial = await fetch(address + "/api/admin/config", { headers: { Authorization: auth } });
   assert.equal(initial.status, 200);
-  assert.equal((await initial.json()).settings.publicBaseUrl, address);
+  const initialConfig = await initial.json();
+  assert.equal(initialConfig.settings.publicBaseUrl, address);
+  assert.equal(initialConfig.settings.collabHostGraceSeconds, 90);
+  assert.equal((await fetch(address + "/api/admin/status")).status, 401);
+  const initialStatus = await fetch(address + "/api/admin/status", { headers: { Authorization: auth } });
+  assert.equal(initialStatus.status, 200);
+  assert.equal((await initialStatus.json()).collaboration.rooms, 0);
   const saved = await fetch(address + "/api/admin/config", {
     method: "POST",
     headers: {
@@ -105,6 +111,10 @@ test("server edition protects settings, persists SQLite config and serves the st
       allowedOrigins: ["https://editor.example.org"],
       maintenance: true,
       logLevel: "warn",
+      collabRelayBurstKib: 1024,
+      collabMaxConnections: 300,
+      collabHostGraceSeconds: 120,
+      collabMessagesPerSecond: 240,
     }),
   });
   assert.equal(saved.status, 200, await saved.text());
@@ -122,6 +132,22 @@ test("server edition protects settings, persists SQLite config and serves the st
   assert.deepEqual(settings.allowedOrigins, ["https://editor.example.org"]);
   assert.equal(settings.maintenance, true);
   assert.equal(settings.logLevel, "warn");
+  assert.equal(settings.collabRelayBurstKib, 1024);
+  assert.equal(settings.collabMaxConnections, 300);
+  assert.equal(settings.collabHostGraceSeconds, 120);
+  assert.equal(settings.collabMessagesPerSecond, 240);
+  assert.equal((await fetch(address + "/api/admin/status", { headers: { Authorization: auth } })).status, 200);
+  const resumePublic = await fetch(address + "/api/admin/config", {
+    method: "POST",
+    headers: { Authorization: auth, Origin: address, "Content-Type": "application/json" },
+    body: JSON.stringify({ maintenance: false }),
+  });
+  assert.equal(resumePublic.status, 200);
+  const liveCollabConfig = await (await fetch(address + "/api/collab/config")).json();
+  assert.equal(liveCollabConfig.hostGraceMs, 120_000);
+  assert.equal(liveCollabConfig.relayBurstBytes, 1024 * 1024);
+  assert.equal(liveCollabConfig.maxConnections, 300);
+  assert.equal(liveCollabConfig.messagesPerSec, 240);
   const invalid = await fetch(address + "/api/admin/config", {
     method: "POST",
     headers: {

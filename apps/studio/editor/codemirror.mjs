@@ -87,6 +87,11 @@ import {
   textEdits,
 } from "./intelligence.mjs";
 import { phpDiagnostics, phpVariables } from "./php-diagnostics.mjs";
+import { collabExtension, applyRemote, swapDocument, showCursors, remoteChange, programmatic } from "./collab-extension.mjs";
+import { HostLog, GuestSync } from "./collab-sync.mjs";
+export { HostLog, GuestSync, ChangeSet, Text } from "./collab-sync.mjs";
+export { collabExtension, applyRemote, swapDocument, showCursors, remoteChange, programmatic };
+
 export function createCodeEditor(
   host,
   {
@@ -105,7 +110,8 @@ export function createCodeEditor(
   const undoHistory = new Compartment(),
     language = new Compartment(),
     editable = new Compartment(),
-    completion = new Compartment();
+    completion = new Compartment(),
+    collabSlot = new Compartment();
   let filename = path,
     paused = false,
     destroyed = false,
@@ -1576,6 +1582,7 @@ export function createCodeEditor(
         language.of([]),
         editable.of([]),
         completion.of([]),
+        collabSlot.of([]),
         EditorView.updateListener.of((update) => {
           if (update.docChanged) {
             revision++;
@@ -1666,6 +1673,7 @@ export function createCodeEditor(
         try {
           view.dispatch({
             changes: { from: 0, to: view.state.doc.length, insert: text },
+            annotations: programmatic.of(true),
           });
         } finally {
           silent = false;
@@ -1715,6 +1723,12 @@ export function createCodeEditor(
       };
     },
     resetHistory,
+    /** Multi-user: attach (or detach with null) the collaboration bridge. */
+    setCollab: (bridge) =>
+      view.dispatch({ effects: collabSlot.reconfigure(bridge ? collabExtension(bridge) : []) }),
+    applyRemote: (changes, peer) => applyRemote(view, changes, peer),
+    swapDocument: (text) => swapDocument(view, text),
+    showCursors: (entries) => showCursors(view, entries),
     setSQLSchema: (schema, defaultSchema) =>
       view.dispatch({
         effects: language.reconfigure(
