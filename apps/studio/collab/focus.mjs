@@ -29,7 +29,7 @@ export class FocusLayer {
       if (cell) return this.local("cell", { ...ctx(), r: +cell.dataset.r, c: +cell.dataset.c });
       const row = t.closest?.("tr[data-col]");
       if (row) return this.local("col", { ...ctx(), name: row.dataset.col });
-      if (t.matches?.("input[data-g]")) return this.local("ghost", { ...ctx(), col: t.dataset.g, values: this.#ghostValues() });
+      if (t.matches?.("input[data-g]")) return this.local("ghost", { ...ctx(), col: t.dataset.g, values: this.#ghostValues() ?? {} });
     });
     // Publish grid selection on click as well as keyboard focus; a cell may be
     // visually selected without receiving DOM focus in some browsers.
@@ -37,7 +37,11 @@ export class FocusLayer {
       const cell = e.target.closest?.("td[data-r][data-c]");
       if (cell) this.local("cell", { ...ctx(), r: +cell.dataset.r, c: +cell.dataset.c });
     });
-    on(document, "input", (e) => { if (e.target.matches?.("input[data-g]")) this.local("ghost", { ...ctx(), col: e.target.dataset.g, values: this.#ghostValues() }, true); });
+    on(document, "input", (e) => {
+      if (e.target.matches?.("input[data-g]")) this.local("ghost", { ...ctx(), col: e.target.dataset.g, values: this.#ghostValues() ?? {} }, true);
+      const cell = e.target.closest?.("td[data-r][data-c]");
+      if (cell && e.target.matches?.("input.ce")) this.local("cell", { ...ctx(), r: +cell.dataset.r, c: +cell.dataset.c, editing: true, value: e.target.value }, true);
+    });
     on(document, "focusout", (e) => { if (e.target.matches?.("input[data-g]") && !this.#ghostValues(true)) this.local("ghost", { ...ctx(), values: null }); });
     on(document, "pointermove", (e) => this.#pointer(e, false), { passive: true });
     on(document, "pointerdown", (e) => this.#pointer(e, true), { passive: true });
@@ -128,8 +132,8 @@ export class FocusLayer {
   receive(from, m) {
     const st = this.remote.get(from) ?? {};
     switch (m.k) {
-      case "view": Object.assign(st, { view: m.view, dmode: m.dmode, table: m.table, db: m.db, active: m.active, pv: m.pv, pvPath: m.pvPath, pan: m.pan, zoom: m.zoom, file: m.view === "code" ? m.active : null, cell: null, col: null, ghost: null }); break;
-      case "cell": Object.assign(st, { cell: { table: m.table, r: m.r, c: m.c }, col: null, ghost: null }); break;
+      case "view": Object.assign(st, { view: m.view, dmode: m.dmode, table: m.table, db: m.db, active: m.active, pv: m.pv, pvPath: m.pvPath, pan: m.pan, zoom: m.zoom, file: m.active || null, cell: null, col: null, ghost: null }); break;
+      case "cell": Object.assign(st, { cell: { table: m.table, r: m.r, c: m.c, editing: !!m.editing, value: m.value }, col: null, ghost: null }); break;
       case "col": Object.assign(st, { col: { table: m.table, name: m.name }, cell: null, ghost: null }); break;
       case "ghost": st.ghost = m.values || m.col ? { table: m.table, col: m.col, values: m.values } : null; break;
       case "rubber": st.rubber = m.rubber ?? null; break;
@@ -165,7 +169,18 @@ export class FocusLayer {
         if (!p || p.state === "away") continue;
         if (st.file) (files.get(st.file) ?? files.set(st.file, []).get(st.file)).push(p);
         const sameTable = (t) => c.view === "data" && t === c.table;
-        if (st.cell && sameTable(st.cell.table)) this.#mark(q(`td[data-r="${st.cell.r}"][data-c="${st.cell.c}"]`), p);
+        if (st.cell && sameTable(st.cell.table)) {
+          const cell = q(`td[data-r="${st.cell.r}"][data-c="${st.cell.c}"]`);
+          this.#mark(cell, p);
+          if (cell && st.cell.editing) {
+            const value = document.createElement("span");
+            value.className = "cb-live-value";
+            value.style.cssText = cssVars(p.name, p.variant);
+            value.textContent = `${p.name} : ${st.cell.value ?? ""}`;
+            cell.append(value);
+            this.marks.push(value);
+          }
+        }
         if (st.col && sameTable(st.col.table)) this.#mark(q(`tr[data-col="${esc(st.col.name)}"]`), p);
         if (st.ghost && st.ghost.table === c.table) this.#ghostRow(st.ghost, p);
         if (st.rubber) this.#rubber(st.rubber, p);
@@ -180,7 +195,7 @@ export class FocusLayer {
   }
   #badges(files) {
     for (const old of qa("#tree .cb-badges")) old.remove();
-    for (const row of qa("#tree [data-path][data-kind=file]")) {
+      for (const row of qa("#tree [data-path][data-kind=file]")) {
       const list = files.get(row.dataset.path);
       if (!list?.length) continue;
       const wrap = document.createElement("span");
@@ -301,7 +316,8 @@ export function replayPreview(m) {
         target.dispatchEvent(new win.MouseEvent("click", { bubbles: true, cancelable: true, clientX: x - f.left, clientY: y - f.top, button: Number(m.button) || 0, view: win }));
       } else {
         const t = m.target ?? {};
-        const target = t.id ? doc.getElementById(t.id) : t.name ? doc.querySelector(`[name="${esc(t.name)}"]`) : doc.elementFromPoint(x - f.left, y - f.top);
+        const at = doc.elementFromPoint(x - f.left, y - f.top);
+        const target = t.id ? doc.getElementById(t.id) : (at?.name === t.name ? at : [...doc.getElementsByName(t.name || "")].find((n) => n.type === t.type) ?? at);
         if (!target || !("value" in target)) return false;
         if (target.type === "checkbox" || target.type === "radio") target.checked = !!t.checked;
         else target.value = String(t.value ?? "");

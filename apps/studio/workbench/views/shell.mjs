@@ -65,8 +65,9 @@ export function drawShell() {
   app.dataset.mode = S.mode;
   app.dataset.lamp = S.lamp;
   $("#chip").hidden = !w;
-  $("#primary").hidden = !w;
-  $("#sPersist").hidden = !w;
+  const guest = document.documentElement.hasAttribute("data-collab-guest");
+  $("#primary").hidden = !w || guest;
+  $("#sPersist").hidden = !w || guest;
   $("#pname").title = ctx.folder
     ? "Fichiers enregistrés vers le PC ; bases et contexte conservés dans .alwis. Sélectionnez ce dossier pour le rouvrir."
     : "Projet conservé dans ce navigateur. Exportez un ZIP pour une copie externe.";
@@ -448,6 +449,7 @@ Object.assign(A, {
     ctx.draw();
   },
   async primary() {
+    if (document.documentElement.hasAttribute("data-collab-guest")) return;
     await A.save();
   },
   save() {

@@ -25,7 +25,7 @@ export function installWiring(collab) {
     const p = collab.session?.peer(id);
     return { id, name: p?.name ?? "Invité", variant: p?.variant ?? 0, state: p?.state ?? "online", css: cssVars(p?.name ?? "Invité", p?.variant ?? 0) };
   };
-  const ctxState = () => ({ view: S.view, dmode: S.dmode, table: S.table, db: S.db, active: S.active, pv: S.pv, pvPath: S.pvPath, pan: S.pan, zoom: S.zoom });
+  const ctxState = () => ({ view: S.view, dmode: S.dmode, table: S.view === "schema" ? (S.schemaSel ?? S.table) : S.table, db: S.db, active: S.active, pv: S.pv, pvPath: S.pvPath, pan: S.pan, zoom: S.zoom });
   const sessionSend = (to, m, o) => collab.session?.send(to, m, o);
 
   /* ---------- editors ---------- */
@@ -193,15 +193,7 @@ export function installWiring(collab) {
       }
       return saved.openFile.call(this, p, ...rest);
     };
-    A.save = async function () {
-      for (const p of Object.keys(S.drafts)) {
-        if (p === SQL || !docs.entries.has(p)) continue;
-        await ctx.engine.fs.write(p, S.drafts[p], null);
-        S.base[p] = S.drafts[p];
-        delete S.drafts[p];
-      }
-      redrawSoon();
-    };
+    A.save = async function () { log("i", "La sauvegarde du projet est réservée à l’hôte."); };
     A.close = async function () { session.leave(); };
 
     let entered = false;
@@ -243,7 +235,7 @@ export function installWiring(collab) {
         case "changed":
           ctx.engine.emit("changed", { kind: msg.kind, path: msg.path });
           if (msg.kind === "files" || !msg.kind) refreshFiles().then(() => redrawSoon()).catch(() => {});
-          if (msg.kind !== "files" && (S.view === "data" || S.view === "schema")) A.refreshData?.().catch(() => { S.dbDirty = true; redrawSoon(); });
+          if (msg.kind !== "files" && (S.view === "data" || S.view === "schema")) Promise.resolve(A.refreshData?.()).catch(() => { S.dbDirty = true; redrawSoon(); });
           else if (msg.kind === "sql" || !msg.kind) { S.dbDirty = true; redrawSoon(); }
           return;
       }
@@ -299,9 +291,14 @@ export function installWiring(collab) {
     S.pv = false;
     if (st.view === "data" || st.view === "schema") {
       if (st.view === "schema") await A.nav("schema");
-      if (st.table && st.table !== S.table) await A.selectTable(st.table);
+      if (st.view === "data" && st.table && st.table !== S.table) await A.selectTable(st.table);
+      if (st.view === "schema") {
+        S.schemaSel = st.table || null;
+        if (Array.isArray(st.pan)) { S.pan = [...st.pan]; S.zoom = Number(st.zoom) || 1; }
+      }
       S.view = st.view;
       S.dmode = st.dmode || S.dmode;
+      if (st.view === "data") await A.refreshData?.();
       ctx.draw?.();
       return;
     }
