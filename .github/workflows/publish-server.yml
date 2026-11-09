@@ -89,6 +89,8 @@ jobs:
           PACKAGE="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/alwis-server"
           SHORT_SHA="${SOURCE_SHA:0:12}"
           docker buildx build --pull --platform linux/amd64,linux/arm64 --push \
+            --cache-from type=gha,scope=alwis-server \
+            --cache-to type=gha,mode=max,scope=alwis-server \
             --build-arg "ALWIS_VERSION=$VERSION" \
             --build-arg "ALWIS_REVISION=$SOURCE_SHA" \
             --label "org.opencontainers.image.source=https://github.com/$GITHUB_REPOSITORY" \

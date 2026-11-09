@@ -12,35 +12,47 @@ concurrency:
   group: studio-ftp-publication
   cancel-in-progress: false
 jobs:
-  build:
+  preflight:
+    name: Release authorization (licenses and version)
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    timeout-minutes: 3
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - uses: ./.github/actions/validated-studio
-      - name: Retain the validated static package
+        with:
+          persist-credentials: false
+      - name: Validate requested version and distribution rights BEFORE downloading or publishing
+        env:
+          RELEASE_TAG: ${{ inputs.version }}
+        run: python3 scripts/check-release-licensing.py
+  build:
+    name: Reuse successful CI package
+    needs: preflight
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Reuse the exact successful main CI build, without rebuilding
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          SOURCE_SHA: ${{ github.sha }}
+        run: python3 scripts/verify-ci-artifact.py
+      - name: Retain validated static package in the publication run
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: studio-static-${{ github.sha }}
           retention-days: 14
           include-hidden-files: true
+          if-no-files-found: error
           path: build-work/site/
-      - name: Retain package and update receipts
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: studio-package-validation-${{ github.sha }}
-          retention-days: 14
-          path: |
-            build-work/site-smoke.json
-            build-work/site-updates.json
-            build-work/disk-storage/results.json
-            build-work/disk-storage/global-memory.json
-            build-work/ux-revision/
-            build-work/preview-browser/
-            build-work/ui-refinement/
-            build-work/folder-opening/
   release:
+    name: Create immutable GitHub Release
     needs: build
     runs-on: ubuntu-24.04
     timeout-minutes: 10
@@ -60,6 +72,7 @@ jobs:
           RELEASE_BEFORE_FTP: 'true'
         run: python3 scripts/release-validated-site.py
   publish:
+    name: Transfer exactly released package over FTP
     needs: release
     runs-on: ubuntu-24.04
     timeout-minutes: 20
