@@ -25,6 +25,19 @@ node tests/browser/restart-native.mjs
 
 Les chemins par défaut sont vérifiés par build.sh. Réutiliser les objets préparés uniquement avec le SDK et les sources correspondants. Le manifeste de distribution doit couvrir les sources natives et les fichiers générés livrés ; [CONTRIBUTING](../../../CONTRIBUTING.md) explique les validations et la publication.
 
+## Candidat de remplacement du patch de sessions tiers (non validé)
+
+Le mode `PBL_INDEPENDENT_NATIVE=1` ajoute les adaptations ALWIS de
+synchronisation Emscripten et de portabilité C **à une source MariaDB propre**
+dans `build-work/`. Il rejette la présence des API `l4m_session_*`
+issues du patch historique et exige les SHA-256 du commit source épinglé.
+Le gestionnaire multi-connexion reste celui de `packages/sql-native/`.
+Voir [l'analyse complète des 11 modifications](../../patches/INDEPENDENT-SESSION-MIGRATION.md)
+et les tests Python `tests/test_native_concurrency.py`.
+
+Ce mode n'a pas été recompilé et validé en navigateur avec la chaîne native ;
+les anciens artefacts et la protection de publication restent inchangés.
+
 ## Préparation initiale conservée pour reproduction
 
 Les sections suivantes décrivent le témoin initial ; ses plafonds mémoire, capacités démontrées et commandes par défaut concernent pbl-fusion. Les preuves du runtime ultérieur sont dans engine/fusion/ et les guides actuels.

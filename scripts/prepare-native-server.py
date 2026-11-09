@@ -4,11 +4,12 @@ from pathlib import Path
 import hashlib,json,sys
 source,output=map(Path,sys.argv[1:])
 before=source.read_text();after=before
-changes={
-'--innodb-buffer-pool-size=64M':'--innodb-buffer-pool-size=16M',
-'--loose-innodb-buffer-pool-size-max=256M':'--loose-innodb-buffer-pool-size-max=16M',
-'--max-allowed-packet=128M':'--max-allowed-packet=16M',
-'(char *)"--innodb-log-buffer-size=2M",':'''(char *)"--innodb-log-buffer-size=2M",
+# Support the locked historical source for reproducibility, plus an unpatched
+# MariaDB tree for ALWIS's independent connection manager. The production
+# switch happens only after a new native WASM is built and browser-validated.
+clean_upstream = '--max-connections=10' in before and 'l4m_session_open' not in before
+changes = {
+    '(char *)"--innodb-log-buffer-size=2M",': '''(char *)"--innodb-log-buffer-size=2M",
     (char *)"--innodb-log-file-size=8M",
     (char *)"--aria-pagecache-buffer-size=1M",
     (char *)"--key-buffer-size=1M",
@@ -19,8 +20,19 @@ changes={
     (char *)"--sort-buffer-size=256K",
     (char *)"--join-buffer-size=256K",
     (char *)"--read-buffer-size=128K",
-    (char *)"--read-rnd-buffer-size=256K",'''
+    (char *)"--read-rnd-buffer-size=256K",''',
 }
+if clean_upstream:
+    changes['(char *)"--max-connections=10",'] = '''(char *)"--max-connections=33",
+    (char *)"--max-allowed-packet=16M",
+    (char *)"--innodb-lock-wait-timeout=5",
+    (char *)"--lock-wait-timeout=5",'''
+else:
+    changes.update({
+        '--innodb-buffer-pool-size=64M': '--innodb-buffer-pool-size=16M',
+        '--loose-innodb-buffer-pool-size-max=256M': '--loose-innodb-buffer-pool-size-max=16M',
+        '--max-allowed-packet=128M': '--max-allowed-packet=16M',
+    })
 for old,new in changes.items():
  if after.count(old)!=1:raise SystemExit('Server profile anchor changed: '+old)
  after=after.replace(old,new)
@@ -63,5 +75,5 @@ after=after.replace(anchor,'''  if(pbl_install_system_tables(g_mysql)) {
     mysql_close(g_mysql);g_mysql=NULL;mysql_server_end();return 1;
   }
 '''+anchor)
-if p.read_text()!=after:p.write_text(after)
-(output/'server-adapter.json').write_text(json.dumps({'source':str(source),'originalSha256':hashlib.sha256(before.encode()).hexdigest(),'generatedSha256':hashlib.sha256(after.encode()).hexdigest(),'changes':changes,'systemTablesSource':str(source.parent.parent/'scripts/mariadb_system_tables.sql'),'systemTablesSourceSha256':hashlib.sha256((source.parent.parent/'scripts/mariadb_system_tables.sql').read_bytes()).hexdigest(),'systemTablesGeneratedSha256':hashlib.sha256(bootstrap.encode()).hexdigest()},indent=2)+'\n')
+if not p.exists() or p.read_text()!=after:p.write_text(after)
+(output/'server-adapter.json').write_text(json.dumps({'source':str(source),'originalSha256':hashlib.sha256(before.encode()).hexdigest(),'generatedSha256':hashlib.sha256(after.encode()).hexdigest(),'changes':changes,'cleanUnpatchedSource':clean_upstream,'systemTablesSource':str(source.parent.parent/'scripts/mariadb_system_tables.sql'),'systemTablesSourceSha256':hashlib.sha256((source.parent.parent/'scripts/mariadb_system_tables.sql').read_bytes()).hexdigest(),'systemTablesGeneratedSha256':hashlib.sha256(bootstrap.encode()).hexdigest()},indent=2)+'\n')

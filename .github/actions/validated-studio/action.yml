@@ -27,6 +27,7 @@ runs:
         npm test
         cc -std=c11 -Wall -Wextra -Werror -fsyntax-only -x c packages/sql-native/include/pbl_sql.h
         python3 -m compileall -q scripts
+        python3 -m unittest discover -s tests -p 'test_native_concurrency.py' -v
         node scripts/package-studio.mjs
     - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
       with:

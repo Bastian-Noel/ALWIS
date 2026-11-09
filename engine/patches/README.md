@@ -1,5 +1,20 @@
-# Patchs du produit
+# Adaptations natives ALWIS
 
-Aucun patch propre à WASMWebServer n'est encore appliqué. Le patch `independent-sessions.patch` utilisé par le témoin du bridge appartient au dépôt amont épinglé et doit rester identique à celui-ci.
+Le patch amont `independent-sessions.patch` demeure présent dans l'ancien
+artefact natif épinglé et son statut juridique reste bloquant pour la
+distribution du binaire existant.
 
-Les futurs patchs seront accompagnés de leur commit source, de leur justification et d'un test de comportement. Ne pas modifier `sources/` ou les snapshots d'étude `upstream/`.
+Le nouveau candidat de remplacement est décrit dans
+[INDEPENDENT-SESSION-MIGRATION.md](INDEPENDENT-SESSION-MIGRATION.md).
+Il est produit par `scripts/prepare-native-concurrency.py` **uniquement sur une
+copie jetable du source MariaDB non modifié**, et la version actuelle n'a pas
+encore passé la recompilation WASM ni les tests de stabilité en navigateur.
+
+Pour réaliser une reconstruction expérimentale, préparer d'abord les sources
+exactes propres et les outils Emscripten 6.0.6, puis utiliser :
+```sh
+PBL_INDEPENDENT_NATIVE=1 PBL_TARGET=pbl-runtime JOBS=3 bash engine/native/build/build.sh
+```
+
+Ne pas activer ce candidat en production, remplacer les archives natives ou
+lever le blocage de licences sans les validations listées dans le rapport.

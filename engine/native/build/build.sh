@@ -18,6 +18,25 @@ if emar t "$php_build/.libs/libphp.a" | grep '^pcre2_' >/dev/null; then
   echo 'PHP still bundles PCRE2; rebuild with --with-external-pcre against MariaDB PCRE2.' >&2
   exit 1
 fi
+# Opt-in migration path: create only ALWIS-owned scheduling changes in a
+# disposable, unpatched MariaDB checkout. Never rewrite source snapshots.
+if [[ "${PBL_INDEPENDENT_NATIVE:-0}" == 1 ]]; then
+  [[ "${PBL_TARGET:-}" == pbl-runtime ]] || {
+    echo 'Independent native adapter is only supported for the ALWIS pbl-runtime target.' >&2
+    exit 1
+  }
+  source_real=$(realpath "$mariadb_source")
+  case "$source_real" in
+    "$repo_dir"/build-work/*) ;;
+    *) echo 'Independent native adapter requires a disposable build-work source tree.' >&2; exit 1 ;;
+  esac
+  if grep -q 'l4m_session_open' "$mariadb_source/wasm/lite4mariadb.c"; then
+    echo 'Do not build an Apache-licensed sessions patch into the independent native candidate.' >&2
+    exit 1
+  fi
+  python3 "$repo_dir/scripts/prepare-native-concurrency.py" "$mariadb_source" \
+    --write --verify-pins --receipt "$repo_dir/build-work/independent-native-adapter.json"
+fi
 emcmake cmake -S "$mariadb_source" -B "$mariadb_build" \
   -DCMAKE_BUILD_TYPE=Release -DWITH_EMBEDDED_SERVER=ON -DUPDATE_SUBMODULES=OFF \
   -DIMPORT_EXECUTABLES="$native_build/import_executables.cmake" \
