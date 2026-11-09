@@ -1,7 +1,9 @@
-# ALWIS notices
+# Avis de droits d'auteur et d'attribution — ALWIS
 
-ALWIS is maintained by Bastian Noël. ALWIS source files do not claim authorship of bundled third-party software. Preserve each component’s copyright and license notices when copying or redistributing that component.
+Required Notice: ALWIS — Copyright © 2026 Bastian Noël — https://github.com/Bastian-Noel/ALWIS
 
-For a modified copy of ALWIS original material, identify the modified version and summarize the changes in its accompanying documentation or change log. This is the project’s attribution and provenance policy; it does not amend third-party licenses or itself grant a license to files without one.
+Cette mention accompagne les parties originales d'ALWIS soumises à PolyForm Noncommercial 1.0.0. La licence PolyForm demande de transmettre les lignes « Required Notice: » et ses termes ou son URL à chaque destinataire du code concerné.
 
-Names and logos of ALWIS and upstream projects are not licensed as trademarks or as an endorsement by this notice.
+**Les composants tiers conservent leurs auteurs et leurs licences.** Voir [LICENSE.md](LICENSE.md), [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) et [LICENSES/](LICENSES/). Les contributions natives dérivées de MariaDB respectent les mentions GPL applicables ; aucune condition additionnelle ne limite l'usage commercial que la GPL autorise.
+
+Pour les textes originaux sous CC BY-NC-SA 4.0 : citer Bastian Noël, le projet ALWIS, la licence et toute modification. Aucun droit de marque ou approbation implicite n'est concédé.

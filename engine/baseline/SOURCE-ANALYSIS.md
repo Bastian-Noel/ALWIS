@@ -1,6 +1,6 @@
 # Analyse verrouillée — quatre moteurs de référence (jalon 2)
 
-Date d'analyse : 2026-10-31. Ce dossier est une lecture des snapshots épinglés ; il ne décrit pas un runtime WASMWebServer fusionné. Sources historiques : `provenance/conversation-source.md` et `provenance/conversation-complementaire.txt` ; cadrage prioritaire : `docs/compatibility.md`.
+Date d'analyse : 2026-10-31. Ce dossier est une lecture des snapshots épinglés ; il ne décrit pas un runtime WASMWebServer fusionné. Notes historiques de la branche de préparation. Les conversations de travail brutes ont été retirées de la version courante ; leur historique Git reste accessible. Référence actuelle : `docs/compatibility.md`.
 
 ## Versions et familles **non interchangeables**
 

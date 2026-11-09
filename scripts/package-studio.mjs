@@ -11,7 +11,7 @@ const version=JSON.parse(await readFile(join(root,'package.json'),'utf8')).versi
 const assetBase='/_alwis/'+revision;
 const files=[];
 async function copy(source,destination){
-  const publicPath=['index.html','service-worker.js','social-card.png'].includes(destination)?destination:assetBase.slice(1)+'/'+destination;
+  const publicPath=['index.html','service-worker.js','social-card.png','LICENSE.md','NOTICE.md','THIRD-PARTY-NOTICES.md','RELEASE-LICENSING-STATUS.json'].includes(destination)||destination.startsWith('LICENSES/')?destination:assetBase.slice(1)+'/'+destination;
   const output=join(target,publicPath);await mkdir(resolve(output,'..'),{recursive:true});
   let data=await readFile(join(root,source));
   if(/\.(mjs|js|css|html)$/.test(source)){
@@ -33,6 +33,10 @@ for(const entry of await readdir(join(root,'apps/studio/database')))if(/\.mjs$/.
 await copy('apps/studio/database/sql-export.php','apps/studio/sql-export.source.txt');
 for(const name of ['codemirror.mjs','formatter-worker.mjs','definitions.json','javascript-worker.mjs','lsp-worker.mjs','php-lsp.wasm','superhtml.wasm','swc.wasm','THIRD-PARTY.txt'])await copy('apps/studio/editor/dist/'+name,'apps/studio/editor/dist/'+name);
 for(const name of ['pbl-runtime.mjs','pbl-runtime.wasm'])await copy('build-work/bridge/.native-build/engine/wasm/runtime-dist/'+name,'engine/'+name);
+// License obligations accompany the EXACT bytes served to every browser.
+for(const entry of await readdir(join(root,'LICENSES'),{withFileTypes:true}))if(entry.isFile())await copy('LICENSES/'+entry.name,'LICENSES/'+entry.name);
+for(const name of ['LICENSE.md','NOTICE.md','THIRD-PARTY-NOTICES.md'])await copy(name,name);
+await copy('provenance/release-licensing-status.json','RELEASE-LICENSING-STATUS.json');
 await copy('apps/studio/social-card.png','social-card.png');
 await copy('apps/studio/index.html','index.html');await copy('apps/studio/service-worker.mjs','service-worker.js');await copy('apps/studio/client-bootstrap.js','_pbl/client.js');
 await writeFile(join(target,'_headers'),`/*
@@ -50,5 +54,9 @@ const serverSource=await readFile(join(root,'scripts/serve-site-package.mjs'),'u
 if(!serverSource.includes("new URL('../build-work/site',import.meta.url)"))throw Error('Static-server packaging anchor changed');
 await writeFile(join(target,'serve.mjs'),serverSource.replace("new URL('../build-work/site',import.meta.url)","new URL('.',import.meta.url)").replace('??8090','??8080'));
 await writeFile(join(target,'LIRE-MOI.txt'),`ALWIS — atelier web de test\n\nPour un essai local : extrayez le ZIP, lancez « node serve.mjs » dans ce dossier, puis ouvrez http://127.0.0.1:8080. Node.js 20 ou plus récent est requis pour ce serveur de fichiers.\n\nPour publier : envoyez tout ce dossier sur un hébergement statique HTTPS avec COOP: same-origin et COEP: require-corp. Le fichier _headers contient la configuration pour les hébergeurs compatibles. Le fichier WASM doit être servi en application/wasm. Il n'y a aucun serveur PHP distant : PHP et MariaDB s'exécutent dans le navigateur.\n\nTest : choisissez l’exemple scolaire à l’accueil, créez le projet, puis utilisez Aperçu ou Sessions pour ouvrir le site. Les espaces Code, Données, Schéma et Sessions ainsi que le panneau Serveur sont disponibles. CodeMirror 6 et les services PHP/HTML/JavaScript sont chargés au besoin. Sauvegardez le projet pour conserver fichiers et SQL dans ce navigateur.\n\nCette archive contient uniquement les ressources web du prototype. Les projets créés restent dans le stockage du navigateur et ne sont pas inclus dans cette archive.\n`);
+for(const generated of ['_headers','serve.mjs','LIRE-MOI.txt']){
+  const data=await readFile(join(target,generated));
+  files.push({path:generated,bytes:data.length,sha256:createHash('sha256').update(data).digest('hex')});
+}
 await writeFile(join(target,'release.json'),JSON.stringify({builtAt:new Date().toISOString(),revision,version,assetBase,workingChanges:!!execFileSync('git',['status','--porcelain'],{cwd:root,encoding:'utf8'}).trim(),scope:'Static prototype. PHP and MariaDB execute in the browser; project data stays in browser storage.',files},null,2)+'\n');
 console.log(JSON.stringify({directory:relative(root,target),files:files.length,bytes:files.reduce((n,f)=>n+f.bytes,0),revision}));

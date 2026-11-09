@@ -26,7 +26,7 @@ Ce document décrit intégralement les changements fonctionnels du patch amont `
 
 - `scripts/prepare-native-concurrency.py` : vérifie les SHA-256 des **sources amont non patchées**, puis peut ajouter trois modifications ciblées dans une **copie jetable** de MariaDB sous `build-work/`. Il refuse les changements d'ancres et conserve un reçu de provenance.
 - `scripts/prepare-native-server.py` : prend maintenant en charge les paramètres du serveur MariaDB originel sans nécessiter les variables de sessions `l4m_session_*`.
-- `engine/native/build/build.sh` : le chemin `PBL_INDEPENDENT_NATIVE=1` est volontairement opt-in, refuse le témoin patché et les sources extérieures à `build-work/`.
+- `scripts/build-independent-native.sh` : chemin explicite et distinct de la recette épinglée ; refuse les sources déjà patchées et les sources extérieures à `build-work/`. Le script `engine/native/build/build.sh` historique reste inchangé pour permettre sa vérification par le manifeste de l’ancien binaire.
 - `tests/test_native_concurrency.py` : tests d'invariants sur la position des attentes, les verrous, l'absence d'application répétée et la génération des reçus.
 
 Les invariants de synchronisation **ne constituent pas une preuve de stabilité**. En particulier, `emscripten_thread_sleep(1)` suppose que les threads auxiliaires du navigateur sont déjà actifs et que les locks InnoDB mentionnés sont libérés. Un changement de comportement du scheduler, de l'Asyncify ou du moteur d'E/S peut rendre cette approche insuffisante.
@@ -34,7 +34,7 @@ Les invariants de synchronisation **ne constituent pas une preuve de stabilité*
 ## Validation obligatoire avant toute substitution de binaire
 
 1. Préparer un source MariaDB propre au commit exact, sans application préalable du patch JoomEngine. Vérifier les SHA des trois unités natives modifiées.
-2. Recompiler le runtime PHP/MariaDB WASM intégré, avec `PBL_INDEPENDENT_NATIVE=1 PBL_TARGET=pbl-runtime`. La compilation doit produire un manifeste des sources et du nouveau binaire.
+2. Recompiler le runtime PHP/MariaDB WASM intégré, avec `PBL_TARGET=pbl-runtime JOBS=3 bash scripts/build-independent-native.sh`. La compilation doit produire un manifeste des sources et du nouveau binaire.
 3. Exécuter les tests natifs `test-native-runtime`, `mysqli-complete`, `database-stability`, `data-integrity`, `restart-native` dans Chromium et Firefox.
 4. Ajouter des tests de charge : connexions simultanées proches du plafond, commits/rollbacks concurrents, transaction abandonnée sur une session, inserts et checkpoints sous écriture soutenue, contention InnoDB et arrêt/reprise.
 5. Vérifier la persistance après rechargement, comparer la mémoire et les erreurs avec le moteur actuellement validé et effectuer une revue de l'ordonnancement des verrous.

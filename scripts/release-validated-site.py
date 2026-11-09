@@ -30,7 +30,7 @@ archive=output/'artifact.zip'
 with archive.open('wb')as stream:subprocess.run(['gh','api',f'repos/{repo}/actions/artifacts/{artifact["id"]}/zip'],stdout=stream,check=True)
 with zipfile.ZipFile(archive)as source:
  entries=[i for i in source.infolist() if not i.is_dir()]
- if len(entries)>100 or sum(i.file_size for i in entries)>128*1024*1024:raise SystemExit('Unexpected artifact size')
+ if len(entries)>250 or sum(i.file_size for i in entries)>128*1024*1024:raise SystemExit('Unexpected artifact size')
  for item in entries:
   path=PurePosixPath(item.filename)
   if path.is_absolute()or'..'in path.parts:raise SystemExit('Unsafe artifact path')
@@ -66,37 +66,30 @@ for file in assets:
  lines.append(value+'  '+file.name)
 checksums.write_text('\n'.join(lines)+'\n');assets.append(checksums)
 publication_status='Build validé. Le transfert FTP sera exécuté après publication de cette release.' if before_ftp else 'Build et transfert FTP réussis.'
-notes=output/'notes.md';notes.write_text(f'''ALWIS — Atelier Local Web avec IDE et SQL. Cette préversion intègre la nouvelle interface au moteur réel : CodeMirror, aperçu, sessions, administration SQL et schéma relationnel.
+notes=output/'notes.md';notes.write_text(f'''# ALWIS {tag}
 
-- Projets supprimables depuis l’accueil, dossier PC déliable et contexte/bases SQL restaurables depuis .alwis.
-- Recherche fixe avec remplacement, options casse/mot entier/regex, menu contextuel du code et navigation des onglets à la molette.
-- Documentation illustrée simplifiée et accès aux dossiers du PC avec protection des modifications externes.
-- Interface : accueil, chargement, modales, ajout de colonne et Sessions harmonisés ; ALWIS reste en texte sans logo. Icônes SVG, notifications accessibles et poignées discrètes au repos.
-- Aperçu : barre de navigateur, historique par session, panneau Réseau avec en-têtes et corps, séparateurs redimensionnables accessibles au clavier.
-- Sessions : suppression avec confirmation, fermeture des fenêtres et retour de l’aperçu vers un visiteur restant ; dernière session protégée.
-- Stockage OPFS : fichiers sur disque, catalogue léger et migration vérifiée des anciens projets ; lectures PHP par pages et cache borné.
-- ZIP et dossiers : sélection avant chargement, dépendances proposées à l’exclusion, décompression progressive et export ZIP sur disque ; Range/HEAD pour les médias.
-- Limites distinctes : disque 2 Gio/10 000 fichiers, édition 1 Mio, fichiers PHP modifiés 16 Mio ; scénario réel de 256 Mio sous Chromium et Firefox.
-- Mise à jour : contrôle de l’accueil servi, attente des vérifications en cours et rechargement explicite de la version courante.
-- Nouveau Campus : 14 tables toutes exploitées, 18 relations, 31 fichiers organisés, quatre sessions ; PDO/MySQLi, conflits de notes, présences, messages, uploads, API et exercices à formater.
-- Partage social : métadonnées Open Graph/Twitter et image PNG 1200 × 630 de l’interface réelle.
-- Adresse de l’aperçu : suppression de la barre oblique décorative en double.
-- Assets isolés par build, version affichée et mise à jour préservant les projets.
-- Diagnostics PHP/CSS lisibles et corrections accessibles ; HTML/PHP formatés ensemble, balises liées et modèle HTML cohérent.
-- Aperçu Markdown léger et exécution ponctuelle de scripts PHP avec sortie texte.
-- Formulaire de colonne guidé, ajout depuis le schéma corrigé, bandeaux sans superposition et notifications visibles.
-- Nettoyage natif MySQLi des buffers binaires à la fermeture de connexion ; scénarios PDO natif/émulé, transactions et curseurs consolidés.
-- Export ZIP des fichiers et bases conservées ; un projet PHP pur reste sans démarrage SQL inutile.
-- Thèmes clair/sombre, contrastes corrigés et captures réelles dans le README.
+Atelier web : code, aperçu PHP, bases MariaDB et sessions de visiteurs dans le navigateur.
 
-Source validée : `{revision}`. Tests Chromium/Firefox réussis. {publication_status} Exécution : https://github.com/{repo}/actions/runs/{run}.
+## Contenu
+- Éditeur CodeMirror et outils de formatage pour PHP, HTML, CSS et JavaScript.
+- Aperçus HTTP locaux, sessions isolées par cookies et SQL via PDO/MySQLi.
+- Données, structure, schéma relationnel et exemple Campus.
+- Sauvegarde locale, ouverture de dossier compatible et import/export ZIP.
 
-Le ZIP contient le site statique autonome : extraire puis lancer `node serve.mjs` pour un essai local. HTTPS et les en-têtes COOP/COEP sont nécessaires sur un hébergement. Les reçus disponibles et SHA256SUMS accompagnent le paquet. Aucun projet utilisateur ni identifiant FTP n'est inclus.
+## Publication
+- **Commit validé :** `{revision}`
+- **Tests :** Chromium et Firefox dans le workflow de validation.
+- **État :** {publication_status}
+- **Exécution :** https://github.com/{repo}/actions/runs/{run}
 
-Version prototype : les limites PDO/MySQLi/PHP et de l'administration SQL restent documentées dans le dépôt. Après le transfert, le workflow vérifie le domaine HTTPS configuré, le manifeste, l’accueil et les empreintes des modules critiques.
+Le ZIP contient le site statique. Pour tester localement : `node serve.mjs` après extraction. Pour héberger, utiliser HTTPS et les en-têtes COOP/COEP indiqués dans `_headers`.
+
+**Licences :** lire les fichiers `LICENSE.md`, `NOTICE.md`, `THIRD-PARTY-NOTICES.md` et `LICENSES/` du ZIP. Le code original indépendant et le runtime natif ne sont pas placés sous une licence unique. Les sources et empreintes correspondant au runtime doivent accompagner sa redistribution.
+
+Les limites techniques, données sauvegardées dans le navigateur et moyens d'export sont expliqués dans la [documentation du dépôt](https://github.com/{repo}/tree/main/docs).
 ''')
 if existing.returncode!=0:
- command=['gh','release','create',tag,'--repo',repo,'--target',revision,'--draft','--title',tag+' — Prototype fonctionnel PHP/MariaDB et éditeurs WASM','--notes-file',str(notes)]
+ command=['gh','release','create',tag,'--repo',repo,'--target',revision,'--draft','--title',tag+' — ALWIS','--notes-file',str(notes)]
  if '-'in tag:command.append('--prerelease')
  subprocess.run(command,check=True)
 subprocess.run(['gh','release','upload',tag,*map(str,assets),'--repo',repo,'--clobber'],check=True)

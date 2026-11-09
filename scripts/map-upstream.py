@@ -38,7 +38,7 @@ for p,n,why in [
  ('src/engine.mjs','async flush()','Checkpoint InnoDB avant sauvegarde IDBFS ; durabilité à vérifier'),
  ('src/index.mjs','maxQueuedBytes:','Réutiliser validation des limites ; réduire les budgets pour projet scolaire'),
  ('adapters/php-wasm.mjs','createPhpWasmAdapter','Assembler le hostcall natif avec Sean Morris'),
- ('patches/engine/independent-sessions.patch','--innodb-buffer-pool-size=64M','Garder sessions et corrections de yield, réexaminer pool 64 Mio'),
+ ('patches/engine/independent-sessions.patch','--innodb-buffer-pool-size=64M','Référence historique du binaire épinglé : patch Apache-2.0 à ne pas réappliquer au runtime GPLv2'),
  ('native/tests/database-contract.php','<?php','Porter les tests de conformité avant optimisation du transport'),
  ('native/upstream-versions.json','"emscriptenVersion"','Épinglage de compatibilité Sean Morris/PHP/SDK'),
 ]: add(r,t,'adapter ; garder les tests',p,n,why)

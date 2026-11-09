@@ -181,7 +181,7 @@ Trois workflows sont actifs ; aucun ne crée de branche :
 | Publish FTP - validated studio | Manuel, main uniquement | Build validé, release puis transfert FTP du même paquet |
 | Publish verified native distribution | Manuel, main uniquement | Consomme un artefact Actions validé, sans checkout de branche d’upload |
 
-Les contrôles sont définis une seule fois dans `.github/actions/validated-studio/action.yml`. Les actions externes sont épinglées par commit. Les anciennes recettes de témoins et d'archivage des sources sont conservées dans `.github/workflow-templates/`, sans exécution automatique. Elles ne sont pas des contrôles quotidiens du studio custom.
+Les contrôles sont définis une seule fois dans `.github/actions/validated-studio/action.yml`. Les actions externes sont épinglées par commit. Les essais natifs historiques ne font plus partie des workflows actuels ; leurs sources restent dans les anciens commits.
 
 ## Publier une version
 
@@ -208,45 +208,3 @@ Préversion précédente : **[ALWIS v0.3.0-preview.1](https://github.com/Bastian
 Les sources restent uniquement sur `main` ; les builds natifs et applicatifs sont conservés dans les releases, sans branche d’upload. Les modifications documentaires ultérieures ne changent pas la révision du paquet publié.
 
 Préversion historique de la refonte IDE : [v0.2.0-preview.2](https://github.com/Bastian-Noel/ALWIS/releases/tag/v0.2.0-preview.2), source `19b6ee0`, [CI réussie](https://github.com/Bastian-Noel/ALWIS/actions/runs/41337154626), [FTP et release réussis](https://github.com/Bastian-Noel/ALWIS/actions/runs/41337170552). La préversion intermédiaire de ce lot et son tag ont été retirés après validation de la version corrigée.
-
-
-## Accélération CI : artefacts et caches (31 octobre 2026)
-
-> Document historique des témoins amont. Les recettes décrites sont désormais archivées dans `.github/workflow-templates/`. Les workflows actifs et leur rétention sont décrits dans [CI et releases](deployment.md). Les anciens caches amont ont été supprimés ; ils restent reconstructibles.
-
-## Réutiliser des builds existants (priorité absolue)
-
-Le workflow `baseline-measurements.yml` récupère un artefact PHP compilé, par exemple le run natif **41204266390** (3 jobs verts, 30 min 45 s). Les changements du benchmark ne relancent **pas** la compilation native. Le déclenchement `push` lit le plus récent `Native upstream baseline` **réussi** sur `main` ; `workflow_dispatch` accepte un `run_id` explicite. Les mesures restent attribuées au SHA du harness et à l'identifiant du build.
-
-## Caches des reconstructions complètes
-
-Les trois jobs natifs utilisent `actions/cache@v4` avec chemins isolés : `EM_CACHE` pour les bibliothèques Emscripten, `CCACHE_DIR` pour les objets compilés par Clang, et `EM_COMPILER_WRAPPER=ccache` conformément au mécanisme officiel d'Emscripten. `actions/setup-node` met en cache les téléchargements npm selon le `package-lock.json` de chaque amont. Le répertoire `node_modules` n'est pas réutilisé et `npm ci` reste exécuté.
-
-Les clés intègrent `ubuntu`, la famille MariaDB (`original-compat` / `bridge`) ou PHP 8.4, Emscripten 6.0.6 et les empreintes des versions verrouillées / du patch de compatibilité. Cela évite de confondre deux ABI ou deux historiques différents. `CCACHE_COMPILERCHECK=content` vérifie le compilateur ; les caches manquants déclenchent des builds normaux. La limitation à **600 Mio d'objets ccache par job** borne l'espace hors caches de bibliothèques d'Emscripten.
-
-**Attention :** le premier build sous cette configuration amorce les caches ; l'exactitude et le nombre de hits se vérifient sur le *deuxième* build natif, dans les étapes `Report ... compiler cache usage`. Un cache peut expirer, être évincé ou ne pas être réutilisable ; le workflow ne présume jamais qu'un cache vaut une preuve de compilation ni que le temps est diminué. Le cache Emscripten ne remplace ni le SDK 6.0.6 installé sur le runner ni l'exécution des tests.
-
-La rétention des artefacts natifs et des rapports de mesure est configurée sur **90 jours**, indépendamment du cycle de vie des caches. Un run manuel du workflow natif est nécessaire pour mesurer le gain de cache sans changer le code source.
-
-## Commandes de vérification
-
-- GitHub Actions `Native upstream baseline` : inspecter `Restore versioned ... compiler caches` et `Report ... cache usage`.
-- GitHub Actions `Measure compiled upstream baseline` : inspecter `Reuse latest successful native build without recompiling`, `build-run.txt`, `harness-commit.txt`, `chromium.json` et `firefox.json`.
-- Comparer durée et hit-rate seulement à caractéristiques matérielles, versions et scénarios identiques. Les builds simultanés des trois jobs ne s'additionnent pas pour le temps de CI total.
-
-
-## Distribution technique native
-
-`config/native-runtime.json` épingle le tag, le SHA-256 du manifeste et la relocalisation vérifiée du chemin de recette. Le script de restauration vérifie le manifeste, chaque source native et chaque binaire (taille et SHA-256). Aucun téléchargement « latest ». Le dépôt privé exige GitHub CLI authentifié ; en CI, GH_TOKEN est le jeton du job.
-
-Pour une nouvelle distribution : reconstruire avec `engine/native/build/build.sh`, exécuter les suites natives et navigateur, produire artifact.json (sourceRevision, sourceFiles avec SHA-256, files avec tailles et SHA-256 et références de validation), conserver ces fichiers dans un commit temporaire de distribution. Créer un nouveau tag/release technique, actualiser le verrou, puis lancer « Publish verified native distribution » avec le SHA complet du commit d’artefacts. Le workflow vérifie et publie les fichiers sans écraser un fichier existant. Restaurer la nouvelle release sur un environnement vide puis valider la CI avant de supprimer la branche temporaire. Le tag et les fichiers déjà publiés ne sont jamais déplacés.
-
-Les ZIP du studio, la release native, l’archive des sources et les caches CI ont des rôles distincts. Les caches ne sont pas des sauvegardes. Les reçus historiques restent attachés à leurs révisions.
-
-## Versions du site et mises à jour complètes
-
-Le paquet expose la version et le SHA en bas de page. Les modules, styles, workers et WASM utilisent le même préfixe de build ; les importations absolues internes sont réécrites à l’assemblage et les empreintes portent sur les fichiers réellement livrés. `release.json` est publié après tous les fichiers et consulté sans cache à l’ouverture, au retour dans l’onglet et chaque minute.
-
-Une nouvelle version fait apparaître **Mettre à jour**. Le bouton conserve les brouillons de l’atelier, sauvegarde les fichiers appliqués et SQL, ferme le propriétaire et recharge l’accueil du nouveau build. Les espaces de stockage des projets ne sont ni effacés ni assimilés aux caches de l’application. Les anciennes adresses d’assets restent présentes pour les onglets déjà ouverts ; elles consomment de l’espace d’hébergement tant qu’elles sont conservées. Le test `site-updates.mjs` exerce une vraie bascule entre deux arbres d’assets dans Chromium et Firefox, puis rouvre le projet et distingue le brouillon du PHP appliqué.
-
-La recette native accepte désormais uniquement un `artifact_run` numérique, issu d’une exécution réussie sur `main`, contenant `native-distribution`. Aucune référence Git d’upload, aucun commit orphelin et aucune branche `native-stability` ne sont nécessaires. Les futures compilations natives doivent conserver leurs binaires comme artefacts Actions puis releases, pas dans une branche technique.

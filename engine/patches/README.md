@@ -13,7 +13,7 @@ encore passé la recompilation WASM ni les tests de stabilité en navigateur.
 Pour réaliser une reconstruction expérimentale, préparer d'abord les sources
 exactes propres et les outils Emscripten 6.0.6, puis utiliser :
 ```sh
-PBL_INDEPENDENT_NATIVE=1 PBL_TARGET=pbl-runtime JOBS=3 bash engine/native/build/build.sh
+PBL_TARGET=pbl-runtime JOBS=3 bash scripts/build-independent-native.sh
 ```
 
 Ne pas activer ce candidat en production, remplacer les archives natives ou

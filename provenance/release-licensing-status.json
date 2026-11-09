@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
   "status": "blocked",
-  "asOf": "2026-11-08",
+  "asOf": "2026-11-09",
   "blockers": [
     {
       "id": "apache2-mariadb-patch",
-      "summary": "The Apache-2.0 independent-sessions patch is applied to GPLv2 MariaDB source; compatible permission or a replacement is required before distributing the combined runtime."
+      "summary": "The currently pinned/distributed native binary still contains the legacy Apache-2.0 sessions patch incorporated into GPLv2 MariaDB. The ALWIS replacement candidate has not yet been rebuilt and validated and has not cleared the legal review."
     },
     {
       "id": "native-sbom-and-source",

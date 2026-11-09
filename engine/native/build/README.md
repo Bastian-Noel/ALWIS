@@ -27,7 +27,7 @@ Les chemins par défaut sont vérifiés par build.sh. Réutiliser les objets pr�
 
 ## Candidat de remplacement du patch de sessions tiers (non validé)
 
-Le mode `PBL_INDEPENDENT_NATIVE=1` ajoute les adaptations ALWIS de
+Le script `scripts/build-independent-native.sh` ajoute les adaptations ALWIS de
 synchronisation Emscripten et de portabilité C **à une source MariaDB propre**
 dans `build-work/`. Il rejette la présence des API `l4m_session_*`
 issues du patch historique et exige les SHA-256 du commit source épinglé.

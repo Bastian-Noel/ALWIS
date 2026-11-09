@@ -4,6 +4,7 @@ This directory contains license texts and notices that may apply to components d
 
 | File | Component / use |
 |---|---|
+| `PolyForm-Noncommercial-1.0.0.txt` | Code original ALWIS indépendant explicitement identifié dans `LICENSE.md`; attribution `Required Notice:` obligatoire. Ne s'applique pas au runtime combiné GPLv2. |
 | `GPL-2.0-only.txt` | MariaDB Community Server component in `pbl-runtime.wasm`; applicable only to the covered work and subject to its complete corresponding source obligations. |
 | `LGPL-2.1-or-later.txt` | MariaDB Connector/C if present in the exact linked/distributed build; confirm against the pinned source and native link manifest. |
 | `PHP-License-v4.txt` | PHP 8.4.27, for which ALWIS elects the subsequent PHP License v4 under the PHP Group’s published terms; per-file exceptions still apply. |
@@ -12,4 +13,4 @@ This directory contains license texts and notices that may apply to components d
 
 The editor build generates `apps/studio/editor/dist/THIRD-PARTY.txt` from the locked npm dependencies and PHPantom/SuperHTML notices. ALWIS packaging carries that file separately. Do not treat it as a complete native-runtime SBOM.
 
-The ALWIS original-source non-commercial license and its scope have **not** been activated. The combined runtime’s GPL obligations and the Apache-2.0 patch conflict must be resolved before licensing that combined work. See `provenance/component-license-map.md`.
+ALWIS independently licensed original components are scoped under PolyForm in `LICENSE.md`; original documentation text is CC BY-NC-SA 4.0. This does not relicense the combined GPLv2 native runtime or clear its release blockers. See `provenance/component-license-map.md`.

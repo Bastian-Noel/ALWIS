@@ -14,7 +14,7 @@ Outils : actif, en veille, déchargé puis restauré. Mesurer mémoire récupér
 
 ## Déclenchement et preuve
 
-Le [workflow de mesures](../.github/workflow-templates/baseline-measurements.yml) est une recette historique inactive, à copier explicitement dans workflows/ avant utilisation. Il était lancé après chaque exécution native terminée avec statut `success` **ou `failure`** ; l'échec d'un job MariaDB original ne masque donc plus un artifact PHP réussi. Un lancement manuel peut fournir un `run_id` natif. Le workflow exige explicitement l'artifact `baseline-php-8.4` : absent, il échoue (il ne déclare pas de mesures imaginaires).
+Les anciens workflows de mesures ont été retirés du répertoire actif ; les résultats historiques restent dans les reçus Git et les anciens commits. Pour refaire une mesure, utiliser les scripts actuels décrits ici.
 
 Le harness `baseline-browser.mjs` s'exécute contre la compilation JoomEngine et son **bridge épinglé 0.1.1**, pas contre la variante bridge 0.1.8. Chaque fichier `chromium.json` / `firefox.json` contient versions, empreintes, mesures individuelles, validation des réponses et persistance ou erreur explicite. Les artefacts CI ont une rétention de 90 jours : un résultat durable doit ensuite être intégré au dépôt avec son contexte, sans modifier les données brutes.
 
@@ -45,7 +45,7 @@ BASELINE_ISOLATION=warm BENCHMARK_OUTPUT=/chemin/resultats-warm node /chemin/WAS
 
 Utiliser des répertoires de résultats distincts. Le schéma JSON v2 indique le mode d'isolation et les capacités non vérifiées (mémoire linéaire, crash recovery, console/PDO simultanés). Les empreintes du banc principal seules ne couvrent pas ses helpers ; conserver également le commit du harness fourni par la CI.
 
-**Validation :** les tests du helper valident uniquement orchestration/fermeture/propagation des erreurs ; le nouveau banc PHP/MariaDB n'a pas été exécuté ici, faute d'accès aux artefacts et au SDK. Voir [le receipt de reprise](REPRISE-2026-10-31.md).
+**Validation :** les tests du helper valident uniquement orchestration/fermeture/propagation des erreurs ; le nouveau banc PHP/MariaDB n'a pas été exécuté ici, faute d'accès aux artefacts et au SDK.
 
 ## Diagnostic linéaire et interruption
 

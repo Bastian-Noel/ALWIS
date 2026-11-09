@@ -47,8 +47,8 @@ La RAM dépend du navigateur, du projet et des outils ouverts. La mémoire affic
 - [Extensions PHP et tests](../engine/fusion/PHP-ESSENTIALS-RECEIPT.md)
 - [Fonctions MySQLi et limites](../engine/fusion/MYSQLI-106-RECEIPT.md)
 - [Fonctionnement de l’éditeur](../apps/studio/editor/README.md)
-- [Notes historiques de compatibilité](reference-compatibility.md)
-- [Notes techniques historiques du studio](reference-studio.md)
+- [Architecture et limites du runtime](architecture.md)
+- [Collaboration et limites de l’aperçu invité](collaboration.md)
 
 Les tests automatisés ne remplacent pas une validation manuelle complète avec un lecteur d’écran.
 

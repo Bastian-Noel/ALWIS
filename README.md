@@ -9,7 +9,7 @@ Tout dans le navigateur, avec un éditeur et une base MariaDB.
 [![Validation](https://github.com/Bastian-Noel/ALWIS/actions/workflows/check.yml/badge.svg)](https://github.com/Bastian-Noel/ALWIS/actions/workflows/check.yml)
 [![Préversion](https://img.shields.io/badge/statut-pr%C3%A9version-9a6700)](https://github.com/Bastian-Noel/ALWIS/releases)
 
-[Wiki](https://github.com/Bastian-Noel/ALWIS/wiki) · [Premiers pas](https://github.com/Bastian-Noel/ALWIS/wiki/Premiers-pas) · [Guide illustré](https://github.com/Bastian-Noel/ALWIS/wiki/Premiers-pas) · [Exemple Campus](https://github.com/Bastian-Noel/ALWIS/wiki/Campus) · [Image Docker](https://github.com/Bastian-Noel/ALWIS/wiki/Serveur-Docker)
+[Premiers pas](docs/README.md) · [Architecture](docs/architecture.md) · [Collaboration](docs/collaboration.md) · [Exemple Campus](docs/school-example.md) · [Wiki](https://github.com/Bastian-Noel/ALWIS/wiki)
 
 </div>
 
@@ -32,7 +32,7 @@ Tout dans le navigateur, avec un éditeur et une base MariaDB.
 > Aucune installation de PHP ou de MariaDB n’est nécessaire.
 > Le [guide illustré](https://github.com/Bastian-Noel/ALWIS/wiki/Premiers-pas) vous accompagne ensuite.
 
-Pour héberger ALWIS sur votre propre serveur, choisissez la [distribution Docker](https://github.com/Bastian-Noel/ALWIS/wiki/Serveur-Docker). Elle est publiée après le build statique et a une page de configuration protégée.
+Pour héberger l’édition serveur, voir [Docker et sa configuration](docs/server-deployment.md). **Les nouvelles publications restent bloquées tant que l’audit de licences du runtime n’est pas terminé.** Les anciennes versions disponibles ne doivent pas être prises comme preuve de conformité.
 
 ## Où aller ?
 
@@ -65,7 +65,7 @@ Pour héberger ALWIS sur votre propre serveur, choisissez la [distribution Docke
 [Architecture](https://github.com/Bastian-Noel/ALWIS/wiki/Architecture) · [Performance](https://github.com/Bastian-Noel/ALWIS/wiki/Performance) · [Hébergement](https://github.com/Bastian-Noel/ALWIS/wiki/Publication)
 
 ALWIS utilise notamment PHP, MariaDB, CodeMirror, PHPantom, SuperHTML, TypeScript, SWC et Emmet.
-Les licences et la provenance se vérifient dans [`provenance/`](provenance/), ainsi que dans les notices livrées avec chaque paquet.
+Les licences sont distinctes : **PolyForm Noncommercial** pour les contributions web originales indépendantes identifiées, **CC BY-NC-SA** pour la documentation originale, et **GPLv2 / licences tierces** pour les parties natives et les dépendances. La mention obligatoire d’attribution figure dans [NOTICE.md](NOTICE.md).
 Le [registre des licences](LICENSE.md), les [notices tierces](THIRD-PARTY-NOTICES.md), l’[audit](provenance/licensing-decision.md) et la [cartographie par composant](provenance/component-license-map.md) détaillent les licences et les limites d’une restriction non commerciale globale.
 
 </details>

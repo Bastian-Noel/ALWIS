@@ -2,13 +2,17 @@
 
 This notice summarizes known components. It is intentionally not a claim that the current inventory is exhaustive. The build-specific `release.json`, editor `THIRD-PARTY.txt`, native source manifest, and exact pinned source archives must be reviewed together for a complete release.
 
+## Original ALWIS code and documentation
+
+Original independent code may be subject to PolyForm Noncommercial 1.0.0 with the `Required Notice:` in `NOTICE.md`; original documentation is CC BY-NC-SA 4.0. These terms do not change the permissions of any third-party component, and the combined binary is not represented as noncommercial. See `LICENSE.md`.
+
 ## Native runtime
 
 - **PHP 8.4.27** — official PHP source; the source archive carries PHP License 3.01. For this distribution, ALWIS elects PHP License v4 for code covered by the PHP Group’s later-version clause. See [`LICENSES/PHP-License-v4.txt`](LICENSES/PHP-License-v4.txt). Per-file exceptions and the Zend Engine terms must be checked against the exact source files compiled.
 - **MariaDB Server** — GPL version 2; see [`LICENSES/GPL-2.0-only.txt`](LICENSES/GPL-2.0-only.txt). The exact corresponding source, modifications, build recipe and source access must accompany the binary distribution.
 - **wolfSSL** — its pinned `LICENSING` notice offers GPLv3 with an exception to elect GPLv2 when combined with MariaDB Server. ALWIS elects that GPLv2 option for this combination; preserve [`LICENSES/wolfSSL-LICENSING.txt`](LICENSES/wolfSSL-LICENSING.txt).
 - **MariaDB Connector/C** — source lock records the pinned submodule; the applicable license and whether it is present in the exact final binary must be checked from the pinned source and link manifest. The LGPL-2.1 text is included at [`LICENSES/LGPL-2.1-or-later.txt`](LICENSES/LGPL-2.1-or-later.txt) where applicable.
-- **JoomEngine MariaDB WASM bridge** — pinned source repository declares Apache-2.0. Its `patches/engine/independent-sessions.patch` is applied to MariaDB in the native build. Apache-2.0 is not compatible with GPLv2 for code incorporated in a combined work. **Distribution of the combined runtime is blocked until the exact rights are clarified, compatible permission is obtained, or the patch is replaced.** See [`LICENSES/Apache-2.0.txt`](LICENSES/Apache-2.0.txt) and the [pinned patch](https://github.com/joomengine/mariadb-wasm-bridge/blob/56d47b4dc867af313592efa09e12df470a36e129/patches/engine/independent-sessions.patch).
+- **JoomEngine MariaDB WASM bridge** — pinned source repository declares Apache-2.0. Its `patches/engine/independent-sessions.patch` was applied in the **historical native binary currently pinned**. A separate ALWIS adapter candidate does not yet replace that binary. Apache-2.0 is not compatible with GPLv2 for code incorporated in a combined work. **Distribution remains blocked until the exact binary is replaced and validated or compatible permission is obtained.** See [`LICENSES/Apache-2.0.txt`](LICENSES/Apache-2.0.txt) and the [pinned patch](https://github.com/joomengine/mariadb-wasm-bridge/blob/56d47b4dc867af313592efa09e12df470a36e129/patches/engine/independent-sessions.patch).
 
 ## Editor and browser assets
 

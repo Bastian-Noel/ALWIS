@@ -344,7 +344,7 @@
     "action": "adapter ; garder les tests",
     "path": "patches/engine/independent-sessions.patch",
     "needle": "--innodb-buffer-pool-size=64M",
-    "purpose": "Garder sessions et corrections de yield, réexaminer pool 64 Mio",
+    "purpose": "Référence historique du binaire épinglé : patch Apache-2.0 à ne pas réappliquer au runtime GPLv2",
     "commit": "56d47b4dc867af313592efa09e12df470a36e129",
     "line": 107,
     "file_sha256": "f4254649a4d09b749bc50a1f334f6c05b249243200dd207ec1af175f2a556d4b",

@@ -36,4 +36,4 @@ Important: a green CI means the code passed tests, not that redistribution right
 - FTP error: check deployment verification and retained previous-site artifact.
 - Docker error: check source SHA, static checksums and GHCR permissions.
 
-The .github/workflow-templates/ directory holds non-executing historical templates.
+Historical, non-executing workflow templates were removed from the current tree; see Git history if needed.
