@@ -16,7 +16,7 @@ async function walk(url, prefix = "") {
     if (entry.isDirectory()) await walk(source, path + "/");
     else if (/\.(png|jpe?g)$/i.test(path))
       binary[path] = (await readFile(source)).toString("base64");
-    else files[path] = await readFile(source, "utf8");
+    else files[path] = (await readFile(source, "utf8")).replace(/\r\n?/g, "\n");
   }
 }
 await walk(root);
