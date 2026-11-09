@@ -20,6 +20,9 @@ try {
       page.setDefaultTimeout(30000);
       const errors = [];
       page.on("pageerror", (e) => errors.push(e.message));
+      page.on("response", (r) => {
+        if (r.status() >= 400) errors.push(`${r.status()} ${r.url()}`);
+      });
       page.on("console", (m) => {
         if (m.type() === "error") errors.push(m.text());
       });
