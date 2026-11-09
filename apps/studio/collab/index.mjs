@@ -5,6 +5,7 @@ import { Emitter } from "./transport.mjs";
 import { S } from "../workbench/state.mjs";
 
 class CollabHub extends Emitter {
+  following = null; // peer id we are following continuously
   session = null;
   ui = null;
   config = null;
@@ -24,7 +25,8 @@ function newSession(config) {
   session.on("message", (m) => collab.emit("message", m));
   session.on("roster", (r) => collab.emit("roster", r));
   session.on("link", (l) => collab.emit("link", l));
-  session.on("peer-down", (p) => collab.emit("peer-down", p));
+  session.on("peer-down", (p) => { if (collab.following === p.id) { collab.following = null; collab.ui.refresh(); } collab.emit("peer-down", p); });
+  session.on("status", (s) => { if (s === "closed") collab.following = null; });
   return session;
 }
 
@@ -43,6 +45,12 @@ export async function initCollab() {
     },
     onLeave: () => { collab.session?.leave(); collab.ui.toggle(false); },
     onFollow: (id) => collab.emit("follow", id),
+    getFollowing: () => collab.following,
+    onFollowToggle: (id) => {
+      collab.following = collab.following === id ? null : id;
+      if (collab.following) collab.emit("follow", id);
+      collab.ui.refresh();
+    },
     onKick: (id) => collab.session?.kick(id),
     onLock: (v) => collab.session?.setLocked(v),
   });

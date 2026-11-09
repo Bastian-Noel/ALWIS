@@ -25,7 +25,18 @@ export function installWiring(collab) {
     const p = collab.session?.peer(id);
     return { id, name: p?.name ?? "Invité", variant: p?.variant ?? 0, state: p?.state ?? "online", css: cssVars(p?.name ?? "Invité", p?.variant ?? 0) };
   };
-  const ctxState = () => ({ view: S.view, dmode: S.dmode, table: S.view === "schema" ? (S.schemaSel ?? S.table) : S.table, db: S.db, active: S.active, pv: S.pv, pvPath: S.pvPath, pan: S.pan, zoom: S.zoom });
+  const ctxState = () => ({ view: S.view, dmode: S.dmode, table: S.view === "schema" ? (S.schemaSel ?? S.table) : S.table, db: S.db, active: S.active, pv: S.pv, pvPath: S.pvPath, pan: S.pan, zoom: S.zoom, cw: document.querySelector("#canvas")?.clientWidth ?? 0, ch: document.querySelector("#canvas")?.clientHeight ?? 0 });
+  /** Shared schema viewport: same world point at the centre of the canvas for everybody. */
+  const applyViewport = guard(({ cx, cy, zoom }) => {
+    const box = document.querySelector("#canvas");
+    if (!box || !box.clientWidth || !Number.isFinite(cx) || !Number.isFinite(zoom)) return;
+    S.zoom = Math.max(0.4, Math.min(1.6, zoom));
+    S.pan = [box.clientWidth / 2 - cx * S.zoom, box.clientHeight / 2 - cy * S.zoom];
+    document.querySelector("#layer")?.setAttribute("transform", `translate(${S.pan[0]} ${S.pan[1]}) scale(${S.zoom})`);
+    const label = document.querySelector("#zl");
+    if (label) label.textContent = Math.round(S.zoom * 100) + " %";
+  });
+  const onPeerView = (id) => { if (collab.following === id) collab.emit("follow", id, { quiet: true }); };
   const sessionSend = (to, m, o) => collab.session?.send(to, m, o);
 
   /* ---------- editors ---------- */
@@ -112,11 +123,10 @@ export function installWiring(collab) {
     });
     const focus = new FocusLayer({
       send: (m, o) => session.broadcast({ ...m, from: "h" }, o),
-      peer: peerInfo, getCtx: ctxState,
-      onClick: guard((_from, m) => replayClick(m)),
+      peer: peerInfo, getCtx: ctxState, onViewport: applyViewport, onPeerView,
     });
     focus.start();
-    const pvWatch = watchPreview({ container: () => document.querySelector("#pvFrames"), send: (m) => session.broadcast({ ...m, info: S.pvInfo[S.pvSessions?.[0]] ?? null, path: S.pvPath }) });
+    const pvWatch = watchPreview({ container: () => document.querySelector("#pvFrames"), send: (m, o) => session.broadcast({ ...m, info: S.pvInfo[S.pvSessions?.[0]] ?? null, path: S.pvPath }, o) });
     const unwrapQ = wrapQueries((m) => { session.broadcast({ ...m, from: "h" }); });
     let changedTimer;
     const offChanged = ctx.engine.on("changed", (c) => {
@@ -128,7 +138,8 @@ export function installWiring(collab) {
     });
     const onMessage = guard(({ from, msg }) => {
       switch (msg.t) {
-        case "hello": pvWatch.resend(); return send(from, { t: "welcome", project: S.project, db: S.db, host: session.me.name });
+        case "hello": pvWatch.resend(); focus.announce(true); send(from, { t: "welcome", project: S.project, db: S.db, host: session.me.name }); return send(from, { t: "focus-state", ...focus.snapshot(from) });
+        case "focus-req": return send(from, { t: "focus-state", ...focus.snapshot(from) });
         case "rpc": return rpc.handle(from, msg);
         case "open": case "ops": case "sync": case "close-doc": return docs.handle(from, msg);
         case "aware": return docs.handle(from, msg);
@@ -136,7 +147,7 @@ export function installWiring(collab) {
         case "focus":
           focus.receive(from, msg);
           if (msg.k === "view" && msg.pv) pvWatch.resend();
-          for (const id of session.links.keys()) if (id !== from) send(id, { ...msg, from }, { droppable: true });
+          for (const id of session.links.keys()) if (id !== from) send(id, { ...msg, from }, { droppable: true, key: `focus:${from}:${msg.k}` });
           return;
         case "preview-event":
           if (replayPreview(msg)) pvWatch.resend();
@@ -170,7 +181,7 @@ export function installWiring(collab) {
     const rpc = new RpcGuest({ send, onBusy: (n) => document.documentElement.toggleAttribute("data-collab-busy", n > 0) });
     const restoreEngine = installGuestEngine(ctx.engine, rpc);
     const docs = new DocGuest({ lib, send, peer: peerInfo, editorFor, myId: () => session.me.id, onHeadless: headless, onDesync: (p) => log("w", `Resynchronisation de ${p}`) });
-    const focus = new FocusLayer({ send: (m, o) => send(m, o), peer: peerInfo, getCtx: ctxState, onPreview: (m) => send({ t: "preview-event", ...m }, { droppable: true }) });
+    const focus = new FocusLayer({ send: (m, o) => send(m, o), peer: peerInfo, getCtx: ctxState, onViewport: applyViewport, onPeerView, onPreview: (m) => send({ t: "preview-event", ...m }) });
     const mirror = createMirror({ container: () => document.querySelector("#pvFrames") });
     const sessionsFrame = ctx.engine.sessions?.frame;
     const sessionsList = ctx.engine.sessions?.list;
@@ -217,6 +228,7 @@ export function installWiring(collab) {
       const first = S.files.find((f) => f.path === "/index.php") ?? S.files.find((f) => f.kind === "text");
       if (first) await A.openFile(first.path).catch(() => {});
       focus.start();
+      send({ t: "focus-req" });
       bindAll();
     });
 
@@ -232,6 +244,7 @@ export function installWiring(collab) {
         case "file": case "file-error": case "ops": case "resync": case "caught-up": case "aware": return docs.handle(msg);
         case "qres": return receiveQuery(msg.from ?? from, msg);
         case "focus": return focus.receive(msg.from ?? from, msg);
+        case "focus-state": return focus.applySnapshot(msg, "h", session.me?.id);
         case "changed":
           ctx.engine.emit("changed", { kind: msg.kind, path: msg.path });
           if (msg.kind === "files" || !msg.kind) refreshFiles().then(() => redrawSoon()).catch(() => {});
@@ -265,7 +278,7 @@ export function installWiring(collab) {
       focus,
       local: (path, changes) => docs.local(path, changes),
       cursor: (path, a, h) => docs.cursor(path, a, h),
-      reconnect() { hello(); rpc.replay(); docs.catchUpAll(); },
+      reconnect() { hello(); send({ t: "focus-req" }); rpc.replay(); docs.catchUpAll(); mirror.reapply(); },
       stop: leaveGuest,
     };
   }
@@ -275,36 +288,47 @@ export function installWiring(collab) {
     else startGuest();
   });
   collab.on("status", (s) => { if (s === "closed" && run?.role === "host") { run.stop(); run = null; unbindAll(); } });
-  collab.on("follow", guard(async (id) => {
-    const st = run?.focus?.remote.get(id);
-    if (!st) return;
-    if (st.db && st.db !== S.db) await A.selectDb(st.db);
-    if ((st.view === "code" && st.pv) || st.view === "preview") {
-      S.view = "code";
-      S.pv = true;
-      if (st.pvPath) S.pvPath = st.pvPath;
-      else if (st.active) S.pvPath = st.active;
-      ctx.draw?.();
-      await A.pvReload?.();
-      return;
-    }
-    S.pv = false;
-    if (st.view === "data" || st.view === "schema") {
-      if (st.view === "schema") await A.nav("schema");
-      if (st.view === "data" && st.table && st.table !== S.table) await A.selectTable(st.table);
-      if (st.view === "schema") {
-        S.schemaSel = st.table || null;
-        if (Array.isArray(st.pan)) { S.pan = [...st.pan]; S.zoom = Number(st.zoom) || 1; }
+  let following = false; // re-entrancy guard: our own navigation must not trigger another follow
+  collab.on("follow", guard(async (id, opts = {}) => {
+    if (following || !run) return;
+    following = true;
+    try {
+      let st = run.focus?.remote.get(id);
+      if (!st?.view && run.role === "guest") { // we never heard from them: ask the host for the full picture
+        collab.session.send("h", { t: "focus-req" });
+        await new Promise((r) => setTimeout(r, 450));
+        st = run.focus?.remote.get(id);
       }
-      S.view = st.view;
-      S.dmode = st.dmode || S.dmode;
-      if (st.view === "data") await A.refreshData?.();
+      if (!st?.view) { if (!opts.quiet) log("w", `${peerInfo(id).name} n’a pas encore indiqué où il se trouve.`); return; }
+      if (st.db && st.db !== S.db) await A.selectDb(st.db);
+      if ((st.view === "code" && st.pv) || st.view === "preview") {
+        S.view = "code";
+        S.pv = true;
+        if (st.pvPath) S.pvPath = st.pvPath;
+        else if (st.active) S.pvPath = st.active;
+        ctx.draw?.();
+        await A.pvReload?.();
+        return;
+      }
+      S.pv = false;
+      if (st.view === "data" || st.view === "schema") {
+        if (st.view === "schema") await A.nav("schema");
+        if (st.view === "data" && st.table && st.table !== S.table) await A.selectTable(st.table);
+        if (st.view === "schema") {
+          S.schemaSel = st.table || null;
+          if (st.viewport) applyViewport(st.viewport);
+          else if (Array.isArray(st.pan)) { S.pan = [...st.pan]; S.zoom = Number(st.zoom) || 1; }
+        }
+        S.view = st.view;
+        S.dmode = st.dmode || S.dmode;
+        if (st.view === "data") await A.refreshData?.();
+        ctx.draw?.();
+        return;
+      }
+      const path = st.file || st.active;
+      if (path && S.files?.some((f) => f.path === path) && S.active !== path) await A.openFile(path);
+      S.view = st.view || "code";
       ctx.draw?.();
-      return;
-    }
-    if (st.file && S.files?.some((f) => f.path === st.file)) await A.openFile(st.file);
-    else if (st.active && S.files?.some((f) => f.path === st.active)) await A.openFile(st.active);
-    S.view = st.view || "code";
-    ctx.draw?.();
+    } finally { following = false; }
   }));
 }

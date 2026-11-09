@@ -1,0 +1,16 @@
+exec(open('/tmp/t12.py').read().split("with sync_playwright")[0])
+with sync_playwright() as p:
+    b = p.chromium.launch(); ctx = b.new_context(viewport={'width':1280,'height':720})
+    h, g = both(ctx); g.wait_for_timeout(500)
+    go(h,'data','users','struct'); go(g,'data','users','struct'); g.wait_for_timeout(800)
+    g.query_selector('button:has-text("Ajouter une colonne")').click(); g.wait_for_timeout(400)
+    g.keyboard.type('biographie', delay=40); g.select_option('#column-type', 'TEXT'); g.wait_for_timeout(500)
+    print('host new-column line:', h.evaluate("[...document.querySelectorAll('tr.cb-ncol')].map(e=>e.innerText)"))
+    h.screenshot(path='/tmp/g_host_ncol.png')
+    g.keyboard.press('Escape'); g.wait_for_timeout(600)
+    print('after cancel:', h.evaluate("document.querySelectorAll('tr.cb-ncol').length"))
+    # structure row highlight
+    g.click('tr[data-col="email"] td'); g.wait_for_timeout(400)
+    print('host row highlight:', h.evaluate("[...document.querySelectorAll('tr[data-cb-focus]')].map(e=>e.dataset.cbName+':'+e.dataset.col)"))
+    print('errors', h.errors[:3], g.errors[:3])
+    b.close()

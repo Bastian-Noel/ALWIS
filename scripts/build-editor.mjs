@@ -3,8 +3,7 @@ import {execFileSync} from 'node:child_process';
 import {build} from 'esbuild';
 import {mkdir,copyFile,writeFile,readFile,readdir} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
-const python=process.env.PYTHON||(process.platform==='win32'?'python':'python3');
-execFileSync(python,['scripts/fetch-editor-engines.py'],{stdio:'inherit'});
+execFileSync(process.env.PYTHON??(process.platform==='win32'?'C:/ProgramData/miniforge3/python.exe':'python3'),['scripts/fetch-editor-engines.py'],{stdio:'inherit'});
 const out='apps/studio/editor/dist';await mkdir(out,{recursive:true});
 // The PHP standalone plugin imports Node helpers only for Composer discovery.
 // Browser formatting fixes phpVersion explicitly and never reads the host filesystem.

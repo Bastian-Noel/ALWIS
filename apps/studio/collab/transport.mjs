@@ -114,11 +114,12 @@ export class Signaling extends Emitter {
 
 /** A logical link between this browser and one remote peer. */
 export class PeerLink extends Emitter {
-  constructor({ signaling, remoteId, initiator, gen = null, iceServers = [], p2pTimeoutMs = 4500, RTC = globalThis.RTCPeerConnection }) {
+  constructor({ signaling, remoteId, initiator, gen = null, iceServers = [], p2pTimeoutMs = 3500, RTC = globalThis.RTCPeerConnection }) {
     super();
     this.sig = signaling;
     this.remote = remoteId;
     this.gen = gen;
+    this.initiator = initiator;
     this.iceServers = iceServers;
     this.RTC = RTC;
     this.mode = "relay"; // "p2p" | "relay"
@@ -206,32 +207,46 @@ export class PeerLink extends Emitter {
     setTimeout(() => this.#drain(), retryMs + 5);
     this.emit("throttle", retryMs);
   }
-  send(obj, { droppable = false } = {}) {
+  /**
+   * Priority rules on the relay (budgeted by the server):
+   *  - `key`: latest wins (cursors, pointer, viewport never pile up while throttled)
+   *  - `group`: bulk transfer (file chunks, preview snapshot); a newer group id replaces older queued chunks
+   *  - everything else keeps its order and goes before bulk data
+   */
+  send(obj, { droppable = false, key = null, group = null } = {}) {
     if (this.closed) return false;
     if (this.mode === "p2p" && this.dc?.readyState === "open") {
-      if (this.dc.bufferedAmount > 1_000_000) { if (droppable) return false; }
+      if (this.dc.bufferedAmount > (group ? 400_000 : 1_000_000) && (droppable || group || key)) return false;
       const text = JSON.stringify(obj);
       this.stats.p2pBytes += text.length;
       this.dc.send(text);
       return true;
     }
-    if (droppable && (Date.now() < this.throttledUntil || this.outbox.length > 50)) return false;
-    this.outbox.push(obj);
+    if (droppable && Date.now() < this.throttledUntil && !key) return false;
+    const entry = { o: obj, key, group };
+    if (key) {
+      const i = this.outbox.findIndex((e) => e.key === key);
+      if (i >= 0) { this.outbox[i] = entry; this.#drain(); return true; }
+    }
+    if (group) this.outbox = this.outbox.filter((e) => !(e.group === group && e.o.id !== obj.id));
+    if (this.outbox.length > 400) this.outbox = this.outbox.filter((e) => !e.key && !e.group).slice(-200);
+    this.outbox.push(entry);
     this.#drain();
     return true;
   }
   #drain() {
     if (this.closed) return;
     if (this.mode === "p2p" && this.dc?.readyState === "open") {
-      for (const o of this.outbox.splice(0)) this.send(o);
+      for (const e of this.outbox.splice(0)) this.send(e.o, { key: e.key, group: e.group });
       return;
     }
     if (this.negotiating) return; // P2P negotiating: hold briefly (bounded by p2pTimeoutMs)
     if (Date.now() < this.throttledUntil) return;
     while (this.outbox.length) {
-      const o = this.outbox[0];
-      if (!this.sig.send({ t: "relay", to: this.remote, d: o })) return; // offline: keep for after resume
-      this.outbox.shift();
+      let i = this.outbox.findIndex((e) => !e.group); // interactive traffic first, bulk after
+      if (i < 0) i = 0;
+      if (!this.sig.send({ t: "relay", to: this.remote, d: this.outbox[i].o })) return; // offline: keep for after resume
+      this.outbox.splice(i, 1);
       this.stats.relayBytes += 100;
     }
   }

@@ -7,50 +7,65 @@ const SVGNS = "http://www.w3.org/2000/svg";
 const esc = (v) => (globalThis.CSS?.escape ? CSS.escape(String(v)) : String(v).replace(/["\\]/g, "\\$&"));
 const q = (sel, root = document) => root.querySelector(sel);
 const qa = (sel, root = document) => [...root.querySelectorAll(sel)];
+const POINTER_TTL = 6000; // a pointer that has not moved for this long is hidden
+const KEYED = new Set(["mouse", "viewport", "rubber", "cell", "ghost", "ncol", "view"]);
 
 export class FocusLayer {
-  /** getCtx(): { view, dmode, table, active } read from the workbench state. */
-  constructor({ send, peer, getCtx, onClick, onPreview }) {
-    Object.assign(this, { send, peer, getCtx, onClick, onPreview });
-    this.remote = new Map(); // peerId -> { view, table, file, cell, col, ghost, mouse, rubber, at }
+  /**
+   * getCtx(): { view, dmode, table, db, active, pv, pvPath, pan, zoom, cw, ch } from the workbench state.
+   * onViewport({cx, cy, zoom}): apply a shared schema viewport. onPeerView(id, state): a peer navigated.
+   */
+  constructor({ send, peer, getCtx, onClick, onPreview, onViewport, onPeerView }) {
+    Object.assign(this, { send, peer, getCtx, onClick, onPreview, onViewport, onPeerView });
+    this.remote = new Map(); // peerId -> { view, table, file, cell, col, ghost, ncol, mouse, rubber, at }
+    this.own = null; // last view state we announced
     this.marks = [];
     this.scheduled = false;
-    this.mouse = createCoalescer((batch) => { for (const m of batch) this.send({ t: "focus", ...m }); }, 50);
+    this.mouse = createCoalescer((batch) => { for (const m of batch) this.send({ t: "focus", ...m }, { key: "focus:mouse", droppable: true }); }, 40);
     this.mo = new MutationObserver(() => this.schedule());
     this.frameMO = new MutationObserver(() => this.#bindFrames());
     this.listeners = [];
+    this.lastViewportAt = 0;
+    this.tick = 0;
   }
   start() {
     const on = (target, type, fn, opts) => { target.addEventListener(type, fn, opts); this.listeners.push(() => target.removeEventListener(type, fn, opts)); };
     const ctx = () => this.getCtx();
+    const cellOf = (t) => t.closest?.("td[data-r][data-c]");
     on(document, "focusin", (e) => {
       const t = e.target;
-      const cell = t.closest?.("td[data-r][data-c]");
-      if (cell) return this.local("cell", { ...ctx(), r: +cell.dataset.r, c: +cell.dataset.c });
+      const cell = cellOf(t);
+      if (cell) return this.local("cell", { ...ctx(), r: +cell.dataset.r, c: +cell.dataset.c, editing: t.matches?.("input.ce"), value: t.value });
       const row = t.closest?.("tr[data-col]");
       if (row) return this.local("col", { ...ctx(), name: row.dataset.col });
       if (t.matches?.("input[data-g]")) return this.local("ghost", { ...ctx(), col: t.dataset.g, values: this.#ghostValues() ?? {} });
+      if (this.#isNewColumn(t)) return this.#sendNewColumn(ctx());
     });
-    // Publish grid selection on click as well as keyboard focus; a cell may be
-    // visually selected without receiving DOM focus in some browsers.
+    // A grid selection may not take DOM focus in every browser: publish it on click too.
     on(document, "pointerdown", (e) => {
-      const cell = e.target.closest?.("td[data-r][data-c]");
-      if (cell) this.local("cell", { ...ctx(), r: +cell.dataset.r, c: +cell.dataset.c });
+      const cell = cellOf(e.target);
+      if (cell) return this.local("cell", { ...ctx(), r: +cell.dataset.r, c: +cell.dataset.c, editing: false });
+      const row = e.target.closest?.("tr[data-col]");
+      if (row) this.local("col", { ...ctx(), name: row.dataset.col });
     });
     on(document, "input", (e) => {
-      if (e.target.matches?.("input[data-g]")) this.local("ghost", { ...ctx(), col: e.target.dataset.g, values: this.#ghostValues() ?? {} }, true);
-      const cell = e.target.closest?.("td[data-r][data-c]");
-      if (cell && e.target.matches?.("input.ce")) this.local("cell", { ...ctx(), r: +cell.dataset.r, c: +cell.dataset.c, editing: true, value: e.target.value }, true);
+      const t = e.target;
+      if (t.matches?.("input[data-g]")) this.local("ghost", { ...ctx(), col: t.dataset.g, values: this.#ghostValues() ?? {} });
+      else if (t.matches?.("input.ce")) { const cell = cellOf(t); if (cell) this.local("cell", { ...ctx(), r: +cell.dataset.r, c: +cell.dataset.c, editing: true, value: t.value }); }
+      else if (this.#isNewColumn(t)) this.#sendNewColumn(ctx());
     });
+    on(document, "change", (e) => { if (this.#isNewColumn(e.target)) this.#sendNewColumn(ctx()); });
     on(document, "focusout", (e) => {
-      if (e.target.matches?.("input[data-g]") && !this.#ghostValues(true)) this.local("ghost", { ...ctx(), values: null });
-      const cell = e.target.closest?.("td[data-r][data-c]");
-      if (cell && e.target.matches?.("input.ce")) this.local("cell", { ...ctx(), r: +cell.dataset.r, c: +cell.dataset.c, editing: false });
+      const t = e.target;
+      if (t.matches?.("input[data-g]") && !this.#ghostValues(true)) this.local("ghost", { ...ctx(), values: null });
+      if (t.matches?.("input.ce")) { const cell = cellOf(t); if (cell) this.local("cell", { ...ctx(), r: +cell.dataset.r, c: +cell.dataset.c, editing: false }); }
     });
     on(document, "pointermove", (e) => this.#pointer(e, false), { passive: true });
     on(document, "pointerdown", (e) => this.#pointer(e, true), { passive: true });
-    this.poll = setInterval(() => this.#poll(), 400);
-    this.local("view", ctx());
+    on(document, "pointerleave", () => this.#hide(), { passive: true });
+    this.poll = setInterval(() => this.#poll(), 120);
+    this.sweep = setInterval(() => this.#sweep(), 1000);
+    this.announce(true);
     this.#bindFrames();
     this.frameMO.observe(q("#pvFrames") ?? document.body, { childList: true, subtree: true });
     const main = q("#main") ?? document.body;
@@ -59,6 +74,7 @@ export class FocusLayer {
   }
   stop() {
     clearInterval(this.poll);
+    clearInterval(this.sweep);
     this.mo.disconnect();
     this.frameMO.disconnect();
     this.listeners.splice(0).forEach((off) => off());
@@ -67,35 +83,100 @@ export class FocusLayer {
     qa(".cb-mouse").forEach((n) => n.remove());
   }
   /* ---- local -> remote ---- */
-  local(k, data, droppable = false) { this.send({ t: "focus", k, ...data }, { droppable }); }
+  local(k, data, droppable = false) {
+    this.send({ t: "focus", k, ...data }, { droppable, key: KEYED.has(k) ? `focus:${k}` : null });
+  }
+  /** Announce where we are (view, file, table). `force` also resends an unchanged state (late joiners, keep-alive). */
+  announce(force = false) {
+    const c = this.getCtx();
+    const key = `${c.view}|${c.dmode}|${c.db}|${c.table}|${c.active}|${c.pv}|${c.pvPath}`;
+    if (!force && key === this.lastKey) return;
+    this.lastKey = key;
+    this.own = { ...c };
+    this.local("view", c);
+  }
+  /** Everything we know, for a peer that just arrived. */
+  snapshot(except = null) {
+    return { own: this.own ?? this.getCtx(), states: [...this.remote].filter(([id]) => id !== except).map(([id, st]) => [id, this.#plain(st)]) };
+  }
+  #plain(st) { const { mouse, ...rest } = st; return rest; }
+  applySnapshot(msg, ownerId = "h", selfId = null) {
+    if (msg.own) this.receive(ownerId, { k: "view", ...msg.own }, { silent: true });
+    for (const [id, st] of msg.states ?? []) {
+      if (id === selfId) continue; // never paint ourselves from a stale copy
+      const prev = this.remote.get(id) ?? {};
+      this.remote.set(id, { ...prev, ...st, at: Date.now() });
+    }
+    this.schedule();
+  }
   #ghostValues(emptyCheck) {
     const v = {};
     for (const i of qa("tr.ghost input[data-g]")) if (i.value) v[i.dataset.g] = i.value;
     return emptyCheck ? Object.keys(v).length > 0 : Object.keys(v).length ? v : null;
   }
+  /** The "Ajouter une colonne" dialog (or the inline #nc* form): what is being typed before it is validated. */
+  #isNewColumn(t) {
+    if (!t?.matches) return false;
+    if (t.matches("#ncName, #ncType, #ncNull")) return true;
+    const d = t.closest("dialog[open]");
+    return !!d && !!d.querySelector("#column-type");
+  }
+  #newColumn() {
+    const d = q("dialog[open]:has(#column-type)") ?? document;
+    const field = (k) => d.querySelector(`[data-f="${k}"]`);
+    const label = (e) => (e?.tagName === "SELECT" ? e.options[e.selectedIndex]?.text ?? "" : e?.value ?? "");
+    return {
+      name: field("name")?.value ?? q("#ncName")?.value ?? "",
+      type: q("#column-type")?.value ?? q("#ncType")?.value ?? "",
+      size: q("#column-size")?.value ?? "",
+      key: label(field("key")),
+    };
+  }
+  #sendNewColumn(ctx) { this.ncolOpen = true; this.local("ncol", { ...ctx, ...this.#newColumn() }); }
   #poll() {
+    this.tick++;
     const c = this.getCtx();
-    const key = `${c.view}|${c.dmode}|${c.db}|${c.table}|${c.active}|${c.pv}|${c.pvPath}|${c.pan?.join(",")}|${c.zoom}`;
-    if (key !== this.lastKey) { this.lastKey = key; this.local("view", c); }
+    this.announce(this.tick % 33 === 0); // keep-alive about every 4 s
+    if (c.view === "schema") this.#viewport(c);
+    if (this.ncolOpen && !q("dialog[open] #column-type") && !q("#ncName")) { this.ncolOpen = false; this.local("ncol", { ...c, name: null }); }
     const d = q("#sv .rubber")?.getAttribute("d") ?? null;
     const rubber = d ? { d, pan: c.pan ?? [0, 0], zoom: c.zoom ?? 1 } : null;
     const rubberKey = JSON.stringify(rubber);
     if (rubberKey !== this.lastRubber) { this.lastRubber = rubberKey; this.local("rubber", { rubber }); }
   }
-  #surface(e) {
-    const pv = q("#pvFrames"), sv = q("#sv");
-    for (const [id, el] of [["pv", pv], ["sv", sv]]) {
+  /* Shared schema viewport: expressed as the world point at the centre of the canvas, so
+     two people with different window sizes look at the same thing. */
+  #viewport(c) {
+    if (!Array.isArray(c.pan) || !c.cw) return;
+    const z = c.zoom || 1;
+    const cx = (c.cw / 2 - c.pan[0]) / z, cy = (c.ch / 2 - c.pan[1]) / z;
+    const key = `${Math.round(cx)}|${Math.round(cy)}|${Math.round(z * 100)}`;
+    if (key === this.lastViewport) return;
+    this.lastViewport = key;
+    if (this.applyingViewport) return; // that change came from somebody else
+    this.lastViewportAt = Date.now();
+    this.local("viewport", { cx, cy, zoom: z }, true);
+  }
+  #sweep() { // hide stale pointers
+    let changed = false;
+    for (const st of this.remote.values()) if (st.mouse && Date.now() - st.mouse.at > POINTER_TTL) { st.mouse = null; changed = true; }
+    if (changed) this.schedule();
+  }
+  #hide() { if (this.hadSurface) { this.hadSurface = false; this.mouse.set("mouse", { k: "mouse", s: null }); } }
+  #surface(clientX, clientY) {
+    for (const [id, el] of [["pv", q("#pvFrames")], ["sv", q("#sv")]]) {
       if (!el) continue;
       const r = el.getBoundingClientRect();
-      if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom && r.width > 0) return { s: id, x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.height };
+      if (r.width > 0 && clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom) return { s: id, x: (clientX - r.left) / r.width, y: (clientY - r.top) / r.height };
     }
     return null;
   }
   #pointer(e, click) {
-    const s = this.#surface(e);
-    if (!s) { if (this.hadSurface) { this.hadSurface = false; this.mouse.set("mouse", { k: "mouse", s: null }); } return; }
+    const s = this.#surface(e.clientX, e.clientY);
+    if (!s) return this.#hide();
     this.hadSurface = true;
-    this.mouse.set("mouse", { k: "mouse", ...s, click });
+    // Clicks inside the preview travel as `preview-event` (by target element), never as raw mouse clicks.
+    this.mouse.set("mouse", { k: "mouse", ...s, click: click && s.s !== "pv" });
     if (click) this.mouse.flushNow();
   }
   #bindFrames() {
@@ -103,67 +184,89 @@ export class FocusLayer {
       if (frame.__cbFocusBound) continue;
       frame.__cbFocusBound = true;
       const bind = () => {
-        try {
-          const doc = frame.contentDocument;
-          if (!doc || frame.__cbDoc === doc) return;
-          frame.__cbDoc = doc;
-          const point = (e, click = false) => {
-            const box = q("#pvFrames"), f = frame.getBoundingClientRect(), r = box?.getBoundingClientRect();
-            if (!box || !r?.width || !r.height) return;
-            this.hadSurface = true;
-            const x = (f.left + e.clientX - r.left) / r.width, y = (f.top + e.clientY - r.top) / r.height;
-            // Preview interactions use the dedicated preview-event message so
-            // the host does not replay the same click twice from mouse presence.
-            this.mouse.set("mouse", { k: "mouse", s: "pv", x, y, click: false });
-            if (click) this.mouse.flushNow();
-            return { x, y };
-          };
-          doc.addEventListener("pointermove", (e) => point(e), { passive: true });
-          doc.addEventListener("click", (e) => {
-            const at = point(e, true);
-            if (e.target.closest?.("a, form")) e.preventDefault();
-            if (at) this.onPreview?.({ kind: "click", ...at, button: e.button });
-          }, true);
-          for (const type of ["input", "change"]) doc.addEventListener(type, (e) => {
-            const at = point(e);
-            const t = e.target;
-            if (!at || !t || !("value" in t)) return;
-            this.onPreview?.({ kind: type, ...at, target: { id: t.id, name: t.name, type: t.type, value: t.value, checked: t.checked } });
-          }, true);
-        } catch { /* cross-origin preview: show no remote pointer inside it */ }
+        let doc;
+        try { doc = frame.contentDocument; } catch { return; } // cross-origin: no pointer inside it
+        if (!doc || frame.__cbDoc === doc) return;
+        frame.__cbDoc = doc;
+        const point = (e) => {
+          const f = frame.getBoundingClientRect();
+          const s = this.#surface(f.left + e.clientX, f.top + e.clientY);
+          if (!s) return null;
+          this.hadSurface = true;
+          this.mouse.set("mouse", { k: "mouse", ...s, click: false });
+          return s;
+        };
+        const target = (e) => {
+          const el = e.target?.closest?.("[data-cbi]") ?? e.target;
+          const i = el?.getAttribute?.("data-cbi");
+          return { i: i == null ? null : +i, tag: el?.tagName ?? null };
+        };
+        doc.addEventListener("pointermove", point, { passive: true });
+        doc.addEventListener("pointerdown", point, { passive: true });
+        doc.addEventListener("click", (e) => {
+          const at = point(e);
+          if (e.target.closest?.("a, form")) e.preventDefault(); // the host navigates; we receive the new page
+          if (at) { this.mouse.flushNow(); this.onPreview?.({ kind: "click", ...at, ...target(e), button: e.button }); }
+        }, true);
+        for (const type of ["input", "change"]) doc.addEventListener(type, (e) => {
+          const t = e.target;
+          if (!t || !("value" in t)) return;
+          this.onPreview?.({ kind: type, ...target(e), target: { id: t.id, name: t.name, type: t.type, value: t.value, checked: t.checked } });
+        }, true);
       };
       frame.addEventListener("load", bind);
       bind();
     }
   }
   /* ---- remote -> UI ---- */
-  receive(from, m) {
+  receive(from, m, { silent = false } = {}) {
     const st = this.remote.get(from) ?? {};
     switch (m.k) {
-      case "view": Object.assign(st, { view: m.view, dmode: m.dmode, table: m.table, db: m.db, active: m.active, pv: m.pv, pvPath: m.pvPath, pan: m.pan, zoom: m.zoom, file: m.active || null, cell: null, col: null, ghost: null }); break;
+      case "view": {
+        const moved = st.view !== m.view || st.table !== m.table || st.active !== m.active || st.db !== m.db || st.pv !== m.pv || st.dmode !== m.dmode;
+        Object.assign(st, { view: m.view, dmode: m.dmode, table: m.table, db: m.db, active: m.active, pv: m.pv, pvPath: m.pvPath, pan: m.pan, zoom: m.zoom, file: m.view === "code" ? m.active || null : null });
+        if (moved) { st.cell = null; st.col = null; st.ghost = null; st.ncol = null; }
+        st.at = Date.now();
+        this.remote.set(from, st);
+        this.schedule();
+        if (moved && !silent) this.onPeerView?.(from, st);
+        return;
+      }
       case "cell": Object.assign(st, { cell: { table: m.table, r: m.r, c: m.c, editing: !!m.editing, value: m.value }, col: null, ghost: null }); break;
       case "col": Object.assign(st, { col: { table: m.table, name: m.name }, cell: null, ghost: null }); break;
       case "ghost": st.ghost = m.values || m.col ? { table: m.table, col: m.col, values: m.values } : null; break;
+      case "ncol": st.ncol = m.name == null ? null : { table: m.table, name: m.name, type: m.type, size: m.size, key: m.key }; break;
       case "rubber": st.rubber = m.rubber ?? null; break;
-      case "mouse": st.mouse = m.s ? { s: m.s, x: m.x, y: m.y, click: m.click } : null; if (m.click && m.s) this.onClick?.(from, m); break;
+      case "viewport": {
+        st.viewport = { cx: m.cx, cy: m.cy, zoom: m.zoom };
+        // follow only when we are on the schema too and not in the middle of our own gesture
+        if (this.getCtx().view === "schema" && Date.now() - this.lastViewportAt > 700 && this.onViewport) {
+          this.applyingViewport = true;
+          try { this.onViewport(st.viewport); } finally { setTimeout(() => (this.applyingViewport = false), 150); }
+        }
+        break;
+      }
+      case "mouse": st.mouse = m.s ? { s: m.s, x: m.x, y: m.y, click: m.click, at: Date.now() } : null; if (m.click && m.s) this.onClick?.(from, m); break;
     }
     st.at = Date.now();
     this.remote.set(from, st);
     this.schedule();
   }
-  drop(id) { this.remote.delete(id); this.schedule(); }
+  drop(id) { this.remote.delete(id); qa(`.cb-mouse[data-peer="${esc(id)}"]`).forEach((n) => n.remove()); this.schedule(); }
   schedule() { if (this.scheduled) return; this.scheduled = true; requestAnimationFrame(() => { this.scheduled = false; this.render(); }); }
   clearMarks() {
     for (const n of this.marks.splice(0)) {
-      if (n.dataset?.cbFocus !== undefined && !n.classList.contains("cb-ghostline")) { delete n.dataset.cbFocus; delete n.dataset.cbName; n.style.removeProperty("--c"); n.style.removeProperty("--cb"); n.style.removeProperty("--cs"); }
-      else n.remove();
+      if (n.dataset?.cbFocus !== undefined && !n.classList.contains("cb-ghostline") && !n.classList.contains("cb-ncol")) {
+        delete n.dataset.cbFocus; delete n.dataset.cbName;
+        for (const k of ["--c", "--cb", "--cs", "--cf"]) n.style.removeProperty(k);
+      } else n.remove();
     }
   }
   #mark(el, p) {
     if (!el) return;
     el.dataset.cbFocus = "";
     el.dataset.cbName = p.name;
-    for (const [k, v] of Object.entries(Object.fromEntries(cssVars(p.name, p.variant).split(";").map((x) => x.split(":"))))) el.style.setProperty(k, v);
+    for (const part of cssVars(p.name, p.variant).split(";")) { const [k, v] = part.split(":"); if (k) el.style.setProperty(k, v); }
     this.marks.push(el);
   }
   render() {
@@ -172,29 +275,34 @@ export class FocusLayer {
       this.clearMarks();
       const c = this.getCtx();
       const files = new Map();
+      const live = new Set();
       for (const [id, st] of this.remote) {
         const p = this.peer(id);
         if (!p || p.state === "away") continue;
         if (st.file) (files.get(st.file) ?? files.set(st.file, []).get(st.file)).push(p);
-        const sameTable = (t) => c.view === "data" && t === c.table;
-        if (st.cell && sameTable(st.cell.table)) {
+        const dataHere = c.view === "data" && c.dmode === "data";
+        const structHere = c.view === "data" && c.dmode === "struct";
+        const sameTable = (t) => t === c.table;
+        if (st.cell && dataHere && sameTable(st.cell.table)) {
           const cell = q(`td[data-r="${st.cell.r}"][data-c="${st.cell.c}"]`);
           this.#mark(cell, p);
           if (cell && st.cell.editing) {
             const value = document.createElement("span");
             value.className = "cb-live-value";
             value.style.cssText = cssVars(p.name, p.variant);
-            value.textContent = `${p.name} : ${st.cell.value ?? ""}`;
+            value.textContent = st.cell.value ?? "";
+            value.dataset.who = p.name;
             cell.append(value);
             this.marks.push(value);
           }
         }
-        if (st.col && sameTable(st.col.table)) this.#mark(q(`tr[data-col="${esc(st.col.name)}"]`), p);
-        if (st.ghost && st.ghost.table === c.table) this.#ghostRow(st.ghost, p);
-        if (st.rubber) this.#rubber(st.rubber, p);
-        if (st.mouse) this.#mouse(id, st.mouse, p);
+        if (st.col && structHere && sameTable(st.col.table)) this.#mark(q(`tr[data-col="${esc(st.col.name)}"]`), p);
+        if (st.ghost && dataHere && sameTable(st.ghost.table)) this.#ghostRow(st.ghost, p);
+        if (st.ncol && structHere && sameTable(st.ncol.table)) this.#newColumnRow(st.ncol, p);
+        if (st.rubber && c.view === "schema") this.#rubber(st.rubber, p);
+        if (st.mouse && Date.now() - st.mouse.at < POINTER_TTL) { this.#mouse(id, st.mouse, p); live.add(id); }
       }
-      for (const n of qa(".cb-mouse")) if (!this.remote.get(n.dataset.peer)?.mouse) n.remove();
+      for (const n of qa(".cb-mouse")) if (!live.has(n.dataset.peer)) n.remove();
       this.#badges(files);
     } finally {
       this.mo.observe(q("#main") ?? document.body, { childList: true, subtree: true });
@@ -208,11 +316,12 @@ export class FocusLayer {
       if (!list?.length) continue;
       const wrap = document.createElement("span");
       wrap.className = "cb-badges";
+      wrap.setAttribute("aria-label", `Ouvert par ${list.map((p) => p.name).join(", ")}`);
       list.forEach((p) => {
         const a = document.createElement("span");
         a.className = "cb-av cb-sm";
         a.style.cssText = cssVars(p.name, p.variant);
-        a.title = p.name;
+        a.title = `${p.name} modifie ce fichier`;
         a.textContent = initial(p.name);
         wrap.append(a);
       });
@@ -229,14 +338,34 @@ export class FocusLayer {
     tr.dataset.cbName = p.name;
     tr.setAttribute("aria-label", `Ligne en cours de saisie par ${p.name}`);
     tr.style.cssText = cssVars(p.name, p.variant);
-    const cols = qa("td", own).length;
-    tr.append(document.createElement("td"));
-    const heads = qa("thead th, .grid thead th");
-    const names = own.querySelectorAll("input[data-g]");
-    names.forEach((i) => { const td = document.createElement("td"); td.textContent = g.values[i.dataset.g] ?? ""; td.style.opacity = g.values[i.dataset.g] ? "1" : ".4"; tr.append(td); });
-    void cols; void heads;
+    const first = document.createElement("td");
+    first.className = "ck";
+    first.textContent = "+";
+    tr.append(first);
+    own.querySelectorAll("input[data-g]").forEach((i) => {
+      const td = document.createElement("td");
+      td.textContent = g.values[i.dataset.g] ?? "";
+      td.classList.toggle("cb-active", g.col === i.dataset.g);
+      tr.append(td);
+    });
     tr.append(document.createElement("td"));
     own.before(tr);
+    this.marks.push(tr);
+  }
+  #newColumnRow(n, p) {
+    const anchor = qa("tr[data-col]").at(-1);
+    if (!anchor) return;
+    const tr = document.createElement("tr");
+    tr.className = "cb-ncol";
+    tr.dataset.cbFocus = "";
+    tr.dataset.cbName = p.name;
+    tr.style.cssText = cssVars(p.name, p.variant);
+    const td = document.createElement("td");
+    td.colSpan = 99;
+    const type = n.type ? n.type + (n.size && !/^(TEXT|BLOB|DATE|DATETIME|JSON|BOOLEAN)$/i.test(n.type) ? `(${n.size})` : "") : "";
+    td.textContent = `${n.name || "…"}${type ? "  ·  " + type : ""}${n.key && n.key !== "Aucune" ? "  ·  " + n.key : ""}`;
+    tr.append(td);
+    anchor.after(tr);
     this.marks.push(tr);
   }
   #rubber(data, p) {
@@ -246,11 +375,10 @@ export class FocusLayer {
     const path = document.createElementNS(SVGNS, "path");
     path.setAttribute("d", d);
     path.setAttribute("fill", "none");
-    path.setAttribute("stroke", p ? getComputedStyle(document.documentElement).getPropertyValue("--signal") : "");
     path.setAttribute("stroke-width", "2.5");
     path.setAttribute("stroke-dasharray", "6 4");
     const c = this.getCtx();
-    const localZoom = Math.max(.01, c.zoom ?? 1);
+    const localZoom = Math.max(0.01, c.zoom ?? 1);
     const s = zoom / localZoom;
     const x = (pan[0] - (c.pan?.[0] ?? 0)) / localZoom;
     const y = (pan[1] - (c.pan?.[1] ?? 0)) / localZoom;
@@ -288,51 +416,44 @@ export class FocusLayer {
 /** Host only: replay a remote click inside the real preview frame. */
 export function replayClick(m) {
   if (m.s !== "pv") return false;
-  const box = q("#pvFrames");
-  if (!box) return false;
-  const r = box.getBoundingClientRect();
-  const x = r.left + m.x * r.width, y = r.top + m.y * r.height;
-  for (const frame of qa("iframe", box)) {
-    const f = frame.getBoundingClientRect();
-    if (x < f.left || x > f.right || y < f.top || y > f.bottom) continue;
-    try {
-      const doc = frame.contentDocument;
-      const target = doc?.elementFromPoint(x - f.left, y - f.top);
-      if (!target) return false;
-      target.dispatchEvent(new frame.contentWindow.MouseEvent("click", { bubbles: true, cancelable: true, clientX: x - f.left, clientY: y - f.top, view: frame.contentWindow }));
-      return true;
-    } catch { return false; } // cross-origin frame: pointer only
-  }
-  return false;
+  return replayPreview({ kind: "click", ...m });
 }
 
-/** Replay a small, sanitized interaction from a guest in the host's live page. */
+/**
+ * Replay a small, sanitised guest interaction in the host's live page. The target is the
+ * element index recorded in the snapshot (`data-cbi`), so it does not depend on window sizes;
+ * coordinates are only a fallback.
+ */
 export function replayPreview(m) {
   if (!m || !["click", "input", "change"].includes(m.kind)) return false;
   const box = q("#pvFrames");
   if (!box) return false;
-  const r = box.getBoundingClientRect(), x = r.left + m.x * r.width, y = r.top + m.y * r.height;
-  for (const frame of qa("iframe", box)) {
-    const f = frame.getBoundingClientRect();
-    if (x < f.left || x > f.right || y < f.top || y > f.bottom) continue;
-    try {
-      const doc = frame.contentDocument, win = frame.contentWindow;
-      if (!doc || !win) return false;
-      if (m.kind === "click") {
-        const target = doc.elementFromPoint(x - f.left, y - f.top);
-        if (!target) return false;
-        target.dispatchEvent(new win.MouseEvent("click", { bubbles: true, cancelable: true, clientX: x - f.left, clientY: y - f.top, button: Number(m.button) || 0, view: win }));
-      } else {
-        const t = m.target ?? {};
-        const at = doc.elementFromPoint(x - f.left, y - f.top);
-        const target = t.id ? doc.getElementById(t.id) : (at?.name === t.name ? at : [...doc.getElementsByName(t.name || "")].find((n) => n.type === t.type) ?? at);
-        if (!target || !("value" in target)) return false;
-        if (target.type === "checkbox" || target.type === "radio") target.checked = !!t.checked;
-        else target.value = String(t.value ?? "");
-        target.dispatchEvent(new win.Event(m.kind, { bubbles: true, cancelable: false }));
-      }
+  const frame = qa("iframe", box).find((f) => f.offsetParent !== null) ?? q("iframe", box);
+  if (!frame) return false;
+  try {
+    const doc = frame.contentDocument, win = frame.contentWindow;
+    if (!doc || !win) return false;
+    let el = null;
+    if (Number.isInteger(m.i)) {
+      const cand = doc.querySelectorAll("*")[m.i];
+      if (cand && (!m.tag || cand.tagName === m.tag)) el = cand;
+    }
+    if (!el && Number.isFinite(m.x)) {
+      const r = box.getBoundingClientRect(), f = frame.getBoundingClientRect();
+      el = doc.elementFromPoint(r.left + m.x * r.width - f.left, r.top + m.y * r.height - f.top);
+    }
+    if (!el) return false;
+    if (m.kind === "click") {
+      if ((Number(m.button) || 0) === 0 && typeof el.click === "function") el.click();
+      else el.dispatchEvent(new win.MouseEvent("click", { bubbles: true, cancelable: true, button: Number(m.button) || 0, view: win }));
       return true;
-    } catch { return false; }
-  }
-  return false;
+    }
+    const t = m.target ?? {};
+    const target = "value" in el ? el : (t.id ? doc.getElementById(t.id) : null) ?? [...doc.getElementsByName(t.name || "")].find((n) => n.type === t.type);
+    if (!target || !("value" in target)) return false;
+    if (target.type === "checkbox" || target.type === "radio") target.checked = !!t.checked;
+    else target.value = String(t.value ?? "");
+    target.dispatchEvent(new win.Event(m.kind, { bubbles: true, cancelable: false }));
+    return true;
+  } catch { return false; }
 }

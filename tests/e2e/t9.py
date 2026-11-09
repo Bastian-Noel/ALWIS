@@ -1,0 +1,27 @@
+exec(open('/tmp/lib.py').read())
+with sync_playwright() as p:
+    b = p.chromium.launch(); ctx = b.new_context(viewport={'width':1280,'height':720})
+    h, g = both(ctx); g.wait_for_timeout(1500)
+    print('1 badges guest sees:', badges(g), '| host sees:', badges(h))
+    # guest opens another file
+    g.evaluate("async()=>{const {A}=await "+ST+"; await A.openFile('/style.css')}"); g.wait_for_timeout(800)
+    print('2 after guest opens style.css -> host sees:', badges(h), '| guest sees:', badges(g))
+    # typing: guest types in style.css? use index.php: guest opens, types
+    g.evaluate("async()=>{const {A}=await "+ST+"; await A.openFile('/index.php')}"); g.wait_for_timeout(600)
+    g.click('.cm-content'); g.keyboard.press('Control+End'); g.keyboard.type('// salut', delay=60); g.wait_for_timeout(500)
+    print('3 host doc tail:', repr(h.evaluate("document.querySelector('.cm-content').innerText")[-30:]))
+    print('  host ins marks:', h.evaluate("[...document.querySelectorAll('.cm-cb-ins')].map(e=>getComputedStyle(e).borderRadius).slice(0,3)"))
+    h.screenshot(path='/tmp/c_host_typing.png')
+    # follow: host goes to Données, guest follows
+    h.evaluate("async()=>{const {A}=await "+ST+"; await A.nav('data')}"); h.wait_for_timeout(1000)
+    g.click('.cb-trigger'); g.wait_for_timeout(300)
+    g.screenshot(path='/tmp/c_guest_pop.png')
+    g.click('.cb-act:has-text("Suivre")'); g.wait_for_timeout(1500)
+    print('4 guest view after follow:', S(g,'S.view'), 'banner:', g.evaluate("document.querySelector('.cb-banner').textContent"))
+    h.evaluate("async()=>{const {A}=await "+ST+"; await A.nav('schema')}"); g.wait_for_timeout(1500)
+    print('5 host -> schema; guest view:', S(g,'S.view'))
+    h.evaluate("async()=>{const {A}=await "+ST+"; await A.nav('code')}"); g.wait_for_timeout(1500)
+    print('6 host -> code; guest view:', S(g,'S.view'), 'active', S(g,'S.active'))
+    g.screenshot(path='/tmp/c_guest_follow.png')
+    print('errors', h.errors[:3], g.errors[:3])
+    b.close()

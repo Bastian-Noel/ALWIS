@@ -84,7 +84,7 @@ export class DocHost {
     const targets = new Set();
     for (const [path, e] of this.entries) if (!c || path === c.path) for (const id of e.openers) targets.add(id);
     targets.delete(from);
-    for (const id of targets) this.send(id, msg, { droppable: true });
+    for (const id of targets) this.send(id, msg, { droppable: true, key: `aware:${from}` });
     if (c?.path) this.editorFor(c.path)?.showCursors([[from, this.#cursorEntry(from, c)]]);
   }
   #cursorEntry(id, c) { const p = this.peer(id); return { name: p.name, css: p.css, anchor: c.anchor, head: c.head, at: c.at }; }
@@ -92,7 +92,7 @@ export class DocHost {
   hostCursor(path, anchor, head) {
     const e = this.entries.get(path);
     if (!e) return;
-    for (const id of e.openers) this.send(id, { t: "aware", k: "cursor", from: "h", path, anchor, head, at: Date.now() }, { droppable: true });
+    for (const id of e.openers) this.send(id, { t: "aware", k: "cursor", from: "h", path, anchor, head, at: Date.now() }, { droppable: true, key: "aware:h" });
   }
   dropPeer(id) {
     for (const e of this.entries.values()) e.openers.delete(id);
@@ -169,7 +169,7 @@ export class DocGuest {
   /** After a reconnect: ask for what we missed in every open file. */
   catchUpAll() { for (const p of this.entries.keys()) this.catchUp(p); }
   #resync(path) { this.entries.delete(path); this.onDesync?.(path); this.open(path).catch(() => {}); }
-  cursor(path, anchor, head) { if (this.entries.has(path)) this.send({ t: "aware", k: "cursor", path, anchor, head }, { droppable: true }); }
+  cursor(path, anchor, head) { if (this.entries.has(path)) this.send({ t: "aware", k: "cursor", path, anchor, head }, { droppable: true, key: "aware:me" }); }
   #aware(m) {
     if (m.k !== "cursor") return;
     const model = m.path && this.editorFor(m.path);

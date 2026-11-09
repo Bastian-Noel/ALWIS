@@ -32,17 +32,20 @@ export function avatar(peer, { size = "md", me = false } = {}) {
   }, initial(peer.name));
 }
 
+const plural = (n, one, many) => `${n} ${n > 1 ? many : one}`;
+const secondsLeft = (until) => Math.max(0, Math.round((until - Date.now()) / 1000));
+
 export class PresenceUI {
-  constructor({ slot, onStart, onJoin, onLeave, onFollow, onKick, onLock, config }) {
+  constructor({ slot, onStart, onJoin, onLeave, onFollow, onFollowToggle, getFollowing, onKick, onLock, config }) {
     this.slot = slot;
-    this.cb = { onStart, onJoin, onLeave, onFollow, onKick, onLock };
+    this.cb = { onStart, onJoin, onLeave, onFollow, onFollowToggle, getFollowing, onKick, onLock };
     this.config = config;
     this.session = null;
     this.open = false;
     this.root = el("div", { class: "cb-root", "data-state": "idle" });
     this.stack = el("div", { class: "cb-stack", role: "group", "aria-label": "Personnes connectées" });
     this.trigger = el("button", { class: "iconbtn cb-trigger", type: "button", "aria-haspopup": "dialog", "aria-expanded": "false", "aria-label": "Travailler à plusieurs", title: "Travailler à plusieurs", html: svg("users") + '<i class="cb-dot" aria-hidden="true"></i>', onclick: () => this.toggle() });
-    this.pop = el("div", { class: "cb-pop", role: "dialog", "aria-label": "Travail à plusieurs", hidden: true });
+    this.pop = el("div", { class: "cb-pop", role: "dialog", "aria-label": "Travailler à plusieurs", hidden: true });
     this.live = el("div", { class: "cb-sr", "aria-live": "polite", role: "status" });
     this.root.append(this.stack, this.trigger, this.pop, this.live);
     slot.append(this.root);
@@ -57,165 +60,192 @@ export class PresenceUI {
     if (ws) this.modeObserver.observe(ws, { attributes: true, attributeFilter: ["hidden"] });
   }
   announce(text) { this.live.textContent = ""; setTimeout(() => (this.live.textContent = text), 30); }
+  get running() { return !!this.session && ["live", "reconnecting", "connecting"].includes(this.session.status); }
   syncAvailability() {
-    const live = this.session && ["live", "reconnecting", "connecting"].includes(this.session.status);
     const canStart = this.config.canStart?.() ?? true;
-    this.trigger.hidden = !live && !canStart;
-    this.stack.hidden = !live;
+    this.trigger.hidden = !this.running && !canStart;
+    this.stack.hidden = !this.running;
     const go = this.pop.querySelector(".cb-form .btn.pri");
     if (go) go.disabled = !canStart;
   }
   showNoProject() {
     const err = this.pop.querySelector(".cb-form .cb-err");
-    if (err) { err.textContent = "Ouvrez un projet avant de démarrer le partage."; err.hidden = false; }
+    if (err) { err.textContent = "Ouvrez d’abord un projet, puis relancez le partage."; err.hidden = false; }
   }
   toggle(force) {
     this.open = force ?? !this.open;
     this.pop.hidden = !this.open;
     this.trigger.setAttribute("aria-expanded", String(this.open));
-    if (this.open) { this.renderPop(); this.pop.querySelector("input,button")?.focus(); }
+    if (this.open) { this.renderPop(); this.pop.querySelector("input:not([readonly]),button")?.focus(); }
   }
+  refresh() { this.renderStack(); if (this.open) this.renderPop(); this.renderBanner(); this.syncAvailability(); }
   attach(session) {
     this.session = session;
-    const refresh = () => { this.renderStack(); if (this.open) this.renderPop(); this.renderBanner(); };
+    const refresh = () => this.refresh();
     session.on("roster", refresh);
     session.on("ready", refresh);
-    session.on("status", () => { this.root.dataset.state = session.status; refresh(); this.syncAvailability(); });
+    session.on("status", () => { this.root.dataset.state = session.status; refresh(); });
     session.on("link", refresh);
     session.on("mode", refresh);
-    session.on("peer-away", ({ id }) => this.announce(`${session.peer(id)?.name ?? "Une personne"} a perdu la connexion, sa place est gardée.`));
-    session.on("peer-down", ({ id, reason }) => reason === "grace-expired" && this.announce("Une place a été libérée."));
-    this.timer = setInterval(() => { if (this.session?.peers.some((p) => p.state === "away") || this.session?.hostState === "away") { this.renderBanner(); if (this.open) this.renderPop(); } }, 1000);
+    session.on("peer-away", ({ id }) => this.announce(`${session.peer(id)?.name ?? "Une personne"} a perdu la connexion. Sa place est gardée quelques instants.`));
+    session.on("peer-down", ({ id, reason }) => reason === "grace-expired" && this.announce("Une place s’est libérée."));
+    clearInterval(this.timer);
+    this.timer = setInterval(() => {
+      const waiting = this.session?.peers.some((p) => p.state === "away") || this.session?.hostState === "away";
+      if (waiting) { this.renderBanner(); if (this.open) this.renderPop(); }
+    }, 1000);
     refresh();
   }
-  /* --- avatar stack: overlapping circles, +N overflow --- */
+  /* --- avatar stack: overlapping circles, "+N" overflow, click = go to that person --- */
   renderStack() {
     this.stack.replaceChildren();
     const s = this.session;
     if (!s || !["live", "reconnecting"].includes(s.status)) return;
-    const peers = [...s.peers].filter((p) => p.id !== s.me?.id).sort((a, b) => (a.id === "h" ? -1 : 0));
+    const following = this.cb.getFollowing?.();
+    const peers = [...s.peers].filter((p) => p.id !== s.me?.id).sort((a, b) => (a.id === "h" ? -1 : b.id === "h" ? 1 : 0));
     const shown = peers.slice(0, MAX_VISIBLE);
     for (const p of shown) {
-      const a = avatar(p, { me: p.id === s.me?.id });
+      const a = avatar(p);
+      a.classList.toggle("following", following === p.id);
+      a.title = `${p.name}${p.state === "away" ? " (reconnexion en cours)" : ""} — cliquer pour aller là où cette personne travaille`;
       a.tabIndex = 0;
-      a.addEventListener("click", () => p.id !== s.me?.id && this.cb.onFollow?.(p.id));
+      a.setAttribute("role", "button");
+      a.addEventListener("click", () => this.cb.onFollow?.(p.id));
       a.addEventListener("keydown", (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), a.click()));
       this.stack.append(a);
     }
     if (peers.length > shown.length) this.stack.append(el("button", { class: "cb-av cb-md cb-more", type: "button", "aria-label": `${peers.length - shown.length} autres personnes`, onclick: () => this.toggle(true) }, `+${peers.length - shown.length}`));
-    this.syncAvailability();
   }
   renderBanner() {
     const s = this.session;
     const b = this.banner;
+    b.replaceChildren();
     if (!s) return (b.hidden = true);
     let text = "", kind = "";
-    if (s.status === "reconnecting") { text = "Connexion perdue. Nouvelle tentative… Votre place est gardée quelques instants."; kind = "warn"; }
+    const following = this.cb.getFollowing?.();
+    if (s.status === "reconnecting") { text = "Connexion perdue : nouvelle tentative en cours. Votre place reste réservée."; kind = "warn"; }
     else if (s.status === "connecting") { text = "Connexion à la session…"; kind = "info"; }
     else if (s.role === "guest" && s.hostState === "away") {
-      const host = s.peer("h");
-      const left = Math.max(0, Math.round(((host?.awayUntil ?? 0) - Date.now()) / 1000));
-      text = `L’hôte a perdu la connexion. La session reprend dès son retour${left ? ` (attente maximale : ${left} s)` : ""}.`;
+      const left = secondsLeft(s.peer("h")?.awayUntil ?? 0);
+      text = `L’hôte s’est déconnecté. La session reprendra à son retour${left ? ` (au plus tard dans ${left} s)` : ""}.`;
       kind = "warn";
-    } else if (s.status === "closed" && s.closedReason && !["left"].includes(s.closedReason)) { text = closedMessage(s.closedReason); kind = "err"; }
+    } else if (s.status === "closed" && s.closedReason && s.closedReason !== "left") { text = closedMessage(s.closedReason); kind = "err"; }
+    else if (following && s.peer(following)) {
+      text = `Vous suivez ${s.peer(following).name} : votre écran va là où cette personne travaille.`;
+      kind = "follow";
+      b.append(el("span", {}, text), el("button", { class: "cb-banner-btn", type: "button", onclick: () => this.cb.onFollowToggle?.(following) }, "Arrêter de suivre"));
+    }
+    if (kind !== "follow") b.textContent = text;
     b.hidden = !text;
     b.dataset.kind = kind;
-    b.textContent = text;
   }
-  /* --- popover content --- */
   renderPop() {
     const s = this.session;
     const p = this.pop;
     p.replaceChildren();
-    const live = s && ["live", "reconnecting", "connecting"].includes(s.status);
-    if (!live) return p.append(this.startForm());
-    if (s.isHost && !s.room) return p.append(el("div", { class: "cb-pending", role: "status" }, el("span", { class: "cb-spin", "aria-hidden": "true" }), "Connexion au serveur de partage…"));
+    if (!this.running) return p.append(this.startForm());
+    if (s.isHost && !s.room) return p.append(el("div", { class: "cb-pending", role: "status" }, el("span", { class: "cb-spin", "aria-hidden": "true" }), "Création de la session…"));
     p.append(this.sessionView());
   }
+  /* --- before sharing: pick a name --- */
   startForm() {
-    const input = el("input", { id: "cbName", class: "cb-input", value: savedName(), maxlength: "32", autocomplete: "nickname", placeholder: "Votre prénom", "aria-label": "Votre nom affiché" });
+    const project = this.config.projectName?.();
+    const input = el("input", { id: "cbName", class: "cb-input", value: savedName(), maxlength: "32", autocomplete: "nickname", placeholder: "Par exemple : Camille", "aria-describedby": "cbNameHint" });
     const err = el("p", { class: "cb-err", role: "alert", hidden: true });
-    const go = el("button", { class: "btn pri", type: "button" }, "Démarrer le partage");
+    const go = el("button", { class: "btn pri cb-wide", type: "button" }, "Créer le lien d’invitation");
     const run = () => {
       const name = input.value.replace(/\s+/g, " ").trim();
-      if (!name) { err.textContent = "Indiquez le nom que verront les autres."; err.hidden = false; return input.focus(); }
+      if (!name) { err.textContent = "Choisissez le nom que les autres verront."; err.hidden = false; return input.focus(); }
       saveName(name);
       this.cb.onStart(name);
     };
     go.addEventListener("click", run);
     input.addEventListener("keydown", (e) => e.key === "Enter" && run());
-    go.disabled = !(this.config.canStart?.() ?? true);
     return el("div", { class: "cb-form" },
       el("h2", { class: "cb-h" }, "Travailler à plusieurs"),
-      el("p", { class: "cb-p" }, `Invitez jusqu’à ${this.config.maxGuests} personnes sur ce projet. Les échanges passent directement d’ordinateur à ordinateur ; le serveur ne garde rien.`),
-      el("label", { class: "cb-l", for: "cbName" }, "Votre nom"), input, err, go);
+      el("p", { class: "cb-p" }, project ? `Invitez des personnes à travailler avec vous sur « ${project} » : elles verront vos fichiers, vos tables et l’aperçu, et pourront les modifier en même temps que vous.` : "Invitez des personnes à travailler avec vous sur ce projet, en même temps."),
+      el("label", { class: "cb-l", for: "cbName" }, "Votre nom"),
+      input,
+      el("p", { class: "cb-hint", id: "cbNameHint" }, "Il s’affiche, avec une couleur, à côté de votre curseur."),
+      err, go,
+      el("p", { class: "cb-foot" }, `Jusqu’à ${plural(this.config.maxGuests, "invité", "invités")}. Vos fichiers restent sur votre ordinateur : le serveur ne les enregistre pas.`));
   }
+  /* --- while sharing --- */
   sessionView() {
     const s = this.session;
     const max = s.limits?.maxGuests ?? this.config.maxGuests;
     const guests = s.peers.filter((x) => x.id !== "h").length;
+    const free = Math.max(0, max - guests);
     const wrap = el("div", { class: "cb-session" });
-    const direct = [...s.links.values()].filter((link) => link.mode === "p2p").length;
-    const relayed = [...s.links.values()].filter((link) => link.mode === "relay").length;
-    wrap.append(
-      el("div", { class: "cb-session-head" },
-        el("div", {}, el("p", { class: "cb-kicker" }, "SESSION EN COURS"), el("h2", { class: "cb-h" }, s.isHost ? "Votre espace partagé" : "Espace de " + (s.peer("h")?.name ?? "l’hôte")), el("p", { class: "cb-project-line" }, this.config.projectName?.() || "Projet partagé")),
-        el("span", { class: "cb-live" }, el("i", { "aria-hidden": "true" }), s.status === "reconnecting" ? "Reconnexion" : "En ligne")),
-      el("div", { class: "cb-session-stats", "aria-label": "État de la session" },
-        el("div", { class: "cb-stat" }, el("b", {}, `${guests}/${max}`), el("span", {}, "invités")),
-        el("div", { class: "cb-stat" }, el("b", {}, String(direct)), el("span", {}, "liaisons directes")),
-        el("div", { class: "cb-stat" }, el("b", {}, String(relayed)), el("span", {}, "via le serveur")))
-    );
+    const status = s.status === "reconnecting" ? ["warn", "Reconnexion…"] : ["ok", "En ligne"];
+    wrap.append(el("div", { class: "cb-head" },
+      el("div", {}, el("h2", { class: "cb-h" }, s.isHost ? "Votre session" : `Session de ${s.peer("h")?.name ?? "l’hôte"}`), el("p", { class: "cb-sub" }, this.config.projectName?.() ?? "Projet partagé")),
+      el("span", { class: `cb-pill ${status[0]}` }, status[1])));
     if (s.isHost) {
       const url = s.inviteUrl();
       const field = el("input", { class: "cb-input cb-url", readonly: true, value: url, "aria-label": "Lien d’invitation", onfocus: (e) => e.target.select() });
-      const copy = el("button", { class: "btn pri cb-copy", type: "button", html: svg("link") + "<span>Copier le lien d’invitation</span>" });
+      const copy = el("button", { class: "btn pri cb-wide", type: "button", html: svg("link") + "<span>Copier le lien d’invitation</span>" });
       copy.addEventListener("click", async () => {
         try { await navigator.clipboard.writeText(url); } catch { field.select(); document.execCommand?.("copy"); }
-        copy.querySelector("span").textContent = "Lien copié";
+        const label = copy.querySelector("span");
+        label.textContent = "Lien copié";
+        copy.classList.add("done");
         this.announce("Lien d’invitation copié");
-        setTimeout(() => copy.isConnected && (copy.querySelector("span").textContent = "Copier le lien d’invitation"), 1800);
+        setTimeout(() => { if (copy.isConnected) { label.textContent = "Copier le lien d’invitation"; copy.classList.remove("done"); } }, 1800);
       });
-      const code = el("div", { class: "cb-code-row" }, el("span", {}, "Code de session"), el("b", { class: "cb-code" }, s.room), el("button", { class: "cb-copy-code", type: "button", "aria-label": "Copier le code de session", title: "Copier le code", onclick: async () => { try { await navigator.clipboard.writeText(s.room); } catch {} this.announce("Code de session copié"); } }, "Copier"));
-      const invite = el("section", { class: "cb-section cb-invite-section", "aria-labelledby": "cb-invite-title" },
-        el("div", { class: "cb-section-title" }, el("h3", { id: "cb-invite-title" }, "Inviter une personne"), el("span", {}, "Accès au projet")),
-        field, copy, code,
-        el("label", { class: "cb-check" }, el("input", { type: "checkbox", checked: s.locked, onchange: (e) => this.cb.onLock(e.target.checked) }), el("span", {}, "Fermer les invitations aux nouvelles personnes")));
-      wrap.append(invite);
-    } else {
-      const peer = s.peer("h");
-      const link = s.links.get("h");
-      const mode = link?.mode === "p2p" ? "Connexion directe entre appareils" : link?.mode === "relay" ? "Relais serveur actif · débit limité" : "Établissement de la connexion…";
-      wrap.append(el("div", { class: "cb-section cb-guest-note" }, el("span", { class: `cb-transport ${link?.mode === "p2p" ? "direct" : link?.mode === "relay" ? "relay" : "pending"}` }, mode), el("p", {}, `Vous travaillez sur le projet de ${peer?.name ?? "l’hôte"}. Les fichiers sont demandés à l’ouverture et restent servis par son appareil.`)));
+      const lock = el("label", { class: "cb-check" }, el("input", { type: "checkbox", checked: s.locked, onchange: (e) => this.cb.onLock(e.target.checked) }), el("span", {}, "Bloquer les nouvelles arrivées"));
+      wrap.append(el("section", { class: "cb-sec" },
+        el("p", { class: "cb-label" }, "Inviter"),
+        field, copy,
+        el("p", { class: "cb-hint" }, s.locked ? "Les nouvelles personnes sont refusées pour le moment." : `Toute personne ayant ce lien peut rejoindre : ${free > 0 ? plural(free, "place libre", "places libres") : "session complète"}.`),
+        lock));
     }
     const list = el("ul", { class: "cb-list" });
-    const now = Date.now();
-    for (const peer of s.peers) {
+    const following = this.cb.getFollowing?.();
+    const ordered = [...s.peers].sort((a, b) => (a.id === s.me?.id ? -1 : b.id === s.me?.id ? 1 : a.id === "h" ? -1 : b.id === "h" ? 1 : 0));
+    for (const peer of ordered) {
       const link = s.links.get(peer.id);
       const me = peer.id === s.me?.id;
-      let status = peer.state === "away" ? `Hors ligne · place gardée ${Math.max(0, Math.round((peer.awayUntil - now) / 1000))} s` : me ? "Votre appareil" : peer.id === "h" ? "Hôte du projet" : link ? (link.mode === "p2p" ? "Connexion directe" : "Relais serveur · débit limité") : "Connexion en cours";
-      const transport = !me && peer.state !== "away" && link ? el("span", { class: `cb-transport ${link.mode === "p2p" ? "direct" : "relay"}`, title: link.mode === "p2p" ? "Les données passent directement entre les appareils" : "Les données transitent par le relais serveur" }, link.mode === "p2p" ? "P2P" : "Relais") : null;
-      const row = el("li", { class: "cb-row" + (peer.state === "away" ? " away" : "") }, avatar(peer, { me }), el("span", { class: "cb-who" }, el("b", {}, peer.name), el("small", {}, status)), transport);
-      if (s.isHost && !me) row.append(el("button", { class: "iconbtn cb-kick", type: "button", "aria-label": `Retirer ${peer.name}`, title: "Retirer de la session", html: svg("x"), onclick: () => this.cb.onKick(peer.id) }));
-      else if (!me && peer.state === "online") row.append(el("button", { class: "cb-go", type: "button", onclick: () => { this.cb.onFollow(peer.id); this.toggle(false); } }, "Aller à"));
+      const role = peer.id === "h" ? "Hôte" : "Invité";
+      let status;
+      if (peer.state === "away") status = `Connexion perdue · place gardée ${secondsLeft(peer.awayUntil)} s`;
+      else if (me) status = `Vous · ${role.toLowerCase()}`;
+      else if (!link) status = `${role} · connexion…`;
+      else status = `${role} · ${link.mode === "p2p" ? "connexion directe" : "via le serveur (plus lent)"}`;
+      const row = el("li", { class: "cb-row" + (peer.state === "away" ? " away" : "") }, avatar(peer, { me }), el("span", { class: "cb-who" }, el("b", {}, peer.name), el("small", {}, status)));
+      const actions = el("span", { class: "cb-acts" });
+      if (!me && peer.state === "online") {
+        actions.append(
+          el("button", { class: "cb-act", type: "button", title: "Afficher une fois ce que cette personne regarde", onclick: () => { this.cb.onFollow(peer.id); this.toggle(false); } }, "Aller voir"),
+          el("button", { class: "cb-act" + (following === peer.id ? " on" : ""), type: "button", "aria-pressed": String(following === peer.id), title: "Rester sur son écran, où qu’elle aille", onclick: () => this.cb.onFollowToggle?.(peer.id) }, following === peer.id ? "Suivie" : "Suivre"));
+      }
+      if (s.isHost && !me) actions.append(el("button", { class: "cb-act danger", type: "button", "aria-label": `Retirer ${peer.name} de la session`, title: "Retirer de la session", onclick: () => this.cb.onKick(peer.id) }, "Retirer"));
+      row.append(actions);
       list.append(row);
     }
-    wrap.append(el("div", { class: "cb-people-title" }, el("h3", {}, `Participants · ${s.peers.length}`), el("span", {}, "Cliquez sur une personne pour la suivre")), list,
-      el("p", { class: "cb-privacy-note" }, "Le serveur signale les connexions et relaie les échanges si le P2P échoue. Il ne conserve ni fichiers ni contenu du projet."),
-      el("button", { class: s.isHost ? "btn danger cb-stop" : "btn cb-stop", type: "button", onclick: () => this.cb.onLeave() }, s.isHost ? "Arrêter le partage" : "Quitter le projet partagé"));
+    wrap.append(el("section", { class: "cb-sec" }, el("p", { class: "cb-label" }, `Participants · ${s.peers.length}`), list));
+    wrap.append(el("button", { class: "btn cb-wide cb-leave", type: "button", onclick: () => this.cb.onLeave() }, s.isHost ? "Arrêter le partage" : "Quitter la session"));
+    if (s.isHost) wrap.append(el("p", { class: "cb-foot" }, "Arrêter le partage déconnecte tout le monde. Vos fichiers ne sont pas modifiés."));
     return wrap;
   }
   /* --- guest join dialog (from ?collab=CODE) --- */
   askJoin(room, { error } = {}) {
     return new Promise((resolve) => {
-      const input = el("input", { class: "cb-input", value: savedName(), maxlength: "32", autocomplete: "nickname", "aria-label": "Votre nom affiché" });
+      const input = el("input", { id: "cbJoinName", class: "cb-input", value: savedName(), maxlength: "32", autocomplete: "nickname", placeholder: "Par exemple : Camille", "aria-describedby": "cbJoinHint" });
       const err = el("p", { class: "cb-err", role: "alert", hidden: !error }, error ?? "");
-      const go = el("button", { class: "btn pri", type: "button" }, "Rejoindre");
+      const go = el("button", { class: "btn pri", type: "button" }, "Rejoindre le projet");
       const cancel = el("button", { class: "btn", type: "button" }, "Annuler");
-      const dlg = el("div", { class: "cb-modal", role: "dialog", "aria-modal": "true", "aria-label": "Rejoindre une session" },
-        el("div", { class: "cb-card" }, el("h2", { class: "cb-h" }, "Rejoindre la session"), el("p", { class: "cb-p" }, "Vous êtes invité à travailler sur un projet partagé."), el("label", { class: "cb-l" }, "Votre nom", input), err, el("div", { class: "cb-actions" }, cancel, go)));
+      const dlg = el("div", { class: "cb-modal", role: "dialog", "aria-modal": "true", "aria-labelledby": "cbJoinTitle" },
+        el("div", { class: "cb-card" },
+          el("div", { class: "cb-card-icon", html: svg("users") }),
+          el("h2", { class: "cb-h", id: "cbJoinTitle" }, "Vous êtes invité à travailler à plusieurs"),
+          el("p", { class: "cb-p" }, "Vous allez voir le projet de la personne qui vous a invité, et le modifier en même temps qu’elle."),
+          el("label", { class: "cb-l", for: "cbJoinName" }, "Votre nom"), input,
+          el("p", { class: "cb-hint", id: "cbJoinHint" }, "Les autres le verront à côté de votre curseur."),
+          err,
+          el("div", { class: "cb-actions" }, cancel, go)));
       const done = (v) => { dlg.remove(); resolve(v); };
-      const run = () => { const n = input.value.replace(/\s+/g, " ").trim(); if (!n) { err.textContent = "Indiquez votre nom."; err.hidden = false; return input.focus(); } saveName(n); done(n); };
+      const run = () => { const n = input.value.replace(/\s+/g, " ").trim(); if (!n) { err.textContent = "Indiquez votre nom pour continuer."; err.hidden = false; return input.focus(); } saveName(n); done(n); };
       go.addEventListener("click", run);
       cancel.addEventListener("click", () => done(null));
       dlg.addEventListener("keydown", (e) => { if (e.key === "Enter") run(); if (e.key === "Escape") done(null); });
@@ -225,13 +255,14 @@ export class PresenceUI {
     });
   }
 }
+
 export function closedMessage(reason) {
   return ({
     kicked: "L’hôte vous a retiré de la session.",
-    full: "La session est complète.",
+    full: "Cette session est complète. Demandez à l’hôte de libérer une place.",
     locked: "L’hôte a fermé l’accès à la session.",
     "no-room": "Cette session n’existe plus ou le lien est incorrect.",
-    "host-timeout": "L’hôte ne s’est pas reconnecté : la session est terminée.",
+    "host-timeout": "L’hôte ne s’est pas reconnecté à temps : la session est terminée.",
     "host-left": "L’hôte a arrêté la session.",
     "server-stop": "Le serveur redémarre. Réessayez dans un instant.",
     replaced: "Vous êtes connecté depuis un autre onglet.",
