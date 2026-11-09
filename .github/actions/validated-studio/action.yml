@@ -44,6 +44,7 @@ runs:
       shell: bash
       run: |
         node tests/browser/site-package.mjs
+        node tests/browser/collab-banner.mjs
         node tests/browser/site-updates.mjs
     - name: Validate language services, code and SQL editors, native APIs and accessibility
       shell: bash

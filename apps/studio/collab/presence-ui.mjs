@@ -52,7 +52,11 @@ export class PresenceUI {
     document.addEventListener("pointerdown", (e) => this.open && !this.root.contains(e.target) && this.toggle(false));
     document.addEventListener("keydown", (e) => { if (e.key === "Escape" && this.open) { this.toggle(false); this.trigger.focus(); } });
     this.banner = el("div", { class: "cb-banner", role: "status", "aria-live": "polite", hidden: true });
-    document.querySelector("#alertHost")?.before(this.banner) ?? document.body.append(this.banner);
+    // Element.before() returns undefined, so optional chaining followed by
+    // "?? document.body.append(...)" always moved the banner out of view.
+    const alerts = document.querySelector("#alertHost");
+    if (alerts?.parentElement) alerts.before(this.banner);
+    else (document.querySelector("#main") ?? document.body).prepend(this.banner);
     this.renderPop();
     this.syncAvailability();
     this.modeObserver = new MutationObserver(() => this.syncAvailability());

@@ -51,7 +51,7 @@
 .cb-pending { display:flex; align-items:center; gap:12px; padding:8px 2px; font-size:13.5px; color:var(--ink-2); }
 
 /* ---- status banner ---- */
-.cb-banner { position:sticky; top:0; z-index:50; display:flex; align-items:center; justify-content:center; gap:12px; padding:8px 14px; font-size:13px; text-align:center; border-bottom:1px solid var(--seam-2); background:var(--recess); color:var(--ink); }
+.cb-banner { position:sticky; top:0; z-index:50; flex:none; display:flex; align-items:center; justify-content:center; gap:12px; padding:8px 14px; font-size:13px; text-align:center; border-bottom:1px solid var(--seam-2); background:var(--recess); color:var(--ink); }
 .cb-banner[data-kind="warn"] { background:color-mix(in srgb, var(--warn) 14%, var(--sheet)); } .cb-banner[data-kind="err"] { background:color-mix(in srgb, var(--err) 12%, var(--sheet)); } .cb-banner[data-kind="follow"] { background:color-mix(in srgb, var(--signal) 11%, var(--sheet)); }
 .cb-banner[hidden] { display:none; }
 .cb-banner-btn { padding:3px 10px; border:1px solid var(--seam-2); border-radius:var(--r); background:var(--raised); color:var(--ink); font:inherit; font-size:12.5px; cursor:pointer; }
