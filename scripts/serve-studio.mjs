@@ -9,6 +9,9 @@ export function createStudioServer() {
   return createServer(async (request, response) => {
     response.setHeader('Cross-Origin-Opener-Policy', 'same-origin'); response.setHeader('Cross-Origin-Embedder-Policy', 'require-corp'); response.setHeader('Cache-Control', 'no-store');
     const pathname = new URL(request.url, 'http://localhost').pathname;
+    // The studio-only server models the static edition; answer the optional
+    // collaboration probe explicitly instead of leaking a browser-console 404.
+    if (pathname === '/api/collab/config' && ['GET', 'HEAD'].includes(request.method)) { response.writeHead(200, { 'Content-Type': 'application/json' }); response.end(request.method === 'HEAD' ? undefined : JSON.stringify({ enabled: false })); return; }
     if(pathname === '/release.json'){ response.setHeader('Content-Type','application/json'); response.end(JSON.stringify({version:'development',revision:'development'})); return; }
     const special = { '/apps/studio/sql-export.source.txt':'apps/studio/database/sql-export.php', '/': 'apps/studio/index.html', '/social-card.png': 'apps/studio/social-card.png', '/service-worker.js': 'apps/studio/service-worker.mjs', '/_pbl/client.js': 'apps/studio/client-bootstrap.js' };
     const base = pathname.startsWith('/engine/') ? engine : repo;
