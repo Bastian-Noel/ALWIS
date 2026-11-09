@@ -9,6 +9,7 @@ This directory contains license texts and notices that may apply to components d
 | `LGPL-2.1-or-later.txt` | MariaDB Connector/C if present in the exact linked/distributed build; confirm against the pinned source and native link manifest. |
 | `PHP-License-v4.txt` | PHP 8.4.27, for which ALWIS elects the subsequent PHP License v4 under the PHP Group’s published terms; per-file exceptions still apply. |
 | `wolfSSL-LICENSING.txt` | wolfSSL at the pinned MariaDB submodule commit, including its MariaDB exception that permits GPLv2 for this combination. |
+| `seanmorris-php-wasm-NOTICE.txt` | Copyright and upstream dual-license notice (Sean Morris, Oraoto). Only code covered by the dual license may use the GPLv2 option. |
 | `Apache-2.0.txt` | Apache-2.0 components including the pinned MariaDB bridge source and bundled editor components; this text does not resolve GPLv2 compatibility for the applied MariaDB patch. |
 
 The editor build generates `apps/studio/editor/dist/THIRD-PARTY.txt` from the locked npm dependencies and PHPantom/SuperHTML notices. ALWIS packaging carries that file separately. Do not treat it as a complete native-runtime SBOM.

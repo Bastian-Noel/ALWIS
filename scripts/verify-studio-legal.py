@@ -16,6 +16,7 @@ mandatory = [
     "RELEASE-LICENSING-STATUS.json",
     "LICENSES/README.md",
     "LICENSES/PolyForm-Noncommercial-1.0.0.txt",
+    "LICENSES/seanmorris-php-wasm-NOTICE.txt",
     "LICENSES/GPL-2.0-only.txt",
     "LICENSES/PHP-License-v4.txt",
     "LICENSES/wolfSSL-LICENSING.txt",

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "status": "blocked",
-  "asOf": "2026-11-09",
+  "asOf": "2026-11-10",
   "blockers": [
     {
       "id": "apache2-mariadb-patch",
@@ -9,19 +9,19 @@
     },
     {
       "id": "native-sbom-and-source",
-      "summary": "The exact license and source correspondence inventory for every linked native component and PHP per-file exception is not yet complete for the release artifact."
+      "summary": "Source archives of MariaDB, PHP, Sean Morris php-wasm, Connector/C and wolfSSL are locally verified. The deleted JoomEngine PHP native wrapper source is not recovered, its API is not drop-in compatible with the GPLv2 fallback, and the exact linked license/SBOM inventory remains incomplete."
     },
     {
       "id": "editor-apache-boundary",
-      "summary": "The distribution relationship between the Apache-2.0 TypeScript/SWC editor assets and the GPLv2 native runtime has not been reviewed and documented for the exact static and Docker packages."
+      "summary": "Separate TypeScript/SWC editor and GPLv2 native WASM build artifacts are evidenced and checked in provenance/editor-license-boundary.md. Legal classification of the complete distributed work and its interactions is not yet confirmed."
     },
     {
       "id": "source-reuse-review",
-      "summary": "The recorded inspiration/adaptation targets have not all been compared file-by-file with ALWIS to determine whether AGPL or other third-party expression was copied."
+      "summary": "An automated review verified the 11 pinned DrawDB/ChartDB/Outerbase/XYFlow files and detected no identical >=32-token sequences across selected local modules. Human review of adaptations, visual assets and other contributions is still required."
     },
     {
       "id": "release-notice-verification",
-      "summary": "No release-specific verification yet confirms that the exact corresponding native sources, all license texts, notices, and checksums are present beside every published runtime artifact; config/native-runtime.json must also be refreshed with the manifest hash from the new notice-bearing native artifact."
+      "summary": "Release-specific checks verify static notices. Native source/binary correspondence remains missing until an independently rebuilt WASM, complete corresponding-source bundle, and current matching browser receipts are available."
     }
   ],
   "scope": "This status blocks publication of static, Docker, and native releases containing the runtime. It does not prevent local development or validation builds.",

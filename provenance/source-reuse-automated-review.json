@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 1,
+  "purpose": "mechanical-identical-token-screening-not-a-legal-originality-clearance",
+  "scope": {
+    "upstreamReferences": 11,
+    "localFiles": 46,
+    "minimumMatchingTokens": 32
+  },
+  "summary": {
+    "verifiedUpstream": 11,
+    "unverifiedUpstream": 0,
+    "matchingReferences": 0
+  },
+  "limitations": "Nonidentical copied logic, styling, data and translated code are not detected; a human must compare any derived implementation and source history. Originality, license compatibility and ownership require independent review.",
+  "sources": [
+    {
+      "referenceId": "SRC-069",
+      "repo": "drawdb-io/drawdb",
+      "revision": "dc32c8bde614c931ec8bf3b3c346500d7626ab72",
+      "path": "src/components/EditorCanvas/Table.jsx",
+      "sourceSha256": "b736378306c4dd8dd2960444431f988a4cc67365e38ac7111edcd9ca102ed61b",
+      "expectedSha256": "b736378306c4dd8dd2960444431f988a4cc67365e38ac7111edcd9ca102ed61b",
+      "retrieval": "downloaded",
+      "matchesAtLeast32Tokens": []
+    },
+    {
+      "referenceId": "SRC-070",
+      "repo": "drawdb-io/drawdb",
+      "revision": "dc32c8bde614c931ec8bf3b3c346500d7626ab72",
+      "path": "src/components/EditorCanvas/Relationship.jsx",
+      "sourceSha256": "03ad913498f4a4ca0412646b78560f4758977597dc35ded7b7bfe46d1b701581",
+      "expectedSha256": "03ad913498f4a4ca0412646b78560f4758977597dc35ded7b7bfe46d1b701581",
+      "retrieval": "downloaded",
+      "matchesAtLeast32Tokens": []
+    },
+    {
+      "referenceId": "SRC-071",
+      "repo": "drawdb-io/drawdb",
+      "revision": "dc32c8bde614c931ec8bf3b3c346500d7626ab72",
+      "path": "src/utils/importFrom/schemaQuery/mariadb.js",
+      "sourceSha256": "d0fda566f9fae7f2e1033726e89bb71999bc5a363e6627a29eda0662a61b833f",
+      "expectedSha256": "d0fda566f9fae7f2e1033726e89bb71999bc5a363e6627a29eda0662a61b833f",
+      "retrieval": "downloaded",
+      "matchesAtLeast32Tokens": []
+    },
+    {
+      "referenceId": "SRC-072",
+      "repo": "chartdb/chartdb",
+      "revision": "57bca690cc180f7501c6aa0c163c3b1dd418efa7",
+      "path": "src/lib/data/import-metadata/scripts/mysql-script.ts",
+      "sourceSha256": "82e4075f17f2c536ab73bfd11da244663f87a9d6b4fea15d5178ea33c1846f69",
+      "expectedSha256": "82e4075f17f2c536ab73bfd11da244663f87a9d6b4fea15d5178ea33c1846f69",
+      "retrieval": "downloaded",
+      "matchesAtLeast32Tokens": []
+    },
+    {
+      "referenceId": "SRC-073",
+      "repo": "chartdb/chartdb",
+      "revision": "57bca690cc180f7501c6aa0c163c3b1dd418efa7",
+      "path": "src/pages/editor-page/canvas/table-node/table-node.tsx",
+      "sourceSha256": "e3a8ab7884b5aaafbc6f5d29e1fa8ceb07d1185631e85f4dfcebed0d10588aef",
+      "expectedSha256": "e3a8ab7884b5aaafbc6f5d29e1fa8ceb07d1185631e85f4dfcebed0d10588aef",
+      "retrieval": "downloaded",
+      "matchesAtLeast32Tokens": []
+    },
+    {
+      "referenceId": "SRC-074",
+      "repo": "chartdb/chartdb",
+      "revision": "57bca690cc180f7501c6aa0c163c3b1dd418efa7",
+      "path": "src/pages/editor-page/canvas/relationship-edge/relationship-edge.tsx",
+      "sourceSha256": "d719f7ea10314516c4075862d15605b7c731589eb5bc09336e9169fd5dada951",
+      "expectedSha256": "d719f7ea10314516c4075862d15605b7c731589eb5bc09336e9169fd5dada951",
+      "retrieval": "downloaded",
+      "matchesAtLeast32Tokens": []
+    },
+    {
+      "referenceId": "SRC-075",
+      "repo": "outerbase/studio",
+      "revision": "70c9d8e9745c161fb84746d3372bdab838c9bb36",
+      "path": "src/drivers/mysql/generate-schema.ts",
+      "sourceSha256": "3154da595204b074a4a5b1d7d2a85ab27f0f92c7b247cea1cd427335be97340e",
+      "expectedSha256": "3154da595204b074a4a5b1d7d2a85ab27f0f92c7b247cea1cd427335be97340e",
+      "retrieval": "downloaded",
+      "matchesAtLeast32Tokens": []
+    },
+    {
+      "referenceId": "SRC-076",
+      "repo": "outerbase/studio",
+      "revision": "70c9d8e9745c161fb84746d3372bdab838c9bb36",
+      "path": "src/core/query-pipeline.tsx",
+      "sourceSha256": "29b5b66de7f1d959831ab230e402452fc96681de48ad670e6879e154d453b74f",
+      "expectedSha256": "29b5b66de7f1d959831ab230e402452fc96681de48ad670e6879e154d453b74f",
+      "retrieval": "downloaded",
+      "matchesAtLeast32Tokens": []
+    },
+    {
+      "referenceId": "SRC-077",
+      "repo": "outerbase/studio",
+      "revision": "70c9d8e9745c161fb84746d3372bdab838c9bb36",
+      "path": "src/lib/build-table-result.ts",
+      "sourceSha256": "c21677351e8da4a55475ccf89883e9ec40aaee664655611e949eafb0b71c7550",
+      "expectedSha256": "c21677351e8da4a55475ccf89883e9ec40aaee664655611e949eafb0b71c7550",
+      "retrieval": "downloaded",
+      "matchesAtLeast32Tokens": []
+    },
+    {
+      "referenceId": "SRC-078",
+      "repo": "xyflow/xyflow",
+      "revision": "d4bc936edad07aba995dbdb8e2c63af8cdd631c9",
+      "path": "packages/react/src/components/Handle/index.tsx",
+      "sourceSha256": "5caba63dde3a22a56a96f177643aec800118d2c6915e9bfb3efe56fcbc5e1039",
+      "expectedSha256": "5caba63dde3a22a56a96f177643aec800118d2c6915e9bfb3efe56fcbc5e1039",
+      "retrieval": "downloaded",
+      "matchesAtLeast32Tokens": []
+    },
+    {
+      "referenceId": "SRC-079",
+      "repo": "xyflow/xyflow",
+      "revision": "d4bc936edad07aba995dbdb8e2c63af8cdd631c9",
+      "path": "packages/system/src/xyhandle/XYHandle.ts",
+      "sourceSha256": "ada733bcb77f524573dfd95d642d0b103578454877a5267e94a3b58f9c5a27fa",
+      "expectedSha256": "ada733bcb77f524573dfd95d642d0b103578454877a5267e94a3b58f9c5a27fa",
+      "retrieval": "downloaded",
+      "matchesAtLeast32Tokens": []
+    }
+  ]
+}

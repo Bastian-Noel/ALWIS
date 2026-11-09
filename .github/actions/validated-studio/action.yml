@@ -28,8 +28,11 @@ runs:
         cc -std=c11 -Wall -Wextra -Werror -fsyntax-only -x c packages/sql-native/include/pbl_sql.h
         python3 -m compileall -q scripts
         python3 -m unittest discover -s tests -p 'test_native_concurrency.py' -v
+        python3 -m unittest discover -s tests -p 'test_source_reuse.py' -v
+        python3 -m unittest discover -s tests -p 'test_php_wasm_recovery.py' -v
         node scripts/package-studio.mjs
         python3 scripts/verify-studio-legal.py build-work/site
+        python3 scripts/verify-editor-boundary.py build-work/site
     - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
       with:
         path: ~/.cache/ms-playwright

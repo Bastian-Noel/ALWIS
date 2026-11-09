@@ -14,6 +14,9 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          persist-credentials: false
       - name: Download a validated main artifact without creating Git references
         env:
           GH_TOKEN: ${{ github.token }}
@@ -35,7 +38,7 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           python3 - <<'PY'
-          import json,hashlib,pathlib
+          import json,hashlib,pathlib,subprocess
           root=pathlib.Path('deployment/native')
           licensing=json.loads(pathlib.Path('provenance/release-licensing-status.json').read_text())
           assert licensing.get('status')=='ready' and not licensing.get('blockers'), 'Native release blocked by licensing status: '+'; '.join(item.get('summary',item.get('id','unknown blocker')) for item in licensing.get('blockers',[]))
@@ -44,9 +47,20 @@ jobs:
           assert hashlib.sha256(data).hexdigest()==lock['manifestSha256']
           manifest=json.loads(data)
           assert manifest.get('licensing',{}).get('status')=='ready', 'Native artifact manifest does not record ready licensing status.'
+          revision=manifest.get('sourceRevision','')
+          assert len(revision)==40 and all(ch in '0123456789abcdef' for ch in revision), 'Invalid native source revision'
           for record in manifest['sourceFiles']:
-              path=pathlib.Path(lock.get('sourceRelocations',{}).get(record['path'],record['path']))
-              assert hashlib.sha256(path.read_bytes()).hexdigest()==record['sha256'],str(path)
+              path=lock.get('sourceRelocations',{}).get(record['path'],record['path'])
+              assert not path.startswith('/') and '..' not in pathlib.Path(path).parts, 'Invalid source path'
+              historical=subprocess.run(['git','show',revision+':'+path],capture_output=True)
+              assert historical.returncode==0 and hashlib.sha256(historical.stdout).hexdigest()==record['sha256'], 'Source does not match native build: '+path
+          receipt=manifest.get('independentAdapter',{})
+          assert receipt.get('adapter')=='ALWIS cooperative waits (independent candidate)' and len(receipt.get('files',[]))==3, 'Unverified independent native adapter'
+          bundle=manifest.get('correspondingSources',{})
+          assert bundle.get('name')=='corresponding-sources.tar.gz' and len(bundle.get('archives',[]))==6, 'Incomplete corresponding sources'
+          assert len(bundle.get('patchedMariaDBFiles',[]))==3, 'Missing modified source file references'
+          source_data=(root/bundle['name']).read_bytes()
+          assert len(source_data)==bundle['bytes'] and hashlib.sha256(source_data).hexdigest()==bundle['sha256'], 'Corresponding sources checksum mismatch'
           for name,record in manifest['files'].items():
               assert hashlib.sha256((root/name).read_bytes()).hexdigest()==record['sha256']
           license_records=manifest.get('licensing',{}).get('files',[])
@@ -55,7 +69,7 @@ jobs:
           for record in license_records:
               path=root/record['path']
               assert path.is_file() and path.stat().st_size==record['bytes'] and hashlib.sha256(path.read_bytes()).hexdigest()==record['sha256'], 'Native release license/notice checksum mismatch: '+record['path']
-          release_files=['artifact.json','pbl-runtime.mjs','pbl-runtime.wasm',*license_paths]
+          release_files=['artifact.json','pbl-runtime.mjs','pbl-runtime.wasm',bundle['name'],*license_paths]
           (root/'SHA256SUMS').write_text(''.join(hashlib.sha256((root/name).read_bytes()).hexdigest()+'  '+name+'\n' for name in release_files))
           (root/'release-files.txt').write_text('\n'.join(release_files+['SHA256SUMS'])+'\n')
           PY
