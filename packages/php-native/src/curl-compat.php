@@ -165,12 +165,15 @@ if (!function_exists('curl_init')) {
         $publicFile = $candidate !== false && $root !== false &&
             str_starts_with($candidate, $root . '/') &&
             is_file($candidate) && !$hidden;
-        if ($sameOrigin && ($method !== 'GET' || !$publicFile || preg_match('~\.php(?:$|/)~i', $route))) {
+        // Same-origin HTTP endpoints can belong to the host server (such
+        // as /echo), rather than this PHP virtual-site worker. Reject
+        // explicit PHP recursion, not unrelated dynamic HTTP paths.
+        if ($sameOrigin && preg_match('~\.php(?:$|/)~i', $route)) {
             $handle->errno = CURLE_FAILED_INIT;
-            $handle->error = 'Recursive PHP self-request requires an independent executor (dynamic paths cannot recurse)';
+            $handle->error = 'Recursive PHP self-request requires an independent executor';
             return false;
         }
-        if ($sameOrigin && $publicFile) {
+        if ($sameOrigin && $publicFile && $method === 'GET') {
             $result = @file_get_contents($candidate);
             $responseHeaders = ['HTTP/1.1 200 OK', 'Content-Type: application/octet-stream'];
         } else {

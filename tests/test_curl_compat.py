@@ -38,6 +38,47 @@ class CurlCompatibilityTests(unittest.TestCase):
         self.assertLess(worker.index("if (message.operation === 'abortHttp')"), worker.index('queue.run('))
         self.assertIn('abortHttp() { return this.call(', facade)
 
+    def test_same_origin_host_http_endpoint_is_not_mistaken_for_php_recursion(self):
+        import http.server
+        import json
+        import threading
+        php = shutil.which("php")
+        if not php:
+            self.skipTest("PHP CLI unavailable")
+        class Echo(http.server.BaseHTTPRequestHandler):
+            def do_POST(self):
+                data = self.rfile.read(int(self.headers.get("Content-Length", "0")))
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"hex": data.hex()}).encode())
+            def log_message(self, *args):
+                pass
+        server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Echo)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        port = server.server_port
+        try:
+            code = (
+                '$_SERVER["HTTP_HOST"]="127.0.0.1:' + str(port) + '";'
+                '$_SERVER["SERVER_PORT"]="' + str(port) + '";'
+                'require "packages/php-native/src/curl-compat.php";'
+                '$h=curl_init("http://127.0.0.1:' + str(port) + '/echo");'
+                'curl_setopt($h,CURLOPT_RETURNTRANSFER,true);'
+                'curl_setopt($h,CURLOPT_POSTFIELDS,hex2bin("007f80ff"));'
+                'echo json_encode(["response"=>curl_exec($h),"error"=>curl_error($h)]);'
+            )
+            proc = subprocess.run([php, "-n", "-r", code],
+                cwd=ROOT, capture_output=True, text=True, timeout=10)
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            result = json.loads(proc.stdout)
+            self.assertEqual(json.loads(result["response"]), {"hex":"007f80ff"})
+            self.assertEqual(result["error"], "")
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=2)
+
     def test_explicit_scope_and_self_site_safety(self):
         text = (ROOT/'packages/php-native/src/curl-compat.php').read_text()
         for symbol in ['curl_init', 'curl_exec', 'curl_setopt', 'curl_setopt_array',
