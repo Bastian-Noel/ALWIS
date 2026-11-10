@@ -1,5 +1,12 @@
 name: CI - independent PHP MariaDB native reconstruction
 on:
+  push:
+    branches: ['develop/2026-11-beta1-foundation']
+    paths:
+      - '.github/workflows/native-rebuild-ci.yml'
+      - 'scripts/prepare-independent-native-inputs.py'
+      - 'scripts/build-independent-native-ci.sh'
+      - 'scripts/prepare-php84-source.py'
   workflow_dispatch:
     inputs:
       mode:
@@ -67,7 +74,7 @@ jobs:
 
   candidate-native:
     name: Build and browser-test newly compiled PHP/MariaDB (no publish)
-    if: github.event.inputs.mode == 'compile'
+    if: github.event_name == 'push' || github.event.inputs.mode == 'compile'
     needs: pinned-sources
     runs-on: ubuntu-24.04
     timeout-minutes: 100
