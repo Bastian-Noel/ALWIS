@@ -70,6 +70,9 @@ try {
       const context = await browser.newContext();
       const page = await context.newPage();
       const errors = [];
+      const responses = [];
+      page.on("response", response => { if (response.url().includes("__pbl-guest") || response.url().includes("_pbl/client.js")) responses.push({ url: response.url(), status: response.status() }); });
+      page.on("requestfailed", request => errors.push("request failed: " + request.url() + " " + request.failure()?.errorText));
       page.on("pageerror", error => errors.push(error.message));
       page.on("console", message => {
         if (message.type() === "error") errors.push("console: " + message.text());
@@ -111,7 +114,16 @@ try {
         document.body.append(frame);
         return { channel: bridge.channel, src: frame.src };
       }, { html });
-      await page.waitForFunction(() => window.__guestProbe?.messages?.some(m => m.kind === "fetch" || m.kind === "fetch-error"), null, { timeout: 15000 });
+      try {
+        await page.waitForFunction(() => window.__guestProbe?.messages?.some(m => m.kind === "fetch" || m.kind === "fetch-error"), null, { timeout: 9000 });
+      } catch (error) {
+        console.log(name, "timeout details", JSON.stringify({
+          probe: await page.evaluate(() => window.__guestProbe), responses, errors,
+          frameUrl: page.frames().map(frame => frame.url()),
+          frameHTML: await page.locator("#isolatedGuestFrame").contentFrame().locator("html").innerHTML().catch(e => "frame inspect failed " + e.message),
+        }));
+        throw error;
+      }
       const details = await page.evaluate(() => window.__guestProbe);
       console.log(name, "isolated iframe:", JSON.stringify({ setup, details, errors }));
       assert.ok(details.messages.some(m => m.kind === "boot"), "Guest HTML script must execute");
