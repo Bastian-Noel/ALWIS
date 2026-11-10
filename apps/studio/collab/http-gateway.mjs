@@ -1,7 +1,6 @@
 /**
- * Guest/host HTTP RPC endpoints. They do not publish preview routes yet;
- * wiring them to a guest Service Worker requires per-guest origin isolation
- * and an explicit host opt-in. PHP and SQL remain host-side only.
+ * Guest/host HTTP RPC endpoints. The host owns all PHP, SQL and cookie jars;
+ * guests only transport browser requests after explicit host authorization.
  */
 import {
   HTTP_LIMITS, GuestSessionRegistry, normalizeGuestRequest, normalizeHostResponse,
@@ -10,11 +9,14 @@ import { httpFrames, HttpFrameCollector } from "./http-frames.mjs";
 import { HttpFrameFlow, frameNeedsAck } from "./http-flow.mjs";
 
 export class HostHttpGateway {
-  constructor({ origin, sessions, route, send, canPreview = () => false, log = () => {} }) {
+  constructor({ origin, sessions, route, send, canPreview = () => false,
+    cookieState = () => [], setCookie = () => { throw Error("Guest cookies not configured"); }, log = () => {} }) {
     this.origin = origin;
     this.send = send;
     this.route = route;
     this.canPreview = canPreview;
+    this.cookieState = cookieState;
+    this.setCookie = setCookie;
     this.log = log;
     this.registry = new GuestSessionRegistry(sessions);
     this.collector = new HttpFrameCollector({ maxPending: 24 });
@@ -24,6 +26,30 @@ export class HostHttpGateway {
   async receive(from, message) {
     if (message?.t === "http-ack") { this.flow.acknowledge(from, message); return true; }
     if (message?.t === "http-error") { this.flow.abort(from, "http-response", message.id); return true; }
+    if (message?.t === "http-cookie") {
+      if (!Number.isSafeInteger(message.id) || message.id < 1) return true;
+      const count = this.active.get(from) ?? 0;
+      if (count >= HTTP_LIMITS.maxConcurrentPerGuest) {
+        this.send(from, { t: "http-cookie-result", id: message.id, error: "Too many concurrent requests" });
+        return true;
+      }
+      this.active.set(from, count + 1);
+      try {
+        if (!await this.canPreview(from)) throw Error("L'hôte n'autorise pas l'aperçu PHP interactif.");
+        const url = normalizeGuestRequest({ url: message.url, method: "GET" }, this.origin).url;
+        if (typeof message.value !== "string" || message.value.length > 4096 || /[\r\n\0]/.test(message.value))
+          throw Error("Invalid guest cookie");
+        const session = await this.registry.getOrCreate(from);
+        await this.setCookie(session, message.value, url);
+        this.send(from, { t: "http-cookie-result", id: message.id, cookies: this.#publicCookies(session) });
+      } catch (error) {
+        this.send(from, { t: "http-cookie-result", id: message.id, error: String(error.message) });
+      } finally {
+        const active = (this.active.get(from) ?? 1) - 1;
+        if (active) this.active.set(from, active); else this.active.delete(from);
+      }
+      return true;
+    }
     if (message?.t !== "http-request") return false;
     let request;
     try {
@@ -50,7 +76,8 @@ export class HostHttpGateway {
         body = new Uint8Array(await result.file.arrayBuffer());
       }
       const response = normalizeHostResponse({ ...result, body, file: undefined });
-      await this.flow.transfer(from, httpFrames("http-response", id, { status: response.status, headers: response.headers }, response.body));
+      await this.flow.transfer(from, httpFrames("http-response", id,
+        { status: response.status, headers: response.headers, cookies: this.#publicCookies(session) }, response.body));
     } catch (error) {
       this.log("warn", "guest_http", { message: String(error.message) });
       this.send(from, { t: "http-error", id, error: String(error.message) });
@@ -60,6 +87,12 @@ export class HostHttpGateway {
       else this.active.delete(from);
     }
     return true;
+  }
+  #publicCookies(session) {
+    const cookies = this.cookieState(session);
+    if (!Array.isArray(cookies)) return [];
+    // A frame must remain under the relay's 12 KiB budget, including metadata.
+    return JSON.stringify(cookies).length <= 4096 ? cookies : [];
   }
   async drop(from) { this.flow.drop(from); await this.registry.drop(from); }
   async close() { this.flow.close(); this.collector.reset(); await this.registry.close(); this.active.clear(); }
@@ -74,6 +107,7 @@ export class GuestHttpGateway {
     this.collector = new HttpFrameCollector({ timeoutMs, maxPending: 4 });
     this.flow = new HttpFrameFlow({ send: (_peer, frame) => this.send(frame), timeoutMs });
     this.pending = new Map();
+    this.pendingCookies = new Map();
     this.nextId = 0;
   }
   async request(value) {
@@ -92,7 +126,33 @@ export class GuestHttpGateway {
       });
     });
   }
+  cookie(value, url) {
+    const normalized = normalizeGuestRequest({ url, method: "GET" }, this.origin);
+    if (typeof value !== "string" || value.length > 4096 || /[\r\n\0]/.test(value))
+      return Promise.reject(Error("Invalid guest cookie"));
+    if (this.pendingCookies.size >= HTTP_LIMITS.maxConcurrentPerGuest)
+      return Promise.reject(Error("Too many pending guest cookie updates"));
+    const id = ++this.nextId;
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        this.pendingCookies.delete(id); reject(Error("L'hôte ne répond pas à la mise à jour du cookie."));
+      }, this.timeoutMs);
+      timer.unref?.();
+      this.pendingCookies.set(id, { resolve, reject, timer });
+      if (this.send({ t: "http-cookie", id, url: normalized.url, value }) === false) {
+        clearTimeout(timer); this.pendingCookies.delete(id); reject(Error("L'hôte est déconnecté."));
+      }
+    });
+  }
   receive(message) {
+    if (message?.t === "http-cookie-result") {
+      const pending = this.pendingCookies.get(message.id);
+      if (pending) {
+        clearTimeout(pending.timer); this.pendingCookies.delete(message.id);
+        message.error ? pending.reject(Error(String(message.error))) : pending.resolve(message.cookies ?? []);
+      }
+      return true;
+    }
     if (message?.t === "http-ack") { this.flow.acknowledge("host", message); return true; }
     if (message?.t === "http-error") {
       this.flow.abort("host", "http-request", message.id);
@@ -118,7 +178,7 @@ export class GuestHttpGateway {
     if (!response) return true;
     const pending = this.pending.get(response.id);
     clearTimeout(pending.timer); this.pending.delete(response.id);
-    try { pending.resolve(normalizeHostResponse({ ...response.meta, body: response.body })); }
+    try { pending.resolve({ ...normalizeHostResponse({ ...response.meta, body: response.body }), cookies: response.meta.cookies ?? [] }); }
     catch (error) { pending.reject(error); }
     return true;
   }
@@ -128,6 +188,11 @@ export class GuestHttpGateway {
       pending.reject(Error("L'aperçu distant a été déconnecté."));
     }
     this.pending.clear();
+    for (const pending of this.pendingCookies.values()) {
+      clearTimeout(pending.timer);
+      pending.reject(Error("L'aperçu distant a été déconnecté."));
+    }
+    this.pendingCookies.clear();
     this.flow.close();
     this.collector.reset();
   }

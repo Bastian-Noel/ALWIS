@@ -757,6 +757,11 @@ export function createStudioServices() {
             }))
           : [],
       create: (label) => hub.createSession(label),
+      /** Host-only virtual document.cookie mutations for permitted remote previews. */
+      cookie: (session, value, url) => {
+        if (!hub || closing) throw Error("Projet fermé");
+        return hub.setCookie(session, value, url);
+      },
       remove: (id) => hub.removeSession(id),
       async rename(session, label) {
         label = String(label).trim();

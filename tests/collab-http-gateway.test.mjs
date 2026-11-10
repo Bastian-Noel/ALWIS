@@ -77,3 +77,30 @@ test("each guest reuses only its own PHP session across sequential requests", as
   await host.close(); alice.close(); bob.close();
   assert.deepEqual(removed.sort(), ["php-1", "php-2"]);
 });
+
+test("PHP cookies stay host-side, JavaScript cookies are scoped to each guest", async () => {
+  const state = new Map(), calls = [];
+  const clients = new Map();
+  let counter = 0;
+  const host = new HostHttpGateway({
+    origin: "https://studio.mmi.place", canPreview: () => true,
+    sessions: { create: () => `guest-session-${++counter}`, remove: () => {} },
+    route: async session => ({ status: 200, headers: [["Content-Type", "text/html"]], body: new TextEncoder().encode(`<p>${session}</p>`) }),
+    setCookie: (session, value, url) => { calls.push({ session, value, url }); state.set(session, [{ name: "visitor", value, path: "/", expires: null, secure: false }]); },
+    cookieState: session => state.get(session) ?? [],
+    send: (to, msg) => clients.get(to).receive(msg),
+  });
+  const guest = peer => {
+    const client = new GuestHttpGateway({ origin: "https://studio.mmi.place", send: msg => host.receive(peer, msg) });
+    clients.set(peer, client);
+    return client;
+  };
+  const alice = guest("alice"), bob = guest("bob");
+  assert.equal((await alice.cookie("first=1; Path=/", "/index.php"))[0].value, "first=1; Path=/");
+  assert.deepEqual((await bob.request({ url: "/index.php", destination: "document" })).cookies, []);
+  assert.equal((await alice.request({ url: "/index.php", destination: "document" })).cookies[0].name, "visitor");
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, "https://studio.mmi.place/index.php");
+  await assert.rejects(async () => alice.cookie("forged=1", "https://other.example/"), /Cross-origin/);
+  await host.close(); alice.close(); bob.close();
+});

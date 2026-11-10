@@ -36,9 +36,11 @@ const plural = (n, one, many) => `${n} ${n > 1 ? many : one}`;
 const secondsLeft = (until) => Math.max(0, Math.round((until - Date.now()) / 1000));
 
 export class PresenceUI {
-  constructor({ slot, onStart, onJoin, onLeave, onFollow, onFollowToggle, getFollowing, onKick, onLock, config }) {
+  constructor({ slot, onStart, onJoin, onLeave, onFollow, onFollowToggle, getFollowing, onKick, onLock,
+    onPreviewPermission, getPreviewPermission, config }) {
     this.slot = slot;
-    this.cb = { onStart, onJoin, onLeave, onFollow, onFollowToggle, getFollowing, onKick, onLock };
+    this.cb = { onStart, onJoin, onLeave, onFollow, onFollowToggle, getFollowing, onKick, onLock,
+      onPreviewPermission, getPreviewPermission };
     this.config = config;
     this.session = null;
     this.open = false;
@@ -203,6 +205,14 @@ export class PresenceUI {
         field, copy,
         el("p", { class: "cb-hint" }, s.locked ? "Les nouvelles personnes sont refusées pour le moment." : `Toute personne ayant ce lien peut rejoindre : ${free > 0 ? plural(free, "place libre", "places libres") : "session complète"}.`),
         lock));
+      wrap.append(el("section", { class: "cb-sec" },
+        el("p", { class: "cb-label" }, "Aperçu HTTP des invités"),
+        el("label", { class: "cb-check" },
+          el("input", { type: "checkbox", checked: !!this.cb.getPreviewPermission?.(),
+            onchange: e => this.cb.onPreviewPermission?.(e.target.checked) }),
+          el("span", {}, "Autoriser le PHP interactif pour les invités")),
+        el("p", { class: "cb-hint" }, "Les invités pourront soumettre des formulaires et modifier la base via PHP, même sans modifier les fichiers. Désactivé par défaut.")));
+
     }
     const list = el("ul", { class: "cb-list" });
     const following = this.cb.getFollowing?.();

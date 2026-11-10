@@ -9,6 +9,7 @@ class CollabHub extends Emitter {
   session = null;
   ui = null;
   config = null;
+  previewEnabled = false;
   get active() { return !!this.session && ["live", "reconnecting"].includes(this.session.status); }
   get isHost() { return this.active && this.session.isHost; }
   get isGuest() { return this.active && !this.session.isHost; }
@@ -53,6 +54,8 @@ export async function initCollab() {
     },
     onKick: (id) => collab.session?.kick(id),
     onLock: (v) => collab.session?.setLocked(v),
+    onPreviewPermission: (v) => collab.emit("http-preview-toggle", !!v),
+    getPreviewPermission: () => collab.previewEnabled,
   });
   const url = new URL(location.href);
   const invite = url.searchParams.get("collab");
