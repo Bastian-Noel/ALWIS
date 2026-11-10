@@ -1,3 +1,4 @@
+import {waitForAsyncCondition} from './async-condition.mjs';
 /** Two virtual HTTP clients, fixed offered 5/10 requests/s each, one in flight each. */
 import assert from 'node:assert/strict';
 import {readFile,mkdir,writeFile} from 'node:fs/promises';
@@ -16,7 +17,7 @@ try{
    const context=await browser.newContext();const studio=await context.newPage();studio.setDefaultTimeout(60000);
    const project='load-'+crypto.randomUUID();
    await studio.goto(origin+'/?project='+project);
-   await studio.waitForFunction(async name=>{
+   await waitForAsyncCondition(studio, async name=>{
     const {S}=await import('/apps/studio/workbench/state.mjs');
     return S.mode==='launcher' && document.querySelector('#pn')?.value===name &&
       S.logs.some(row=>row.msg==='ALWIS prêt');
@@ -26,7 +27,7 @@ try{
    await studio.locator('input[name=tpl][value=empty]').check();
    await studio.locator('[data-act=create]').click();
    try {
-    await studio.waitForFunction(async name=>{
+    await waitForAsyncCondition(studio, async name=>{
      const {S}=await import('/apps/studio/workbench/state.mjs');
      return S.mode==='work' && S.project===name;
     },project,{timeout:60000});
@@ -42,7 +43,7 @@ try{
    // Toasts are ephemeral and may disappear before Playwright starts waiting.
    // Verify the real imported files instead of a transient UI notification.
    try {
-    await studio.waitForFunction(async()=>{
+    await waitForAsyncCondition(studio, async()=>{
      const {ctx}=await import('/apps/studio/workbench/state.mjs');
      if (!ctx.engine?.fs) return false;
      try {
@@ -67,7 +68,7 @@ try{
    // user-activation rules and can race studio navigation/initialization.
    // Create sessions from the live host and navigate two pages in the SAME
    // browser context (the installed Service Worker belongs to that context).
-   await studio.waitForFunction(async()=>{
+   await waitForAsyncCondition(studio, async()=>{
     const {S,ctx}=await import('/apps/studio/workbench/state.mjs');
     return S.mode==='work' && ctx.engine?.sessions?.list()?.length>0 &&
       !!navigator.serviceWorker?.controller;
