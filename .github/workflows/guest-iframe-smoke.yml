@@ -6,7 +6,7 @@ on:
       - 'apps/studio/collab/**'
       - 'apps/studio/service-worker.mjs'
       - 'apps/studio/client-bootstrap.js'
-      - 'tests/browser/guest-iframe-parity.mjs'
+      - 'tests/browser/isolated-origin-guest.mjs'
       - '.github/workflows/guest-iframe-smoke.yml'
   pull_request:
   workflow_dispatch:
