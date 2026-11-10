@@ -16,6 +16,10 @@ Attribution conservée (le préfixe historique ci-dessous ne crée aucune condit
 
 Required Notice: ALWIS — Copyright © 2026 Bastian Noël — https://github.com/Bastian-Noel/ALWIS
 
+### Exception pour les adaptateurs de l'éditeur
+
+Le code original détenu par Bastian Noël dans `apps/studio/editor/` est proposé sous **MIT**, au lieu de GPL-2.0-only, conformément à son autorisation du 11 novembre 2026. Le texte complet est [LICENSES/ALWIS-editor-MIT.txt](LICENSES/ALWIS-editor-MIT.txt). Cette exception permet notamment l'assemblage du worker JavaScript original avec TypeScript sous Apache-2.0. Les fichiers et bibliothèques tiers conservent leurs propres licences. Leur présence dans ce répertoire ne les place pas sous la licence MIT d'ALWIS.
+
 ## 2. Runtime natif PHP/MariaDB
 
 MariaDB Server est sous **GPL-2.0-only**. Le WASM compilé avec MariaDB, les adaptateurs natifs faisant partie de l'œuvre combinée et les autres composants intégrés doivent respecter **leurs licences et exceptions exactes**, notamment PHP License, wolfSSL et éventuelles licences LGPL.

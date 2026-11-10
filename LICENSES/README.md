@@ -1,5 +1,6 @@
 # Component license files
 
+**11 novembre 2026 — exception éditeur :** le code original détenu par Bastian Noël dans `apps/studio/editor/` est sous MIT (voir `LICENSES/ALWIS-editor-MIT.txt`), avec autorisation explicite du titulaire. Les composants tiers gardent leurs licences. Le worker incluant TypeScript n'est pas placé sous GPLv2 ; ses notices MIT et Apache-2.0 sont conservées dans le bundle de l'éditeur.
 This directory contains license texts and notices that may apply to components distributed by ALWIS. It is not a declaration that every listed component is present in every build. The exact release inventory is recorded in `release.json` and `THIRD-PARTY-NOTICES.md`.
 
 | File | Component / use |

@@ -1,5 +1,6 @@
 # Third-party notices for ALWIS distributions
 
+**11 novembre 2026 — exception éditeur :** le code original détenu par Bastian Noël dans `apps/studio/editor/` est sous MIT (voir `LICENSES/ALWIS-editor-MIT.txt`), avec autorisation explicite du titulaire. Les composants tiers gardent leurs licences. Le worker incluant TypeScript n'est pas placé sous GPLv2 ; ses notices MIT et Apache-2.0 sont conservées dans le bundle de l'éditeur.
 This notice summarizes known components. It is intentionally not a claim that the current inventory is exhaustive. The build-specific `release.json`, editor `THIRD-PARTY.txt`, native source manifest, and exact pinned source archives must be reviewed together for a complete release.
 
 ## Original ALWIS code and documentation

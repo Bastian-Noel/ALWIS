@@ -1,3 +1,4 @@
+/*! ALWIS original adapter — Copyright (c) 2026 Bastian Noël. SPDX-License-Identifier: MIT. See licenses/ALWIS-MIT.txt. */
 import ts from "typescript";
 import initSWC, { parseSync } from "@swc/wasm-web";
 const MAX_DOCUMENT = 256 * 1024;

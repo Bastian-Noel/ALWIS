@@ -83,7 +83,7 @@ La [roadmap V1](https://github.com/Bastian-Noel/ALWIS/issues/1) couvre la parit�
 <details>
 <summary><strong>Licences, attributions et sources natives</strong></summary>
 
-Le code logiciel original ALWIS détenu par Bastian Noël est proposé sous **GPL-2.0-only**, avec utilisation commerciale autorisée. La documentation originale reste sous **CC BY-NC-SA**. Les composants tiers conservent leurs licences et notices ; voir `LICENSE.md`. La redistribution du runtime exige encore les preuves et sources correspondantes indiquées dans le statut de publication.
+Le code logiciel original ALWIS détenu par Bastian Noël est proposé sous **GPL-2.0-only**, avec utilisation commerciale autorisée ; ses adaptateurs d’éditeur originaux sont sous **MIT**. La documentation originale reste sous **CC BY-NC-SA**. Les composants tiers conservent leurs licences et notices ; voir `LICENSE.md`. La redistribution du runtime exige encore les preuves et sources correspondantes indiquées dans le statut de publication.
 
 L'attribution obligatoire figure dans [NOTICE.md](NOTICE.md). Consultez [LICENSE.md](LICENSE.md), les [notices tierces](THIRD-PARTY-NOTICES.md), la [cartographie par composant](provenance/component-license-map.md) et le [statut de distribution](provenance/release-licensing-status.json) pour les limites et obligations actuelles.
 

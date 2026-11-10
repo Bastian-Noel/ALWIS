@@ -1,3 +1,4 @@
+/*! ALWIS original adapter — Copyright (c) 2026 Bastian Noël. SPDX-License-Identifier: MIT. See licenses/ALWIS-MIT.txt. */
 import { cssDiagnostics } from "./css-diagnostics.mjs";
 import { renameClosingTag } from "./tag-rename.mjs";
 import { editorSearch } from "./search-panel.mjs";

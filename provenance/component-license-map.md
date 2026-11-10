@@ -1,5 +1,6 @@
 # Cartographie de licences par composant ALWIS
 
+**11 novembre 2026 — exception éditeur :** le code original détenu par Bastian Noël dans `apps/studio/editor/` est sous MIT (voir `LICENSES/ALWIS-editor-MIT.txt`), avec autorisation explicite du titulaire. Les composants tiers gardent leurs licences. Le worker incluant TypeScript n'est pas placé sous GPLv2 ; ses notices MIT et Apache-2.0 sont conservées dans le bundle de l'éditeur.
 **État au 10 novembre 2026 : le titulaire autorise GPL-2.0-only pour son code logiciel original, y compris l'utilisation commerciale.** `LICENSE.md` applique ce choix aux sources originales ALWIS. Les notices tierces restent applicables et la publication demeure bloquée tant que les sources, objets liés et notices du paquet final ne sont pas vérifiés.
 
 | Composant / chemins principaux | Titulaire ou provenance observée | Régime à retenir / piste | État et action requise |

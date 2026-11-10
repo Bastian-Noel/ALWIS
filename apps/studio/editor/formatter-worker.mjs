@@ -1,3 +1,4 @@
+/*! ALWIS original adapter — Copyright (c) 2026 Bastian Noël. SPDX-License-Identifier: MIT. See licenses/ALWIS-MIT.txt. */
 import { formatMixedHtml } from "./mixed-format.mjs";
 import { htmlVoidStyle } from "./html-style.mjs";
 // Loaded only by the explicit format command; the owner terminates this worker.
