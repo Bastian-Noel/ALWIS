@@ -22,6 +22,8 @@ class SourceStagingTests(unittest.TestCase):
         self.assertNotIn('joomengine/php-wasm', stage.NATIVE_REPOSITORIES)
         self.assertEqual(stage.PHP_VERSION, '8.4.27')
         self.assertEqual(len(stage.PHP_SHA256), 64)
+        self.assertEqual(stage.PCRE_VERSION, '10.47')
+        self.assertEqual(len(stage.PCRE_SHA256), 64)
 
     def test_extracts_only_single_prefix(self):
         with tempfile.TemporaryDirectory() as folder:

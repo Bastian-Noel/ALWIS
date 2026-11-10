@@ -32,6 +32,8 @@ MORE_SOURCES = (
     "scripts/prepare-native-concurrency.py",
     "scripts/prepare-native-drivers.py",
     "scripts/prepare-php84-source.py",
+    "scripts/prepare-independent-native-inputs.py",
+    "scripts/build-independent-native-ci.sh",
     "scripts/prepare-native-result-budget.py",
     "scripts/prepare-native-server.py",
     "scripts/build-independent-native.sh",
@@ -70,6 +72,14 @@ def expected_archives():
         {"role": "MariaDB linked submodule source", "repo": x["repo"], "path": x["archive"], "sha256": x["archive_sha256"]}
         for x in downloads if x["repo"] in ("MariaDB/mariadb-connector-c", "wolfSSL/wolfssl")
     ]
+    inputs = import_module('prepare-independent-native-inputs')
+    archives.extend([
+        {"role": "exact PHP 8.4.27 release used for compilation", "repo": "php/php-release",
+         "path": "build-work/source-archives/php-8.4.27.tar.xz", "sha256": inputs.PHP_SHA256},
+        {"role": "exact MariaDB and PHP shared PCRE2 10.47 library source",
+         "repo": "PCRE2Project/pcre2", "path": "build-work/source-archives/pcre2-10.47.zip",
+         "sha256": inputs.PCRE_SHA256},
+    ])
     return archives
 
 

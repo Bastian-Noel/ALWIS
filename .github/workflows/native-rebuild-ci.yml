@@ -38,6 +38,7 @@ jobs:
             sources/MariaDB--mariadb-connector-c-5a6fe6016fc908518e7d2a8c128a5c108b511c17.tar.gz
             sources/wolfSSL--wolfssl-1d363f3adceba9d1478230ede476a37b0dcdef24.tar.gz
             build-work/source-archives/php-8.4.27.tar.xz
+            build-work/source-archives/pcre2-10.47.zip
           key: native-v1-${{ hashFiles('provenance/upstream-lock.json', 'provenance/submodules-lock.json', 'scripts/prepare-php84-source.py') }}
       - name: Verify strict source-loader controls
         run: |
@@ -58,7 +59,7 @@ jobs:
           assert record['status']=='verified-sources-only'
           assert record['nativeWasmCompiled'] is False
           assert record['releaseApproved'] is False
-          assert len(record['thirdParty'])==5
+          assert len(record['thirdParty'])==6
           print('REPRODUCIBLE SOURCES VERIFIED, not a compiled WASM or a release.')
           PY
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -75,7 +76,7 @@ jobs:
 
   candidate-native:
     name: Build and browser-test newly compiled PHP/MariaDB (no publish)
-    if: github.event_name == 'push' || github.event.inputs.mode == 'compile'
+    if: github.event.inputs.mode == 'compile' || (github.event_name == 'push' && contains(github.event.head_commit.message, '[native-rebuild]'))
     needs: pinned-sources
     runs-on: ubuntu-24.04
     timeout-minutes: 100
@@ -95,6 +96,7 @@ jobs:
             sources/MariaDB--mariadb-connector-c-5a6fe6016fc908518e7d2a8c128a5c108b511c17.tar.gz
             sources/wolfSSL--wolfssl-1d363f3adceba9d1478230ede476a37b0dcdef24.tar.gz
             build-work/source-archives/php-8.4.27.tar.xz
+            build-work/source-archives/pcre2-10.47.zip
           key: native-v1-${{ hashFiles('provenance/upstream-lock.json', 'provenance/submodules-lock.json', 'scripts/prepare-php84-source.py') }}
       - name: Install host build dependencies
         run: |

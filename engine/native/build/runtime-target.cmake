@@ -26,6 +26,7 @@ endforeach()
 set_property(TARGET sql_embedded PROPERTY SOURCES "${pbl_bounded_sources}")
 add_executable(pbl-runtime
   "${PBL_REPO_SOURCE}/packages/php-native/src/request-state.c"
+  "${PBL_REPO_SOURCE}/packages/php-native/src/portability.c"
   "${PBL_GENERATED}/runtime.c" "${PBL_GENERATED}/mysql_driver.c"
   "${PBL_GENERATED}/pdo_mysql.c"
   "${PBL_GENERATED}/mysql_statement.c"

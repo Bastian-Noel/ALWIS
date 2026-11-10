@@ -44,3 +44,10 @@ Le script \`scripts/prepare-independent-native-inputs.py\` récupère uniquement
 La [CI de reconstruction](../../../.github/workflows/native-rebuild-ci.yml) se lance manuellement dans GitHub Actions avec le choix \`sources\` (vérification et reçus uniquement) ou \`compile\` (Emscripten 6.0.6 sur Linux x86-64 et tentative de lien du nouveau WASM). Le chemin de compilation est \`scripts/build-independent-native-ci.sh\`; il produit le candidat uniquement dans le workspace éphémère d'Actions et ne téléverse **jamais le WASM**. Les fichiers envoyés en artefacts Actions ne sont que des reçus de contrôle (et les logs restent consultables dans la CI).
 
 \`compile\` ne signifie pas que la reconstruction a réussi : seuls une compilation complète avec nouveau SHA-256, les deux tests Chromium/Firefox et la suite de parité constituent une validation technique. Même une compilation réussie **ne lève aucun verrou de licences** et ne permet pas FTP/GHCR. L'archive de sources correspondantes reste une obligation distincte de la reconstruction.
+
+
+### Dernier échec réellement observé, 10 novembre 2026
+
+[Rebuild Linux x86-64 GitHub Actions](https://github.com/Bastian-Noel/ALWIS/actions/runs/42798390821) : le C/C++ du serveur MariaDB et l'archive PHP pthread se sont compilés ; le premier lien \`pbl-runtime\` a échoué sur \`getdtablesize\`, non exporté par la libc Emscripten 6.0.6. Le module ALWIS \`packages/php-native/src/portability.c\` fournit désormais un substitut faible borné par \`sysconf(_SC_OPEN_MAX)\`, avec test C natif ; **le nouveau lien et les tests navigateur n'ont pas encore été validés**. Aucun contournement \`--allow-undefined\` n'est utilisé.
+
+Le paquet de sources correspondantes doit désormais inclure également la **tarball officielle PHP 8.4.27 réellement compilée** et l'archive **PCRE2 10.47 réellement liée** ; les cinq autres snapshots vérifiés ne suffisaient pas. La provenance correspondante est verrouillée dans les scripts de vérification et la carte des licences.

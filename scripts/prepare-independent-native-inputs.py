@@ -22,6 +22,9 @@ NATIVE_REPOSITORIES = (
 )
 PHP_VERSION = '8.4.27'
 PHP_SHA256 = 'dcf93923b0e38e0d5252b25b796520b5a47761a08b3488b6d0b5d1115764d3f0'
+PCRE_VERSION = '10.47'
+PCRE_SHA256 = 'd74c183c86c77248ad50017c7f45bae8f88106a6cca5d87ad09917e1c6fb0784'
+PCRE_URL = 'https://github.com/PCRE2Project/pcre2/releases/download/pcre2-10.47/pcre2-10.47.zip'
 
 
 def sha(path):
@@ -85,6 +88,12 @@ def read_archives(download):
     if not official_php.is_file() or sha(official_php) != PHP_SHA256:
         raise ValueError('Missing/unverified PHP source release: ' + str(official_php))
     paths['php/php-release'] = official_php
+    pcre = ROOT / f'build-work/source-archives/pcre2-{PCRE_VERSION}.zip'
+    if download:
+        fetch(PCRE_URL, pcre, PCRE_SHA256)
+    if not pcre.is_file() or sha(pcre) != PCRE_SHA256:
+        raise ValueError('Missing/unverified MariaDB/PHP external PCRE2 source: ' + str(pcre))
+    paths['PCRE2Project/pcre2'] = pcre
     return paths
 
 

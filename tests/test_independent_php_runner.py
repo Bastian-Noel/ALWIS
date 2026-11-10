@@ -34,6 +34,23 @@ class IndependentRunnerTests(unittest.TestCase):
                                     capture_output=True, text=True, timeout=10)
             self.assertIn('passed', result.stdout)
 
+    def test_emscripten_missing_fd_limit_function_has_checked_portability_adapter(self):
+        compiler = shutil.which('cc')
+        self.assertIsNotNone(compiler)
+        source = ROOT / 'packages/php-native/src/portability.c'
+        link = (ROOT / 'engine/native/build/runtime-target.cmake').read_text()
+        self.assertIn('packages/php-native/src/portability.c', link)
+        self.assertIn('getdtablesize', source.read_text())
+        with tempfile.TemporaryDirectory() as temp:
+            exe = Path(temp) / 'portability-test'
+            subprocess.run([compiler, '-std=c11', '-D__EMSCRIPTEN__',
+                            '-D_DEFAULT_SOURCE', '-Wall', '-Wextra', '-Werror',
+                            str(source), str(ROOT / 'tests/native/portability.c'),
+                            '-o', str(exe)], check=True, capture_output=True, text=True)
+            result = subprocess.run([str(exe)], capture_output=True,
+                                    check=True, text=True, timeout=10)
+            self.assertIn('portability passed', result.stdout)
+
     def test_candidate_generator_does_not_depend_on_deleted_joomengine_runner(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
@@ -112,10 +129,12 @@ class IndependentRunnerTests(unittest.TestCase):
         sources = import_module('package-native-sources')
         archives = sources.expected_archives()
         repos = {row['repo'] for row in archives}
-        self.assertEqual(len(repos), 5)
+        self.assertEqual(len(repos), 7)
         self.assertNotIn('joomengine/php-wasm', repos)
         self.assertIn('seanmorris/php-wasm', repos)
         self.assertIn('php/php-src', repos)
+        self.assertIn('php/php-release', repos)
+        self.assertIn('PCRE2Project/pcre2', repos)
         self.assertIn('shyim/lite4mariadb', repos)
         self.assertTrue(any(row['repo'] == 'MariaDB/mariadb-connector-c' for row in archives))
         self.assertTrue(any(row['repo'] == 'wolfSSL/wolfssl' for row in archives))

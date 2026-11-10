@@ -36,7 +36,7 @@ if hashlib.sha256(source_bundle.read_bytes()).hexdigest()!=correspondence['bundl
  raise SystemExit('Corresponding source archive checksum mismatch')
 if correspondence.get('schemaVersion') != 2 or correspondence.get('historicalJoomEngineForkIncluded') is not False:
  raise SystemExit('Corresponding sources use unverified legacy fork or old receipt schema')
-expected_repos={'shyim/lite4mariadb','php/php-src','seanmorris/php-wasm','MariaDB/mariadb-connector-c','wolfSSL/wolfssl'}
+expected_repos={'shyim/lite4mariadb','php/php-src','php/php-release','PCRE2Project/pcre2','seanmorris/php-wasm','MariaDB/mariadb-connector-c','wolfSSL/wolfssl'}
 if {record.get('repo') for record in correspondence.get('archives',[])}!=expected_repos or len(correspondence['archives'])!=len(expected_repos):
  raise SystemExit('Corresponding independent native source archives incomplete')
 runner_provenance=verify_independent_runner(root)
@@ -59,7 +59,7 @@ for suite in ['database-stability','mysqli-complete']:
   if not record.get('passed') or record['wasmSha256']!=files['pbl-runtime.wasm']['sha256']:raise SystemExit('Validation missing or stale: '+str(path))
   receipts.append({'path':str(path.relative_to(root)),'sha256':hashlib.sha256(path.read_bytes()).hexdigest()})
 sources=[]
-for pattern in ['packages/php-native/src/*','packages/sql-native/src/*','packages/sql-native/include/*','packages/files-native/src/*.c','packages/network-native/src/*.c','engine/native/build/*.cmake','engine/native/build/CMakeLists.txt','engine/native/build/build.sh','scripts/prepare-native-*.py','scripts/build-independent-native.sh','scripts/package-native-sources.py','scripts/native_runner_provenance.py','scripts/archive-legacy-native.py','scripts/prepare-php84-source.py']:
+for pattern in ['packages/php-native/src/*','packages/sql-native/src/*','packages/sql-native/include/*','packages/files-native/src/*.c','packages/network-native/src/*.c','engine/native/build/*.cmake','engine/native/build/CMakeLists.txt','engine/native/build/build.sh','scripts/prepare-native-*.py','scripts/build-independent-native.sh','scripts/package-native-sources.py','scripts/native_runner_provenance.py','scripts/archive-legacy-native.py','scripts/prepare-php84-source.py','scripts/prepare-independent-native-inputs.py','scripts/build-independent-native-ci.sh']:
  sources.extend(p for p in root.glob(pattern) if p.is_file())
 paths=sorted(set(str(p.relative_to(root)) for p in sources))
 if subprocess.run(['git','diff','--quiet','HEAD','--',*paths],cwd=root).returncode:raise SystemExit('Commit native inputs before recording their source revision.')
