@@ -19,6 +19,10 @@ Original ALWIS software owned by Bastian Noël is offered under GPL-2.0-only, in
 - **JoomEngine PHP-WASM fork** — the pinned source at `joomengine/php-wasm@3b8cef42c020fbcbb6b41fad86716b7c8664b55b` is unavailable from GitHub and no exact source archive was located in accessible backups. Its archived binary carries upstream notices, but the specific native runner C source has not been recovered. A GPLv2-compatible independent replacement must be built and validated before releasing. See [recovery report](provenance/php-wasm-source-recovery.json).
 - **JoomEngine MariaDB WASM bridge** — pinned source repository declares Apache-2.0. Its `patches/engine/independent-sessions.patch` was applied in the **historical native binary currently pinned**. A separate ALWIS adapter candidate does not yet replace that binary. Apache-2.0 is not compatible with GPLv2 for code incorporated in a combined work. **Distribution remains blocked until the exact binary is replaced and validated or compatible permission is obtained.** See [`LICENSES/Apache-2.0.txt`](LICENSES/Apache-2.0.txt) and the [pinned patch](https://github.com/joomengine/mariadb-wasm-bridge/blob/56d47b4dc867af313592efa09e12df470a36e129/patches/engine/independent-sessions.patch).
 
+### Additional notices from the pinned native sources
+
+The PHP configuration enables mbstring and fileinfo. Preserve the exact [libmbfl LGPL 2.1 text](LICENSES/PHP-libmbfl-LGPL-2.1.txt) and [libmagic attribution and BSD terms](LICENSES/PHP-libmagic.txt). MariaDB's bundled sources also carry [Google InnoDB terms](LICENSES/MariaDB-InnoDB-Google.txt), [Percona InnoDB terms](LICENSES/MariaDB-InnoDB-Percona.txt), and [zlib terms](LICENSES/MariaDB-zlib.txt). These copies are traced to their exact archive paths and hashes in `provenance/additional-native-notices.json`; the final linked-object inventory remains to be checked.
+
 ## Editor and browser assets
 
 - `typescript@5.9.3` and `@swc/wasm-web@1.16.21` are Apache-2.0. TypeScript is bundled into the JavaScript worker and SWC is shipped as a separate WASM file.
