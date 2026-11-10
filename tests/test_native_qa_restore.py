@@ -142,6 +142,25 @@ class QARestoreTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "No successful native CI artifact"):
                 list(restore.find_verified_compatible_candidate())
 
+    def test_wait_for_newly_completed_native_run_only_on_transient_absence(self):
+        fallback = (self.bundle, self.lock, self.manifest)
+        with patch.object(restore, "find_verified_compatible_candidate",
+                          side_effect=[ValueError("No successful native CI build exists"),
+                                       iter([fallback])]) as scan, \
+             patch.object(restore.time, "sleep") as sleep:
+            found = next(restore.wait_for_verified_candidate(30))
+            self.assertEqual(found[2]["wasmSha256"], self.manifest["wasmSha256"])
+            self.assertEqual(scan.call_count, 2)
+            sleep.assert_called_once()
+
+    def test_wait_never_retries_invalid_candidate(self):
+        with patch.object(restore, "find_verified_compatible_candidate",
+                          side_effect=ValueError("QA payload missing or hash mismatch")), \
+             patch.object(restore.time, "sleep") as sleep:
+            with self.assertRaisesRegex(ValueError, "hash mismatch"):
+                next(restore.wait_for_verified_candidate(180))
+            sleep.assert_not_called()
+
     def test_preclaimed_legal_approval_is_refused(self):
         self.manifest["releaseApproved"] = True
         (self.bundle / "qa-manifest.json").write_text(json.dumps(self.manifest))

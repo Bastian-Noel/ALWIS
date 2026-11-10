@@ -24,6 +24,9 @@ jobs:
           fetch-depth: 0 # Verify local sources against the pinned independent native QA artifact
           persist-credentials: false
       - uses: ./.github/actions/validated-studio
+        env:
+          # Dispatched after native QA success. Push/PR checks still fail fast.
+          ALWIS_NATIVE_QA_WAIT_SECONDS: ${{ github.event_name == 'workflow_dispatch' && '90' || '0' }}
       - name: Retain the exact validated static site for publication
         if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

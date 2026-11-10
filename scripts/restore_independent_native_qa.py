@@ -12,6 +12,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from native_qa_artifact import hashfile, locked_inputs, LEGACY_SHA
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -154,6 +155,32 @@ def find_verified_compatible_candidate(root=ROOT):
     )
 
 
+
+def wait_for_verified_candidate(wait_seconds):
+    """Wait briefly for a just-finished native workflow to become successful.
+
+    Only a missing compatible workflow/artifact may be retried. A mismatched
+    manifest, corrupted payload, or other verification error remains fatal.
+    """
+    wait_seconds = max(0, min(int(wait_seconds), 180))
+    deadline = time.monotonic() + wait_seconds
+    while True:
+        try:
+            yield from find_verified_compatible_candidate()
+            return
+        except ValueError as error:
+            expected = (
+                'No successful native CI build exists',
+                'No successful native CI artifact has the SAME verified C/JS native inputs',
+            )
+            remaining = deadline - time.monotonic()
+            if not str(error).startswith(expected) or remaining <= 0:
+                raise
+            print('Waiting for completed, matching native QA workflow: '
+                  + str(error), file=sys.stderr, flush=True)
+            time.sleep(min(10, remaining))
+
+
 def retrieve_run_metadata(run_id, target):
     record = json.loads(subprocess.check_output([
         'gh','run','view',str(run_id),
@@ -209,7 +236,7 @@ def main():
         # First independent build has no hand-written config. Discover the
         # newest successful workflow artifact matching every native source.
         matched = False
-        for candidate, lock, proof in find_verified_compatible_candidate():
+        for candidate, lock, proof in wait_for_verified_candidate(os.environ.get("ALWIS_NATIVE_QA_WAIT_SECONDS", "0")):
             install_verified_candidate(candidate, proof, args.target_dir, lock['runId'])
             matched = True
         if not matched:

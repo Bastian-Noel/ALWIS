@@ -224,3 +224,20 @@ jobs:
             build-work/independent-native-adapter.json
             build-work/php-minimal/alwis-php84-fibers.json
             build-work/parity/independent-candidate-*.json
+
+  revalidate-studio:
+    name: Rerun Studio CI after native QA succeeds
+    needs: candidate-native
+    if: ${{ github.ref == 'refs/heads/develop/2026-11-beta1-foundation' && needs.candidate-native.result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      actions: write
+      contents: read
+    steps:
+      - name: Dispatch Studio with verified native QA artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run check.yml --repo "$GITHUB_REPOSITORY" --ref "$GITHUB_REF_NAME"
+          echo "Studio CI dispatched. It will verify the completed native run and matching source hashes."
