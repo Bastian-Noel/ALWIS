@@ -56,3 +56,20 @@ the absence of leaked native SQL connections or prepared statements.
 Failing runs persist diagnostics to build-work/native-recovery/browser.json.
 The test must succeed in Chromium and Firefox alongside existing parity,
 two-guest WebRTC/PDO, load, restart and source-license checks.
+
+## Second bug verified against the actual next native compilation
+
+GitHub Actions run 42888968248 proved that resetting EG(exit_status)
+eliminated the stale exit code: the successful POST after a fatal exception
+returned exitCode=0 and correct PHP/SQL JSON. However it still produced
+HTTP 500. Inspection of the EXACT official PHP 8.4.27 main/SAPI.c found that
+sapi_activate() resets the per-request header list and headers_sent, but its
+http_response_code=200 assignment is intentionally commented out. ALWIS has
+to reset SG(sapi_headers).http_response_code=200 itself BEFORE
+php_request_startup() for every request in its long-lived HTTP SAPI.
+This preserves errors (500) in the failing request and lets the next
+successful request return HTTP 200.
+
+The expanded browser regression now has 16 requests per browser, including
+an explicitly generated HTTP 429 followed by a successful HTTP 200, so neither
+fatal errors nor application-set HTTP statuses can leak between requests.

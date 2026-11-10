@@ -45,6 +45,19 @@ class NativeErrorRecoveryTests(unittest.TestCase):
         self.assertIn("poisoned = true;", worker)
         self.assertIn("Native PHP SAPI startup or shutdown failed", worker)
 
+    def test_http_status_is_reset_before_php_sapi_startup(self):
+        code = RUNNER.read_text()
+        reset = code.index("SG(sapi_headers).http_response_code = 200;", code.index("EMSCRIPTEN_KEEPALIVE int php_wasm_run("))
+        startup = code.index("if (php_request_startup() == SUCCESS)", reset)
+        self.assertLess(reset, startup)
+        self.assertNotIn("SG(sapi_headers).http_response_code = 200;", code[startup:startup+3500])
+        source = ROOT / "build-work/php-minimal/main/SAPI.c"
+        if source.is_file():
+            php = source.read_text()
+            activate = php.index("SAPI_API void sapi_activate(void)")
+            self.assertIn("/*\n\tSG(sapi_headers).http_response_code = 200;\n\t*/",
+                          php[activate:activate+420])
+
     def test_fatal_without_headers_not_reported_as_http_success(self):
         code = RUNNER.read_text()
         self.assertIn("!script_ok && !headers_emitted", code)
@@ -52,7 +65,7 @@ class NativeErrorRecoveryTests(unittest.TestCase):
 
     def test_regression_covers_php_sql_parse_and_explicit_exit(self):
         test = TEST.read_text()
-        for variant in ('"throw"', '"check"', '"exit"', '"parse"', '"sql-error"', '"caught"'):
+        for variant in ('"throw"', '"check"', '"exit"', '"status"', '"parse"', '"sql-error"', '"caught"'):
             self.assertIn(variant, test)
         self.assertIn("for (const [index, name] of cases.entries())", test)
         self.assertIn("rt.request(", test)

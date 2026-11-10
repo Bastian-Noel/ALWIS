@@ -28,6 +28,10 @@ if ($mode === 'init') {
 } elseif ($mode === 'exit') {
     // Must not make the NEXT HTTP request return this process exit code.
     exit(42);
+} elseif ($mode === 'status') {
+    // Explicit HTTP status must be local to this request and not leak.
+    http_response_code(429);
+    echo json_encode(['status' => 'intentional-429']);
 } elseif ($mode === 'caught') {
     try {
         throw new RuntimeException('expected-handled-exception');

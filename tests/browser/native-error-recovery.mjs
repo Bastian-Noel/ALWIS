@@ -18,6 +18,7 @@ const cases = [
   "init",
   "throw", "check", "check",
   "exit", "check",
+  "status", "check",
   "parse", "check",
   "sql-error", "check",
   "caught", "check",
@@ -70,6 +71,10 @@ try {
               if (response.status<500) error("Fatal PHP error incorrectly returned HTTP success");
             } else if (name==="exit") {
               if (response.exitCode!==42) error("Unexpected explicit PHP exit code");
+            } else if (name==="status") {
+              if (response.exitCode!==0 || response.status!==429 ||
+                  JSON.parse(output).status!=="intentional-429")
+                error("Explicit HTTP status was not reported correctly");
             } else {
               if (response.exitCode!==0 || response.status>=400)
                 error("Healthy PHP request returned a stale exit code / HTTP error");

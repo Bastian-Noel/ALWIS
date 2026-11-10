@@ -265,6 +265,19 @@ EMSCRIPTEN_KEEPALIVE int php_wasm_run(const char *script, int unused1, int unuse
      * Keep it alive through php_request_shutdown() (sapi_deactivate()).
      */
     SG(server_context) = &request_state;
+    /*
+     * PHP 8.4's sapi_activate() initializes the request header list and
+     * clears headers_sent, but deliberately leaves the assignment
+     *
+     *     SG(sapi_headers).http_response_code = 200;
+     *
+     * COMMENTED OUT in upstream main/SAPI.c. In ALWIS this is a persistent
+     * HTTP SAPI running many requests in one WASM, so a fatal request's 500
+     * otherwise carries into the next SUCCESSFUL request even though
+     * EG(exit_status) was correctly cleared. Reset the default here,
+     * BEFORE startup; preserve any status PHP sets during execution.
+     */
+    SG(sapi_headers).http_response_code = 200;
     uint64_t owner = pbl_mysql_owner_begin();
     if (php_request_startup() == SUCCESS) {
         /*
