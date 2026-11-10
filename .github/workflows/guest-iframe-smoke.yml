@@ -8,6 +8,7 @@ on:
       - 'apps/studio/client-bootstrap.js'
       - 'tests/browser/isolated-origin-guest.mjs'
       - 'tests/browser/isolated-server-guest.mjs'
+      - 'tests/browser/collab-real-peers.mjs'
       - 'server/server.mjs'
       - '.github/workflows/guest-iframe-smoke.yml'
   pull_request:
@@ -37,3 +38,5 @@ jobs:
         run: node tests/browser/isolated-origin-guest.mjs
       - name: "Real ALWIS dual-host server + guest cookie, fetch and POST"
         run: node tests/browser/isolated-server-guest.mjs
+      - name: "Actual ALWIS server with two browsers, P2P/relay/reconnect/kick"
+        run: node tests/browser/collab-real-peers.mjs

@@ -125,16 +125,30 @@ export class CollabSession extends Emitter {
       }
       case "throttle": for (const l of this.links.values()) l.onThrottle(m.retryMs); break;
       case "undelivered": this.emit("undelivered", m); break;
-      case "kicked": store.clear(); this.#setStatus("closed", "kicked"); this.#teardown(); break;
+      case "kicked":
+        store.clear();
+        this.#setStatus("closed", "kicked");
+        this.sig?.close("kicked"); // Terminal: do not reconnect and rejoin a revoked seat.
+        this.#teardown();
+        break;
       case "closing":
         if (m.reason !== "replaced") store.clear();
         this.#setStatus("closed", m.reason);
+        this.sig?.close(m.reason); // Closed room/host must never trigger a new join.
         this.#teardown();
         break;
       case "error":
-        if (m.code === "no-room" && this.role === "host") { store.clear(); this.#setStatus("closed", "no-room"); }
-        else this.emit("error", m);
-        if (["no-room", "full", "locked", "name-invalid", "server-full"].includes(m.code) && this.role === "guest") { this.#setStatus("closed", m.code); this.#teardown(); }
+        if (m.code === "no-room" && this.role === "host") {
+          store.clear();
+          this.#setStatus("closed", "no-room");
+          this.sig?.close("no-room");
+          this.#teardown();
+        } else this.emit("error", m);
+        if (["no-room", "full", "locked", "name-invalid", "server-full"].includes(m.code) && this.role === "guest") {
+          this.#setStatus("closed", m.code);
+          this.sig?.close(m.code); // Terminal join rejection: no zombie socket/retry.
+          this.#teardown();
+        }
         break;
     }
   }
