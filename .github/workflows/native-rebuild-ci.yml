@@ -51,6 +51,7 @@ jobs:
           python3 -m unittest discover -s tests -p test_native_source_staging.py -v
           python3 -m unittest discover -s tests -p test_independent_php_runner.py -v
           python3 -m unittest discover -s tests -p test_native_parity_attestation.py -v
+          python3 -m unittest discover -s tests -p test_native_license_evidence.py -v
           python3 -m unittest discover -s tests -p test_native_concurrency.py -v
       - name: Fetch SHA-256 pinned upstream files and generate ALWIS-only sources
         run: |
@@ -58,6 +59,7 @@ jobs:
           python3 scripts/prepare-independent-native-inputs.py --download --stage-root build-work/native-ci \
             > build-work/native-inputs-ci.log
           python3 scripts/prepare-independent-native-inputs.py --stage-root build-work/native-ci --verify-only
+          python3 scripts/audit-native-license-evidence.py --require-archives --source-root build-work/native-ci --output build-work/native-ci/native-license-evidence.json
           python3 scripts/prepare-php84-source.py --output build-work/native-ci/php-minimal --verify-only
           python3 - <<'PY'
           import json
@@ -77,6 +79,7 @@ jobs:
           if-no-files-found: warn
           path: |
             build-work/native-ci/verified-inputs.json
+            build-work/native-ci/native-license-evidence.json
             build-work/native-ci/php-minimal/alwis-php84-fibers.json
             build-work/native-ci/independent-generated/driver-adapter.json
             build-work/native-inputs-ci.log
@@ -127,6 +130,8 @@ jobs:
           build-work/emsdk/emsdk activate 6.0.6
       - name: Build independent PHP/MariaDB native candidate, source bundle, and ABI
         run: bash scripts/build-independent-native-ci.sh
+      - name: Record exact upstream licensing evidence (no release authorization)
+        run: python3 scripts/audit-native-license-evidence.py --require-archives --source-root build-work --output build-work/native-license-evidence.json
       - name: Install browser tests (ONLY after successful new native build)
         run: |
           mkdir -p build-work/php
@@ -162,6 +167,7 @@ jobs:
           if-no-files-found: warn
           path: |
             build-work/independent-native-build.json
+            build-work/native-license-evidence.json
             build-work/independent-native-adapter.json
             build-work/php-minimal/alwis-php84-fibers.json
             build-work/parity/independent-candidate-*.json

@@ -34,3 +34,15 @@ test('guest iframe sandbox is reapplied both at role change and every render', (
   assert.match(view, /guestPreviewSandbox\(document\.documentElement\.hasAttribute\("data-guest-http-preview"\),/);
   assert.match(view, /setAttribute\("sandbox", sandbox\)/);
 });
+
+
+test("fallback is scoped to guests whose isolated-origin broker could not start", () => {
+  const wiring = readFileSync(new URL("../apps/studio/collab/wire.mjs", import.meta.url), "utf8");
+  const presence = readFileSync(new URL("../apps/studio/collab/presence-ui.mjs", import.meta.url), "utf8");
+  assert.match(wiring, /new PreviewDelivery\(\)/);
+  assert.match(wiring, /previewDelivery\.targets\(session\.links\.keys\(\), collab\.previewEnabled\)/);
+  assert.match(wiring, /case "http-preview-status":/);
+  assert.match(wiring, /send\(\{ t: "http-preview-status", usable: false \}\)/);
+  assert.match(wiring, /previewDelivery\.drop\(id\)/);
+  assert.match(presence, /disabled: !hasIsolatedPreview/);
+});

@@ -30,7 +30,7 @@ MariaDB Server est sous **GPL-2.0-only**. Le WASM compilé avec MariaDB, les ada
 
 Le code original ALWIS effectivement incorporé à l'œuvre native dérivée de MariaDB ne revendique **aucune restriction non commerciale supplémentaire** sur les droits GPLv2. Les auteurs et modifications doivent rester attribués dans les sources, notices et historiques pertinents.
 
-L'ancien binaire épinglé contient potentiellement le patch JoomEngine Apache-2.0 incorporé à MariaDB GPLv2. Un candidat de remplacement existe mais **n'a pas été recompilé et validé**. Cela empêche de déclarer le runtime actuel conforme.
+L'ancien binaire épinglé contient potentiellement le patch JoomEngine Apache-2.0 incorporé à MariaDB GPLv2. Un candidat de remplacement a **été recompilé et validé techniquement** dans Chromium et Firefox (CI 42851425186), mais sa redistribution n'est pas encore approuvée. Cela empêche de déclarer le runtime actuel conforme.
 
 Voir [le statut de publication](provenance/release-licensing-status.json) et [l'audit des composants](provenance/component-license-map.md).
 

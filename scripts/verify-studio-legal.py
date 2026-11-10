@@ -19,6 +19,8 @@ mandatory = [
     "LICENSES/seanmorris-php-wasm-NOTICE.txt",
     "LICENSES/GPL-2.0-only.txt",
     "LICENSES/PHP-License-v4.txt",
+    "LICENSES/PHP-8.4.27-original-3.01.txt",
+    "LICENSES/Zend-Engine-original-2.00.txt",
     "LICENSES/wolfSSL-LICENSING.txt",
     "LICENSES/Apache-2.0.txt",
     "LICENSES/LGPL-2.1-or-later.txt",

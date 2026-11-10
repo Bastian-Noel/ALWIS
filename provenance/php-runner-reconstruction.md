@@ -1,6 +1,6 @@
 # ALWIS — reconstruction du runner PHP 8.4 natif
 
-**Statut (10 novembre 2026) : première implémentation source indépendante, non liée au WASM.** Ne pas traiter ces sources ni le test de syntaxe comme une réussite PHP/MariaDB en navigateur.
+**Statut révisé (10 novembre 2026) : runtime indépendant compilé et validé dans les deux navigateurs.** La CI 42851425186 passe 17 cas Chromium/Firefox et deux invités WebRTC sur une MariaDB partagée. La validation juridique de sa distribution et les tests de robustesse en charge demeurent ouverts.
 
 ## Origines et indépendance
 

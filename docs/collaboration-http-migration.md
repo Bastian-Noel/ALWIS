@@ -82,3 +82,12 @@ Le broker d'origine dédiée, son Service Worker, les POST binaires et les redir
 - Sans origine dédiée configurée, **l'aperçu HTML interactif invité ne s'active pas** : le miroir DOM reste la solution de repli sûre et non exécutable.
 
 **Reste bloquant avant mise en production :** vrai test de salle WebRTC/réseau avec deux navigateurs sur une instance hébergée, vérification des cookies HttpOnly et sessions PHP avec nouveau WASM, gestion des gros fichiers/redirections, débit et comportement en reconnexion. L'activation nécessite un sous-domaine HTTPS configuré par le propriétaire de l'hébergement.
+
+
+## Intégration : mode HTTP et repli par invité
+
+Le bouton de permission PHP interactif de l'hôte est **désactivé** si aucun domaine d'aperçu HTTPS dédié n'est configuré. L'hôte garde seul le droit d'autoriser l'exécution PHP ; cette permission reste désactivée à chaque nouvelle salle.
+
+Si un invité n'arrive pas à établir le broker sur le domaine séparé (DNS, TLS, navigateur), il signale cet échec à l'hôte. La passerelle PreviewDelivery peut alors lui envoyer **uniquement à lui** les instantanés DOM sans scripts. Les invités fonctionnels restent en HTTP/JavaScript isolé sans recevoir les miroirs inutiles. Un invité ne peut pas activer son autorisation d'aperçu en envoyant un état de succès : la source de vérité reste le propriétaire. Les états de repli sont effacés à la déconnexion et lors de la révocation.
+
+Tests : tests/collab-preview-delivery.test.mjs et tests/collab-preview-security.test.mjs. Le vrai PHP/PDO/MySQLi pour deux invités est validé sur le nouveau WASM (CI 42851425186), mais un déploiement public avec ses propres domaines DNS/TLS n'est pas encore validé. Le miroir demeure volontairement le mode de compatibilité.

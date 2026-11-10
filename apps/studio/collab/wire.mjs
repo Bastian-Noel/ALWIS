@@ -14,6 +14,7 @@ import { showLoading } from "./presence-ui.mjs";
 import { watchPreview, createMirror } from "./preview.mjs";
 import { guestPreviewSandbox } from "./preview-security.mjs";
 import { HostHttpGateway, GuestHttpGateway } from "./http-gateway.mjs";
+import { PreviewDelivery } from "./preview-delivery.mjs";
 import { IsolatedGuestPreviewController } from "./isolated-preview-controller.mjs";
 import { updatePreviewStatus } from "../workbench/views/code.mjs";
 
@@ -110,6 +111,7 @@ export function installWiring(collab) {
     const session = collab.session;
     const send = (to, m, o) => session.send(to, m, o);
     collab.previewEnabled = false; // Never persist PHP execution permission across rooms.
+    const previewDelivery = new PreviewDelivery();
     const http = new HostHttpGateway({
       origin: location.origin,
       sessions: { create: label => ctx.engine.sessions.create(label), remove: id => ctx.engine.sessions.remove(id) },
@@ -140,7 +142,9 @@ export function installWiring(collab) {
     });
     focus.start();
     const pvWatch = watchPreview({ container: () => document.querySelector("#pvFrames"), send: (m, o) => {
-      if (!collab.previewEnabled) session.broadcast({ ...m, info: S.pvInfo[S.pvSessions?.[0]] ?? null, path: S.pvPath }, o);
+      const recipients = previewDelivery.targets(session.links.keys(), collab.previewEnabled);
+      for (const peer of recipients)
+        session.send(peer, { ...m, info: S.pvInfo[S.pvSessions?.[0]] ?? null, path: S.pvPath }, o);
     } });
     const unwrapQ = wrapQueries((m) => { session.broadcast({ ...m, from: "h" }); });
     let changedTimer;
@@ -155,6 +159,14 @@ export function installWiring(collab) {
       if (["http-request", "http-ack", "http-error", "http-cookie"].includes(msg.t)) return http.receive(from, msg);
       switch (msg.t) {
         case "hello": pvWatch.resend(); focus.announce(true); send(from, { t: "welcome", project: S.project, db: S.db, host: session.me.name, httpPreview: collab.previewEnabled }); return send(from, { t: "focus-state", ...focus.snapshot(from) });
+        case "http-preview-status":
+          if (session.peer(from)?.state === "online") {
+            const fallback = previewDelivery.update(from, {
+              enabled: collab.previewEnabled, usable: msg.usable === true,
+            });
+            if (fallback) pvWatch.resend();
+          }
+          return;
         case "focus-req": return send(from, { t: "focus-state", ...focus.snapshot(from) });
         case "rpc": return rpc.handle(from, msg);
         case "open": case "ops": case "sync": case "close-doc": return docs.handle(from, msg);
@@ -172,7 +184,8 @@ export function installWiring(collab) {
     });
     const offMsg = collab.on("message", onMessage);
     const offDown = collab.on("peer-down", ({ id }) => {
-      docs.dropPeer(id); focus.drop(id); http.drop(id).catch(error => log("warn", "guest_http_drop", { message: error.message }));
+      docs.dropPeer(id); focus.drop(id); previewDelivery.drop(id);
+      http.drop(id).catch(error => log("warn", "guest_http_drop", { message: error.message }));
     });
     run = {
       role: "host",
@@ -182,7 +195,7 @@ export function installWiring(collab) {
         if (enabled && !collab.config?.previewOrigin)
           collab.ui?.announce("Aperçu PHP interactif désactivé : une origine dédiée HTTPS doit être configurée.");
         session.broadcast({ t: "http-preview-permission", enabled: collab.previewEnabled });
-        if (!enabled) pvWatch.resend();
+        if (!collab.previewEnabled) { previewDelivery.reset(); pvWatch.resend(); }
         collab.ui?.refresh();
       },
       local: (path, changes) => docs.local(path, changes),
@@ -190,6 +203,7 @@ export function installWiring(collab) {
       stop() {
         collab.previewEnabled = false;
         offMsg(); offDown(); offChanged(); unwrapQ(); focus.stop(); pvWatch.stop(); clearTimeout(changedTimer);
+        previewDelivery.reset();
         http.close().catch(error => log("warn", "guest_http_close", { message: error.message }));
       },
     };
@@ -226,8 +240,13 @@ export function installWiring(collab) {
           if (!preview) throw Error("Aucune origine d'aperçu isolée n'est configurée.");
           await preview.start(); interactivePreview = true;
         }
-        catch (error) { log("w", `Aperçu HTTP invité indisponible : ${error.message}`); return; }
+        catch (error) {
+          log("w", "Aperçu HTTP invité indisponible : " + error.message);
+          send({ t: "http-preview-status", usable: false });
+          return;
+        }
       } else { interactivePreview = false; preview?.stop(); }
+      send({ t: "http-preview-status", usable: interactivePreview });
       document.documentElement.toggleAttribute("data-guest-http-preview", interactivePreview);
       if (interactivePreview) document.documentElement.dataset.guestPreviewOrigin = preview.origin;
       else document.documentElement.removeAttribute("data-guest-preview-origin");
