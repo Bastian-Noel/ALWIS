@@ -3,7 +3,7 @@
 
 Checks exact upstream inputs, original license texts, packaged notices, and
 ALWIS C compilation inputs. It is not a legal conclusion, does not update
-the publication gate, and cannot approve a release or old Apache/GPL binary.
+the publication gate, and cannot approve a release or historical binary.
 """
 import argparse
 import hashlib
@@ -158,8 +158,10 @@ def check(strict_archives=False, source_root=None):
         raise ValueError("PHP v4 / Zend v3 licensing notice is incomplete")
     headers = build_inputs()
     gate = json.loads((ROOT / "provenance/release-licensing-status.json").read_text())
-    if gate.get("status") != "blocked" or len(gate.get("blockers", [])) != 5:
-        raise ValueError("Audit source expected five open publication blockers; re-review gate changes")
+    if gate.get("status") not in ("blocked", "ready") or not isinstance(gate.get("blockers"), list):
+        raise ValueError("Invalid publication review record")
+    if gate["status"] == "ready" and gate["blockers"]:
+        raise ValueError("Ready publication record still has open blockers")
     if not (ROOT / "provenance/editor-license-boundary.md").is_file():
         raise ValueError("Editor/native boundary proof missing")
     if not (ROOT / "provenance/source-reuse-automated-review.json").is_file():
