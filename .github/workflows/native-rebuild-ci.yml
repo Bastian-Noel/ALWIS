@@ -25,6 +25,8 @@ on:
       - 'tests/browser/restart-native.mjs'
       - 'fixtures/compatibility/native-curl.php'
       - 'tests/browser/native-error-recovery.mjs'
+      - 'tests/browser/database-stability.mjs'
+      - 'fixtures/compatibility/database-stability.php'
       - 'fixtures/compatibility/native-error-recovery.php'
       - 'scripts/restore_independent_native_qa.py'
   workflow_dispatch:
@@ -172,6 +174,8 @@ jobs:
         env:
           ALWIS_PARITY_RUNTIME_DIST: build-work/bridge/.native-build/engine/wasm/runtime-dist
         run: node tests/browser/native-error-recovery.mjs chromium,firefox
+      - name: Repeated mixed database requests must release native and PHP allocations
+        run: node tests/browser/database-stability.mjs chromium,firefox
       - name: Build actual editor bundle required by full Studio load and restart journeys
         run: |
           npm ci
