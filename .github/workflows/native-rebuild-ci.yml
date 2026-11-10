@@ -9,6 +9,9 @@ on:
       - 'scripts/prepare-php84-source.py'
       - 'packages/php-native/src/runner.c'
       - 'tests/browser/native-parity.mjs'
+      - 'tests/browser/collab-native-php-peers.mjs'
+      - 'apps/studio/collab/http-gateway.mjs'
+      - 'scripts/attest-independent-parity.py'
   workflow_dispatch:
     inputs:
       mode:
