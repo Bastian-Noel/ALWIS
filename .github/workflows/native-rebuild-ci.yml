@@ -8,6 +8,8 @@ on:
       - 'scripts/build-independent-native-ci.sh'
       - 'scripts/prepare-php84-source.py'
       - 'packages/php-native/src/runner.c'
+      - 'engine/native/build/runtime-target.cmake'
+      - 'packages/runtime/src/native-worker.mjs'
       - 'tests/browser/native-parity.mjs'
       - 'tests/browser/collab-native-php-peers.mjs'
       - 'apps/studio/collab/http-gateway.mjs'
