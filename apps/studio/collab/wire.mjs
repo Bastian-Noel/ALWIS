@@ -227,7 +227,8 @@ export function installWiring(collab) {
     };
     const restoreEngine = installGuestEngine(ctx.engine, rpc);
     const docs = new DocGuest({ lib, send, peer: peerInfo, editorFor, myId: () => session.me.id, onHeadless: headless, onDesync: (p) => log("w", `Resynchronisation de ${p}`) });
-    const focus = new FocusLayer({ send: (m, o) => send(m, o), peer: peerInfo, getCtx: ctxState, onViewport: applyViewport, onPeerView, onPreview: (m) => { if (!interactivePreview) send({ t: "preview-event", ...m }); } });
+    const focus = new FocusLayer({ send: (m, o) => send(m, o), peer: peerInfo, getCtx: ctxState, onViewport: applyViewport, onPeerView, previewInteractive: () => interactivePreview,
+      onPreview: m => send({ t: "preview-event", ...m }) });
     const mirror = createMirror({ container: () => document.querySelector("#pvFrames") });
     const sessionsFrame = ctx.engine.sessions?.frame;
     const sessionsList = ctx.engine.sessions?.list;

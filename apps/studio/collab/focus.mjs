@@ -15,8 +15,8 @@ export class FocusLayer {
    * getCtx(): { view, dmode, table, db, active, pv, pvPath, pan, zoom, cw, ch } from the workbench state.
    * onViewport({cx, cy, zoom}): apply a shared schema viewport. onPeerView(id, state): a peer navigated.
    */
-  constructor({ send, peer, getCtx, onClick, onPreview, onViewport, onPeerView }) {
-    Object.assign(this, { send, peer, getCtx, onClick, onPreview, onViewport, onPeerView });
+  constructor({ send, peer, getCtx, onClick, onPreview, previewInteractive = () => false, onViewport, onPeerView }) {
+    Object.assign(this, { send, peer, getCtx, onClick, onPreview, previewInteractive, onViewport, onPeerView });
     this.remote = new Map(); // peerId -> { view, table, file, cell, col, ghost, ncol, mouse, rubber, at }
     this.own = null; // last view state we announced
     this.marks = [];
@@ -205,13 +205,20 @@ export class FocusLayer {
         doc.addEventListener("pointerdown", point, { passive: true });
         doc.addEventListener("click", (e) => {
           const at = point(e);
-          if (e.target.closest?.("a, form")) e.preventDefault(); // the host navigates; we receive the new page
-          if (at) { this.mouse.flushNow(); this.onPreview?.({ kind: "click", ...at, ...target(e), button: e.button }); }
+          // Intercept navigation ONLY in the inert DOM mirror. Real guest previews
+          // and the host preview must retain native links, forms and JavaScript.
+          const mirror = !!this.onPreview && !this.previewInteractive();
+          if (mirror && e.target.closest?.("a, form")) e.preventDefault();
+          if (at) {
+            this.mouse.flushNow();
+            if (mirror) this.onPreview({ kind: "click", ...at, ...target(e), button: e.button });
+          }
         }, true);
         for (const type of ["input", "change"]) doc.addEventListener(type, (e) => {
           const t = e.target;
           if (!t || !("value" in t)) return;
-          this.onPreview?.({ kind: type, ...target(e), target: { id: t.id, name: t.name, type: t.type, value: t.value, checked: t.checked } });
+          if (this.onPreview && !this.previewInteractive())
+            this.onPreview({ kind: type, ...target(e), target: { id: t.id, name: t.name, type: t.type, value: t.value, checked: t.checked } });
         }, true);
       };
       frame.addEventListener("load", bind);
