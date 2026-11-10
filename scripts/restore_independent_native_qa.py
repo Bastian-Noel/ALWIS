@@ -5,13 +5,13 @@ A separate publication license gate still blocks FTP/GHCR. Never retry with
 historical releases or unpinned external builds when verification fails.
 """
 import argparse
-import hashlib
 import json
 import os
 from pathlib import Path
 import shutil
 import subprocess
 import sys
+import tempfile
 from native_qa_artifact import hashfile, locked_inputs, LEGACY_SHA
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -80,6 +80,115 @@ def retrieve(run_id, target, directory=ROOT / 'build-work/native-qa-download'):
     return directory
 
 
+
+def find_verified_compatible_candidate(root=ROOT):
+    """Select a successful native CI artifact by verified SOURCE HASHES, not by name.
+
+    A missing pinned config is expected on the very first independent build.
+    This never accepts a historical binary, a failed native workflow, an
+    unverified artifact, or a build with different tracked C/JS inputs.
+    """
+    command = [
+        'gh', 'run', 'list', '--repo', 'Bastian-Noel/ALWIS',
+        '--workflow', 'native-rebuild-ci.yml',
+        '--branch', 'develop/2026-11-beta1-foundation',
+        '--limit', '25',
+        '--json', 'databaseId,status,conclusion,headSha',
+    ]
+    runs = json.loads(subprocess.check_output(command, text=True))
+    sources = locked_inputs(root)
+    completed = [run for run in runs if run.get('status') == 'completed'
+                 and run.get('conclusion') == 'success']
+    if not completed:
+        raise ValueError('No successful native CI build exists for independent WASM. '
+                         'The current native reconstruction must first pass.')
+
+    for run in completed:
+        run_id = run['databaseId']
+        # Only a completed native job that actually UPLOADED the attested
+        # independent-runtime QA bundle qualifies. The old GitHub releases
+        # and browser witness are never searched.
+        remote = json.loads(subprocess.check_output(
+            ['gh', 'api', f'repos/Bastian-Noel/ALWIS/actions/runs/{run_id}/artifacts',
+             '--paginate'], text=True))
+        items = remote.get('artifacts', [])
+        if not any(a.get('name') == 'independent-native-qa-with-sources'
+                   and not a.get('expired', True) for a in items):
+            continue
+        with tempfile.TemporaryDirectory(prefix='alwis-verified-native-') as temporary:
+            candidate = Path(temporary)
+            subprocess.run([
+                'gh', 'run', 'download', str(run_id),
+                '--repo', 'Bastian-Noel/ALWIS',
+                '--name', 'independent-native-qa-with-sources',
+                '--dir', str(candidate)
+            ], check=True)
+            manifest_file = candidate / 'qa-manifest.json'
+            if not manifest_file.exists():
+                raise ValueError(f'CI run {run_id} shipped a bundle without its native manifest')
+            manifest = json.loads(manifest_file.read_text())
+            if manifest.get('sourceRevision') != run.get('headSha'):
+                raise ValueError(f'CI run {run_id} source SHA mismatches its artifact')
+            if manifest.get('nativeInputs') != sources:
+                # This is NOT a fallback to an incompatible native runtime:
+                # compare every tracked native input before considering it.
+                continue
+            lock = {
+                'runId': run_id,
+                'sourceRevision': manifest['sourceRevision'],
+                'wasmSha256': manifest['wasmSha256'],
+                'glueSha256': manifest['glueSha256'],
+                'sourcesSha256': manifest['sourcesSha256'],
+            }
+            # Check independently that GitHub run identity/branch and
+            # conclusion are correct before trusting the artifact.
+            verified = retrieve_run_metadata(run_id, lock)
+            if not verified:
+                raise ValueError('Authenticated native CI run cannot be confirmed')
+            proof = ensure_candidate(candidate, lock, root)
+            yield candidate, lock, proof
+            return
+    raise ValueError(
+        'No successful native CI artifact has the SAME verified C/JS native inputs '
+        'as this checkout. Rebuild the independent runtime; never restore legacy WASM.'
+    )
+
+
+def retrieve_run_metadata(run_id, target):
+    record = json.loads(subprocess.check_output([
+        'gh','run','view',str(run_id),
+        '--repo','Bastian-Noel/ALWIS',
+        '--json','status,conclusion,workflowName,headSha,headBranch',
+    ], text=True))
+    if record.get('status') != 'completed' or record.get('conclusion') != 'success':
+        return False
+    if 'independent PHP MariaDB native reconstruction' not in record.get('workflowName',''):
+        return False
+    return (record.get('headSha') == target.get('sourceRevision') and
+            record.get('headBranch') == 'develop/2026-11-beta1-foundation')
+
+
+def install_verified_candidate(candidate, proof, target_dir, run_id):
+    target_dir = Path(target_dir)
+    target_dir.mkdir(parents=True, exist_ok=True)
+    for filename in ('pbl-runtime.wasm','pbl-runtime.mjs'):
+        staged = target_dir / (filename + '.verified-tmp')
+        shutil.copy2(Path(candidate) / 'runtime' / filename, staged)
+        os.replace(staged, target_dir / filename)
+    receipt = dict(proof, runId=run_id)
+    (target_dir / 'qa-native-manifest.json').write_text(json.dumps(receipt, indent=2) + '\n')
+    selection = ROOT / 'build-work/independent-native-qa-selection.json'
+    selection.parent.mkdir(parents=True, exist_ok=True)
+    selection.write_text(json.dumps({
+        'runId': run_id, 'sourceRevision': proof['sourceRevision'],
+        'wasmSha256': proof['wasmSha256'], 'glueSha256': proof['glueSha256'],
+        'sourcesSha256': proof['sourcesSha256'], 'releaseApproved': False,
+    }, indent=2) + '\n')
+    print('VERIFIED INDEPENDENT NATIVE QA WASM:', proof['wasmSha256'],
+          '7 source archives attached; no historical release or FTP/GHCR publish')
+
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--candidate-dir', type=Path,
@@ -88,18 +197,23 @@ def main():
                         default=ROOT / 'build-work/bridge/.native-build/engine/wasm/runtime-dist')
     parser.add_argument('--config', type=Path, default=CONFIG)
     args = parser.parse_args()
-    lock = json.loads(args.config.read_text())
-    candidate = args.candidate_dir if args.candidate_dir else retrieve(lock['runId'], lock)
-    proof = ensure_candidate(candidate, lock)
-    args.target_dir.mkdir(parents=True, exist_ok=True)
-    for filename in ('pbl-runtime.wasm','pbl-runtime.mjs'):
-        staged = args.target_dir / (filename + '.verified-tmp')
-        shutil.copy2(Path(candidate) / 'runtime' / filename, staged)
-        os.replace(staged, args.target_dir / filename)
-    (args.target_dir / 'qa-native-manifest.json').write_text(json.dumps(
-        proof, indent=2) + '\n')
-    print('VERIFIED NEW INDEPENDENT NATIVE QA WASM:', proof['wasmSha256'],
-          '7 source archives attached; publication license gate still required')
+    if args.config.is_file():
+        # An explicitly committed runId/checksum lock always takes precedence.
+        lock = json.loads(args.config.read_text())
+        candidate = args.candidate_dir if args.candidate_dir else retrieve(lock['runId'], lock)
+        proof = ensure_candidate(candidate, lock)
+        install_verified_candidate(candidate, proof, args.target_dir, lock['runId'])
+    elif args.candidate_dir:
+        raise ValueError('An offline QA bundle requires --config with exact hashes')
+    else:
+        # First independent build has no hand-written config. Discover the
+        # newest successful workflow artifact matching every native source.
+        matched = False
+        for candidate, lock, proof in find_verified_compatible_candidate():
+            install_verified_candidate(candidate, proof, args.target_dir, lock['runId'])
+            matched = True
+        if not matched:
+            raise ValueError('No verified compatible native QA artifact found')
 
 
 if __name__ == '__main__':

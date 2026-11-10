@@ -16,11 +16,21 @@ both compiled WASM/JS and its complete corresponding source tarball:
 - corresponding-sources.tar.gz and matching receipt
 - native-license-evidence.json (releaseApproved false)
 
-To consume, pin a successful native Actions run ID and exact checksums in
-config/independent-native-qa.json, then execute
-python3 scripts/restore_independent_native_qa.py. It checks the run, pinned
-hashes and every tracked native source before copying new engine bytes.
-No fallback to the deleted JoomEngine binary is allowed.
+To consume, execute python3 scripts/restore_independent_native_qa.py.
+If config/independent-native-qa.json exists, its explicit committed lock
+specifies the mandatory GitHub Actions run ID and exact checksums. If it does
+not exist yet, restoration searches only COMPLETED SUCCESSFUL native CI runs
+on the ALWIS development branch, and requires an artifact with exactly the
+same SHA-256 for EVERY tracked native input as the current checkout.
+It also validates GitHub workflow name and run SHA, compiled WASM/JS, full
+original-source archive, licensing evidence and real Chromium/Firefox parity.
+The historical JoomEngine WASM hash is explicitly rejected. No fallback.
+
+The chosen run ID and exact hashes are written to
+build-work/independent-native-qa-selection.json; the QA FTP/Docker workflow
+verifies its exact new engine using that record even if no committed pin
+exists. This is an authenticated build-time attestation, not permission to
+publish. An explicit source-control pin can be committed after all tests pass.
 
 Build artifacts produced for internal QA ARE NOT a public release approval.
 The FTP/Docker release gates still check legal notices and licensing status;

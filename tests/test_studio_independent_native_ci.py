@@ -14,6 +14,17 @@ class StudioIndependentNativeCITests(unittest.TestCase):
         self.assertIn('node tests/browser/collab-native-php-peers.mjs', source)
         self.assertIn('node tests/browser/native-curl.mjs', source)
 
+    def test_fresh_first_build_does_not_require_missing_json_pin(self):
+        source = (ROOT / "scripts/restore_independent_native_qa.py").read_text()
+        self.assertIn("if args.config.is_file()", source)
+        self.assertIn("find_verified_compatible_candidate()", source)
+        self.assertIn("build-work/independent-native-qa-selection.json", source)
+        self.assertIn("manifest.get('nativeInputs') != sources", source)
+        self.assertIn("retrieve_run_metadata(run_id, lock)", source)
+        self.assertIn("ensure_candidate(candidate, lock, root)", source)
+        self.assertIn("LEGACY_SHA", source)
+        self.assertIn("No successful native CI artifact", source)
+
     def test_workflow_can_read_exact_github_actions_artifact(self):
         source = (ROOT / '.github/workflows/check.yml').read_text()
         self.assertIn('actions: read', source)

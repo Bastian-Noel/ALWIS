@@ -2,7 +2,8 @@ name: QA - FTP and Docker packages from verified independent WASM
 on:
   push:
     branches: ['develop/2026-11-beta1-foundation']
-    paths: ['config/independent-native-qa.json']
+    paths: ['config/independent-native-qa.json', '.github/workflows/independent-studio-qa.yml']
+  workflow_dispatch:
 permissions:
   contents: read
   actions: read
@@ -40,7 +41,7 @@ jobs:
           from pathlib import Path
           site=Path('build-work/site')
           record=json.loads((site/'release.json').read_text())
-          lock=json.loads(Path('config/independent-native-qa.json').read_text())
+          lock=json.loads(Path('build-work/independent-native-qa-selection.json').read_text())
           wasm=next(row for row in record['files'] if row['path'].endswith('/engine/pbl-runtime.wasm'))
           assert wasm['sha256']==lock['wasmSha256'] and not record['workingChanges']
           assert json.loads((site/'RELEASE-LICENSING-STATUS.json').read_text())['status']=='blocked'
@@ -77,7 +78,7 @@ jobs:
           test "$(docker inspect alwis-independent-qa --format '{{.State.Health.Status}}')" = healthy
           HOST_PORT=$(docker port alwis-independent-qa 3000/tcp | awk -F: '{print $NF}')
           curl --fail --silent --show-error "http://127.0.0.1:$HOST_PORT/readyz"
-          EXPECTED=$(python3 -c "import json;print(json.load(open('config/independent-native-qa.json'))['wasmSha256'])")
+          EXPECTED=$(python3 -c "import json;print(json.load(open('build-work/independent-native-qa-selection.json'))['wasmSha256'])")
           ACTUAL=$(curl --fail --silent --show-error             "http://127.0.0.1:$HOST_PORT/_alwis/$GITHUB_SHA/engine/pbl-runtime.wasm" | sha256sum | cut -d' ' -f1)
           test "$ACTUAL" = "$EXPECTED"
           echo "QA Docker healthy and independent WASM verified; no registry push or FTP transfer."
