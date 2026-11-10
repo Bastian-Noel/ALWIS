@@ -23,7 +23,10 @@ class NativeLicenseEvidenceTests(unittest.TestCase):
         self.assertTrue(report["blocked"])
         self.assertFalse(report["releaseApproved"])
         self.assertFalse(report["legalReviewComplete"])
-        self.assertEqual(len(report["openPublicationBlockers"]), 5)
+        self.assertNotIn("apache2-mariadb-patch", report["openPublicationBlockers"])
+        review = json.loads((ROOT / "provenance/release-licensing-status.json").read_text())
+        corrected = next(x for x in review["resolvedFindings"] if x["id"] == "apache2-mariadb-patch")
+        self.assertEqual(audit.sha(ROOT / "provenance/joomengine-historical-engine-NOTICE.txt"), corrected["noticeSha256"])
         self.assertIn("phpLicense3To4", report["claimsChecked"])
         self.assertIn("zendLicense2To3", report["claimsChecked"])
 
