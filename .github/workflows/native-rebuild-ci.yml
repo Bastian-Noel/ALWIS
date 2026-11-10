@@ -7,6 +7,8 @@ on:
       - 'scripts/prepare-independent-native-inputs.py'
       - 'scripts/build-independent-native-ci.sh'
       - 'scripts/prepare-php84-source.py'
+      - 'packages/php-native/src/runner.c'
+      - 'tests/browser/native-parity.mjs'
   workflow_dispatch:
     inputs:
       mode:

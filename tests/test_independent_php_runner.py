@@ -34,6 +34,26 @@ class IndependentRunnerTests(unittest.TestCase):
                                     capture_output=True, text=True, timeout=10)
             self.assertIn('passed', result.stdout)
 
+    def test_http_sapi_context_enables_php_form_and_cookie_readers(self):
+        runner = RUNNER.read_text()
+        # In PHP 8.4 main/SAPI.c both POST parsing and cookie invocation are
+        # guarded by SG(server_context). Regressing to NULL silently discards
+        # POST form data and php://input even while GET appears to work.
+        sapi = (ROOT / 'build-work/php-minimal/main/SAPI.c')
+        if sapi.is_file():
+            source = sapi.read_text()
+            self.assertIn('if (SG(server_context))', source)
+            self.assertIn('sapi_read_post_data();', source)
+        start = runner.index('SG(server_context) = &request_state;')
+        execute = runner.index('php_request_startup()')
+        shutdown = runner.index('php_request_shutdown(NULL)')
+        cleanup = runner.index('SG(server_context) = NULL;')
+        self.assertLess(start, execute)
+        self.assertLess(execute, shutdown)
+        self.assertLess(shutdown, cleanup)
+        self.assertIn('SG(request_info).content_length = (zend_long)length;', runner[:start])
+        self.assertIn('alwis_read_post, alwis_cookies,', runner)
+
     def test_emscripten_missing_fd_limit_function_has_checked_portability_adapter(self):
         compiler = shutil.which('cc')
         self.assertIsNotNone(compiler)

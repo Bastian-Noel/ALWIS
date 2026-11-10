@@ -258,6 +258,13 @@ EMSCRIPTEN_KEEPALIVE int php_wasm_run(const char *script, int unused1, int unuse
     SG(request_info).headers_only = strcmp(method, "HEAD") == 0;
     head_only = SG(request_info).headers_only;
     SG(request_info).no_headers = 0;
+    /*
+     * PHP 8.4 sapi_activate() only invokes the built-in POST reader and
+     * read_cookies callback when SG(server_context) is non-NULL.
+     * ALWIS is an HTTP SAPI: use the active bounded request as the context.
+     * Keep it alive through php_request_shutdown() (sapi_deactivate()).
+     */
+    SG(server_context) = &request_state;
     uint64_t owner = pbl_mysql_owner_begin();
     if (php_request_startup() == SUCCESS) {
         zend_file_handle file;
@@ -270,6 +277,7 @@ EMSCRIPTEN_KEEPALIVE int php_wasm_run(const char *script, int unused1, int unuse
         php_failed = 1;
     }
     pbl_mysql_owner_cleanup(owner); /* includes abandoned transaction rollback */
+    SG(server_context) = NULL; /* After shutdown, never expose a stale HTTP context. */
     SG(request_info).request_method = NULL;
     SG(request_info).request_uri = NULL;
     SG(request_info).query_string = NULL;

@@ -67,7 +67,9 @@ try {
           expect(get.method === 'GET' && get.query === 'été 😀' && get.header === 'probe-yes' && get.path === '/native-parity.php', 'GET, query or $_SERVER');
           const payload = 'value=%C3%A9t%C3%A9';
           const post = (await json('post', { method: 'POST', headers: [['Content-Type', 'application/x-www-form-urlencoded']], body: payload })).data;
-          expect(post.method === 'POST' && post.value === 'été' && post.rawHash === postHash, 'POST and php://input');
+          expect(post.method === 'POST' && post.value === 'été' && post.rawHash === postHash,
+            'POST and php://input: ' + JSON.stringify({ method: post.method, value: post.value,
+              expectedHash: postHash, rawHash: post.rawHash }));
           const binary = (await json('binary', { method: 'POST', headers: [['Content-Type', 'application/octet-stream']], body: Uint8Array.from([0, 127, 128, 255, 10]) })).data;
           expect(binary.length === 5 && binary.hex === '007f80ff0a', 'binary POST fidelity');
           const headers = await json('headers');
@@ -102,12 +104,17 @@ try {
           const state = await runtime.state();
           expect(!state.sqlConnections && !state.nativeStatements, 'SQL connection or statement leaked after request');
           return { passed: true, cases, state: { sqlConnections: state.sqlConnections, nativeStatements: state.nativeStatements, integerBytes: env.integerBytes } };
+        } catch (error) {
+          // Preserve a test-only, sanitized trace of successful/failed probes.
+          // This receipt is NOT validation and cannot authorize a release.
+          return { passed: false, error: String(error?.message ?? error), cases };
         } finally { runtime.close(); }
       }, { source: fixture, postHash: sha256(Buffer.from('value=%C3%A9t%C3%A9')) });
-      if (!result.passed) throw Error('Native parity incomplete');
       const output = join(root, 'build-work/parity', `${label}-${name}.json`);
       await mkdir(resolve(output, '..'), { recursive: true });
       await writeFile(output, JSON.stringify({ schemaVersion: 1, label, browser: name, browserVersion: browser.version(), ...fingerprint, ...result }, null, 2) + '\n');
+      if (!result.passed) throw Error('Native parity incomplete in ' + name + ': ' + result.error +
+        '; last probe: ' + JSON.stringify(result.cases.at(-1)));
       console.log(name, label, result.cases.length, 'native parity probes passed for WASM', fingerprint.wasmSha256);
     } finally { await browser.close(); }
   }
