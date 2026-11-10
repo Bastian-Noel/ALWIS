@@ -23,6 +23,7 @@ await Promise.all([
   ["isolated-preview-sw.mjs", "guest-sw.js"],
   ["isolated-preview-broker.mjs", "guest-broker.mjs"],
   ["isolated-preview-controller.mjs", "isolated-preview-controller.mjs"],
+  ["preview-security.mjs", "preview-security.mjs"],
   ["guest-preview-route.mjs", "guest-preview-route.mjs"],
 ].map(([source, dest]) =>
   copyFile(join(root, "apps/studio/collab", source), join(site, dest))));
