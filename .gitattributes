@@ -9,3 +9,5 @@
 /LICENSES/PHP-libmagic.txt -text
 /LICENSES/** -text
 /engine/patches/php-8.4.27-wasm-chunks.patch -text
+
+provenance/joomengine-historical-engine-NOTICE.txt -text

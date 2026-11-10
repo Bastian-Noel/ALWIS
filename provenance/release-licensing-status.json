@@ -1,12 +1,8 @@
 {
   "schemaVersion": 1,
   "status": "blocked",
-  "asOf": "2026-11-10",
+  "asOf": "2026-11-11",
   "blockers": [
-    {
-      "id": "apache2-mariadb-patch",
-      "summary": "The currently pinned and distributed historical runtime still includes the Apache-2.0 JoomEngine sessions patch in GPLv2 MariaDB. An ALWIS-owned replacement WASM has now been independently compiled and passed 17 PHP/HTTP/PDO/MySQLi browser tests each in Chromium and Firefox (Actions 42844495555), but is NOT the distributed runtime and has not completed a release-specific compatibility/legal review."
-    },
     {
       "id": "native-sbom-and-source",
       "summary": "Seven pinned source archives and independent WASM are verified. All 14 directly scanned ALWIS native C inputs now carry GPL-2.0-only SPDX, with author history and maintainer claim recorded. Exact linked third-party object/source/license correspondence remains unaudited for a release."
@@ -25,5 +21,13 @@
     }
   ],
   "scope": "This status blocks publication of static, Docker, and native releases containing the runtime. It does not prevent local development or validation builds.",
-  "reopenWhen": "Update this file only after evidence for each blocker is recorded in provenance/component-license-map.md and the exact release notices/source bundle are verified."
+  "reopenWhen": "Update this file only after evidence for each blocker is recorded in provenance/component-license-map.md and the exact release notices/source bundle are verified.",
+  "resolvedFindings": [
+    {
+      "id": "apache2-mariadb-patch",
+      "resolution": "Withdrawn: historical patches/NOTICE explicitly licenses the engine patch and modified glue GPL-2.0-only. Repository-root Apache-2.0 was incorrectly applied to these files.",
+      "evidence": "https://github.com/joomengine/mariadb-wasm-bridge/blob/56d47b4dc867af313592efa09e12df470a36e129/patches/NOTICE",
+      "noticeSha256": "bd9a9d4e7357de8d04722e3888c69b7166ab093897dd0eabd5403867ab84a7fe"
+    }
+  ]
 }

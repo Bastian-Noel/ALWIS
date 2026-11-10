@@ -1,5 +1,7 @@
 # ALWIS — vérification des licences du runtime PHP/MariaDB
 
+**Correction du 11 novembre 2026 :** la [notice du commit historique](https://github.com/joomengine/mariadb-wasm-bridge/blob/56d47b4dc867af313592efa09e12df470a36e129/patches/NOTICE) place explicitement le patch moteur et le glue modifié sous GPL-2.0-only. Leur attribution précédente à Apache-2.0 était erronée : la licence racine du dépôt ne remplace pas cette notice spécifique. Le moteur ALWIS indépendant reste retenu pour sa reconstruction vérifiable.
+
 **10 novembre 2026 — relevé de preuves, pas de validation juridique. Publication bloquée.**
 
 Commande de reproduction :
@@ -13,7 +15,7 @@ Les contrôles sont également exécutés par GitHub Actions ; le rapport JSON c
 | 7 archives amont | SHA-256 verrouillés : PHP 8.4.27 officiel, php/php-src, MariaDB, Sean Morris, PCRE2 10.47, wolfSSL et Connector/C | Les archives ne prouvent pas la liste exacte de tous les objets liés |
 | PHP 8.4.27 | Texte original PHP 3.01 conservé à l'octet ; nouvelle licence PHP v4 publiée officiellement en 2026 | ALWIS choisit v4 pour le code couvert, sous la clause 5, avec contrôle des exceptions par fichier |
 | Zend Engine | Texte original Zend 2.00 conservé à l'octet ; Zend v3.0 publié officiellement en 2026 | ALWIS choisit v3.0 pour le code couvert ; exceptions tierces à vérifier |
-| MariaDB | Source originale GPLv2, build indépendant qui ne réutilise pas le patch JoomEngine Apache-2.0 | Distribution combinée et provenance complète des objets à vérifier |
+| MariaDB | Source originale GPLv2, build indépendant qui ne réutilise pas le patch JoomEngine GPL-2.0-only | Distribution combinée et provenance complète des objets à vérifier |
 | Sean Morris | Source verrouillée, licence GPLv2 OU Apache-2.0 pour le code couvert | Ne pas appliquer le double-licensing aux apports indépendants JoomEngine |
 | wolfSSL | Texte historique comparé au fichier exact sous-module ; seules lignes terminales vides normalisées | Exception GPLv2 valable avec MariaDB selon sa portée ; liens effectifs à auditer |
 | PCRE2 | Licence copiée exactement depuis l'archive ZIP 10.47 | Auditer toutes les dépendances supplémentaires |
