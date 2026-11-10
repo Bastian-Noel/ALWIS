@@ -32,12 +32,20 @@ class PHPWasmSourceRecoveryTests(unittest.TestCase):
             self.assertEqual(candidates[0]["members"], ["source/native/runtime.c"])
 
     def test_fallback_manifest_declares_abi_incompatibility(self):
+        # The manifest contract is testable in a clean clone. A full recovery
+        # audit still MUST reject a missing or mismatched upstream archive.
+        fallback = recover.fallback_manifest()
+        self.assertFalse(fallback["dropInCompatible"])
+        self.assertIn("php_wasm_run", fallback["alwisRequiredAPI"])
+        self.assertIn("pib_run", fallback["originalAPI"])
         with tempfile.TemporaryDirectory() as d:
-            result = recover.audit([Path(d)])
-            self.assertFalse(result["historicalSource"]["exactArchiveRecovered"])
-            self.assertFalse(result["fallback"]["dropInCompatible"])
-            self.assertIn("php_wasm_run", result["fallback"]["alwisRequiredAPI"])
-            self.assertIn("pib_run", result["fallback"]["originalAPI"])
+            original_root = recover.ROOT
+            try:
+                recover.ROOT = Path(d)
+                with self.assertRaises(SystemExit):
+                    recover.audit([Path(d)])
+            finally:
+                recover.ROOT = original_root
 
 
 if __name__ == "__main__":

@@ -87,6 +87,24 @@ def inspect_candidates(paths: list[Path]) -> tuple[list[str], list[dict], Path |
     return scanned, observations, found
 
 
+def fallback_manifest():
+    """Pinned, source-independent ABI information (does not certify source availability)."""
+    return {
+            "repository": "seanmorris/php-wasm",
+            "revision": "1e1fb6703730759181e84c62bce35ee9129febb9",
+            "archive": FALLBACK_NAME,
+            "archiveSha256": FALLBACK_SHA,
+            "licenseOptionForCoveredCode": "GPL-2.0-only",
+            "notice": "LICENSES/seanmorris-php-wasm-NOTICE.txt",
+            "nativeCSource": "source/pib/pib.c",
+            "originalAPI": ["pib_init", "pib_run"],
+            "alwisRequiredAPI": ["php_wasm_run", "php_wasm_exit_code", "php_wasm_abi_version", "php_wasm_version", "php_wasm_add_server_variable", "php_wasm_setenv"],
+            "dropInCompatible": False,
+            "portNeeded": "Independent ALWIS SAPI/HTTP shim and checked Emscripten fiber adaptations for PHP 8.4.27; must pass native and browser tests.",
+    }
+
+
+
 def audit(search: list[Path], copy_exact: bool = False):
     scanned, observations, found = inspect_candidates(search)
     if found and copy_exact:
@@ -119,19 +137,7 @@ def audit(search: list[Path], copy_exact: bool = False):
             "requiredForLegacyNativeWrapper": True,
         },
         "search": {"directoriesAccessible": scanned, "candidates": observations, "note": "CloudPanel/private directories and downloads on the user's PC are not readable with current SSH permissions."},
-        "fallback": {
-            "repository": "seanmorris/php-wasm",
-            "revision": "1e1fb6703730759181e84c62bce35ee9129febb9",
-            "archive": FALLBACK_NAME,
-            "archiveSha256": FALLBACK_SHA,
-            "licenseOptionForCoveredCode": "GPL-2.0-only",
-            "notice": "LICENSES/seanmorris-php-wasm-NOTICE.txt",
-            "nativeCSource": "source/pib/pib.c",
-            "originalAPI": ["pib_init", "pib_run"],
-            "alwisRequiredAPI": ["php_wasm_run", "php_wasm_exit_code", "php_wasm_abi_version", "php_wasm_version", "php_wasm_add_server_variable", "php_wasm_setenv"],
-            "dropInCompatible": False,
-            "portNeeded": "Independent ALWIS SAPI/HTTP shim and checked Emscripten fiber adaptations for PHP 8.4.27; must pass native and browser tests.",
-        },
+        "fallback": fallback_manifest(),
         "status": "exact-backup-recovered" if found else "fallback-source-verified-adapter-required",
     }
 
