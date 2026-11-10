@@ -7,6 +7,12 @@ test('real guest PHP/JS preview gets an opaque sandbox origin, with no parent na
   assert.equal(guestPreviewSandbox(true), 'allow-scripts allow-forms');
   assert.equal(isSafeGuestSandbox(guestPreviewSandbox(true)), true);
   assert.equal(isSafeGuestSandbox('allow-scripts allow-forms allow-same-origin'), false);
+  const isolated = { previewOrigin: "https://guest.example", studioOrigin: "https://studio.example" };
+  assert.equal(guestPreviewSandbox(true, isolated), "allow-scripts allow-forms allow-same-origin");
+  assert.equal(isSafeGuestSandbox(guestPreviewSandbox(true, isolated), isolated), true);
+  assert.equal(isSafeGuestSandbox(guestPreviewSandbox(true, isolated), {
+    previewOrigin: "https://studio.example", studioOrigin: "https://studio.example",
+  }), false);
   assert.equal(isSafeGuestSandbox('allow-scripts allow-top-navigation'), false);
 });
 
@@ -18,8 +24,8 @@ test('legacy read-only HTML snapshot stays script-free and isolated', () => {
 test('guest iframe sandbox is reapplied both at role change and every render', () => {
   const wiring = readFileSync(new URL('../apps/studio/collab/wire.mjs', import.meta.url), 'utf8');
   const view = readFileSync(new URL('../apps/studio/workbench/views/code.mjs', import.meta.url), 'utf8');
-  assert.match(wiring, /setAttribute\("sandbox", guestPreviewSandbox\(interactivePreview\)\)/);
+  assert.match(wiring, /setAttribute\("sandbox", guestPreviewSandbox\(interactivePreview,/);
   assert.match(wiring, /toggleAttribute\("data-guest-http-preview", interactivePreview\)/);
-  assert.match(view, /guestPreviewSandbox\(document\.documentElement\.hasAttribute\("data-guest-http-preview"\)\)/);
+  assert.match(view, /guestPreviewSandbox\(document\.documentElement\.hasAttribute\("data-guest-http-preview"\),/);
   assert.match(view, /setAttribute\("sandbox", sandbox\)/);
 });

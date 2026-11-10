@@ -19,6 +19,8 @@ async function copy(source,destination){
     // Relative imports already resolve inside this build. Rewriting their '/packages/'
     // suffix would duplicate the build prefix and break the static application.
     for(const prefix of ['/apps/studio/','/packages/runtime/','/engine/','/_pbl/client.js']){
+      // Guest-origin bootstrap is hosted at the root of the isolated hostname.
+      if (destination === 'guest-sw.js' && prefix === '/_pbl/client.js') continue;
       const escaped=prefix.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
       text=text.replaceAll(new RegExp('(?<![.\\w/-])'+escaped,'g'),assetBase+prefix);
     }
@@ -39,6 +41,11 @@ for(const name of ['LICENSE.md','NOTICE.md','THIRD-PARTY-NOTICES.md'])await copy
 await copy('provenance/release-licensing-status.json','RELEASE-LICENSING-STATUS.json');
 await copy('apps/studio/social-card.png','social-card.png');
 await copy('apps/studio/index.html','index.html');await copy('apps/studio/service-worker.mjs','service-worker.js');await copy('apps/studio/client-bootstrap.js','_pbl/client.js');
+await copy('apps/studio/collab/isolated-preview-sw.mjs','guest-sw.js');
+await copy('apps/studio/collab/isolated-preview-broker.mjs','guest-broker.mjs');
+const brokerHTML = Buffer.from('<!doctype html><html lang="fr"><meta charset="utf-8"><title>ALWIS · relais invité</title><script type="module" src="/guest-broker.mjs"></script></html>');
+await writeFile(join(target,'guest-broker.html'),brokerHTML);
+files.push({path:'guest-broker.html',bytes:brokerHTML.length,sha256:createHash('sha256').update(brokerHTML).digest('hex')});
 await writeFile(join(target,'_headers'),`/*
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Embedder-Policy: require-corp

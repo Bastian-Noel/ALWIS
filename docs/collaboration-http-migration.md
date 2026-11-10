@@ -66,3 +66,13 @@ Ces scénarios nécessitent Chromium **et** Firefox avec une origine réellement
 isolée pour la page invitée. Tant que ces vérifications ne passent pas, le
 raccordement expérimental reste optionnel et la production ne doit pas adopter
 ce parcours comme aperçu principal.
+
+## Origine séparée intégrée (lot expérimental suivant)
+
+- Le serveur expose `ALWIS_PREVIEW_ORIGIN` et renvoie `previewOrigin` dans sa configuration de salle. L'origine d'aperçu ne sert que les quatre ressources autorisées du broker ; aucun endpoint du studio ni d'administration n'y est servi.
+- `IsolatedGuestPreviewController` installe un iframe broker sur cette origine, vérifie strictement `event.origin`, `event.source` et le canal aléatoire, et relaie les requêtes vers le `GuestHttpGateway` existant ; les réponses passent par les ports MessageChannel.
+- Le Service Worker de l'origine d'aperçu charge un HTML réel avec le bootstrap de cookies/stockages virtuels, suit les redirections internes et achemine GET/POST/Fetch au navigateur propriétaire via le broker.
+- La sandbox `allow-scripts allow-same-origin allow-forms` est autorisée **uniquement quand l'origine de l'iframe diffère de celle du studio** ; sur le studio elle est explicitement refusée.
+- Sans origine dédiée configurée, **l'aperçu HTML interactif invité ne s'active pas** : le miroir DOM reste la solution de repli sûre et non exécutable.
+
+**Reste bloquant avant mise en production :** vrai test de salle WebRTC/réseau avec deux navigateurs sur une instance hébergée, vérification des cookies HttpOnly et sessions PHP avec nouveau WASM, gestion des gros fichiers/redirections, débit et comportement en reconnexion. L'activation nécessite un sous-domaine HTTPS configuré par le propriétaire de l'hébergement.

@@ -169,7 +169,10 @@ export function drawPv() {
   // The guest is on the studio origin until dedicated preview-origin deployment exists.
   // Reapply on EVERY render, including when the iframe nodes are recycled.
   if (document.documentElement.hasAttribute("data-collab-guest")) {
-    const sandbox = guestPreviewSandbox(document.documentElement.hasAttribute("data-guest-http-preview"));
+    const sandbox = guestPreviewSandbox(document.documentElement.hasAttribute("data-guest-http-preview"), {
+      previewOrigin: document.documentElement.dataset.guestPreviewOrigin,
+      studioOrigin: location.origin,
+    });
     $$("iframe", box).forEach(frame => frame.setAttribute("sandbox", sandbox));
   }
   box.dataset.n = want;
