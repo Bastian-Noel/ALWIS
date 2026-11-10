@@ -2,70 +2,89 @@
 
 # ALWIS
 
-**Écrivez du PHP. Testez votre site. Explorez vos données.**
+**Un environnement PHP et MariaDB directement dans votre navigateur.**
 
-Tout dans le navigateur, avec un éditeur et une base MariaDB.
+Écrivez du code, consultez vos données et ouvrez un vrai aperçu HTTP, sans installer de serveur PHP ou SQL sur votre ordinateur.
 
-[![Validation](https://github.com/Bastian-Noel/ALWIS/actions/workflows/check.yml/badge.svg)](https://github.com/Bastian-Noel/ALWIS/actions/workflows/check.yml)
-[![Préversion](https://img.shields.io/badge/statut-pr%C3%A9version-9a6700)](https://github.com/Bastian-Noel/ALWIS/releases)
+[![CI](https://github.com/Bastian-Noel/ALWIS/actions/workflows/check.yml/badge.svg)](https://github.com/Bastian-Noel/ALWIS/actions/workflows/check.yml)
+[![Version](https://img.shields.io/badge/2026.11-Beta%201-8250df)](docs/versioning.md)
+[![Documentation](https://img.shields.io/badge/Guide-Wiki-2563eb)](https://github.com/Bastian-Noel/ALWIS/wiki)
 
-[Premiers pas](docs/README.md) · [Architecture](docs/architecture.md) · [Collaboration](docs/collaboration.md) · [Exemple Campus](docs/school-example.md) · [Wiki](https://github.com/Bastian-Noel/ALWIS/wiki)
+**[Installation](https://github.com/Bastian-Noel/ALWIS/wiki/Installation)** · **[Premiers pas](https://github.com/Bastian-Noel/ALWIS/wiki/Premiers-pas)** · **[Documentation](https://github.com/Bastian-Noel/ALWIS/wiki)** · **[Suivi du développement](https://github.com/Bastian-Noel/ALWIS/issues/1)**
 
 </div>
 
-![ALWIS : éditeur de code et aperçu réel du Campus des Tilleuls, prêts à tester dans le navigateur.](apps/studio/social-card.png)
+![L'interface d'ALWIS : code, aperçu et données d'un projet d'exemple](apps/studio/social-card.png)
 
-## Démarrer
+## Développer sans installer de serveur
 
-1. Téléchargez le **paquet applicatif ZIP** depuis les [versions publiées](https://github.com/Bastian-Noel/ALWIS/releases).
-2. Décompressez-le, puis ouvrez un terminal dans ce dossier.
-3. Avec [Node.js 20 ou plus récent](https://nodejs.org/fr) installé, lancez :
+| **Code et aperçu** | **SQL et relations** | **Plusieurs visiteurs** |
+| :--- | :--- | :--- |
+| PHP, HTML, CSS et JavaScript avec coloration, complétion et formatage. | MariaDB, PDO, MySQLi, tables et schéma relationnel dans le navigateur. | Sessions isolées par cookies, un projet et une base partagés. |
+| ![Éditeur et aperçu ALWIS](docs/images/alwis-code-light.png) | ![Schéma SQL ALWIS](docs/images/alwis-schema-light.png) | ![Sessions visiteurs ALWIS](docs/images/alwis-sessions.png) |
 
-   ```sh
+Les projets sont stockés **localement dans votre navigateur**. Utilisez **Exporter ZIP** pour en conserver une copie indépendante.
+
+## Essayer ALWIS
+
+1. Récupérez une version disponible dans les [releases GitHub](https://github.com/Bastian-Noel/ALWIS/releases).
+2. Décompressez l'archive, puis lancez dans ce dossier :
+
+   ```bash
    node serve.mjs
    ```
 
-4. Ouvrez **http://127.0.0.1:8080**.
-5. Nommez votre projet, choisissez **Exemple scolaire**, puis créez-le.
+3. Ouvrez **http://127.0.0.1:8080** et choisissez « Exemple scolaire » pour découvrir l'éditeur.
 
-> [!TIP]
-> Aucune installation de PHP ou de MariaDB n’est nécessaire.
-> Le [guide illustré](https://github.com/Bastian-Noel/ALWIS/wiki/Premiers-pas) vous accompagne ensuite.
+> [!NOTE]
+> Il faut Node.js 20 ou une version supérieure pour servir localement l'application. PHP et MariaDB sont exécutés en WebAssembly par le navigateur : aucune installation PHP/MySQL n'est nécessaire.
+>
+> Les **nouvelles distributions sont suspendues** jusqu'à la validation des sources et licences du runtime natif. Les anciennes releases restent des références fonctionnelles, sans garantie de conformité de redistribution.
 
-Pour héberger l’édition serveur, voir [Docker et sa configuration](docs/server-deployment.md). **Les nouvelles publications restent bloquées tant que l’audit de licences du runtime n’est pas terminé.** Les anciennes versions disponibles ne doivent pas être prises comme preuve de conformité.
+[Consulter le guide d'installation et l'édition Docker](https://github.com/Bastian-Noel/ALWIS/wiki/Installation)
 
-## Où aller ?
+## Ce qui est disponible
 
-| Vous voulez… | Ouvrez… |
-|---|---|
-| Écrire une page et voir le résultat | **Code → Aperçu** |
-| Lire ou modifier une table | **Données** |
-| Voir les liens entre les tables | **Schéma** |
-| Tester avec plusieurs visiteurs | **Sessions** |
-| Comprendre une erreur | **Serveur** |
+| Travail | Où aller |
+| --- | --- |
+| Créer ou importer un projet | **Accueil** : projet vide, exemple ou import ZIP |
+| Modifier une page et voir le rendu | **Code → Aperçu** |
+| Parcourir des tables et lancer du SQL | **Données** |
+| Visualiser clés et relations | **Schéma** |
+| Tester plusieurs identités utilisateur | **Sessions** |
+| Comprendre les requêtes et erreurs | **Serveur** |
+| Sauvegarder les fichiers | **Enregistrer**, puis **Exporter ZIP** |
 
-## Garder votre travail
+**Collaboration :** l'édition serveur permet déjà l'échange de code et l'accès distant à certaines opérations fichiers/SQL. Le véritable aperçu HTTP par invité — exécuté chez l'hôte, sans miroir du DOM — est en cours de développement. [Fonctionnement et limites](docs/collaboration.md).
 
-**Enregistrer** conserve votre travail dans ce navigateur.
-**Exporter ZIP** crée une copie à garder sur votre ordinateur.
+## Architecture en bref
 
-> [!IMPORTANT]
-> Effacer les données du navigateur peut effacer vos projets. Gardez un ZIP des projets importants.
+```mermaid
+flowchart LR
+    A["Projet dans le navigateur"] --> E["Éditeur"]
+    E --> H["Aperçu HTTP"]
+    H --> PHP["PHP · WebAssembly"]
+    PHP --> DB["MariaDB · WebAssembly"]
+    A --> S["Sauvegarde locale / ZIP"]
+```
 
-## Pour continuer
+Aucune base MariaDB n'est hébergée par le serveur ALWIS. Pour le partage collaboratif, **le navigateur hôte conserve le projet et exécute PHP et SQL**.
 
-- [Écrire du code, sauvegarder et ouvrir un dossier du PC](https://github.com/Bastian-Noel/ALWIS/wiki/Editeur-et-sauvegardes)
-- [Essayer le Campus avec plusieurs visiteurs](https://github.com/Bastian-Noel/ALWIS/wiki/Campus)
-- [Navigateurs et limites](https://github.com/Bastian-Noel/ALWIS/wiki/Compatibilite)
-- [Installer les sources et contribuer](https://github.com/Bastian-Noel/ALWIS/wiki/Contribuer)
+[Architecture](docs/architecture.md) · [Stockage](docs/storage-opfs.md) · [Compatibilité](docs/compatibility.md) · [Déploiement](docs/server-deployment.md)
+
+## Version 1 · Beta
+
+Le développement suit désormais les identifiants **`YYYY.MM.PATCH-beta.N`**. Exemple : `v2026.11.0-beta.1`, affiché **2026.11 · Beta 1**.
+
+La [roadmap V1](https://github.com/Bastian-Noel/ALWIS/issues/1) couvre la parité du runtime GPLv2, le nouvel aperçu invité et les tests navigateur. Les publications officielles et les images Docker sont soumises à des vérifications de fonctionnalité, de sécurité et de licences.
+
+[Convention de versionnement](docs/versioning.md) · [Contribuer](CONTRIBUTING.md) · [Proposer une amélioration](https://github.com/Bastian-Noel/ALWIS/issues/new/choose)
 
 <details>
-<summary><strong>Documentation technique et licences</strong></summary>
+<summary><strong>Licences, attributions et sources natives</strong></summary>
 
-[Architecture](https://github.com/Bastian-Noel/ALWIS/wiki/Architecture) · [Performance](https://github.com/Bastian-Noel/ALWIS/wiki/Performance) · [Hébergement](https://github.com/Bastian-Noel/ALWIS/wiki/Publication)
+ALWIS rassemble des composants à licences différentes. Les contributions web originales indépendantes identifiées relèvent de **PolyForm Noncommercial**, la documentation originale de **CC BY-NC-SA**, et le runtime natif avec MariaDB relève des conditions **GPLv2 et autres licences amont applicables**. Une licence unique non commerciale ne couvre pas automatiquement l'ensemble.
 
-ALWIS utilise notamment PHP, MariaDB, CodeMirror, PHPantom, SuperHTML, TypeScript, SWC et Emmet.
-Les licences sont distinctes : **PolyForm Noncommercial** pour les contributions web originales indépendantes identifiées, **CC BY-NC-SA** pour la documentation originale, et **GPLv2 / licences tierces** pour les parties natives et les dépendances. La mention obligatoire d’attribution figure dans [NOTICE.md](NOTICE.md).
-Le [registre des licences](LICENSE.md), les [notices tierces](THIRD-PARTY-NOTICES.md), l’[audit](provenance/licensing-decision.md) et la [cartographie par composant](provenance/component-license-map.md) détaillent les licences et les limites d’une restriction non commerciale globale.
+L'attribution obligatoire figure dans [NOTICE.md](NOTICE.md). Consultez [LICENSE.md](LICENSE.md), les [notices tierces](THIRD-PARTY-NOTICES.md), la [cartographie par composant](provenance/component-license-map.md) et le [statut de distribution](provenance/release-licensing-status.json) pour les limites et obligations actuelles.
 
 </details>

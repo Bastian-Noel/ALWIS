@@ -1,0 +1,37 @@
+name: Signaler un bug
+description: Décrire une erreur de l'éditeur, de PHP, de SQL ou de la collaboration.
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Que se passe-t-il ?
+      description: Décrivez le comportement observé et celui attendu.
+      placeholder: "Quand j'ouvre..., le navigateur..."
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Étapes pour reproduire
+      description: Donnez si possible un petit fichier PHP/SQL ou une capture.
+      placeholder: "1. Ouvrir...\n2. Cliquer...\n3. Constater..."
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version ALWIS
+      placeholder: "2026.11 Beta 1, commit..., ou URL"
+  - type: dropdown
+    id: area
+    attributes:
+      label: Domaine
+      options: ["Aperçu / HTTP", "PHP / PDO / MySQLi", "Collaboration", "Éditeur", "Sauvegarde", "Autre"]
+  - type: textarea
+    id: context
+    attributes:
+      label: Navigateur et informations utiles
+      placeholder: "Chromium/Firefox, système, console, capture..."
+      description: Ne joignez pas de secrets, de mots de passe ou de données privées.

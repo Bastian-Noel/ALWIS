@@ -16,20 +16,22 @@
 git clone https://github.com/Bastian-Noel/ALWIS.git
 cd ALWIS
 npm ci
-python3 scripts/restore-deployment-engine.py
 npm run editor:build
 node scripts/serve-studio.mjs
 ```
 
 Ouvrez **http://127.0.0.1:8080**.
-La restauration télécharge le moteur épinglé : inutile de recompiler PHP et MariaDB pour modifier l’interface.
+Le moteur natif historique n'est plus disponible sur GitHub. La CI des **contrats source** est indépendante du moteur. Pour exécuter les tests navigateur PHP/SQL, il faut un WASM obtenu depuis une source autorisée et vérifier son empreinte ; consulter le [plan de parité](docs/runtime-parity.md).
 
 ## 3. Vérifier une modification
 
 ```sh
 npm test
-node scripts/package-studio.mjs
-node tests/browser/site-package.mjs
+python3 -m unittest discover -s tests/wiki -v
+python3 scripts/build-wiki.py --output build-work/wiki-preview
+# Une fois le runtime WASM autorisé disponible :
+# node scripts/package-studio.mjs
+# node tests/browser/site-package.mjs
 ```
 
 Ajoutez les parcours concernés :
@@ -47,7 +49,7 @@ Les tests navigateur nécessitent Playwright et ses navigateurs. La [CI](.github
 
 ## Repères
 
-- Suivez les [règles du dépôt](AGENTS.md), notamment le travail sur `main`.
+- Travaillez sur une branche dédiée et ouvrez une pull request sur `main`. Conservez les tests et les contrôles de licences obligatoires.
 - Suivez le [registre de provenance](provenance/README.md) et consignez toute copie ou adaptation dans `provenance/reuse-ledger.csv`.
 - Gardez les licences de chaque composant et vérifiez les notices dans chaque artefact distribué ; le `THIRD-PARTY.txt` de l'éditeur ne couvre pas automatiquement le moteur natif.
 - Consultez [`LICENSE.md`](LICENSE.md), les [notices tierces](THIRD-PARTY-NOTICES.md), l'[audit des licences](provenance/licensing-decision.md) et la [cartographie par composant](provenance/component-license-map.md) avant toute redistribution. La publication reste bloquée tant que le statut de licence n'est pas `ready`.

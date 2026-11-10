@@ -11,7 +11,7 @@ from pathlib import Path
 from urllib.parse import quote, unquote, urlsplit
 
 PAGES = {
-    'README.md': ('Installation', 'Installer ALWIS'),
+    'docs/installation.md': ('Installation', 'Installer ALWIS'),
     'docs/README.md': ('Premiers-pas', 'Premiers pas'),
     'docs/project-workflows.md': ('Projets-ZIP-et-dossiers', 'Créer, importer et sauvegarder'),
     'docs/ide-workflows.md': ('Editeur-et-sauvegardes', 'Code, clavier et sauvegardes'),
@@ -26,6 +26,9 @@ PAGES = {
     'docs/deployment.md': ('Publication', 'Hébergement et publication'),
     'docs/server-deployment.md': ('Serveur-Docker', 'Déployer l’édition serveur'),
     'docs/collaboration.md': ('Collaboration', 'Collaboration : fonctionnement et limites'),
+    'docs/versioning.md': ('Versions', 'Versions alpha, bêta et RC'),
+    'docs/runtime-parity.md': ('Parite-PHP', 'Parité et tests PHP / MariaDB'),
+    'docs/collaboration-http-migration.md': ('Migration-HTTP', 'Migration HTTP multiutilisateur'),
     'docs/wiki-publication.md': ('Publication-du-wiki', 'Publication du wiki'),
 }
 MANIFEST = '.alwis-wiki-manifest.json'
@@ -164,7 +167,7 @@ flowchart LR
 '''
         sidebar = f'**[Accueil ALWIS]({self.wiki}Home)**\n\n'
         groups = [
-            ('Commencer', ['README.md', 'docs/README.md']),
+            ('Commencer', ['docs/installation.md', 'docs/README.md']),
             ('Créer et travailler', ['docs/project-workflows.md', 'docs/ide-workflows.md', 'docs/sql-workflows.md', 'docs/school-example.md']),
             ('Sauvegarder et dépanner', ['docs/storage-opfs.md', 'docs/compatibility.md']),
             ('Mémoire et performances', ['docs/performance-summary.md']),
@@ -182,7 +185,8 @@ flowchart LR
             sidebar += '\n'
         sidebar += '<details>\n<summary>Développement et documentation technique</summary>\n\n'
         for source in ['CONTRIBUTING.md', 'docs/architecture.md', 'docs/performance.md',
-                       'docs/collaboration.md', 'docs/wiki-publication.md']:
+                       'docs/collaboration.md', 'docs/versioning.md', 'docs/runtime-parity.md',
+                       'docs/collaboration-http-migration.md', 'docs/wiki-publication.md']:
             slug, title = PAGES[source]; sidebar += f'- [{title}]({self.wiki}{slug})\n'
         files['_Sidebar.md'] = sidebar + f'\n</details>\n\n[Code source]({self.repo}) · [Versions]({self.repo}/releases)\n'
         files['_Footer.md'] = f'[Accueil]({self.wiki}Home) · [Sources de la documentation]({self.repo}/tree/main/docs) · [Version {self.revision[:7]}]({self.repo}/commit/{self.revision})\n\nDocumentation publiée automatiquement. Pour la corriger, modifiez les fichiers du dépôt.\n'

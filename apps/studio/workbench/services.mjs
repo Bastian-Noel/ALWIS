@@ -723,6 +723,12 @@ export function createStudioServices() {
       },
     },
     sessions: {
+      // Host-only HTTP entry point for a future permission-gated collaborative
+      // gateway. Reuse ProjectHub cookies, PHP sessions, routing and SQL locks.
+      route: (session, request) => {
+        if (!hub || closing) throw Error("Projet fermé");
+        return hub.route(session, request);
+      },
       async run(session, path) {
         validPath(path);
         if (!/\.php$/i.test(path)) throw Error("Choisissez un fichier PHP.");

@@ -7,7 +7,7 @@ if licensing.get('status')!='ready' or licensing.get('blockers'):
  blockers='; '.join(item.get('summary',item.get('id','unknown blocker')) for item in licensing.get('blockers',[]))
  raise SystemExit('Release blocked by licensing status: '+(blockers or licensing.get('status','unknown')))
 repo=os.environ['GH_REPO'];tag=os.environ.get('RELEASE_TAG','');run=os.environ.get('VALIDATED_RUN','')
-if not re.fullmatch(r'v\d+\.\d+\.\d+(?:-(?:alpha|beta|rc|preview)\.\d+)?',tag):raise SystemExit('Use a version such as v0.1.0 or v0.2.0-preview.1')
+if not re.fullmatch(r'v20\d{2}\.(?:0[1-9]|1[0-2])\.\d+(?:-(?:alpha|beta|rc)\.\d+)?',tag):raise SystemExit('Use a version such as v2026.11.0-beta.1 or v2026.11.0')
 if not run.isdigit():raise SystemExit('A validated workflow run ID is required')
 def gh(*args):return subprocess.check_output(['gh',*args],text=True).strip()
 def api(path):return json.loads(gh('api','repos/'+repo+'/'+path))
@@ -89,7 +89,7 @@ Le ZIP contient le site statique. Pour tester localement : `node serve.mjs` apr�
 Les limites techniques, données sauvegardées dans le navigateur et moyens d'export sont expliqués dans la [documentation du dépôt](https://github.com/{repo}/tree/main/docs).
 ''')
 if existing.returncode!=0:
- command=['gh','release','create',tag,'--repo',repo,'--target',revision,'--draft','--title',tag+' — ALWIS','--notes-file',str(notes)]
+ command=['gh','release','create',tag,'--repo',repo,'--target',revision,'--draft','--title','ALWIS '+tag.removeprefix('v').replace('-beta.', ' · Beta ').replace('-alpha.', ' · Alpha ').replace('-rc.', ' · Release Candidate '),'--notes-file',str(notes)]
  if '-'in tag:command.append('--prerelease')
  subprocess.run(command,check=True)
 subprocess.run(['gh','release','upload',tag,*map(str,assets),'--repo',repo,'--clobber'],check=True)
