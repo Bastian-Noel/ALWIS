@@ -75,8 +75,18 @@ try {
       ...(name === "chromium" ? { args: ["--no-sandbox"] } : {}) });
     try {
       const page = await browser.newPage();
-      const errors = [];
-      page.on("pageerror", error => errors.push(error.message));
+      const errors = [], responses = [], navigations = [];
+      page.on("pageerror", error => errors.push("pageerror " + error.message));
+      page.on("console", message => {
+        if (message.type() === "error") errors.push("console " + message.text());
+      });
+      page.on("requestfailed", request => errors.push(
+        "request-failed " + request.url() + " " + request.failure()?.errorText));
+      page.on("response", response => {
+        if (response.url().includes("__alwis-guest") || response.url().includes("guest-"))
+          responses.push({url: response.url(), status: response.status(), headers: response.headers()});
+      });
+      page.on("framenavigated", frame => navigations.push(frame.url()));
       await page.goto(studioOrigin + "/");
       await page.evaluate(async ({ previewOrigin, studioOrigin, html }) => {
         const { IsolatedGuestPreviewController } = await import("/isolated-preview-controller.mjs");
@@ -123,7 +133,8 @@ try {
           null, { timeout: 20000 });
       } catch (error) {
         console.log(name, "e2e debug:", JSON.stringify({
-          frames: page.frames().map(f => f.url()), state: await page.evaluate(() => window.__guestE2E), errors }));
+          frames: page.frames().map(f => f.url()), state: await page.evaluate(() => window.__guestE2E),
+          errors, responses, navigations, server: logs.slice(-1000) }));
         throw error;
       }
       const before = await page.evaluate(() => window.__guestE2E);
