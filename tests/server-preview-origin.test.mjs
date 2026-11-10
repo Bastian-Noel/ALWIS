@@ -6,8 +6,9 @@ import { createServer, request as httpRequest } from "node:http";
 import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const root = resolve(new URL("..", import.meta.url).pathname);
+const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const randomPort = async () => {
   const server=createServer();
   await new Promise(resolve => server.listen(0,"127.0.0.1",resolve));

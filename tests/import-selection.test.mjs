@@ -106,7 +106,7 @@ test("a big ZIP and 1100 entries can be inspected with excluded contents unread"
   const dir = await mkdtemp(join(tmpdir(), "alwis-zip-"));
   try {
     const path = join(dir, "big.zip");
-    execFileSync("python3", [
+    execFileSync(process.platform === "win32" ? "python" : "python3", [
       "-c",
       `import zipfile,sys
 with zipfile.ZipFile(sys.argv[1],'w',zipfile.ZIP_STORED) as z:
