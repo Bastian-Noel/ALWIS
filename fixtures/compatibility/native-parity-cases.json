@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "steps": [
+    {"step": "environment", "case": "environment", "category": "PHP 8.4 et extensions"},
+    {"step": "get", "case": "get", "category": "HTTP GET / variables serveur"},
+    {"step": "post", "case": "post", "category": "HTTP POST / formulaire"},
+    {"step": "binary", "case": "binary", "category": "Corps HTTP binaire"},
+    {"step": "headers", "case": "headers", "category": "En-tetes HTTP / statut"},
+    {"step": "redirect", "case": "redirect", "category": "Redirection"},
+    {"step": "cookie-issued", "case": "cookie", "category": "Creation du cookie"},
+    {"step": "cookie-returned", "case": "cookie", "category": "Lecture du cookie"},
+    {"step": "session-new", "case": "session", "category": "Nouvelle session PHP"},
+    {"step": "session-resume", "case": "session", "category": "Persistance PHP"},
+    {"step": "session-other", "case": "session", "category": "Isolation PHP"},
+    {"step": "file-write", "case": "file-write", "category": "Fichier binaire"},
+    {"step": "file-read", "case": "file-read", "category": "Persistance fichier"},
+    {"step": "pdo", "case": "pdo", "category": "PDO prepare / transaction / rollback"},
+    {"step": "mysqli", "case": "mysqli", "category": "MySQLi prepare / transaction / rollback"},
+    {"step": "sql-cleanup", "case": "sql-cleanup", "category": "Nettoyage SQL"},
+    {"step": "error", "case": "error", "category": "Diagnostic exception PHP"}
+  ]
+}
