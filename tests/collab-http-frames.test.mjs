@@ -36,3 +36,22 @@ test("HTTP transports distinct guest identities without merging their frames", (
   assert.deepEqual([...ra.body], [1]);
   assert.deepEqual([...rb.body], [2]);
 });
+
+
+test("malformed final metadata releases transfer capacity immediately", () => {
+  const collector = new HttpFrameCollector({ maxPending: 1 });
+  const invalid = httpFrames("http-request", 1, {}, new Uint8Array([1]));
+  delete invalid[0].meta;
+  assert.throws(() => collector.accept("guest", invalid[0]), /metadata missing/);
+  assert.equal(collector.pending.size, 0);
+  const valid = httpFrames("http-request", 2, { method: "GET" }, new Uint8Array());
+  assert.equal(collector.accept("guest", valid[0]).meta.method, "GET");
+});
+
+test("malformed base64 releases transfer capacity immediately", () => {
+  const collector = new HttpFrameCollector({ maxPending: 1 });
+  const invalid = httpFrames("http-request", 1, { method: "POST" }, new Uint8Array([1]));
+  invalid[0].d = "%%%";
+  assert.throws(() => collector.accept("guest", invalid[0]), /Invalid HTTP frame encoding/);
+  assert.equal(collector.pending.size, 0);
+});

@@ -48,7 +48,13 @@ export class HttpFrameCollector {
     }
     if (entry.expected !== frame.parts) throw Error("Inconsistent HTTP transfer");
     if (entry.parts[frame.part]) throw Error("Duplicate HTTP frame");
-    const bytes = byteChunk(frame.d);
+    let bytes;
+    try { bytes = byteChunk(frame.d); }
+    catch (error) {
+      clearTimeout(entry.timer);
+      this.pending.delete(key);
+      throw Error("Invalid HTTP frame encoding", { cause: error });
+    }
     if (bytes.length > CHUNK || entry.bytes + bytes.length > HTTP_LIMITS.responseBytes) {
       clearTimeout(entry.timer);
       this.pending.delete(key);
@@ -59,9 +65,9 @@ export class HttpFrameCollector {
     entry.bytes += bytes.length;
     if (frame.part === 0) entry.meta = frame.meta;
     if (entry.received < entry.expected) return null;
-    if (!entry.meta || typeof entry.meta !== "object") throw Error("HTTP metadata missing");
     clearTimeout(entry.timer);
     this.pending.delete(key);
+    if (!entry.meta || typeof entry.meta !== "object") throw Error("HTTP metadata missing");
     const body = new Uint8Array(entry.bytes);
     let offset = 0;
     for (const chunk of entry.parts) { body.set(chunk, offset); offset += chunk.byteLength; }
