@@ -101,6 +101,10 @@ self.addEventListener("fetch", event => {
       } });
       const headers = new Headers(response.headers);
       headers.delete("Set-Cookie");
+      // The trusted studio is crossOriginIsolated for WASM pthreads.
+      // A cross-origin subframe must explicitly opt into compatible COEP
+      // or Chromium blocks the entire navigation with ERR_BLOCKED_BY_RESPONSE.
+      headers.set("Cross-Origin-Embedder-Policy", "require-corp");
       headers.set("Cross-Origin-Resource-Policy", "cross-origin");
       headers.set("Cache-Control", "no-store");
       if (headers.has("Location")) {
