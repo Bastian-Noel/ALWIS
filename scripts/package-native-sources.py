@@ -46,6 +46,8 @@ MORE_SOURCES = (
     "scripts/restore_independent_native_qa.py",
     "packages/php-native/src/curl-compat.php",
     "provenance/native-license-audit.md",
+    "provenance/additional-native-notices.json",
+    "provenance/toolchain-runtime-notices.json",
     "scripts/archive-legacy-native.py",
     "provenance/upstream-lock.json",
     "provenance/submodules-lock.json",
@@ -103,6 +105,23 @@ def source_files():
     return sorted(set(paths))
 
 
+def toolchain_runtime_sources():
+    """Ship the exact libc/C++/LLVM and JS runtime sources used by Emscripten."""
+    sdk = ROOT / 'build-work/emsdk/upstream/emscripten'
+    version = sdk / 'emscripten-version.txt'
+    if not version.is_file() or version.read_text().strip().strip('"') != '6.0.6':
+        raise ValueError('Pinned Emscripten 6.0.6 runtime sources are required')
+    files = [sdk / name for name in ('LICENSE', 'AUTHORS', 'emscripten-version.txt')]
+    for directory in ('system', 'src'):
+        folder = sdk / directory
+        if not folder.is_dir():
+            raise ValueError('Missing Emscripten runtime source tree: ' + directory)
+        files.extend(p for p in folder.rglob('*') if p.is_file())
+    if not all(p.is_file() for p in files):
+        raise ValueError('Missing Emscripten runtime license or authors')
+    return sdk, sorted(set(files))
+
+
 def build(out: Path, *, strict: bool):
     sources = []
     missing = []
@@ -146,11 +165,17 @@ def build(out: Path, *, strict: bool):
     fiber_receipt = php_fibers.prepare(ROOT / 'build-work/php-minimal', verify_only=True)
     generated = ROOT / runner['generatedSourceDirectory']
     files = source_files()
+    sdk, sdk_files = toolchain_runtime_sources()
     out.parent.mkdir(parents=True, exist_ok=True)
     receipt = {"schemaVersion": 2, "archives": [], "firstPartyFiles": [],
                "historicalJoomEngineForkIncluded": False, "independentPhpRunner": runner,
                "phpFiberAdapter": fiber_receipt}
     with tarfile.open(out, "w:gz") as bundle:
+        receipt['toolchainRuntime'] = {'version': '6.0.6', 'files': []}
+        for source in sdk_files:
+            name = 'emscripten-runtime/' + source.relative_to(sdk).as_posix()
+            bundle.add(source, arcname=name, recursive=False)
+            receipt['toolchainRuntime']['files'].append({'path': name, 'sha256': digest(source)})
         for row, source in sources:
             name = "upstream/" + Path(row["path"]).name
             bundle.add(source, arcname=name, recursive=False)

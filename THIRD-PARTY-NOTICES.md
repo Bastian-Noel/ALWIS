@@ -24,6 +24,10 @@ Original ALWIS software owned by Bastian Noël is offered under GPL-2.0-only, in
 
 The PHP configuration enables mbstring and fileinfo. Preserve the exact [libmbfl LGPL 2.1 text](LICENSES/PHP-libmbfl-LGPL-2.1.txt) and [libmagic attribution and BSD terms](LICENSES/PHP-libmagic.txt). MariaDB's bundled sources also carry [Google InnoDB terms](LICENSES/MariaDB-InnoDB-Google.txt), [Percona InnoDB terms](LICENSES/MariaDB-InnoDB-Percona.txt), and [zlib terms](LICENSES/MariaDB-zlib.txt). These copies are traced to their exact archive paths and hashes in `provenance/additional-native-notices.json`; the final linked-object inventory remains to be checked.
 
+### Emscripten system and JavaScript runtime
+
+The native build uses Emscripten 6.0.6. ALWIS elects its MIT option for covered Emscripten code and preserves `LICENSES/Emscripten-6.0.6.txt` and its AUTHORS file. The bundled musl attribution is in `LICENSES/Emscripten-musl-COPYRIGHT.txt`. LLVM libc++, libc++abi, compiler-rt, llvm-libc and libunwind retain their exact upstream texts (the `LICENSES/Emscripten-*.txt` files), including LLVM exceptions where applicable. These are not plain Apache-2.0 grants without exceptions. The corresponding-source bundle includes the installed version's complete `system/` and `src/` runtime trees and per-file hashes; the compiler itself remains pinned by the build recipe. Notice identities are recorded in `provenance/toolchain-runtime-notices.json`.
+
 ## Editor and browser assets
 
 - `typescript@5.9.3` and `@swc/wasm-web@1.16.21` are Apache-2.0. TypeScript is bundled into the JavaScript worker and SWC is shipped as a separate WASM file.
