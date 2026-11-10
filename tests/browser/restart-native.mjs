@@ -6,7 +6,7 @@ import {pathToFileURL} from 'node:url';
 import {createStudioServer} from '../../scripts/serve-studio.mjs';
 const root=resolve(new URL('../..',import.meta.url).pathname),output=resolve(root,'build-work/native-restart');await mkdir(output,{recursive:true});
 const playwright=await import(pathToFileURL(resolve(root,'build-work/php/node_modules/playwright/index.mjs')));
-const server=createStudioServer();await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin=`http://127.0.0.1:${server.address().port}`;
+const server=createStudioServer(process.env.ALWIS_PARITY_RUNTIME_DIST ? {engineDist:resolve(process.env.ALWIS_PARITY_RUNTIME_DIST)} : {});await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin=`http://127.0.0.1:${server.address().port}`;
 async function ownedBrowserPid(profile){
  const matches=[];
  for(const entry of await readdir('/proc'))if(/^\d+$/.test(entry))try{

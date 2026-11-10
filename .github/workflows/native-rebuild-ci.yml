@@ -12,6 +12,14 @@ on:
       - 'tests/browser/collab-native-php-peers.mjs'
       - 'apps/studio/collab/http-gateway.mjs'
       - 'scripts/attest-independent-parity.py'
+      - 'scripts/native_qa_artifact.py'
+      - 'packages/php-native/src/curl-compat.php'
+      - 'packages/network-native/src/http-stream.c'
+      - 'tests/browser/native-curl.mjs'
+      - 'tests/browser/load-native.mjs'
+      - 'tests/browser/restart-native.mjs'
+      - 'fixtures/compatibility/native-curl.php'
+      - 'scripts/restore_independent_native_qa.py'
   workflow_dispatch:
     inputs:
       mode:
@@ -52,6 +60,8 @@ jobs:
           python3 -m unittest discover -s tests -p test_independent_php_runner.py -v
           python3 -m unittest discover -s tests -p test_native_parity_attestation.py -v
           python3 -m unittest discover -s tests -p test_native_license_evidence.py -v
+          python3 -m unittest discover -s tests -p test_native_qa_restore.py -v
+          python3 -m unittest discover -s tests -p test_curl_compat.py -v
           python3 -m unittest discover -s tests -p test_native_concurrency.py -v
       - name: Fetch SHA-256 pinned upstream files and generate ALWIS-only sources
         run: |
@@ -142,12 +152,41 @@ jobs:
           ALWIS_PARITY_LABEL: independent-candidate
           ALWIS_PARITY_RUNTIME_DIST: build-work/bridge/.native-build/engine/wasm/runtime-dist
         run: node tests/browser/native-parity.mjs chromium,firefox
+      - name: Test Fetch/cURL binary POST, redirect, timeout, cancellation and self-site in both browsers
+        run: node tests/browser/native-curl.mjs chromium,firefox
       - name: Attest matching new WASM and the exact 17 cases in BOTH browsers
         run: python3 scripts/attest-independent-parity.py
       - name: Prove PHP/MariaDB shared database and private PHP sessions over two guest browsers
         env:
           ALWIS_PARITY_RUNTIME_DIST: build-work/bridge/.native-build/engine/wasm/runtime-dist
         run: node tests/browser/collab-native-php-peers.mjs chromium,firefox
+      - name: Short sustained load with two clients in both browsers
+        env:
+          ALWIS_PARITY_RUNTIME_DIST: build-work/bridge/.native-build/engine/wasm/runtime-dist
+        run: node tests/browser/load-native.mjs chromium,firefox
+      - name: Persistence after committed snapshot and forced browser interruption
+        env:
+          ALWIS_PARITY_RUNTIME_DIST: build-work/bridge/.native-build/engine/wasm/runtime-dist
+        run: node tests/browser/restart-native.mjs chromium,firefox
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: independent-native-stress-and-recovery-receipts
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            build-work/native-load/*.json
+            build-work/native-restart/*.json
+            build-work/curl-validation/*.json
+      - name: Stage independent WASM and its matching GPL sources for authenticated QA only
+        run: python3 scripts/native_qa_artifact.py --stage build-work/native-qa-bundle
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: independent-native-qa-with-sources
+          retention-days: 14
+          compression-level: 5
+          if-no-files-found: error
+          path: build-work/native-qa-bundle/
       - name: Report only test receipts; NEVER distribute the blocked WASM
         if: always()
         run: |

@@ -33,7 +33,7 @@ class NativeLicenseEvidenceTests(unittest.TestCase):
         self.assertIn("packages/php-native/src/runner.c", names)
         self.assertIn("packages/sql-native/src/pbl_mysql.c", names)
         self.assertFalse(any("joomengine" in name.lower() for name in names))
-        self.assertTrue(any(row["spdx"] is None for row in inputs))
+        self.assertTrue(all(row["spdx"] == "GPL-2.0-only" for row in inputs))
         self.assertTrue(all(row["sha256"] == audit.sha(ROOT / row["path"]) for row in inputs))
 
     def test_tampered_legacy_license_source_must_fail(self):

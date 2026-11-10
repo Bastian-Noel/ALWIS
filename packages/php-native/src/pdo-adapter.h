@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2026 Bastian Noel
+ * SPDX-License-Identifier: GPL-2.0-only
+ */
 #ifndef PBL_PDO_ADAPTER_H
 #define PBL_PDO_ADAPTER_H
 #include "pbl_mysql.h"

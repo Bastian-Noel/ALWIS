@@ -8,7 +8,7 @@ import {readBrowserProcessMemory} from '../../benchmarks/browser-process-memory.
 const root=resolve(new URL('../..',import.meta.url).pathname),output=resolve(root,'build-work/native-load');await mkdir(output,{recursive:true});
 const playwright=await import(pathToFileURL(resolve(root,'build-work/php/node_modules/playwright/index.mjs')));
 const fixture=await readFile(resolve(root,'fixtures/compatibility/load.php'));
-const server=createStudioServer();await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin=`http://127.0.0.1:${server.address().port}`;
+const server=createStudioServer(process.env.ALWIS_PARITY_RUNTIME_DIST ? {engineDist:resolve(process.env.ALWIS_PARITY_RUNTIME_DIST)} : {});await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin=`http://127.0.0.1:${server.address().port}`;
 try{
  for(const name of (process.argv[2]??'chromium,firefox').split(',')){
   const browser=await playwright[name].launch({headless:true,...(name==='chromium'?{args:['--no-sandbox']}:{})});

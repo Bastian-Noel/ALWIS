@@ -140,7 +140,7 @@ async function request(input) {
   module.phpWasm = {
     request: { method, uri: url.pathname + url.search, query: url.search.slice(1), contentType: headers.get('content-type') ?? '', cookie: headers.get('cookie') ?? '', body,
       env: { PATH: '/usr/bin:/bin', TMPDIR: '/tmp', TZ: 'UTC' }, server,
-      ini: 'max_execution_time=0\nmax_input_time=-1\nmemory_limit=256M\ndate.timezone=UTC\nlog_errors=1\ndisplay_errors=0\nsession.save_path="/workspace/.sessions"\nopen_basedir="/workspace:/tmp"\n' },
+      ini: 'max_execution_time=0\nmax_input_time=-1\nmemory_limit=256M\ndate.timezone=UTC\nlog_errors=1\ndisplay_errors=0\nsession.save_path="/workspace/.sessions"\nauto_prepend_file="/tmp/.alwis-curl-compat.php"\nopen_basedir="/workspace:/tmp"\n' },
     onStdout: data => append(stdout, data), onStderr: data => append(stderr, data),
     onHeaders: (code, values) => { status = code; responseHeaders = values; },
     hostCall: () => { throw Error('No JavaScript SQL host bridge is registered'); },
@@ -281,6 +281,15 @@ async function dispatch(message) {
 self.onmessage = event => {
   const message = event.data;
   if (!message || !Number.isSafeInteger(message.id)) return;
+  // An active EM_ASYNC_JS Fetch yields to the worker event loop. This fast
+  // control path avoids waiting behind the very PHP request being canceled.
+  // It cannot interrupt arbitrary synchronous PHP code or MariaDB queries.
+  if (message.operation === 'abortHttp') {
+    const abort = module?.phpWasm?.pendingFetchAbort;
+    if (typeof abort === 'function') abort();
+    self.postMessage({ id: message.id, ok: true, value: typeof abort === 'function' });
+    return;
+  }
   let admittedBytes;
   try { admittedBytes = bytes(message.data).byteLength + bytes(message.body).byteLength + bytes(message.sql).byteLength; }
   catch (error) { self.postMessage({ id: message.id, ok: false, error: error.message }); return; }

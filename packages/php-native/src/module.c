@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2026 Bastian Noel
+ * SPDX-License-Identifier: GPL-2.0-only
+ */
 #include <php.h>
 #include <emscripten.h>
 #include <malloc.h>

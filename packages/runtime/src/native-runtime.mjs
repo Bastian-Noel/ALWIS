@@ -52,6 +52,8 @@ export class NativeRuntime {
   rename(path, target) { return this.call('rename', { path, target }); }
   remove(path) { return this.call('remove', { path }); }
   request(options) { return this.call('request', options); }
+  /** Abort only an in-flight browser Fetch; it never aborts a SQL transaction. */
+  abortHttp() { return this.call('abortHttp', {}, 5000); }
   state() { return this.call('state'); }
   sql(sql, database) { return this.call('sql', { sql, database }); }
   sqlScript(statements,database) {return this.call('sqlScript',{statements,database});}

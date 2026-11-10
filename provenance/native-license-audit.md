@@ -39,3 +39,5 @@ Les 14 sources et en-têtes ALWIS recensés comme entrées directes ou incluses 
 6. Examiner séparément les obligations liées au binaire historique déjà publié : un nouveau runtime conforme ne régularise pas rétroactivement l'ancien.
 
 **Les cinq bloqueurs du statut de publication restent ouverts.** Les scénarios techniques 17/17 Chromium/Firefox et deux invités MariaDB/PHP ont réussi sur le nouveau moteur, mais ils ne valent pas autorisation de distribution.
+
+Updated 10 November 2026: all 14 recorded ALWIS-owned native C sources and headers now carry GPL-2.0-only SPDX declarations. The ten previously missing identifiers are documented as maintainer-asserted original code, with the Git authorship reviewed in provenance/native-authorship-attestation.md. This does not prove independent authorship or clear third-party exceptions.

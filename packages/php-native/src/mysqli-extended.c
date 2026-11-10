@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2026 Bastian Noel
+ * SPDX-License-Identifier: GPL-2.0-only
+ */
 /* Included after the shared native object helpers. No PHP emulation layer. */
 #define METHOD_PARSE(spec,...) (zend_parse_method_parameters(ZEND_NUM_ARGS(),getThis(),spec,__VA_ARGS__)==SUCCESS)
 #define CONNECTION_ARG() zval *object; if(!METHOD_PARSE("O",&object,connection_ce))RETURN_THROWS(); MYSQL *mysql=require_connection(object);if(!mysql)RETURN_THROWS()

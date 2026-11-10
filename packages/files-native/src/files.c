@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2026 Bastian Noel
+ * SPDX-License-Identifier: GPL-2.0-only
+ */
 /* Atomic project writes over the common POSIX filesystem used by PHP/MariaDB.
  * fsync here is NOT a promise of IndexedDB/OPFS durability; JS must sync the VFS.
  */

@@ -9,7 +9,7 @@
     },
     {
       "id": "native-sbom-and-source",
-      "summary": "Seven exact upstream archives (MariaDB, PHP official 8.4.27 release, php/php-src, Sean Morris php-wasm, Connector/C, wolfSSL, PCRE2) are SHA-256 verified and an independent corresponding-source bundle is produced in Actions 42844495555. The missing JoomEngine native wrapper is excluded. Full linker-to-component file-level SBOM and applicable licence exceptions for the final combined binary remain unaudited."
+      "summary": "Seven pinned source archives and independent WASM are verified. All 14 directly scanned ALWIS native C inputs now carry GPL-2.0-only SPDX, with author history and maintainer claim recorded. Exact linked third-party object/source/license correspondence remains unaudited for a release."
     },
     {
       "id": "editor-apache-boundary",
@@ -17,7 +17,7 @@
     },
     {
       "id": "source-reuse-review",
-      "summary": "An automated review verified the 11 pinned DrawDB/ChartDB/Outerbase/XYFlow files and detected no identical >=32-token sequences across selected local modules. Human review of adaptations, visual assets and other contributions is still required."
+      "summary": "For currently unidentified ALWIS code the maintainer claims original authorship; Git history and source study comparisons are recorded. A missing match is not proof of originality; third-party adaptations/assets and ownership still require a final attribution check."
     },
     {
       "id": "release-notice-verification",
