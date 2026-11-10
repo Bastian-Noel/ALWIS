@@ -7,6 +7,7 @@ import {
   HTTP_LIMITS, GuestSessionRegistry, normalizeGuestRequest, normalizeHostResponse,
 } from "./http-contract.mjs";
 import { httpFrames, HttpFrameCollector } from "./http-frames.mjs";
+import { HttpFrameFlow, frameNeedsAck } from "./http-flow.mjs";
 
 export class HostHttpGateway {
   constructor({ origin, sessions, route, send, canPreview = () => false, log = () => {} }) {
@@ -17,12 +18,18 @@ export class HostHttpGateway {
     this.log = log;
     this.registry = new GuestSessionRegistry(sessions);
     this.collector = new HttpFrameCollector({ maxPending: 24 });
+    this.flow = new HttpFrameFlow({ send: (to, frame) => this.send(to, frame) });
     this.active = new Map();
   }
   async receive(from, message) {
+    if (message?.t === "http-ack") { this.flow.acknowledge(from, message); return true; }
+    if (message?.t === "http-error") { this.flow.abort(from, "http-response", message.id); return true; }
     if (message?.t !== "http-request") return false;
     let request;
-    try { request = this.collector.accept(from, message); }
+    try {
+      request = this.collector.accept(from, message);
+      if (frameNeedsAck(message)) this.send(from, { t: "http-ack", kind: "http-request", id: message.id, part: message.part });
+    }
     catch (error) { this.send(from, { t: "http-error", id: message.id, error: String(error.message) }); return true; }
     if (!request) return true;
     const id = request.id, count = this.active.get(from) ?? 0;
@@ -43,8 +50,7 @@ export class HostHttpGateway {
         body = new Uint8Array(await result.file.arrayBuffer());
       }
       const response = normalizeHostResponse({ ...result, body, file: undefined });
-      for (const frame of httpFrames("http-response", id, { status: response.status, headers: response.headers }, response.body))
-        this.send(from, frame);
+      await this.flow.transfer(from, httpFrames("http-response", id, { status: response.status, headers: response.headers }, response.body));
     } catch (error) {
       this.log("warn", "guest_http", { message: String(error.message) });
       this.send(from, { t: "http-error", id, error: String(error.message) });
@@ -55,8 +61,8 @@ export class HostHttpGateway {
     }
     return true;
   }
-  async drop(from) { await this.registry.drop(from); }
-  async close() { this.collector.reset(); await this.registry.close(); this.active.clear(); }
+  async drop(from) { this.flow.drop(from); await this.registry.drop(from); }
+  async close() { this.flow.close(); this.collector.reset(); await this.registry.close(); this.active.clear(); }
 }
 
 export class GuestHttpGateway {
@@ -66,6 +72,7 @@ export class GuestHttpGateway {
     this.name = name;
     this.timeoutMs = timeoutMs;
     this.collector = new HttpFrameCollector({ timeoutMs, maxPending: 4 });
+    this.flow = new HttpFrameFlow({ send: (_peer, frame) => this.send(frame), timeoutMs });
     this.pending = new Map();
     this.nextId = 0;
   }
@@ -76,18 +83,19 @@ export class GuestHttpGateway {
     const meta = { url: normalized.url, method: normalized.method, headers: normalized.headers,
       destination: normalized.destination, name: this.name };
     return new Promise((resolve, reject) => {
-      const timer = setTimeout(() => { this.pending.delete(id); reject(Error("L'hôte n'a pas répondu à la requête HTTP.")); }, this.timeoutMs);
+      const timer = setTimeout(() => { this.pending.delete(id); this.flow.abort("host", "http-request", id); reject(Error("L'hôte n'a pas répondu à la requête HTTP.")); }, this.timeoutMs);
       timer.unref?.();
       this.pending.set(id, { resolve, reject, timer });
-      try {
-        for (const frame of httpFrames("http-request", id, meta, normalized.body)) this.send(frame);
-      } catch (error) {
+      this.flow.transfer("host", httpFrames("http-request", id, meta, normalized.body)).catch(error => {
+        if (!this.pending.has(id)) return;
         clearTimeout(timer); this.pending.delete(id); reject(error);
-      }
+      });
     });
   }
   receive(message) {
+    if (message?.t === "http-ack") { this.flow.acknowledge("host", message); return true; }
     if (message?.t === "http-error") {
+      this.flow.abort("host", "http-request", message.id);
       const pending = this.pending.get(message.id);
       if (pending) {
         clearTimeout(pending.timer); this.pending.delete(message.id);
@@ -97,8 +105,12 @@ export class GuestHttpGateway {
     }
     if (message?.t !== "http-response" || !this.pending.has(message.id)) return false;
     let response;
-    try { response = this.collector.accept("host", message); }
+    try {
+      response = this.collector.accept("host", message);
+      if (frameNeedsAck(message)) this.send({ t: "http-ack", kind: "http-response", id: message.id, part: message.part });
+    }
     catch (error) {
+      this.send({ t: "http-error", id: message.id, error: "Invalid HTTP response frame" });
       const pending = this.pending.get(message.id);
       clearTimeout(pending.timer); this.pending.delete(message.id); pending.reject(error);
       return true;
@@ -116,6 +128,7 @@ export class GuestHttpGateway {
       pending.reject(Error("L'aperçu distant a été déconnecté."));
     }
     this.pending.clear();
+    this.flow.close();
     this.collector.reset();
   }
 }
