@@ -79,6 +79,18 @@ async function exchange(browser, rtc, name) {
     const guestId = await guest.evaluate(() => realPeers.session.me.id);
     await host.waitForFunction(id => realPeers.session.links.has(id), guestId);
     assert.equal(await host.evaluate(() => realPeers.session.peers.length), 2);
+    // Link creation is not transport readiness. A PeerLink holds messages
+    // during WebRTC negotiation, so wait for the negotiation to settle on
+    // BOTH sides before the first frame. Preserve exact delivery assertions.
+    const ready = () => {
+      const link = [...realPeers.session.links.values()][0];
+      return !!link && !link.negotiating &&
+        (link.mode === "p2p" ? link.dc?.readyState === "open" : link.sig.state === "open");
+    };
+    await Promise.all([
+      host.waitForFunction(ready, null, { timeout: 12000 }),
+      guest.waitForFunction(ready, null, { timeout: 12000 }),
+    ]);
 
     const tag1 = "browser-peer-" + name + "-" + (rtc ? "rtc" : "relay");
     await guest.evaluate(tag => {
