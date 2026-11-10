@@ -5,7 +5,7 @@
  */
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
-import { createServer as nodeServer } from "node:http";
+import { createServer as nodeServer, request as nodeRequest } from "node:http";
 import { mkdtemp, mkdir, copyFile, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -36,8 +36,26 @@ const probe = nodeServer();
 await new Promise(resolve => probe.listen(0, "127.0.0.1", resolve));
 const port = probe.address().port;
 await new Promise(resolve => probe.close(resolve));
-const studioOrigin = "http://localhost:" + port;
-const previewOrigin = "http://127.0.0.1:" + port;
+// Two loopback ports model a real reverse proxy with two virtual hosts.
+ // The proxy keeps the preview request Host, so the real ALWIS server still
+ // selects its preview-only route and never exposes the admin/studio endpoints.
+const previewProxy = nodeServer((request, response) => {
+  const upstream = nodeRequest({
+    hostname: "127.0.0.1", port, method: request.method, path: request.url,
+    headers: { ...request.headers },
+  }, remote => {
+    response.writeHead(remote.statusCode, remote.headers);
+    remote.pipe(response);
+  });
+  upstream.on("error", error => {
+    response.writeHead(502).end("Preview proxy unavailable: " + error.message);
+  });
+  request.pipe(upstream);
+});
+await new Promise(resolve => previewProxy.listen(0, "127.0.0.1", resolve));
+const previewPort = previewProxy.address().port;
+const studioOrigin = "http://127.0.0.1:" + port;
+const previewOrigin = "http://127.0.0.1:" + previewPort;
 let logs = "";
 const server = spawn(process.execPath, ["--disable-warning=ExperimentalWarning", "server/server.mjs"], {
   cwd: root,
@@ -171,5 +189,6 @@ try {
       new Promise(resolve => setTimeout(resolve, 2500)),
     ]);
   }
+  await new Promise(resolve => previewProxy.close(resolve));
   await rm(siteRoot, { recursive: true, force: true });
 }
