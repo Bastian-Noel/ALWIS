@@ -47,6 +47,9 @@ runs:
     - name: Compare pinned historical PHP 8.4 / HTTP / PDO / MySQLi reference in both browsers
       shell: bash
       run: ALWIS_PARITY_LABEL=historical node tests/browser/native-parity.mjs chromium,firefox
+    - name: Validate native PHP and isolated SQL sessions over two real guests in both browsers
+      shell: bash
+      run: node tests/browser/collab-native-php-peers.mjs chromium,firefox
     - name: Validate the shipped static package in Chromium and Firefox
       shell: bash
       run: |

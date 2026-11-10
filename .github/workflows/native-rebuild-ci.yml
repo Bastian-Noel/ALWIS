@@ -47,6 +47,7 @@ jobs:
         run: |
           python3 -m unittest discover -s tests -p test_native_source_staging.py -v
           python3 -m unittest discover -s tests -p test_independent_php_runner.py -v
+          python3 -m unittest discover -s tests -p test_native_parity_attestation.py -v
           python3 -m unittest discover -s tests -p test_native_concurrency.py -v
       - name: Fetch SHA-256 pinned upstream files and generate ALWIS-only sources
         run: |
@@ -133,6 +134,12 @@ jobs:
           ALWIS_PARITY_LABEL: independent-candidate
           ALWIS_PARITY_RUNTIME_DIST: build-work/bridge/.native-build/engine/wasm/runtime-dist
         run: node tests/browser/native-parity.mjs chromium,firefox
+      - name: Attest matching new WASM and the exact 17 cases in BOTH browsers
+        run: python3 scripts/attest-independent-parity.py
+      - name: Prove PHP/MariaDB shared database and private PHP sessions over two guest browsers
+        env:
+          ALWIS_PARITY_RUNTIME_DIST: build-work/bridge/.native-build/engine/wasm/runtime-dist
+        run: node tests/browser/collab-native-php-peers.mjs chromium,firefox
       - name: Report only test receipts; NEVER distribute the blocked WASM
         if: always()
         run: |

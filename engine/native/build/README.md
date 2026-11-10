@@ -58,3 +58,10 @@ Le paquet de sources correspondantes doit désormais inclure également la **tar
 La CI GitHub Actions 42803222230 a construit à partir de sources verrouillées un WASM indépendant de 38 242 083 octets, SHA-256 dedfcc6935697157d6bccae3ab597050bbbb89b5f6be9f28b3a946f8c83ed3c3. Les sept archives correspondantes étaient présentes et la validation navigateur a démarré. Version PHP, extensions et GET fonctionnaient dans Chromium. Le premier POST échouait car PHP 8.4 ne lit pas ses données lorsque SG(server_context) est nul. Le nouveau runner initialise ce contexte avant php_request_startup(), puis le libère après php_request_shutdown(). Le correctif a été validé en tests de source et intégré à la reconstruction 42844495555, dont les résultats doivent être consultés séparément.
 
 Le binaire historique disponible sur le serveur ARM64 est un témoin de test et non une compilation indépendante. Aucun nouveau WASM n'est publié. La présence d'une archive de sources correspondantes ou de tests réussis ne change pas le statut légal bloqué.
+
+
+### Validation de parité indépendante passée
+
+La CI GitHub Actions 42844495555 a terminé **avec succès** la compilation, l'archive de sources, puis les 17 scénarios natifs **dans Chromium et Firefox**. Nouveau WASM SHA-256 : 39f4b5d6cf785adafd5f994d11b88b491b7dcc21dbfedbefe896b871f5f4f6b6 ; longueur : 38 242 096 octets ; sources correspondantes : 254 740 830 octets. Les scénarios incluent PHP 8.4, GET, POST, POST binaire, statuts et redirections, cookies, sessions PHP, fichiers, PDO, MySQLi, nettoyage des connexions et erreur PHP.
+
+Les reçus 42844495555 existaient déjà mais le build JSON conservait browserValidated=false, car le marquage précédait l'exécution des navigateurs. Le nouveau script de vérification scripts/attest-independent-parity.py n'actualise ce champ qu'en confrontant les empreintes exactes du WASM et de sa glue JS aux **deux** reçus, les 17 cas dans le bon ordre et l'absence de connexions natives résiduelles. Il laisse releaseApproved=false. Cette étape a été ajoutée à la CI de reconstruction ; elle ne publie aucun binaire.

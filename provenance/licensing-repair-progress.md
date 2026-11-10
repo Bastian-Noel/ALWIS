@@ -69,3 +69,10 @@ Ce document ne prétend pas qu'une consultation juridique soit une étape techni
 - Collaboration : Actions 42845820969 exécute sur le vrai serveur ALWIS deux navigateurs Chromium et Firefox avec vrais WebRTC P2P et relais WebSocket, échanges dans les deux sens, reconnexion d'un invité et kick terminal. Cela ne valide pas encore PHP, SQL ou l'isolation des sessions sur le transport multi-pairs.
 
 Le statut de redistribution reste bloqué, sans déploiement FTP/GHCR.
+
+
+## Parité du moteur indépendant prouvée
+
+Actions 42844495555 (10 novembre 2026) : reconstruction SHA-256 39f4b5d6cf785adafd5f994d11b88b491b7dcc21dbfedbefe896b871f5f4f6b6, 38 242 096 octets. **17 tests de parité réussis dans Chromium, 17 dans Firefox** avec la même empreinte native et JS. Source correspondante vérifiée (254 740 830 octets) ; ce code ne contient plus le runner historique manquant. Le correctif de contexte POST est confirmé en navigateur. La chaîne utilise désormais une attestation fail-closed qui exige la concordance des deux reçus avant de marquer la seule validation technique, jamais l'accord juridique.
+
+Les cinq bloqueurs de publication restent présents. Les tests multiutilisateurs WebRTC/relais ont réussi indépendamment, mais la chaîne complète **PHP natif -> hôte -> transport P2P -> deux invités** ainsi que l'audit par fichiers de licence doivent encore être démontrés.
