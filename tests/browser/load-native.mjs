@@ -13,7 +13,7 @@ try{
  for(const name of (process.argv[2]??'chromium,firefox').split(',')){
   const browser=await playwright[name].launch({headless:true,...(name==='chromium'?{args:['--no-sandbox']}:{})});
   try{
-   const studio=await browser.newPage();studio.setDefaultTimeout(60000);
+   const context=await browser.newContext();const studio=await context.newPage();studio.setDefaultTimeout(60000);
    const project='load-'+crypto.randomUUID();
    await studio.goto(origin+'/?project='+project);
    await studio.waitForFunction(async name=>{
@@ -62,8 +62,30 @@ try{
     throw Error('Load test fixture import did not produce both files: '+
       JSON.stringify(diagnosis),{cause:error});
    }
-   async function client(){const pending=studio.waitForEvent('popup');await studio.evaluate(async()=>{const {A}=await import('/apps/studio/workbench/state.mjs');await A.openWindowNew('/client.html');});const page=await pending;await page.waitForSelector('#load-client');return page;}
-   const clients=[await client(),await client()];const stages=[];
+   // The load scenario tests two distinct real HTTP sessions, not popup
+   // timing. window.open() inside page.evaluate() depends on browser
+   // user-activation rules and can race studio navigation/initialization.
+   // Create sessions from the live host and navigate two pages in the SAME
+   // browser context (the installed Service Worker belongs to that context).
+   await studio.waitForFunction(async()=>{
+    const {S,ctx}=await import('/apps/studio/workbench/state.mjs');
+    return S.mode==='work' && ctx.engine?.sessions?.list()?.length>0 &&
+      !!navigator.serviceWorker?.controller;
+   },null,{timeout:30000});
+   const routes=await studio.evaluate(async()=>{
+    const {eng}=await import('/apps/studio/workbench/state.mjs');
+    const sessions=eng().sessions;
+    const ids=[await sessions.create('Charge A'),await sessions.create('Charge B')];
+    if(ids.length!==2||ids[0]===ids[1])throw Error('Two unique HTTP sessions required');
+    return ids.map(id=>sessions.routeURL(id,'/client.html'));
+   });
+   async function client(route){
+    const page=await context.newPage();
+    await page.goto(origin+route);
+    await page.waitForSelector('#load-client',{timeout:30000});
+    return page;
+   }
+   const clients=[await client(routes[0]),await client(routes[1])];const stages=[];
    for(const rate of [5,10]){
     const memoryBefore=await readBrowserProcessMemory();
     const results=await Promise.all(clients.map(page=>page.evaluate(async rate=>{
