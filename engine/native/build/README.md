@@ -2,7 +2,7 @@
 
 **Moteur actif dans la recette de compilation :** `packages/php-native/src/runner.c`, écrit pour ALWIS. La cible `pbl-runtime` compile ce runner et `request-state.c` dans **un même WASM** avec PHP 8.4.27, le moteur MariaDB et les couches PDO/MySQLi natives.
 
-**État : source préparée, pas encore compilée en WASM ni validée dans un navigateur.** Ce n'est pas le moteur de production et aucun script ici n'autorise sa publication.
+**État vérifié le 10 novembre 2026 : source native compilée en WASM dans la CI Linux x86-64. La parité Chromium et Firefox reste incomplète.** Ce n'est pas le moteur de production et aucun script ici n'autorise sa publication.
 
 ## Compilation du candidat
 
@@ -39,15 +39,22 @@ Le paquet des sources correspondantes est préparé par `scripts/package-native-
 
 ## Reconstruction indépendante sur GitHub Actions (Linux x86-64)
 
-Le script \`scripts/prepare-independent-native-inputs.py\` récupère uniquement les sept archives verrouillées et contrôle chaque SHA-256 **avant** extraction. Il reconstruit dans \`build-work/native-ci\` les sources PHP 8.4.27, Zend Fibers, MariaDB non patché et les unités PDO/MySQLi générées. L'archive JoomEngine manquante et son runner historique sont volontairement exclus.
+Le script `scripts/prepare-independent-native-inputs.py` récupère uniquement les sept archives verrouillées et contrôle chaque SHA-256 **avant** extraction. Il reconstruit dans `build-work/native-ci` les sources PHP 8.4.27, Zend Fibers, MariaDB non patché et les unités PDO/MySQLi générées. L'archive JoomEngine manquante et son runner historique sont volontairement exclus.
 
-La [CI de reconstruction](../../../.github/workflows/native-rebuild-ci.yml) se lance manuellement dans GitHub Actions avec le choix \`sources\` (vérification et reçus uniquement) ou \`compile\` (Emscripten 6.0.6 sur Linux x86-64 et tentative de lien du nouveau WASM). Le chemin de compilation est \`scripts/build-independent-native-ci.sh\`; il produit le candidat uniquement dans le workspace éphémère d'Actions et ne téléverse **jamais le WASM**. Les fichiers envoyés en artefacts Actions ne sont que des reçus de contrôle (et les logs restent consultables dans la CI).
+La [CI de reconstruction](../../../.github/workflows/native-rebuild-ci.yml) se lance manuellement dans GitHub Actions avec le choix `sources` (vérification et reçus uniquement) ou `compile` (Emscripten 6.0.6 sur Linux x86-64 et tentative de lien du nouveau WASM). Le chemin de compilation est `scripts/build-independent-native-ci.sh`; il produit le candidat uniquement dans le workspace éphémère d'Actions et ne téléverse **jamais le WASM**. Les fichiers envoyés en artefacts Actions ne sont que des reçus de contrôle (et les logs restent consultables dans la CI).
 
-\`compile\` ne signifie pas que la reconstruction a réussi : seuls une compilation complète avec nouveau SHA-256, les deux tests Chromium/Firefox et la suite de parité constituent une validation technique. Même une compilation réussie **ne lève aucun verrou de licences** et ne permet pas FTP/GHCR. L'archive de sources correspondantes reste une obligation distincte de la reconstruction.
+`compile` ne signifie pas que la reconstruction a réussi : seuls une compilation complète avec nouveau SHA-256, les deux tests Chromium/Firefox et la suite de parité constituent une validation technique. Même une compilation réussie **ne lève aucun verrou de licences** et ne permet pas FTP/GHCR. L'archive de sources correspondantes reste une obligation distincte de la reconstruction.
 
 
 ### Dernier échec réellement observé, 10 novembre 2026
 
-[Rebuild Linux x86-64 GitHub Actions](https://github.com/Bastian-Noel/ALWIS/actions/runs/42798390821) : le C/C++ du serveur MariaDB et l'archive PHP pthread se sont compilés ; le premier lien \`pbl-runtime\` a échoué sur \`getdtablesize\`, non exporté par la libc Emscripten 6.0.6. Le module ALWIS \`packages/php-native/src/portability.c\` fournit désormais un substitut faible borné par \`sysconf(_SC_OPEN_MAX)\`, avec test C natif ; **le nouveau lien et les tests navigateur n'ont pas encore été validés**. Aucun contournement \`--allow-undefined\` n'est utilisé.
+[Rebuild Linux x86-64 GitHub Actions](https://github.com/Bastian-Noel/ALWIS/actions/runs/42798390821) : le C/C++ du serveur MariaDB et l'archive PHP pthread se sont compilés ; le premier lien `pbl-runtime` a échoué sur `getdtablesize`, non exporté par la libc Emscripten 6.0.6. Le module ALWIS `packages/php-native/src/portability.c` fournit désormais un substitut faible borné par `sysconf(_SC_OPEN_MAX)`, avec test C natif ; **le lien natif indépendant a depuis été validé, mais pas les 17 tests de parité dans les deux navigateurs**. Aucun contournement `--allow-undefined` n'est utilisé.
 
 Le paquet de sources correspondantes doit désormais inclure également la **tarball officielle PHP 8.4.27 réellement compilée** et l'archive **PCRE2 10.47 réellement liée** ; les cinq autres snapshots vérifiés ne suffisaient pas. La provenance correspondante est verrouillée dans les scripts de vérification et la carte des licences.
+
+
+### Nouvelles preuves de reconstruction (10 novembre 2026)
+
+La CI GitHub Actions 42803222230 a construit à partir de sources verrouillées un WASM indépendant de 38 242 083 octets, SHA-256 dedfcc6935697157d6bccae3ab597050bbbb89b5f6be9f28b3a946f8c83ed3c3. Les sept archives correspondantes étaient présentes et la validation navigateur a démarré. Version PHP, extensions et GET fonctionnaient dans Chromium. Le premier POST échouait car PHP 8.4 ne lit pas ses données lorsque SG(server_context) est nul. Le nouveau runner initialise ce contexte avant php_request_startup(), puis le libère après php_request_shutdown(). Le correctif a été validé en tests de source et intégré à la reconstruction 42844495555, dont les résultats doivent être consultés séparément.
+
+Le binaire historique disponible sur le serveur ARM64 est un témoin de test et non une compilation indépendante. Aucun nouveau WASM n'est publié. La présence d'une archive de sources correspondantes ou de tests réussis ne change pas le statut légal bloqué.

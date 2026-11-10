@@ -67,6 +67,12 @@ isolée pour la page invitée. Tant que ces vérifications ne passent pas, le
 raccordement expérimental reste optionnel et la production ne doit pas adopter
 ce parcours comme aperçu principal.
 
+## Validation transport multi-navigateur
+
+La CI 42845820969 a fait fonctionner le vrai serveur ALWIS et deux contextes navigateur séparés : sous Chromium et Firefox, le canal WebRTC P2P a été établi, les messages circulent dans les deux sens, puis le relais WebSocket, la reprise de place après coupure et l'exclusion définitive par le propriétaire ont été testés. Il ne s'agit plus uniquement de tests unitaires.
+
+Le broker d'origine dédiée, son Service Worker, les POST binaires et les redirections ont également été validés sur le vrai serveur, mais **avec des réponses PHP simulées**. La validation de PHP, PDO/MySQLi, des vrais cookies HttpOnly et de deux sessions invitées distinctes reste ouverte. Le transport validé ne prouve pas la chaîne PHP de bout en bout.
+
 ## Origine séparée intégrée (lot expérimental suivant)
 
 - Le serveur expose `ALWIS_PREVIEW_ORIGIN` et renvoie `previewOrigin` dans sa configuration de salle. L'origine d'aperçu ne sert que les quatre ressources autorisées du broker ; aucun endpoint du studio ni d'administration n'y est servi.
