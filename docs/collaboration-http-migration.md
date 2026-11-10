@@ -35,8 +35,34 @@ sequenceDiagram
 7. **Si l'hôte disparaît :** réponse 503 visible, pas de faux contenu ou de données figées sans indication.
 8. **Isolation non garantie contre un invité malveillant** : toute exécution de code dans le même domaine doit être revue avec une véritable stratégie de sandbox/origine et d'autorisations avant activation générale.
 
-## État de livraison
+## État de livraison au 10 novembre 2026
 
-- **Terminé :** contrat first-party `apps/studio/collab/http-contract.mjs`, protocole binaire en frames `http-frames.mjs`, passerelle hôte/invité `http-gateway.mjs` (mock validé avec deux sessions distinctes), réutilisation du point d'entrée `sessions.route` de `ProjectHub`. L'autorisation reste désactivée par défaut, sans connexion au Service Worker invité.
-- **À faire :** liaison au Service Worker invité et au transport de salle, contrôle d'opt-in de l'hôte, cookies synchronisés sans fuite entre origines, backpressure et contrôle de débit, nettoyage garanti à la déconnexion, tests navigateur bout à bout et mesure des performances.
-- **En attendant :** l'aperçu existant reste un miroir DOM ; aucun mode HTTP distant n'est prétendu actif.
+Le **circuit HTTP invité est raccordé en mode optionnel**, mais la parité
+navigateur d'un site PHP interactif complet n'est pas encore démontrée. Ne pas
+confondre tests unitaires de transport et validation réelle sur deux invités.
+
+| Sous-système | État vérifiable | Limite avant généralisation |
+|---|---|---|
+| Contrats et trames binaires | `http-contract.mjs`, `http-frames.mjs`, budget 8 Mio par corps | Débit, mémoire et annulations sur liaison dégradée à mesurer |
+| Contrôle de débit | `http-flow.mjs` : huit trames (~48 Kio) en attente d'ACK maximum | Tester relais/WebRTC sous latence et déconnexion réelles |
+| PHP et SQL chez l'hôte | `HostHttpGateway` route via `ProjectHub`, sessions distinctes par identité invitée | Vérifier la persistance/transaction et les fichiers sur deux vrais navigateurs |
+| Service Worker invité | `service-worker.mjs` intercepte `/__pbl-guest/<canal>/…`, passe par `GuestPreviewController` et `GuestHttpGateway` | Tester navigation, POST, redirections, ressources et `fetch()` en navigateur |
+| Cookies invités | Cookie virtuel géré par l'hôte ; `Set-Cookie` retiré du transport brut | Vérifier HttpOnly, SameSite et absence de fuite à travers les origines |
+| Autorisation | `setPreviewAllowed` distinct de l'édition ; désactivé par défaut | Tester retrait de permission pendant une requête active |
+| Sécurité du rendu | `preview-security.mjs` interdit l'association `allow-scripts` + `allow-same-origin` | L'origine opaque peut perturber service workers, fetch et stockage ; tester avant activation générale |
+| Repli actuel | Miroir DOM conservé lorsque l'aperçu HTTP n'est pas autorisé | Supprimer du parcours normal uniquement après parité multiutilisateur |
+
+### Acceptation du véritable aperçu multiutilisateur
+
+La migration ne sera considérée complète que si deux invités peuvent :
+
+1. ouvrir `/index.php` indépendamment et obtenir le HTML exécuté chez l'hôte ;
+2. utiliser le JavaScript du site, les ressources et `fetch()` depuis **leur propre navigateur** ;
+3. envoyer des POST binaires et des formulaires sans duplication, avec erreurs 503 si l'hôte disparaît ;
+4. conserver des sessions PHP/cookies distincts tout en partageant les mêmes fichiers et données MariaDB ;
+5. recevoir la révocation de la permission d'aperçu sans possibilité de contourner l'hôte.
+
+Ces scénarios nécessitent Chromium **et** Firefox avec une origine réellement
+isolée pour la page invitée. Tant que ces vérifications ne passent pas, le
+raccordement expérimental reste optionnel et la production ne doit pas adopter
+ce parcours comme aperçu principal.
