@@ -48,6 +48,13 @@ export class ClientSessions {
     if (this.sessions.size >= this.maxSessions) throw Error('Session limit reached');
     const id = crypto.randomUUID(); this.sessions.set(id, { id, label: label ?? `Client ${this.sessions.size + 1}`, jar: new CookieJar() }); return id;
   }
+  createMany(labels) {
+    if (!Array.isArray(labels) || labels.length < 1 || labels.length > 16 ||
+        labels.some(label => typeof label !== 'string' || !label.trim() || label.length > 80))
+      throw Error('Invalid session list');
+    if (this.sessions.size + labels.length > this.maxSessions) throw Error('Session limit reached');
+    return labels.map(label => this.create(label.trim()));
+  }
   get(id) { const value = this.sessions.get(id); if (!value) throw Error('Unknown client session'); return value; }
   export() { return [...this.sessions.values()].map(({ id, label, jar }) => ({ id, label, cookies: jar.entries })); }
 }

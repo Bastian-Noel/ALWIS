@@ -363,6 +363,7 @@ export function createStudioServices() {
         await measure();
       },
       async close(options) {
+        if (opening) throw Error("Attendez la fin de l’ouverture du projet avant de le fermer.");
         if (!hub) return;
         closing = true;
         try {
@@ -756,7 +757,22 @@ export function createStudioServices() {
               hidden: s.jar.entries.filter((c) => c.httpOnly).length,
             }))
           : [],
-      create: (label) => hub.createSession(label),
+      create: (label) => {
+        if (!hub || closing || opening) throw Error("Projet indisponible pour créer une session.");
+        const current = hub;
+        return current.createSession(label).then((id) => {
+          if (hub !== current) throw Error("Le projet a été fermé pendant la création de la session.");
+          return id;
+        });
+      },
+      createMany: (labels) => {
+        if (!hub || closing || opening) throw Error("Projet indisponible pour créer les sessions.");
+        const current = hub;
+        return current.createSessions(labels).then((ids) => {
+          if (hub !== current) throw Error("Le projet a été fermé pendant la création des sessions.");
+          return ids;
+        });
+      },
       /** Host-only virtual document.cookie mutations for permitted remote previews. */
       cookie: (session, value, url) => {
         if (!hub || closing) throw Error("Projet fermé");

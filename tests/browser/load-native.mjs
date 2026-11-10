@@ -73,11 +73,19 @@ try{
       !!navigator.serviceWorker?.controller;
    },null,{timeout:30000});
    const routes=await studio.evaluate(async()=>{
-    const {eng}=await import('/apps/studio/workbench/state.mjs');
+    const {S,eng}=await import('/apps/studio/workbench/state.mjs');
     const sessions=eng().sessions;
-    const ids=[await sessions.create('Charge A'),await sessions.create('Charge B')];
-    if(ids.length!==2||ids[0]===ids[1])throw Error('Two unique HTTP sessions required');
-    return ids.map(id=>sessions.routeURL(id,'/client.html'));
+    try {
+     if(S.mode!=='work'||!S.project||!eng().env().persistent||sessions.list().length===0)
+      throw Error('Studio state changed before load sessions were created');
+     const ids=await sessions.createMany(['Charge A','Charge B']);
+     if(ids.length!==2||ids[0]===ids[1])throw Error('Two unique HTTP sessions required');
+     return ids.map(id=>sessions.routeURL(id,'/client.html'));
+    } catch(error) {
+     throw Error(JSON.stringify({message:error?.message,mode:S.mode,project:S.project,
+      persistent:eng().env().persistent,sessionCount:sessions.list().length,
+      logs:S.logs.slice(-6).map(({l,msg})=>({l,msg}))}),{cause:error});
+    }
    });
    async function client(route){
     const page=await context.newPage();

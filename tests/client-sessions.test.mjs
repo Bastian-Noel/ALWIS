@@ -23,6 +23,16 @@ test('N identities serialize and restore without merging their cookie jars', () 
   assert.equal(restored.get(c).jar.header('https://school.example/'), '');
 });
 
+test('groups session creation synchronously and rejects a partial batch', () => {
+  const sessions = new ClientSessions([], { maxSessions: 3 });
+  const ids = sessions.createMany(['Charge A', 'Charge B']);
+  assert.equal(ids.length, 2);
+  assert.notEqual(ids[0], ids[1]);
+  assert.deepEqual(ids.map(id => sessions.get(id).label), ['Charge A', 'Charge B']);
+  assert.throws(() => sessions.createMany(['Charge C', 'Charge D']), /Session limit reached/);
+  assert.equal(sessions.sessions.size, 2);
+});
+
 test('Default cookie path includes its directory without requiring a trailing slash',()=>{
  const jar=new CookieJar();jar.set('view=one','https://school.example/app/index.php');
  assert.equal(jar.header('https://school.example/app'),'view=one');
