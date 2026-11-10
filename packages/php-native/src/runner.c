@@ -267,11 +267,50 @@ EMSCRIPTEN_KEEPALIVE int php_wasm_run(const char *script, int unused1, int unuse
     SG(server_context) = &request_state;
     uint64_t owner = pbl_mysql_owner_begin();
     if (php_request_startup() == SUCCESS) {
+        /*
+         * PHP 8.4's php_execute_script() does NOT clear EG(exit_status).
+         * An uncaught exception or an explicit exit(42) can leave that status
+         * set for the next PHP request in the same long-lived WASM module.
+         * php_execute_simple_script() clears it before dispatch, but we use
+         * the HTTP SAPI entrypoint; reset it after request startup, BEFORE
+         * userland code. Never erase it after an exception.
+         */
+        EG(exit_status) = 0;
         zend_file_handle file;
         zend_stream_init_filename(&file, script);
-        last_exit_code = php_execute_script(&file) ? 0 : 255;
+        volatile bool script_ok = false;
+        bool escaped_php_bailout = false;
+        zend_try {
+            script_ok = php_execute_script(&file);
+        } zend_catch {
+            /* Escaped PHP bailout: do not reuse potentially corrupted Zend
+             * state, but still run the request/SQL cleanup below. Ordinary
+             * uncaught PHP exceptions are caught inside php_execute_script.
+             */
+            escaped_php_bailout = true;
+        } zend_end_try();
+        last_exit_code = EG(exit_status) ? EG(exit_status) : (script_ok ? 0 : 255);
+        /* An uncaught exception that has not already sent HTTP headers must
+         * result in an HTTP error, not a misleading 200 from shutdown flush.
+         * Explicit exit(42) is not by itself an HTTP status code.
+         */
+        if (!script_ok && !headers_emitted &&
+            SG(sapi_headers).http_response_code < 400) {
+            SG(sapi_headers).http_response_code = 500;
+        }
+        zend_try {
+            php_request_shutdown(NULL); /* flush output and close session */
+        } zend_catch {
+            /* A bailout during request shutdown is not a recoverable PHP
+             * exception. Do not trust this WASM instance for a new request.
+             */
+            escaped_php_bailout = true;
+        } zend_end_try();
         if (EG(exit_status)) last_exit_code = EG(exit_status);
-        php_request_shutdown(NULL); /* flushes output and closes PHP session */
+        if (escaped_php_bailout) {
+            last_exit_code = 255;
+            php_failed = 1;
+        }
     } else {
         /* Partially initialized PHP cannot safely serve another request. */
         php_failed = 1;
@@ -296,6 +335,11 @@ finish:
     pbl_request_end(&request_state);
     return last_exit_code;
 }
+/* Fatal engine bailouts and partial startup/shutdown are never recoverable
+ * by issuing another request. The host must discard this WASM instance.
+ * A normal uncaught PHP exception is *not* a poisoned engine.
+ */
+EMSCRIPTEN_KEEPALIVE int php_wasm_reusable(void) { return php_ready && !php_failed; }
 EMSCRIPTEN_KEEPALIVE int php_wasm_exit_code(void) { return last_exit_code; }
 EMSCRIPTEN_KEEPALIVE int php_wasm_abi_version(void) { return 1; }
 EMSCRIPTEN_KEEPALIVE const char *php_wasm_version(void) { return PHP_VERSION; }
