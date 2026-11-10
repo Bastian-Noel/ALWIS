@@ -42,7 +42,7 @@
   if (factory.databases) { const databases = factory.databases.bind(factory); factory.databases = async () => (await databases()).filter(item => item.name.startsWith(dbPrefix)).map(item => ({ ...item, name: item.name.slice(dbPrefix.length) })); }
   const route = value => {
     const url = new URL(value, location.href);
-    if (url.origin === location.origin && !url.pathname.startsWith('/__pbl/') && !url.pathname.startsWith('/_pbl/') && !url.pathname.startsWith('/_alwis/')) url.pathname = context.prefix + url.pathname.replace(/^\//, '');
+    if (url.origin === location.origin && !url.pathname.startsWith('/__pbl/') && !url.pathname.startsWith('/__alwis-guest/') && !url.pathname.startsWith('/_pbl/') && !url.pathname.startsWith('/_alwis/')) url.pathname = context.prefix + url.pathname.replace(/^\//, '');
     return url.href;
   };
   const logical = () => { const url = new URL(location.href); if (url.pathname.startsWith(context.prefix)) url.pathname = '/' + url.pathname.slice(context.prefix.length); return url; };

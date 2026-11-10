@@ -18,11 +18,13 @@ const guest = createServer(async(req,res) => {
   if(p === "/guest-broker.html") {
     res.setHeader("Content-Type","text/html; charset=utf-8");
     res.end('<!doctype html><meta charset="utf-8"><script type="module" src="/guest-broker.mjs"></script>');
-  } else if (p === "/guest-sw.js" || p === "/guest-broker.mjs") {
+  } else if (p === "/guest-sw.js" || p === "/guest-broker.mjs" || p === "/_pbl/client.js") {
     res.setHeader("Content-Type","text/javascript; charset=utf-8");
     res.setHeader("Service-Worker-Allowed","/");
     const file = p === "/guest-sw.js" ? "isolated-preview-sw.mjs" : "isolated-preview-broker.mjs";
-    res.end(await readFile(resolve(root,"apps/studio/collab",file)));
+    res.end(await readFile(p === "/_pbl/client.js"
+      ? resolve(root, "apps/studio/client-bootstrap.js")
+      : resolve(root,"apps/studio/collab",file)));
   } else { res.writeHead(404); res.end("GUEST STATIC SERVER HAS NO PHP"); }
 });
 await Promise.all([studio,guest].map(server=>new Promise(resolve=>server.listen(0,"127.0.0.1",resolve))));

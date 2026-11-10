@@ -14,7 +14,7 @@ import { showLoading } from "./presence-ui.mjs";
 import { watchPreview, createMirror } from "./preview.mjs";
 import { guestPreviewSandbox } from "./preview-security.mjs";
 import { HostHttpGateway, GuestHttpGateway } from "./http-gateway.mjs";
-import { GuestPreviewController } from "./guest-preview-controller.mjs";
+import { IsolatedGuestPreviewController } from "./isolated-preview-controller.mjs";
 import { updatePreviewStatus } from "../workbench/views/code.mjs";
 
 const SQL = "#sql";
@@ -178,7 +178,9 @@ export function installWiring(collab) {
       role: "host",
       focus,
       setPreviewAllowed(enabled) {
-        collab.previewEnabled = !!enabled;
+        collab.previewEnabled = !!enabled && !!collab.config?.previewOrigin;
+        if (enabled && !collab.config?.previewOrigin)
+          collab.ui?.announce("Aperçu PHP interactif désactivé : une origine dédiée HTTPS doit être configurée.");
         session.broadcast({ t: "http-preview-permission", enabled: collab.previewEnabled });
         if (!enabled) pvWatch.resend();
         collab.ui?.refresh();
@@ -209,20 +211,30 @@ export function installWiring(collab) {
     const rpc = new RpcGuest({ send, onBusy: (n) => document.documentElement.toggleAttribute("data-collab-busy", n > 0) });
     const http = new GuestHttpGateway({ origin: location.origin, name: session.me.name,
       timeoutMs: 30_000, send });
-    const preview = new GuestPreviewController({
-      request: request => http.request(request), cookie: (value, url) => http.cookie(value, url),
-      online: () => session.status === "live" && session.hostState === "online",
-    });
+    const preview = collab.config?.previewOrigin
+      ? new IsolatedGuestPreviewController({
+          origin: collab.config.previewOrigin,
+          request: request => http.request(request),
+          cookie: (value, url) => http.cookie(value, url),
+          online: () => session.status === "live" && session.hostState === "online",
+        }) : null;
     let interactivePreview = false;
     const setInteractivePreview = async enabled => {
       if (!!enabled === interactivePreview) return;
       if (enabled) {
-        try { await preview.start(); interactivePreview = true; }
+        try {
+          if (!preview) throw Error("Aucune origine d'aperçu isolée n'est configurée.");
+          await preview.start(); interactivePreview = true;
+        }
         catch (error) { log("w", `Aperçu HTTP invité indisponible : ${error.message}`); return; }
-      } else { interactivePreview = false; preview.stop(); }
+      } else { interactivePreview = false; preview?.stop(); }
       document.documentElement.toggleAttribute("data-guest-http-preview", interactivePreview);
+      if (interactivePreview) document.documentElement.dataset.guestPreviewOrigin = preview.origin;
+      else document.documentElement.removeAttribute("data-guest-preview-origin");
       for (const frame of document.querySelectorAll("#pvFrames iframe"))
-        frame.setAttribute("sandbox", guestPreviewSandbox(interactivePreview));
+        frame.setAttribute("sandbox", guestPreviewSandbox(interactivePreview, {
+          previewOrigin: preview?.origin, studioOrigin: location.origin,
+        }));
       if (S.mode === "work" && S.pv) {
         A.pvReload?.().catch(error => log("w", `Aperçu indisponible : ${error.message}`));
       }
@@ -235,7 +247,7 @@ export function installWiring(collab) {
     const sessionsFrame = ctx.engine.sessions?.frame;
     const sessionsList = ctx.engine.sessions?.list;
     if (ctx.engine.sessions) {
-      ctx.engine.sessions.frame = async (_id, path) => ({ src: interactivePreview ? preview.url(path) : "about:blank" });
+      ctx.engine.sessions.frame = async (_id, path) => ({ src: interactivePreview && preview ? preview.url(path) : "about:blank" });
       ctx.engine.sessions.list = () => [{ id: "host", label: interactivePreview ? "Mon visiteur PHP" : "Aperçu de l’hôte", hue: "#276ac4", short: "invité", cookies: [], hidden: 0 }];
     }
     const saved = { persist: ctx.persist, schedulePersist: ctx.schedulePersist, openFile: A.openFile, save: A.save, close: A.close };
@@ -317,10 +329,11 @@ export function installWiring(collab) {
       clearTimeout(timeout);
       release();
       offMsg(); offPeer(); offStatus();
-      preview.stop(); http.close();
+      preview?.stop(); http.close();
       focus.stop(); unwrapQ(); restoreEngine(); unbindAll();
       document.documentElement.removeAttribute("data-collab-guest");
       document.documentElement.removeAttribute("data-guest-http-preview");
+      document.documentElement.removeAttribute("data-guest-preview-origin");
       if (ctx.engine.sessions && sessionsFrame) { ctx.engine.sessions.frame = sessionsFrame; ctx.engine.sessions.list = sessionsList; }
       Object.assign(ctx, { persist: saved.persist, schedulePersist: saved.schedulePersist });
       Object.assign(A, { openFile: saved.openFile, save: saved.save, close: saved.close });

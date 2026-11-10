@@ -2,7 +2,6 @@
  * Persistent window on the untrusted preview origin; relays SW request MessagePorts
  * across origins to the trusted studio owner, which alone owns PHP and MariaDB.
  */
-const params = new URL(import.meta.url).searchParams;
 const page = new URL(location.href);
 const channel = page.searchParams.get("channel");
 const studioOrigin = page.searchParams.get("studioOrigin");
@@ -19,11 +18,12 @@ if (!navigator.serviceWorker.controller) await new Promise((resolve, reject) => 
   navigator.serviceWorker.addEventListener("controllerchange", () => { clearTimeout(timer); resolve(); }, { once: true });
 });
 navigator.serviceWorker.addEventListener("message", event => {
-  if (event.data?.type !== "alwis-preview-http" || event.data.channel !== channel || !event.ports?.[0]) return;
+  if (!["alwis-preview-http", "alwis-preview-cookie"].includes(event.data?.type)
+      || event.data.channel !== channel || !event.ports?.[0]) return;
   parent.postMessage({
-    type: "alwis-preview-http",
-    channel,
+    type: event.data.type, channel,
     request: event.data.request,
+    value: event.data.value, url: event.data.url,
   }, studioOrigin, [event.ports[0]]);
 });
 parent.postMessage({ type: "alwis-preview-ready", channel }, studioOrigin);
