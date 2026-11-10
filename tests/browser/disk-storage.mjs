@@ -167,7 +167,7 @@ try {
         try {
           await disk.put("/bad.txt", new Blob(["x"]), { expectedCRC: 42 });
         } catch (e) {
-          badCRC = e.message.includes("Int\u00e9grit\u00e9");
+          badCRC = e.message.includes("Intégrité");
         }
         const { stageFiles } = await import("/apps/studio/disk-import.mjs");
         const estimate = navigator.storage.estimate.bind(navigator.storage),
