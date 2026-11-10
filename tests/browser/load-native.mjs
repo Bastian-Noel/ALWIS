@@ -13,9 +13,38 @@ try{
  for(const name of (process.argv[2]??'chromium,firefox').split(',')){
   const browser=await playwright[name].launch({headless:true,...(name==='chromium'?{args:['--no-sandbox']}:{})});
   try{
-   const studio=await browser.newPage();studio.setDefaultTimeout(180000);
-   await studio.goto(origin+'/?project=load-'+crypto.randomUUID());await studio.locator('#pn').waitFor();await studio.locator('[data-act=create]').click();await studio.locator('#ed1 .cm-content').waitFor();
-   await studio.locator('#zipIn').setInputFiles([{name:'load.php',mimeType:'text/plain',buffer:fixture},{name:'client.html',mimeType:'text/html',buffer:Buffer.from('<!doctype html><html><head><title>Load client</title></head><body><h1 id=load-client>Client de charge</h1></body></html>')}]);await studio.locator('#toast').filter({hasText:'importé'}).waitFor();
+   const studio=await browser.newPage();studio.setDefaultTimeout(60000);
+   const project='load-'+crypto.randomUUID();
+   await studio.goto(origin+'/?project='+project);
+   await studio.waitForFunction(async name=>{
+    const {S}=await import('/apps/studio/workbench/state.mjs');
+    return S.mode==='launcher' && document.querySelector('#pn')?.value===name &&
+      S.logs.some(row=>row.msg==='ALWIS prêt');
+   },project,{timeout:30000});
+   // Load testing requires a fresh project, not the school demo's 14-table
+   // initialization or a CodeMirror editor. Neither is part of HTTP load.
+   await studio.locator('input[name=tpl][value=empty]').check();
+   await studio.locator('[data-act=create]').click();
+   try {
+    await studio.waitForFunction(async name=>{
+     const {S}=await import('/apps/studio/workbench/state.mjs');
+     return S.mode==='work' && S.project===name;
+    },project,{timeout:60000});
+   } catch(error) {
+    const state=await studio.evaluate(async()=>{
+     const {S}=await import('/apps/studio/workbench/state.mjs');
+     return {mode:S.mode,project:S.project,lamp:S.lamp,alert:S.alert,
+       logs:S.logs.slice(-6).map(x=>({level:x.l,msg:x.msg,detail:x.detail}))};
+    });
+    throw Error('Load fixture project did not open: '+JSON.stringify(state),{cause:error});
+   }
+   await studio.locator('#zipIn').setInputFiles([{name:'load.php',mimeType:'text/plain',buffer:fixture},{name:'client.html',mimeType:'text/html',buffer:Buffer.from('<!doctype html><html><head><title>Load client</title></head><body><h1 id=load-client>Client de charge</h1></body></html>')}]);
+   await studio.locator('#toast').filter({hasText:'importé'}).waitFor();
+   await studio.waitForFunction(async()=>{
+    const {ctx}=await import('/apps/studio/workbench/state.mjs');
+    const files=await ctx.engine.fs.list();
+    return files.some(f=>f.path==='/load.php') && files.some(f=>f.path==='/client.html');
+   },null,{timeout:15000});
    async function client(){const pending=studio.waitForEvent('popup');await studio.evaluate(async()=>{const {A}=await import('/apps/studio/workbench/state.mjs');await A.openWindowNew('/client.html');});const page=await pending;await page.waitForSelector('#load-client');return page;}
    const clients=[await client(),await client()];const stages=[];
    for(const rate of [5,10]){

@@ -147,19 +147,30 @@ if (!function_exists('curl_init')) {
         // Avoid deadlock: this single-worker PHP runtime cannot enqueue a PHP
         // subrequest and then wait on itself. Serve existing static project
         // assets directly; fail fast for actual local PHP scripts.
-        $host = strtolower(explode(':', (string)($_SERVER['HTTP_HOST'] ?? ''))[0]);
-        $remoteHost = strtolower((string)parse_url($url, PHP_URL_HOST));
+        $localScheme = strtolower((string)($_SERVER['REQUEST_SCHEME'] ??
+            (strtolower((string)($_SERVER['HTTPS'] ?? '')) === 'on' ||
+             (string)($_SERVER['SERVER_PORT'] ?? '') === '443' ? 'https' : 'http')));
+        $localHost = strtolower((string)($_SERVER['HTTP_HOST'] ?? ''));
+        $targetScheme = strtolower((string)parse_url($url, PHP_URL_SCHEME));
+        $targetHost = strtolower((string)parse_url($url, PHP_URL_HOST));
+        $targetPort = parse_url($url, PHP_URL_PORT);
+        $targetOrigin = $targetScheme . '://' . $targetHost .
+            ($targetPort === null ? '' : ':' . $targetPort);
+        $sameOrigin = $localHost !== '' &&
+            $localScheme . '://' . $localHost === $targetOrigin;
         $route = rawurldecode((string)(parse_url($url, PHP_URL_PATH) ?: '/'));
         $root = realpath('/workspace');
         $candidate = $root ? realpath($root . '/' . ltrim($route, '/')) : false;
-        $local = $host !== '' && $host === $remoteHost
-            && $candidate && str_starts_with($candidate, $root . '/');
-        if ($local && preg_match('~\.php(?:$|/)~i', $route)) {
+        $hidden = preg_match('~(?:^|/)\.[^/]+~', $route) === 1;
+        $publicFile = $candidate !== false && $root !== false &&
+            str_starts_with($candidate, $root . '/') &&
+            is_file($candidate) && !$hidden;
+        if ($sameOrigin && ($method !== 'GET' || !$publicFile || preg_match('~\.php(?:$|/)~i', $route))) {
             $handle->errno = CURLE_FAILED_INIT;
-            $handle->error = 'Recursive PHP self-request requires an independent executor';
+            $handle->error = 'Recursive PHP self-request requires an independent executor (dynamic paths cannot recurse)';
             return false;
         }
-        if ($local && is_file($candidate) && $method === 'GET') {
+        if ($sameOrigin && $publicFile) {
             $result = @file_get_contents($candidate);
             $responseHeaders = ['HTTP/1.1 200 OK', 'Content-Type: application/octet-stream'];
         } else {

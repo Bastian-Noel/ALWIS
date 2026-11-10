@@ -46,6 +46,18 @@ jobs:
           assert json.loads((site/'RELEASE-LICENSING-STATUS.json').read_text())['status']=='blocked'
           print('Independent static package verified, NOT approved for publication')
           PY
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-studio-playwright-1.64.1
+      - name: Verify new static WASM, cURL, fatal-error recovery and 2 guests in both browsers
+        run: |
+          npm install --prefix build-work/php --no-package-lock --ignore-scripts playwright@1.64.1
+          build-work/php/node_modules/.bin/playwright install --with-deps --only-shell chromium firefox
+          node tests/browser/site-package.mjs
+          node tests/browser/native-curl.mjs chromium,firefox
+          node tests/browser/native-error-recovery.mjs chromium,firefox
+          node tests/browser/collab-native-php-peers.mjs chromium,firefox
       - name: Prepare offline FTP payload and build local Docker QA image
         run: |
           mkdir -p build-work/server-site

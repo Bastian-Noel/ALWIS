@@ -19,6 +19,8 @@ on:
       - 'tests/browser/load-native.mjs'
       - 'tests/browser/restart-native.mjs'
       - 'fixtures/compatibility/native-curl.php'
+      - 'tests/browser/native-error-recovery.mjs'
+      - 'fixtures/compatibility/native-error-recovery.php'
       - 'scripts/restore_independent_native_qa.py'
   workflow_dispatch:
     inputs:
@@ -160,6 +162,14 @@ jobs:
         env:
           ALWIS_PARITY_RUNTIME_DIST: build-work/bridge/.native-build/engine/wasm/runtime-dist
         run: node tests/browser/collab-native-php-peers.mjs chromium,firefox
+      - name: Verify PHP fatal error recovery, SQL rollback and clean following request
+        env:
+          ALWIS_PARITY_RUNTIME_DIST: build-work/bridge/.native-build/engine/wasm/runtime-dist
+        run: node tests/browser/native-error-recovery.mjs chromium,firefox
+      - name: Build actual editor bundle required by full Studio load and restart journeys
+        run: |
+          npm ci
+          npm run editor:build
       - name: Short sustained load with two clients in both browsers
         env:
           ALWIS_PARITY_RUNTIME_DIST: build-work/bridge/.native-build/engine/wasm/runtime-dist
@@ -178,6 +188,7 @@ jobs:
             build-work/native-load/*.json
             build-work/native-restart/*.json
             build-work/curl-validation/*.json
+            build-work/native-recovery/*.json
       - name: Stage independent WASM and its matching GPL sources for authenticated QA only
         run: python3 scripts/native_qa_artifact.py --stage build-work/native-qa-bundle
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

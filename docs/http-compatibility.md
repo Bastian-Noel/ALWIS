@@ -26,7 +26,8 @@ The current native worker executes only one PHP script at a time. PHP
 synchronously calling another PHP script from the same site would await its
 own queue, leading to deadlock. To fail safely, ALWIS:
 1. reads existing same-site static files directly from /workspace on GET;
-2. refuses same-site PHP recursion with a descriptive cURL error;
+2. refuses dynamic same-site routes and non-GET methods with a descriptive
+   cURL error, even when the site's router rewrites URLs without .php suffix;
 3. uses browser Fetch for other HTTP(S) requests, subject to CORS and TLS.
 
 Dynamic PHP self-subrequests therefore remain UNSUPPORTED until an
