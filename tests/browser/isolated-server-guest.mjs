@@ -75,6 +75,11 @@ const html = '<!doctype html><html><head><title>Sample PHP owner response</title
   +'document.cookie="theme=dark; Path=/";'
   +'msg("isolated",{canReadParent,origin:location.origin});'
   +'fetch("/data.php").then(r=>r.text()).then(v=>msg("fetch",v)).catch(e=>msg("error",e.message));'
+  +'fetch("/upload.php",{method:"POST",headers:{"Content-Type":"application/octet-stream"},'
+  +'body:new Uint8Array([0,127,128,255])}).then(r=>r.text()).then(v=>msg("binary",v))'
+  +'.catch(e=>msg("binary-error",e.message));'
+  +'fetch("/redirect.php").then(r=>r.text()).then(v=>msg("redirect",v))'
+  +'.catch(e=>msg("redirect-error",e.message));'
   +'</script><form action="/post.php" method="post"><input name="x" value="42">'
   +'<button id="submit" type="submit">Send POST</button></form></body></html>';
 try {
@@ -118,8 +123,11 @@ try {
           origin: previewOrigin, studioOrigin,
           request: async req => {
             const u = new URL(req.url);
-            state.requests.push({ url: u.href, method: req.method, cookies: [...state.cookies] });
+            const bodyBytes = [...(req.body ?? [])];
+            state.requests.push({ url: u.href, method: req.method, cookies: [...state.cookies],
+              ...(req.method === "POST" ? { bytes: bodyBytes } : {}) });
             let status = 200, contentType = "text/html; charset=utf-8", text;
+            const extraHeaders = [];
             switch (u.pathname) {
               case "/index.php": text = html; break;
               case "/data.php":
@@ -128,9 +136,18 @@ try {
               case "/post.php":
                 text = '<html><head></head><body><script>parent.postMessage({kind:"alwis-guest-proof",type:"post",value:"POST-OK"},"*")</script></body></html>';
                 break;
+              case "/upload.php":
+                text = "BINARY-OK:" + bodyBytes.join(",");
+                contentType = "text/plain; charset=utf-8"; break;
+              case "/redirect.php":
+                status = 302; text = "";
+                extraHeaders.push(["Location", "/final.php"]); break;
+              case "/final.php":
+                text = "REDIRECT-OK";
+                contentType = "text/plain; charset=utf-8"; break;
               default: status = 404; contentType = "text/plain"; text = "Not found";
             }
-            return { status, headers: [["Content-Type", contentType]],
+            return { status, headers: [["Content-Type", contentType], ...extraHeaders],
               body: enc.encode(text), cookies: [...state.cookies] };
           },
           cookie: async (line, url) => {
@@ -155,7 +172,19 @@ try {
           errors, responses, navigations, server: logs.slice(-1000) }));
         throw error;
       }
+      await page.waitForFunction(() => {
+        const messages = window.__guestE2E?.messages ?? [];
+        return ["binary","redirect","binary-error","redirect-error"].filter(type =>
+          messages.some(message => message.type === type)).length >= 2;
+      }, null, { timeout: 15000 });
       const before = await page.evaluate(() => window.__guestE2E);
+      assert.equal(before.messages.find(m => m.type === "binary")?.value, "BINARY-OK:0,127,128,255");
+      assert.equal(before.messages.find(m => m.type === "redirect")?.value, "REDIRECT-OK");
+      const upload = before.requests.filter(r => new URL(r.url).pathname === "/upload.php");
+      assert.equal(upload.length, 1, "Binary POST must not replay or cross channels");
+      assert.deepEqual(upload[0].bytes, [0,127,128,255], "Exact binary body must reach trusted owner");
+      assert.equal(before.requests.filter(r => new URL(r.url).pathname === "/final.php").length, 1,
+        "Redirect must stay on the isolated preview channel");
       assert.equal(before.messages.find(m => m.type === "isolated")?.value?.canReadParent, false);
       assert.equal(before.messages.find(m => m.type === "fetch")?.value, "GET-REACHED-OWNER:theme=dark");
       assert.ok(before.requests.every(r => r.url.startsWith(studioOrigin)), "Only the owner sees the normalized request URL");
