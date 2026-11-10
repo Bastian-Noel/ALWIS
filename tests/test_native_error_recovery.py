@@ -47,10 +47,15 @@ class NativeErrorRecoveryTests(unittest.TestCase):
 
     def test_http_status_is_reset_before_php_sapi_startup(self):
         code = RUNNER.read_text()
-        reset = code.index("SG(sapi_headers).http_response_code = 200;", code.index("EMSCRIPTEN_KEEPALIVE int php_wasm_run("))
-        startup = code.index("if (php_request_startup() == SUCCESS)", reset)
+        function = code[code.index("EMSCRIPTEN_KEEPALIVE int php_wasm_run("):]
+        reset_lines = [i for i, line in enumerate(function.splitlines())
+                       if line.strip() == "SG(sapi_headers).http_response_code = 200;"]
+        self.assertEqual(len(reset_lines), 1, "Exactly one executable HTTP-status reset is required")
+        reset = function.index("\n    SG(sapi_headers).http_response_code = 200;")
+        startup = function.index("if (php_request_startup() == SUCCESS)", reset)
         self.assertLess(reset, startup)
-        self.assertNotIn("SG(sapi_headers).http_response_code = 200;", code[startup:startup+3500])
+        self.assertNotIn("\n    SG(sapi_headers).http_response_code = 200;",
+                         function[startup:startup+3500])
         source = ROOT / "build-work/php-minimal/main/SAPI.c"
         if source.is_file():
             php = source.read_text()
