@@ -12,6 +12,7 @@ import { cssVars } from "./colors.mjs";
 import { chunkText } from "./protocol.mjs";
 import { showLoading } from "./presence-ui.mjs";
 import { watchPreview, createMirror } from "./preview.mjs";
+import { guestPreviewSandbox } from "./preview-security.mjs";
 import { HostHttpGateway, GuestHttpGateway } from "./http-gateway.mjs";
 import { GuestPreviewController } from "./guest-preview-controller.mjs";
 import { updatePreviewStatus } from "../workbench/views/code.mjs";
@@ -219,8 +220,9 @@ export function installWiring(collab) {
         try { await preview.start(); interactivePreview = true; }
         catch (error) { log("w", `Aperçu HTTP invité indisponible : ${error.message}`); return; }
       } else { interactivePreview = false; preview.stop(); }
+      document.documentElement.toggleAttribute("data-guest-http-preview", interactivePreview);
       for (const frame of document.querySelectorAll("#pvFrames iframe"))
-        frame.setAttribute("sandbox", interactivePreview ? "allow-scripts allow-forms allow-same-origin" : "allow-same-origin");
+        frame.setAttribute("sandbox", guestPreviewSandbox(interactivePreview));
       if (S.mode === "work" && S.pv) {
         A.pvReload?.().catch(error => log("w", `Aperçu indisponible : ${error.message}`));
       }
@@ -318,6 +320,7 @@ export function installWiring(collab) {
       preview.stop(); http.close();
       focus.stop(); unwrapQ(); restoreEngine(); unbindAll();
       document.documentElement.removeAttribute("data-collab-guest");
+      document.documentElement.removeAttribute("data-guest-http-preview");
       if (ctx.engine.sessions && sessionsFrame) { ctx.engine.sessions.frame = sessionsFrame; ctx.engine.sessions.list = sessionsList; }
       Object.assign(ctx, { persist: saved.persist, schedulePersist: saved.schedulePersist });
       Object.assign(A, { openFile: saved.openFile, save: saved.save, close: saved.close });

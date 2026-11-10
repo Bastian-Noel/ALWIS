@@ -4,6 +4,7 @@ import {
   recordPreviewPath,
 } from "../preview-browser.mjs";
 import { drawNetwork } from "./network.mjs";
+import { guestPreviewSandbox } from "../../collab/preview-security.mjs";
 /** Espace Code : onglets, éditeur, recherche, aperçu lié aux sessions et ouverture de fenêtres clientes. */
 import {
   $,
@@ -164,6 +165,12 @@ export function drawPv() {
         `<div class="pv-cell"><div class="fhead-h" data-i="${i}"></div><div class="pv-frame"><iframe title="Aperçu ${i + 1}" sandbox="allow-scripts allow-forms allow-same-origin"></iframe></div></div>`,
     ).join("");
     $$("iframe", box).forEach(bindPreviewFrame);
+  }
+  // The guest is on the studio origin until dedicated preview-origin deployment exists.
+  // Reapply on EVERY render, including when the iframe nodes are recycled.
+  if (document.documentElement.hasAttribute("data-collab-guest")) {
+    const sandbox = guestPreviewSandbox(document.documentElement.hasAttribute("data-guest-http-preview"));
+    $$("iframe", box).forEach(frame => frame.setAttribute("sandbox", sandbox));
   }
   box.dataset.n = want;
   $$(".fhead-h", box).forEach((h, i) => (h.innerHTML = frameHead(i)));
