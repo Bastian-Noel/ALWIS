@@ -28,6 +28,8 @@ NATIVE_INPUT_EXACT = {
     'scripts/prepare-independent-native-inputs.py',
     'scripts/prepare-native-concurrency.py',
     'scripts/prepare-php84-source.py',
+    'scripts/prepare-php84-memory.py',
+    'engine/patches/php-8.4.27-wasm-chunks.patch',
     'scripts/prepare-native-drivers.py',
     'scripts/native_runner_provenance.py',
     'scripts/package-native-sources.py',

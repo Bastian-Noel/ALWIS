@@ -32,6 +32,7 @@ MORE_SOURCES = (
     "scripts/prepare-native-concurrency.py",
     "scripts/prepare-native-drivers.py",
     "scripts/prepare-php84-source.py",
+    "scripts/prepare-php84-memory.py",
     "scripts/prepare-independent-native-inputs.py",
     "scripts/build-independent-native-ci.sh",
     "scripts/prepare-native-result-budget.py",
@@ -189,6 +190,7 @@ def build(out: Path, *, strict: bool):
         # The final linked Zend fiber source is the adapted, pinned source,
         # not the unmodified official tarball by itself.
         fiber_dir = ROOT / 'build-work/php-minimal'
+        bundle.add(fiber_dir / 'Zend/zend_alloc.c', arcname='patched-php/Zend/zend_alloc.c', recursive=False)
         bundle.add(fiber_dir / 'Zend/zend_fibers.c', arcname='patched-php/Zend/zend_fibers.c', recursive=False)
         bundle.add(fiber_dir / 'alwis-php84-fibers.json', arcname='patched-php/alwis-php84-fibers.json', recursive=False)
         for row in runner['generatedFiles']:

@@ -5,6 +5,7 @@ The upstream php-wasm patch is dual licensed for covered code (GPL-2.0
 option). This adapted fiber-only diff deliberately excludes unrelated
 third-party changes. This is source preparation, not a linked WASM.
 """
+from importlib import import_module
 import argparse
 import hashlib
 import json
@@ -51,6 +52,7 @@ def prepare(target, *, verify_only=False):
         record=json.loads(receipt_file.read_text())
         if record.get('phpVersion')!='8.4.27' or record.get('archiveSha256')!=ARCHIVE_SHA or record.get('fiberPatchSha256')!=PATCH_SHA or record.get('upstreamArchiveSha256')!=SEAN_SHA or record.get('zendBeforeSha256')!=BASE_ZEND_SHA or record.get('zendAfterSha256')!=PATCHED_ZEND_SHA or checksum(target/ZEND)!=PATCHED_ZEND_SHA:
             raise ValueError('PHP source receipt does not match current tree')
+        record["memoryAdapter"] = import_module("prepare-php84-memory").prepare(target, verify_only=verify_only)
         return record
     if verify_only: raise ValueError('PHP 8.4.27 source tree not yet prepared')
     target.mkdir(parents=True)
@@ -67,6 +69,7 @@ def prepare(target, *, verify_only=False):
             'fiberPatchSha256':PATCH_SHA,'zendBeforeSha256':before,'zendAfterSha256':after,
             'patchLicenseOption':'GPL-2.0-only for Sean Morris covered source',
             'runtimeCompiled':False,'browserValidated':False}
+    record["memoryAdapter"] = import_module("prepare-php84-memory").prepare(target)
     receipt_file.write_text(json.dumps(record,indent=2)+'\n')
     return record
 

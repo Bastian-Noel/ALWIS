@@ -8,3 +8,4 @@
 /LICENSES/PHP-libmbfl-LGPL-2.1.txt -text
 /LICENSES/PHP-libmagic.txt -text
 /LICENSES/** -text
+/engine/patches/php-8.4.27-wasm-chunks.patch -text
