@@ -4,7 +4,6 @@ These tests NEVER imply that PHP/MariaDB WebAssembly was linked or executed.
 """
 import hashlib
 import json
-import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -67,6 +66,61 @@ class IndependentRunnerTests(unittest.TestCase):
                                     capture_output=True, text=True, timeout=10)
             self.assertNotEqual(result.returncode, 0)
             self.assertFalse((root / 'generated/runtime.c').exists())
+
+    def test_release_audit_distinguishes_source_from_compiled_native(self):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location('native_audit', ROOT / 'scripts/audit-native-inputs.py')
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        report = module.audit()
+        candidate = report['candidateRunner']
+        self.assertEqual(candidate['sourceSha256'], hashlib.sha256(RUNNER.read_bytes()).hexdigest())
+        self.assertTrue(candidate['sourcePresent'])
+        self.assertTrue(candidate['explicitBuildSelection'])
+        self.assertTrue(report['preflight']['phpRunnerSourcePresent'])
+        self.assertFalse(candidate['compiledWithCandidate'])
+        self.assertFalse(candidate['nativeBrowserParity'])
+        self.assertFalse(report['preflight']['newRuntimeBrowserValidated'])
+
+    def test_strict_corresponding_sources_require_our_exact_runner(self):
+        sys.path.insert(0, str(ROOT / 'scripts'))
+        from native_runner_provenance import verify
+        with tempfile.TemporaryDirectory() as temp:
+            generated = Path(temp)
+            src = generated / 'runtime.c'
+            src.write_bytes(RUNNER.read_bytes())
+            checksum = hashlib.sha256(RUNNER.read_bytes()).hexdigest()
+            record = [{
+                'source': str(RUNNER), 'generated': 'runtime.c',
+                'originalSha256': checksum, 'generatedSha256': checksum,
+            }]
+            (generated / 'driver-adapter.json').write_text(json.dumps(record))
+            receipt = verify(ROOT, generated)
+            self.assertEqual(receipt['sourceSha256'], checksum)
+            self.assertEqual(len(receipt['generatedFiles']), 2)
+            src.write_bytes(src.read_bytes() + b'\n// changed generated SAPI')
+            with self.assertRaisesRegex(ValueError, 'does not exactly match'):
+                verify(ROOT, generated)
+            src.write_bytes(RUNNER.read_bytes())
+            record[0]['source'] = str(ROOT / 'build-work/php/native/runtime.c')
+            (generated / 'driver-adapter.json').write_text(json.dumps(record))
+            with self.assertRaisesRegex(ValueError, 'does not exactly match'):
+                verify(ROOT, generated)
+
+    def test_release_source_list_excludes_unlinked_joomengine(self):
+        sys.path.insert(0, str(ROOT / 'scripts'))
+        from importlib import import_module
+        sources = import_module('package-native-sources')
+        archives = sources.expected_archives()
+        repos = {row['repo'] for row in archives}
+        self.assertEqual(len(repos), 5)
+        self.assertNotIn('joomengine/php-wasm', repos)
+        self.assertIn('seanmorris/php-wasm', repos)
+        self.assertIn('php/php-src', repos)
+        self.assertIn('shyim/lite4mariadb', repos)
+        self.assertTrue(any(row['repo'] == 'MariaDB/mariadb-connector-c' for row in archives))
+        self.assertTrue(any(row['repo'] == 'wolfSSL/wolfssl' for row in archives))
+        self.assertTrue(any(path.name == 'native_runner_provenance.py' for path in sources.source_files()))
 
     def test_new_runner_is_explicitly_opt_in(self):
         build = (ROOT / 'engine/native/build/runtime-target.cmake').read_text()

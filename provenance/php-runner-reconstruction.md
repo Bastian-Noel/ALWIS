@@ -37,6 +37,12 @@ python3 -m unittest discover -s tests -p 'test_independent_php_runner.py' -v
 PBL_TARGET=pbl-runtime JOBS=3 bash scripts/build-independent-native.sh
 ```
 
+## Correspondance des sources du binaire à construire
+
+Pour le **nouveau** runtime indépendant, `scripts/package-native-sources.py --strict` n'exige pas l'archive historique JoomEngine supprimée : ce code ne doit pas entrer dans la cible ALWIS. Le paquet de sources contient les archives vérifiées MariaDB, PHP, Sean Morris (base d'étude et de licence pour le code couvert), Connector/C et wolfSSL, les sources premières parties et les sources C **effectivement générées**. `scripts/native_runner_provenance.py` refuse les variantes où `runtime.c`, son reçu `driver-adapter.json` ou son hash SHA-256 ne correspond pas à `packages/php-native/src/runner.c`.
+
+Le manifeste de release requiert un reçu de sources (schéma 2) cohérent, les tests navigateur avec **le nouvel hash WASM** et la correspondance des modifications MariaDB. L'absence d'une archive historique non liée ne peut plus bloquer un build réellement indépendant, **sans pour autant valider juridiquement un binaire ni attester qu'il a été compilé**.
+
 Le contrôle local de syntaxe C du runner a été effectué en utilisant des **en-têtes PHP 8.4.27 officiels empaquetés pour le système hôte et une déclaration factice d'EM_JS**. Cette étape ne compile pas les callbacks JavaScript, n'émet pas de WASM et ne teste pas la liaison. Le code de comptage HTTP, lui, a été réellement compilé et exécuté sous GCC (`-Wall -Wextra -Werror`). Les prérequis du build réel (PHP Zend ZTS, Emscripten, MariaDB épinglé) doivent encore être assemblés dans un environnement compatible.
 
 ## Risques ouverts avant validation

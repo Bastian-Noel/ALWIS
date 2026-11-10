@@ -14,20 +14,22 @@
 | wolfSSL | `LICENSES/wolfSSL-LICENSING.txt` (commit épinglé) | Exception GPLv2 pour combinaison MariaDB Server identifiée | Correspondance exacte de compilation et inclusion réelle encore à établir |
 | Notices FTP/Docker | `scripts/verify-studio-legal.py` dans la CI | Textes et avis de tiers vérifiés dans le paquet d'essai | Les sources complètes d'un nouveau binaire ne sont pas encore incluses |
 
-## Le blocage matériel prioritaire
+## Le blocage historique et la reconstruction indépendante
 
-La recette `scripts/prepare-native-drivers.py` utilise `build-work/php/native/runtime.c` ainsi que l'arbre PHP modifié. Le dépôt historique `joomengine/php-wasm@3b8cef42c020fbcbb6b41fad86716b7c8664b55b` répond **404** et l'archive dont l'empreinte est épinglée n'est pas disponible sur le serveur.
+La recette historique par défaut utilise encore `build-work/php/native/runtime.c`, provenant de `joomengine/php-wasm@3b8cef42c020fbcbb6b41fad86716b7c8664b55b`. Ce dépôt est indisponible et son archive exacte n'est pas présente. **Ne pas reconstruire ni redistribuer cette variante historique à partir de sources substituées.**
 
-Archive nécessaire :
+Le nouveau chemin explicite `--independent-runner` de `scripts/prepare-native-drivers.py`, activé par `PBL_INDEPENDENT_PHP_RUNNER=ON` dans `scripts/build-independent-native.sh`, utilise désormais le `packages/php-native/src/runner.c` original d'ALWIS. Ce source est présent, générable et testé au niveau de ses contrats C, mais **n'est toujours pas lié ni testé comme runtime PHP/MariaDB WASM**.
+
+Archive historique recherchée à des fins de provenance (non nécessaire à la voie indépendante) :
 
 - Nom attendu : `joomengine--php-wasm-3b8cef42c020fbcbb6b41fad86716b7c8664b55b.tar.gz`
 - SHA-256 : `d30679568282f94ede723c5313ba2664380ede421cfb27693dcc9bc9fe9a533c`
 - Emplacement de travail conseillé : `build-work/source-archives/` (non versionné)
-- Vérification : `python3 scripts/package-native-sources.py --strict`
+- Vérification d'archive historique : comparer l'empreinte au `provenance/upstream-lock.json` ; **la commande de sources correspondantes du nouveau candidat n'exige plus cette archive**.
 
 Un fork public récent (`joomengine/php-wasm-int64`) existe, mais **ne contient pas** le commit exact indiqué ci-dessus ; le substituer sans revue et recompilation serait incorrect.
 
-Si cette archive est définitivement perdue, il faudra remplacer indépendamment les adaptations natives de la couche PHP, ou obtenir les sources exactes et les permissions de leurs auteurs. Une autorisation GPLv2 explicite pour des portions Apache-2.0 effectivement incorporées au même binaire serait l'autre solution.
+Le candidat de remplacement du runner est écrit dans le dépôt. Pour l'utiliser, il reste à finaliser la compilation Emscripten et la parité comportementale, puis à documenter l'ensemble des sources effectivement liées. Si une partie originale de JoomEngine était malgré tout incorporée à un nouveau binaire, une revue de ses droits resterait indispensable : l'option GPLv2 des fichiers Sean Morris ne s'étend pas automatiquement à ces ajouts.
 
 ## Recherche des sauvegardes (10 novembre)
 
@@ -40,10 +42,10 @@ Si cette archive est définitivement perdue, il faudra remplacer indépendamment
 
 ## Pour une vraie release
 
-1. Retrouver/réimplémenter l'adaptateur PHP manquant et confirmer ses licences, puis préparer le commit MariaDB propre avec `scripts/prepare-native-concurrency.py`.
+1. Revoir puis compiler l'adaptateur ALWIS `packages/php-native/src/runner.c`, déjà préparé sous option explicite ; produire la copie MariaDB propre avec `scripts/prepare-native-concurrency.py`.
 2. Recompiler PHP+MariaDB avec Emscripten 6.0.6 sur un environnement **Linux x86-64** à outils natifs compatibles.
 3. Lancer les tests réels Chromium/Firefox avec le **nouveau** hash WASM (transactions, PDO/MySQLi, checkpoints, reprise et persistance).
-4. Produire les archives de sources et leur reçu : `scripts/package-native-sources.py --strict`. Reconstituer la nomenclature native réelle, y compris ses exceptions par fichier.
+4. Produire le paquet de sources correspondantes et son reçu : `scripts/package-native-sources.py --strict`. Il comprend les cinq archives amont requises **sans l'ancien fork JoomEngine non lié**, l'implémentation originale ALWIS, les modifications MariaDB et les **fichiers C générés** dont les SHA-256 sont vérifiés par `scripts/native_runner_provenance.py`. Le script refuse une source générée différente du runner du dépôt. Vérifier la nomenclature native réelle et ses exceptions de licence.
 5. Générer `artifact.json` avec `scripts/manifest-native-build.py` ; celui-ci rejette expressément l'ancien hash WASM et les sources non fournies.
 6. Faire valider le périmètre et les permissions des contributions reprises, confirmer les notices et **seulement alors** lever les blocages du fichier `release-licensing-status.json`.
 7. Publier le runtime natif puis le FTP et l'image GHCR à partir du même artefact vérifié.

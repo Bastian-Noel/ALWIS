@@ -9,13 +9,16 @@ import hashlib
 import json
 import tarfile
 from pathlib import Path
+from native_runner_provenance import verify as verify_independent_runner
 
 ROOT = Path(__file__).resolve().parents[1]
 UPSTREAM = (
     "shyim/lite4mariadb",
     "php/php-src",
     "seanmorris/php-wasm",
-    "joomengine/php-wasm",
+    # The deleted JoomEngine fork is NOT linked by the independent runner.
+    # Historical source identity remains recorded in provenance/upstream-lock.json;
+    # do not require an archive for code that must not enter the combined WASM.
 )
 MORE_SOURCES = (
     "packages/php-native",
@@ -31,10 +34,13 @@ MORE_SOURCES = (
     "scripts/prepare-native-server.py",
     "scripts/build-independent-native.sh",
     "scripts/package-native-sources.py",
+    "scripts/native_runner_provenance.py",
     "scripts/manifest-native-build.py",
     "provenance/upstream-lock.json",
     "provenance/submodules-lock.json",
     "provenance/component-license-map.md",
+    "provenance/php-runner-reconstruction.md",
+    "provenance/joomengine-inspiration-map.md",
     "LICENSE.md",
     "NOTICE.md",
     "THIRD-PARTY-NOTICES.md",
@@ -114,9 +120,14 @@ def build(out: Path, *, strict: bool):
         if not file.is_file() or digest(file) != row["afterSha256"]:
             raise SystemExit("MariaDB source differs from patch receipt: " + row["path"])
         modified.append((file, "patched-mariadb/" + relative.as_posix()))
+    # Fail closed if the build still generated a wrapper from the missing fork.
+    # Include the exact generated C translation units, not just regeneration scripts.
+    runner = verify_independent_runner(ROOT)
+    generated = ROOT / runner['generatedSourceDirectory']
     files = source_files()
     out.parent.mkdir(parents=True, exist_ok=True)
-    receipt = {"schemaVersion": 1, "archives": [], "firstPartyFiles": []}
+    receipt = {"schemaVersion": 2, "archives": [], "firstPartyFiles": [],
+               "historicalJoomEngineForkIncluded": False, "independentPhpRunner": runner}
     with tarfile.open(out, "w:gz") as bundle:
         for row, source in sources:
             name = "upstream/" + Path(row["path"]).name
@@ -128,6 +139,9 @@ def build(out: Path, *, strict: bool):
         for source, name in modified:
             bundle.add(source, arcname=name, recursive=False)
             receipt["patchedMariaDBFiles"].append({"path": name, "sha256":digest(source)})
+        for row in runner['generatedFiles']:
+            source = generated / row['name']
+            bundle.add(source, arcname='generated-native/' + row['name'], recursive=False)
         for source in files:
             name = "alwis/" + source.relative_to(ROOT).as_posix()
             bundle.add(source, arcname=name, recursive=False)
