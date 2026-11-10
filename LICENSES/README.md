@@ -4,8 +4,8 @@ This directory contains license texts and notices that may apply to components d
 
 | File | Component / use |
 |---|---|
-| `PolyForm-Noncommercial-1.0.0.txt` | Code original ALWIS indépendant explicitement identifié dans `LICENSE.md`; attribution `Required Notice:` obligatoire. Ne s'applique pas au runtime combiné GPLv2. |
-| `GPL-2.0-only.txt` | MariaDB Community Server component in `pbl-runtime.wasm`; applicable only to the covered work and subject to its complete corresponding source obligations. |
+| `PolyForm-Noncommercial-1.0.0.txt` | Texte conservé pour les anciennes copies. Le code logiciel original détenu par Bastian Noël est désormais proposé sous GPL-2.0-only ; voir `LICENSE.md`. |
+| `GPL-2.0-only.txt` | Original ALWIS software owned by Bastian Noël and MariaDB Community Server; retain complete corresponding sources for the covered distributed work. |
 | `LGPL-2.1-or-later.txt` | MariaDB Connector/C if present in the exact linked/distributed build; confirm against the pinned source and native link manifest. |
 | `PHP-License-v4.txt` | PHP 8.4.27, for which ALWIS elects the subsequent PHP License v4 under the PHP Group’s published terms; per-file exceptions still apply. |
 | `wolfSSL-LICENSING.txt` | wolfSSL at the pinned MariaDB submodule commit, including its MariaDB exception that permits GPLv2 for this combination. |
@@ -14,7 +14,7 @@ This directory contains license texts and notices that may apply to components d
 
 The editor build generates `apps/studio/editor/dist/THIRD-PARTY.txt` from the locked npm dependencies and PHPantom/SuperHTML notices. ALWIS packaging carries that file separately. Do not treat it as a complete native-runtime SBOM.
 
-ALWIS independently licensed original components are scoped under PolyForm in `LICENSE.md`; original documentation text is CC BY-NC-SA 4.0. This does not relicense the combined GPLv2 native runtime or clear its release blockers. See `provenance/component-license-map.md`.
+Original ALWIS software owned by Bastian Noël is offered under GPL-2.0-only in `LICENSE.md`; original documentation text is CC BY-NC-SA 4.0. This does not relicense the combined GPLv2 native runtime or clear its release blockers. See `provenance/component-license-map.md`.
 
 
 ## PHP 8.4.27 et Zend Engine : textes originaux et versions nouvelles

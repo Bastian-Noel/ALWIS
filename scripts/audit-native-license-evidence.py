@@ -192,7 +192,7 @@ def check(strict_archives=False, source_root=None):
             "Original ALWIS native file authorship and explicit GPL grant for every input missing SPDX.",
             "PHP/Zend/TSRM third-party exceptions, MariaDB Connector/C and bundled libraries at file level.",
             "JoomEngine clean rewrite provenance and reused non-native code/assets; human review.",
-            "Editor/runtime combined-work and PolyForm/GPL boundary legal classification.",
+            "Editor/runtime combined-work classification and third-party license compatibility.",
             "Release-specific complete corresponding sources, warranties, notices and available download route.",
             "Licensing and notices for previously published historical binary.",
         ],

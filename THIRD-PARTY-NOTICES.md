@@ -4,7 +4,7 @@ This notice summarizes known components. It is intentionally not a claim that th
 
 ## Original ALWIS code and documentation
 
-Original independent code may be subject to PolyForm Noncommercial 1.0.0 with the `Required Notice:` in `NOTICE.md`; original documentation is CC BY-NC-SA 4.0. These terms do not change the permissions of any third-party component, and the combined binary is not represented as noncommercial. See `LICENSE.md`.
+Original ALWIS software owned by Bastian Noël is offered under GPL-2.0-only, including commercial use. Original documentation remains CC BY-NC-SA 4.0. Third-party rights and licenses are unchanged. See `LICENSE.md` and `NOTICE.md`. This election does not itself resolve the release blockers below.
 
 ## Native runtime
 

@@ -4,25 +4,17 @@
 
 ALWIS réunit plusieurs composants. **Le dépôt et les fichiers WASM livrés ne sont pas sous une licence unique.** Les conditions d'un composant tiers restent inchangées et peuvent autoriser l'usage commercial.
 
-## 1. Code original ALWIS — indépendant du runtime natif
+## 1. Code logiciel original ALWIS — GPLv2
 
-Sauf mention contraire dans un fichier, et **uniquement pour les contributions originales dont Bastian Noël détient les droits**, les sources autonomes suivantes sont mises à disposition sous **PolyForm Noncommercial 1.0.0** :
+À compter du 10 novembre 2026, les contributions logicielles originales dont Bastian Noël détient les droits sont proposées sous **GNU General Public License version 2 uniquement (GPL-2.0-only)**. Ce choix couvre notamment les sources originales de `apps/`, `packages/`, `engine/`, `server/`, `scripts/`, les tests et les recettes de compilation. Il inclut l'interface, les services web, l'orchestration et les adaptateurs natifs.
 
-- `apps/studio/workbench/`, `apps/studio/collab/` et `apps/studio/database/` : interface et services Javascript originaux.
-- `apps/studio/project-hub.mjs`, `apps/studio/service-worker.mjs`, `apps/studio/client-bootstrap.js` : orchestration web originale, **dans la mesure où leur utilisation ou distribution est juridiquement indépendante d'une œuvre couverte par la GPL**.
-- `server/` : code original du serveur HTTP et de l'administration, lorsqu'il est distribué en tant que composant distinct.
+Le titulaire a expressément autorisé ce choix pour privilégier la publication conforme sous GPLv2, y compris l'utilisation commerciale. Aucune restriction non commerciale supplémentaire ne s'applique à ces contributions sous GPLv2. Le texte intégral figure dans [LICENSES/GPL-2.0-only.txt](LICENSES/GPL-2.0-only.txt). Le logiciel est fourni sans garantie, selon ce texte.
 
-Texte intégral : [LICENSES/PolyForm-Noncommercial-1.0.0.txt](LICENSES/PolyForm-Noncommercial-1.0.0.txt) · [site officiel](https://polyformproject.org/licenses/noncommercial/1.0.0).
+Les composants tiers, copies et adaptations conservent leurs droits, licences et notices propres ; cette autorisation ne prétend pas concéder des droits détenus par des tiers. La documentation et les visuels restent traités séparément ci-dessous. Les permissions accordées aux anciennes copies sous PolyForm ne sont pas révoquées ; son texte est conservé pour l'historique.
 
-PolyForm autorise la modification et le partage **à des fins non commerciales** selon ses termes. Les utilisations commerciales du seul code ALWIS concerné nécessitent une autorisation distincte du titulaire des droits.
-
-La distribution d'un composant séparé sous PolyForm ne permet **pas** d'ajouter une restriction non commerciale aux droits déjà accordés par une licence tierce. Les frontières entre l'application web et le runtime GPLv2 n'ont pas encore reçu de validation juridique ; **ne pas en déduire que le paquet ALWIS complet est juridiquement redistribuable sous PolyForm**. Les éventuelles portions de code tierces présentes dans ces chemins conservent leurs licences.
-
-**Mention obligatoire à transmettre avec chaque copie du code ALWIS sous PolyForm :**
+Attribution conservée (le préfixe historique ci-dessous ne crée aucune condition supplémentaire à la GPL) :
 
 Required Notice: ALWIS — Copyright © 2026 Bastian Noël — https://github.com/Bastian-Noel/ALWIS
-
-Transmettre aussi le texte ou l'URL de la licence PolyForm. Une copie modifiée devrait préciser les différences ; cette recommandation n'ajoute pas de condition non prévue par la licence officielle.
 
 ## 2. Runtime natif PHP/MariaDB
 
