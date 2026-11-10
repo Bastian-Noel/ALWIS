@@ -40,13 +40,19 @@ int pbl_request_begin(pbl_request_state *state, const char *script, size_t body_
     return 0;
 }
 
-size_t pbl_request_consume(pbl_request_state *state, size_t requested)
+size_t pbl_request_available(const pbl_request_state *state, size_t requested)
 {
-    if (!state || !state->active || requested == 0) return 0;
-    size_t remaining = state->body_length - state->body_offset;
-    size_t consumed = requested > remaining ? remaining : requested;
-    state->body_offset += consumed;
-    return consumed;
+    if (!state || !state->active || state->overflow || requested == 0 ||
+        state->body_offset > state->body_length) return 0;
+    const size_t remaining = state->body_length - state->body_offset;
+    return requested > remaining ? remaining : requested;
+}
+
+size_t pbl_request_consume(pbl_request_state *state, size_t copied)
+{
+    const size_t amount = pbl_request_available(state, copied);
+    if (state) state->body_offset += amount;
+    return amount;
 }
 
 int pbl_request_account_output(pbl_request_state *state, size_t length)

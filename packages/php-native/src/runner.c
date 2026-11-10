@@ -123,11 +123,15 @@ static void alwis_flush(void *context) { (void)context; }
 static size_t alwis_read_post(char *target, size_t capacity)
 {
     const size_t offset = request_state.body_offset;
-    const size_t want = pbl_request_consume(&request_state, capacity);
+    const size_t want = pbl_request_available(&request_state, capacity);
     if (!want) return 0;
     const size_t copied = alwis_body_copy(offset, target, want);
-    if (copied != want) request_state.overflow = 1;
-    return copied;
+    if (copied != want) {
+        /* A failed JS/WASM transfer must not advance php://input or retry a POST. */
+        request_state.overflow = 1;
+        return 0;
+    }
+    return pbl_request_consume(&request_state, copied);
 }
 static char *alwis_cookies(void)
 {

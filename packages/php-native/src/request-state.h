@@ -20,8 +20,10 @@ typedef struct {
 
 /* Returns 0 on success. No new request may start until end() has been called. */
 int pbl_request_begin(pbl_request_state *state, const char *script, size_t body_length);
-/* Bounded read accounting: caller copies the returned byte count from the host. */
-size_t pbl_request_consume(pbl_request_state *state, size_t requested);
+/* Inspect remaining input without moving the cursor. Commit only after a successful copy. */
+size_t pbl_request_available(const pbl_request_state *state, size_t requested);
+/* Move the cursor by no more than the bytes that were actually copied. */
+size_t pbl_request_consume(pbl_request_state *state, size_t copied);
 /* Rejects over-limit output WITHOUT unsigned arithmetic overflow. */
 int pbl_request_account_output(pbl_request_state *state, size_t length);
 /* Always resets offsets, even after a failed/abandoned request. */
