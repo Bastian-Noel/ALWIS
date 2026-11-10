@@ -7,3 +7,4 @@
 /LICENSES/MariaDB-zlib.txt -text
 /LICENSES/PHP-libmbfl-LGPL-2.1.txt -text
 /LICENSES/PHP-libmagic.txt -text
+/LICENSES/** -text
