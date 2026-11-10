@@ -31,6 +31,24 @@
       "sourcePath": "php-8.4.27/ext/fileinfo/libmagic/LICENSE",
       "noticePath": "LICENSES/PHP-libmagic.txt",
       "sha256": "0bfa856a9930bddadbef95d1be1cf4e163c0be618e76ea3275caaf255283e274"
+    },
+    {
+      "archive": "build-work/source-archives/php-8.4.27.tar.xz",
+      "sourcePath": "php-8.4.27/ext/date/lib/LICENSE.rst",
+      "noticePath": "LICENSES/PHP-timelib-MIT.txt",
+      "sha256": "2120d029e7c67b9d08c1f665f1c3ed581206f00970b664cccdebe1419bf566e9"
+    },
+    {
+      "archive": "build-work/source-archives/php-8.4.27.tar.xz",
+      "sourcePath": "php-8.4.27/ext/standard/libavifinfo/LICENSE",
+      "noticePath": "LICENSES/PHP-libavifinfo-BSD.txt",
+      "sha256": "5d40dcb72f934c3d08e10ddb8ba4844de17bf6f9aabc1a382aacf8a8bf4567f8"
+    },
+    {
+      "archive": "build-work/source-archives/php-8.4.27.tar.xz",
+      "sourcePath": "php-8.4.27/TSRM/LICENSE",
+      "noticePath": "LICENSES/PHP-TSRM-BSD.txt",
+      "sha256": "fe97b8423e34199f7df3e65fd53c4df067a56ab6fe0f2296474ba7da0656460c"
     }
   ]
 }

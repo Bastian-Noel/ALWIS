@@ -22,7 +22,7 @@ Original ALWIS software owned by Bastian Noël is offered under GPL-2.0-only, in
 
 ### Additional notices from the pinned native sources
 
-The PHP configuration enables mbstring and fileinfo. Preserve the exact [libmbfl LGPL 2.1 text](LICENSES/PHP-libmbfl-LGPL-2.1.txt) and [libmagic attribution and BSD terms](LICENSES/PHP-libmagic.txt). MariaDB's bundled sources also carry [Google InnoDB terms](LICENSES/MariaDB-InnoDB-Google.txt), [Percona InnoDB terms](LICENSES/MariaDB-InnoDB-Percona.txt), and [zlib terms](LICENSES/MariaDB-zlib.txt). These copies are traced to their exact archive paths and hashes in `provenance/additional-native-notices.json`; the final linked-object inventory remains to be checked.
+The PHP configuration includes date, standard, TSRM, mbstring and fileinfo. The exact [timelib MIT](LICENSES/PHP-timelib-MIT.txt), [libavifinfo BSD](LICENSES/PHP-libavifinfo-BSD.txt) and [TSRM BSD](LICENSES/PHP-TSRM-BSD.txt) notices accompany the compiled native runtime. Preserve the exact [libmbfl LGPL 2.1 text](LICENSES/PHP-libmbfl-LGPL-2.1.txt) and [libmagic attribution and BSD terms](LICENSES/PHP-libmagic.txt). MariaDB's bundled sources also carry [Google InnoDB terms](LICENSES/MariaDB-InnoDB-Google.txt), [Percona InnoDB terms](LICENSES/MariaDB-InnoDB-Percona.txt), and [zlib terms](LICENSES/MariaDB-zlib.txt). These copies are traced to their exact archive paths and hashes in `provenance/additional-native-notices.json`; the final linked-object inventory remains to be checked.
 
 ### Emscripten system and JavaScript runtime
 
