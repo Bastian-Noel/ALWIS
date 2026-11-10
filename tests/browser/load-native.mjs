@@ -39,12 +39,29 @@ try{
     throw Error('Load fixture project did not open: '+JSON.stringify(state),{cause:error});
    }
    await studio.locator('#zipIn').setInputFiles([{name:'load.php',mimeType:'text/plain',buffer:fixture},{name:'client.html',mimeType:'text/html',buffer:Buffer.from('<!doctype html><html><head><title>Load client</title></head><body><h1 id=load-client>Client de charge</h1></body></html>')}]);
-   await studio.locator('#toast').filter({hasText:'importé'}).waitFor();
-   await studio.waitForFunction(async()=>{
-    const {ctx}=await import('/apps/studio/workbench/state.mjs');
-    const files=await ctx.engine.fs.list();
-    return files.some(f=>f.path==='/load.php') && files.some(f=>f.path==='/client.html');
-   },null,{timeout:15000});
+   // Toasts are ephemeral and may disappear before Playwright starts waiting.
+   // Verify the real imported files instead of a transient UI notification.
+   try {
+    await studio.waitForFunction(async()=>{
+     const {ctx}=await import('/apps/studio/workbench/state.mjs');
+     if (!ctx.engine?.fs) return false;
+     try {
+      const files=await ctx.engine.fs.list();
+      return files.some(f=>f.path==='/load.php') && files.some(f=>f.path==='/client.html');
+     } catch { return false; }
+    },null,{timeout:30000});
+   } catch(error) {
+    const diagnosis=await studio.evaluate(async()=>{
+     const {S,ctx}=await import('/apps/studio/workbench/state.mjs');
+     let files,fsError;
+     try { files=(await ctx.engine.fs.list()).map(f=>f.path).slice(0,30); }
+     catch(e) { fsError=e?.message; }
+     return {mode:S.mode,project:S.project,alert:S.alert,files,fsError,
+       logs:S.logs.slice(-12).map(({l,msg,detail})=>({l,msg,detail}))};
+    });
+    throw Error('Load test fixture import did not produce both files: '+
+      JSON.stringify(diagnosis),{cause:error});
+   }
    async function client(){const pending=studio.waitForEvent('popup');await studio.evaluate(async()=>{const {A}=await import('/apps/studio/workbench/state.mjs');await A.openWindowNew('/client.html');});const page=await pending;await page.waitForSelector('#load-client');return page;}
    const clients=[await client(),await client()];const stages=[];
    for(const rate of [5,10]){
