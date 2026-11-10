@@ -34,12 +34,13 @@ jobs:
         with:
           path: |
             sources/seanmorris--php-wasm-1e1fb6703730759181e84c62bce35ee9129febb9.tar.gz
+            sources/php--php-src-7ba31bb1934ae22c2d007135e89a38af131ec52e.tar.gz
             sources/shyim--lite4mariadb-24be9371a2f6c71250a2356631ad6feab2280b02.tar.gz
             sources/MariaDB--mariadb-connector-c-5a6fe6016fc908518e7d2a8c128a5c108b511c17.tar.gz
             sources/wolfSSL--wolfssl-1d363f3adceba9d1478230ede476a37b0dcdef24.tar.gz
             build-work/source-archives/php-8.4.27.tar.xz
             build-work/source-archives/pcre2-10.47.zip
-          key: native-v1-${{ hashFiles('provenance/upstream-lock.json', 'provenance/submodules-lock.json', 'scripts/prepare-php84-source.py') }}
+          key: native-v2-${{ hashFiles('provenance/upstream-lock.json', 'provenance/submodules-lock.json', 'scripts/prepare-php84-source.py') }}
       - name: Verify strict source-loader controls
         run: |
           python3 -m unittest discover -s tests -p test_native_source_staging.py -v
@@ -59,7 +60,7 @@ jobs:
           assert record['status']=='verified-sources-only'
           assert record['nativeWasmCompiled'] is False
           assert record['releaseApproved'] is False
-          assert len(record['thirdParty'])==6
+          assert len(record['thirdParty'])==7
           print('REPRODUCIBLE SOURCES VERIFIED, not a compiled WASM or a release.')
           PY
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -92,12 +93,13 @@ jobs:
         with:
           path: |
             sources/seanmorris--php-wasm-1e1fb6703730759181e84c62bce35ee9129febb9.tar.gz
+            sources/php--php-src-7ba31bb1934ae22c2d007135e89a38af131ec52e.tar.gz
             sources/shyim--lite4mariadb-24be9371a2f6c71250a2356631ad6feab2280b02.tar.gz
             sources/MariaDB--mariadb-connector-c-5a6fe6016fc908518e7d2a8c128a5c108b511c17.tar.gz
             sources/wolfSSL--wolfssl-1d363f3adceba9d1478230ede476a37b0dcdef24.tar.gz
             build-work/source-archives/php-8.4.27.tar.xz
             build-work/source-archives/pcre2-10.47.zip
-          key: native-v1-${{ hashFiles('provenance/upstream-lock.json', 'provenance/submodules-lock.json', 'scripts/prepare-php84-source.py') }}
+          key: native-v2-${{ hashFiles('provenance/upstream-lock.json', 'provenance/submodules-lock.json', 'scripts/prepare-php84-source.py') }}
       - name: Install host build dependencies
         run: |
           sudo apt-get update

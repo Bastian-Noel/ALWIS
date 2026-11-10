@@ -17,6 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 NATIVE_REPOSITORIES = (
     'shyim/lite4mariadb',
     'seanmorris/php-wasm',  # Verify the exact reviewed fiber-port provenance.
+    'php/php-src',  # Complete locked upstream snapshot required by source manifest.
     'MariaDB/mariadb-connector-c',
     'wolfSSL/wolfssl',
 )

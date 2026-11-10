@@ -39,7 +39,7 @@ Le paquet des sources correspondantes est préparé par `scripts/package-native-
 
 ## Reconstruction indépendante sur GitHub Actions (Linux x86-64)
 
-Le script \`scripts/prepare-independent-native-inputs.py\` récupère uniquement les cinq archives verrouillées et contrôle chaque SHA-256 **avant** extraction. Il reconstruit dans \`build-work/native-ci\` les sources PHP 8.4.27, Zend Fibers, MariaDB non patché et les unités PDO/MySQLi générées. L'archive JoomEngine manquante et son runner historique sont volontairement exclus.
+Le script \`scripts/prepare-independent-native-inputs.py\` récupère uniquement les sept archives verrouillées et contrôle chaque SHA-256 **avant** extraction. Il reconstruit dans \`build-work/native-ci\` les sources PHP 8.4.27, Zend Fibers, MariaDB non patché et les unités PDO/MySQLi générées. L'archive JoomEngine manquante et son runner historique sont volontairement exclus.
 
 La [CI de reconstruction](../../../.github/workflows/native-rebuild-ci.yml) se lance manuellement dans GitHub Actions avec le choix \`sources\` (vérification et reçus uniquement) ou \`compile\` (Emscripten 6.0.6 sur Linux x86-64 et tentative de lien du nouveau WASM). Le chemin de compilation est \`scripts/build-independent-native-ci.sh\`; il produit le candidat uniquement dans le workspace éphémère d'Actions et ne téléverse **jamais le WASM**. Les fichiers envoyés en artefacts Actions ne sont que des reçus de contrôle (et les logs restent consultables dans la CI).
 

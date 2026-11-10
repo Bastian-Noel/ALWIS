@@ -16,7 +16,7 @@ spec.loader.exec_module(stage)
 class SourceStagingTests(unittest.TestCase):
     def test_pinned_sources_do_not_include_disappeared_joomengine(self):
         self.assertEqual(set(stage.NATIVE_REPOSITORIES), {
-            'shyim/lite4mariadb', 'seanmorris/php-wasm',
+            'shyim/lite4mariadb', 'seanmorris/php-wasm', 'php/php-src',
             'MariaDB/mariadb-connector-c', 'wolfSSL/wolfssl',
         })
         self.assertNotIn('joomengine/php-wasm', stage.NATIVE_REPOSITORIES)
