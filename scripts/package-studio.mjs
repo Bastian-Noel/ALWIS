@@ -11,7 +11,7 @@ const version=JSON.parse(await readFile(join(root,'package.json'),'utf8')).versi
 const assetBase='/_alwis/'+revision;
 const files=[];
 async function copy(source,destination){
-  const publicPath=['index.html','service-worker.js','social-card.png','LICENSE.md','NOTICE.md','THIRD-PARTY-NOTICES.md','RELEASE-LICENSING-STATUS.json'].includes(destination)||destination.startsWith('LICENSES/')?destination:assetBase.slice(1)+'/'+destination;
+  const publicPath=['index.html','service-worker.js','guest-sw.js','guest-broker.mjs','guest-broker.html','social-card.png','LICENSE.md','NOTICE.md','THIRD-PARTY-NOTICES.md','RELEASE-LICENSING-STATUS.json'].includes(destination)||destination.startsWith('LICENSES/')?destination:assetBase.slice(1)+'/'+destination;
   const output=join(target,publicPath);await mkdir(resolve(output,'..'),{recursive:true});
   let data=await readFile(join(root,source));
   if(/\.(mjs|js|css|html)$/.test(source)){
