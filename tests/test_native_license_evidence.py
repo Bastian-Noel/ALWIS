@@ -39,7 +39,7 @@ class NativeLicenseEvidenceTests(unittest.TestCase):
     def test_tampered_legacy_license_source_must_fail(self):
         original = audit.sha
         def changed(path):
-            if str(path).endswith("LICENSES/Zend-Engine-original-2.00.txt"):
+            if path.name == "Zend-Engine-original-2.00.txt":
                 return "0" * 64
             return original(path)
         with patch.object(audit, "sha", side_effect=changed):
