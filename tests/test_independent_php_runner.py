@@ -44,8 +44,7 @@ class IndependentRunnerTests(unittest.TestCase):
             (php / 'php_pdo_mysql_int.h').write_text('''zend_ulong\t\t\t*in_length;\nzend_ulong\t\t\t\t*out_length;\n''')
             output = root / 'output'
             subprocess.run([sys.executable, str(GENERATOR),
-                            str(root / 'joomengine-not-present'), str(php.parents[1]),
-                            str(output), '--independent-runner'],
+                            str(php.parents[1]), str(output)],
                            check=True, capture_output=True, text=True, timeout=15)
             self.assertEqual(hashlib.sha256((output / 'runtime.c').read_bytes()).hexdigest(),
                              hashlib.sha256(RUNNER.read_bytes()).hexdigest())
@@ -76,7 +75,7 @@ class IndependentRunnerTests(unittest.TestCase):
         candidate = report['candidateRunner']
         self.assertEqual(candidate['sourceSha256'], hashlib.sha256(RUNNER.read_bytes()).hexdigest())
         self.assertTrue(candidate['sourcePresent'])
-        self.assertTrue(candidate['explicitBuildSelection'])
+        self.assertTrue(candidate['independentRunnerIsDefault'])
         self.assertTrue(report['preflight']['phpRunnerSourcePresent'])
         self.assertFalse(candidate['compiledWithCandidate'])
         self.assertFalse(candidate['nativeBrowserParity'])
@@ -122,14 +121,25 @@ class IndependentRunnerTests(unittest.TestCase):
         self.assertTrue(any(row['repo'] == 'wolfSSL/wolfssl' for row in archives))
         self.assertTrue(any(path.name == 'native_runner_provenance.py' for path in sources.source_files()))
 
-    def test_new_runner_is_explicitly_opt_in(self):
+    def test_release_manifest_tracks_independent_runner_without_legacy_archive(self):
+        code = (ROOT / 'scripts/manifest-native-build.py').read_text()
+        workflow = (ROOT / '.github/workflows/native-distribution.yml').read_text()
+        self.assertIn("'historicalJoomEngineForkIncluded':False", code)
+        self.assertIn("'independentPhpRunner':runner_provenance", code)
+        self.assertIn("runner==bundle.get('independentPhpRunner')", workflow)
+        self.assertIn('Legacy fork', workflow)
+
+    def test_new_runner_is_the_only_build_path(self):
         build = (ROOT / 'engine/native/build/runtime-target.cmake').read_text()
         independent = (ROOT / 'scripts/build-independent-native.sh').read_text()
         script = (ROOT / 'engine/native/build/build.sh').read_text()
-        self.assertIn('if(PBL_INDEPENDENT_PHP_RUNNER)', build)
-        self.assertIn('PBL_INDEPENDENT_PHP_RUNNER=ON', independent)
-        self.assertIn('PBL_INDEPENDENT_PHP_RUNNER:-OFF', script)
+        generator = GENERATOR.read_text()
+        self.assertNotIn('PBL_INDEPENDENT_PHP_RUNNER', build + independent + script)
+        self.assertNotIn('php_wrapper', generator)
+        self.assertNotIn('native/runtime.c', generator)
         self.assertIn('request-state.c', build)
+        self.assertIn('PBL_TARGET:-pbl-runtime', script)
+        self.assertIn('packages/php-native/src/runner.c', generator)
 
 
 if __name__ == '__main__':

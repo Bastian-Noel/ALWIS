@@ -57,8 +57,17 @@ jobs:
           receipt=manifest.get('independentAdapter',{})
           assert receipt.get('adapter')=='ALWIS cooperative waits (independent candidate)' and len(receipt.get('files',[]))==3, 'Unverified independent native adapter'
           bundle=manifest.get('correspondingSources',{})
-          assert bundle.get('name')=='corresponding-sources.tar.gz' and len(bundle.get('archives',[]))==6, 'Incomplete corresponding sources'
+          expected_sources={'shyim/lite4mariadb','php/php-src','seanmorris/php-wasm','MariaDB/mariadb-connector-c','wolfSSL/wolfssl'}
+          upstream=bundle.get('archives',[])
+          assert bundle.get('name')=='corresponding-sources.tar.gz' and len(upstream)==5 and {row.get('repo') for row in upstream}==expected_sources, 'Missing or unknown corresponding sources'
+          assert bundle.get('historicalJoomEngineForkIncluded') is False, 'Legacy fork is not eligible for independent native release'
           assert len(bundle.get('patchedMariaDBFiles',[]))==3, 'Missing modified source file references'
+          # Disallow a historical build dressed as an independent bundle.
+          runner=manifest.get('build',{}).get('independentPhpRunner',{})
+          assert runner and runner==bundle.get('independentPhpRunner'), 'Missing independent PHP runner source identity'
+          assert any(item.get('path')=='packages/php-native/src/runner.c' and item.get('sha256')==runner.get('sourceSha256') for item in manifest.get('sourceFiles',[])), 'Runtime does not list its independent runner source'
+          assert any(item.get('name')=='runtime.c' and item.get('sha256')==runner.get('sourceSha256') for item in runner.get('generatedFiles',[])), 'Compiled PHP wrapper does not match ALWIS runner'
+          assert manifest['files']['pbl-runtime.wasm']['sha256']!='80df46b7b308b33475fde138eb1a295c01ffbf6ac685d17a74209eb224674e0f', 'Historical native WASM prohibited'
           source_data=(root/bundle['name']).read_bytes()
           assert len(source_data)==bundle['bytes'] and hashlib.sha256(source_data).hexdigest()==bundle['sha256'], 'Corresponding sources checksum mismatch'
           for name,record in manifest['files'].items():

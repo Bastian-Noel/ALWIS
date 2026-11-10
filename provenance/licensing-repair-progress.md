@@ -18,7 +18,7 @@
 
 La recette historique par défaut utilise encore `build-work/php/native/runtime.c`, provenant de `joomengine/php-wasm@3b8cef42c020fbcbb6b41fad86716b7c8664b55b`. Ce dépôt est indisponible et son archive exacte n'est pas présente. **Ne pas reconstruire ni redistribuer cette variante historique à partir de sources substituées.**
 
-Le nouveau chemin explicite `--independent-runner` de `scripts/prepare-native-drivers.py`, activé par `PBL_INDEPENDENT_PHP_RUNNER=ON` dans `scripts/build-independent-native.sh`, utilise désormais le `packages/php-native/src/runner.c` original d'ALWIS. Ce source est présent, générable et testé au niveau de ses contrats C, mais **n'est toujours pas lié ni testé comme runtime PHP/MariaDB WASM**.
+Le chemin de génération désormais unique de `scripts/prepare-native-drivers.py`, invoqué par `scripts/build-independent-native.sh`, utilise `packages/php-native/src/runner.c` original d'ALWIS. La recette historique est archivée et ne peut plus être activée accidentellement. Ce source est présent, générable et testé au niveau de ses contrats C, mais **n'est toujours pas lié ni testé comme runtime PHP/MariaDB WASM**.
 
 Archive historique recherchée à des fins de provenance (non nécessaire à la voie indépendante) :
 

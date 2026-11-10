@@ -23,12 +23,11 @@ Le nouveau fichier `runner.c` est **une hypothèse d'intégration**, pas un fork
 
 ## Reproduction sans remplacer le témoin
 
-Le chemin historique reste la valeur par défaut de `scripts/prepare-native-drivers.py`. Seul le chemin `--independent-runner`, activé par `scripts/build-independent-native.sh`, remplace la source générée `runtime.c` par le runner ALWIS. La recette native ajoute alors `request-state.c` à la cible CMake. Les hachages originaux/générés sont enregistrés dans `driver-adapter.json`.
+Le chemin actif de `scripts/prepare-native-drivers.py` utilise exclusivement le runner ALWIS. L'ancienne recette de construction et son binaire sont archivés comme témoin de test dans `build-work/archives/`, et ne peuvent pas être sélectionnés par l'outil de génération. La recette native ajoute alors `request-state.c` à la cible CMake. Les hachages originaux/générés sont enregistrés dans `driver-adapter.json`.
 
 ```bash
 # Préparation de source, possible sans JoomEngine ni compilateur WASM :
-python3 scripts/prepare-native-drivers.py /chemin/vers/ancien-wrapper-inexistant \
-  /chemin/vers/php-8.4.27 /chemin/vers/sortie --independent-runner
+python3 scripts/prepare-native-drivers.py /chemin/vers/php-8.4.27 /chemin/vers/sortie
 
 # Garde-fous indépendants (exécute un vrai binaire C portable) :
 python3 -m unittest discover -s tests -p 'test_independent_php_runner.py' -v

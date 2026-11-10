@@ -16,4 +16,4 @@ if grep -q 'l4m_session_open' "$mariadb_source/wasm/lite4mariadb.c"; then
   exit 1
 fi
 python3 "$repo_dir/scripts/prepare-native-concurrency.py" "$mariadb_source" --write --verify-pins --receipt "$repo_dir/build-work/independent-native-adapter.json"
-PBL_TARGET=pbl-runtime PBL_INDEPENDENT_PHP_RUNNER=ON bash "$repo_dir/engine/native/build/build.sh"
+PBL_TARGET=pbl-runtime bash "$repo_dir/engine/native/build/build.sh"

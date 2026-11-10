@@ -4,10 +4,11 @@ from pathlib import Path
 import hashlib,json,sys
 source,output=map(Path,sys.argv[1:])
 before=source.read_text();after=before
-# Support the locked historical source for reproducibility, plus an unpatched
-# MariaDB tree for ALWIS's independent connection manager. The production
-# switch happens only after a new native WASM is built and browser-validated.
+# The old patched embedded-server profile is archived test material only.
+# Never link the JoomEngine sessions protocol into the independent runtime.
 clean_upstream = '--max-connections=10' in before and 'l4m_session_open' not in before
+if not clean_upstream:
+    raise SystemExit('Independent native build requires the pinned unpatched MariaDB server source')
 changes = {
     '(char *)"--innodb-log-buffer-size=2M",': '''(char *)"--innodb-log-buffer-size=2M",
     (char *)"--innodb-log-file-size=8M",
@@ -22,17 +23,10 @@ changes = {
     (char *)"--read-buffer-size=128K",
     (char *)"--read-rnd-buffer-size=256K",''',
 }
-if clean_upstream:
-    changes['(char *)"--max-connections=10",'] = '''(char *)"--max-connections=33",
+changes['(char *)"--max-connections=10",'] = '''(char *)"--max-connections=33",
     (char *)"--max-allowed-packet=16M",
     (char *)"--innodb-lock-wait-timeout=5",
     (char *)"--lock-wait-timeout=5",'''
-else:
-    changes.update({
-        '--innodb-buffer-pool-size=64M': '--innodb-buffer-pool-size=16M',
-        '--loose-innodb-buffer-pool-size-max=256M': '--loose-innodb-buffer-pool-size-max=16M',
-        '--max-allowed-packet=128M': '--max-allowed-packet=16M',
-    })
 for old,new in changes.items():
  if after.count(old)!=1:raise SystemExit('Server profile anchor changed: '+old)
  after=after.replace(old,new)

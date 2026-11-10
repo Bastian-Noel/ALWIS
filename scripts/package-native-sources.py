@@ -36,6 +36,7 @@ MORE_SOURCES = (
     "scripts/package-native-sources.py",
     "scripts/native_runner_provenance.py",
     "scripts/manifest-native-build.py",
+    "scripts/archive-legacy-native.py",
     "provenance/upstream-lock.json",
     "provenance/submodules-lock.json",
     "provenance/component-license-map.md",

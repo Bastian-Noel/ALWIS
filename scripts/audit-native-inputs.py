@@ -91,12 +91,12 @@ def audit():
         "source": runner.relative_to(ROOT).as_posix(),
         "sourceSha256": sha(runner.read_bytes()) if runner.is_file() else None,
         "requestStatePresent": request_source.is_file() and request_header.is_file(),
-        "explicitBuildSelection": "--independent-runner" in generator and "PBL_INDEPENDENT_PHP_RUNNER=ON" in build_script,
+        "independentRunnerIsDefault": "write('runtime.c', Path(__file__).resolve().parents[1] / 'packages/php-native/src/runner.c', [])" in generator and "PBL_INDEPENDENT_PHP_RUNNER" not in build_script,
         "compiledWithCandidate": False,
         "nativeBrowserParity": False,
     }
     independent_runner["sourcePresent"] = bool(independent_runner["sourceSha256"] and
-        independent_runner["requestStatePresent"] and independent_runner["explicitBuildSelection"])
+        independent_runner["requestStatePresent"] and independent_runner["independentRunnerIsDefault"])
     requirements = {
         "nativeCompiler": bool(shutil.which("emcc") and shutil.which("emcmake")),
         "phpRunnerSourcePresent": output[1]["sourceArchiveVerified"] or independent_runner["sourcePresent"],

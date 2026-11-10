@@ -1,14 +1,8 @@
 # Custom C connection manager + native PDO/MySQLi + POSIX files + browser HTTP.
 get_filename_component(PBL_REPO_SOURCE "${PBL_SPIKE_SOURCE}/../../.." ABSOLUTE)
 set(PBL_GENERATED "${CMAKE_BINARY_DIR}/pbl-native-sources")
-set(PBL_PHP_RUNNER_ARGUMENTS)
-set(PBL_EXTRA_PHP_SOURCES)
-if(PBL_INDEPENDENT_PHP_RUNNER)
-  list(APPEND PBL_PHP_RUNNER_ARGUMENTS --independent-runner)
-  list(APPEND PBL_EXTRA_PHP_SOURCES "${PBL_REPO_SOURCE}/packages/php-native/src/request-state.c")
-endif()
 execute_process(COMMAND python3 "${PBL_REPO_SOURCE}/scripts/prepare-native-drivers.py"
-  "${PBL_REPO_SOURCE}/build-work/php" "${PBL_PHP_BUILD}" "${PBL_GENERATED}" ${PBL_PHP_RUNNER_ARGUMENTS}
+  "${PBL_PHP_BUILD}" "${PBL_GENERATED}"
   COMMAND_ERROR_IS_FATAL ANY)
 execute_process(COMMAND python3 "${PBL_REPO_SOURCE}/scripts/prepare-native-server.py"
   "${CMAKE_SOURCE_DIR}/wasm/lite4mariadb.c" "${PBL_GENERATED}"
@@ -31,7 +25,7 @@ foreach(pbl_source IN LISTS pbl_embedded_sources)
 endforeach()
 set_property(TARGET sql_embedded PROPERTY SOURCES "${pbl_bounded_sources}")
 add_executable(pbl-runtime
-  ${PBL_EXTRA_PHP_SOURCES}
+  "${PBL_REPO_SOURCE}/packages/php-native/src/request-state.c"
   "${PBL_GENERATED}/runtime.c" "${PBL_GENERATED}/mysql_driver.c"
   "${PBL_GENERATED}/pdo_mysql.c"
   "${PBL_GENERATED}/mysql_statement.c"
