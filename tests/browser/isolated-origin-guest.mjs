@@ -33,7 +33,7 @@ const content = '<!doctype html><html><head><title>Untrusted PHP</title></head><
   +'let stolen=false;try{void parent.document.body.innerHTML;stolen=true;}catch(e){}\n'
   +'send("isolation",{stolen,origin:location.origin});\n'
   +'fetch("/data.php").then(r=>r.text()).then(v=>send("fetch",v)).catch(e=>send("fetch-error",e.message));\n'
-  +'</script></body></html>';
+  +'</script><form action="/post.php" method="post"><input name="message" value="hello"><button id="post" type="submit">POST</button></form></body></html>';
 try {
   for(const name of (process.argv[2]??"chromium,firefox").split(",")) {
     const browser = await pw[name].launch({headless:true,...(name==="chromium"?{args:["--no-sandbox"]}:{})});
@@ -57,9 +57,10 @@ try {
               const port=event.ports?.[0],request=event.data.request;
               requests.push({url:request.url,method:request.method});
               const path=new URL(request.url).pathname;
-              const body=path==="/index.php"?content:path==="/data.php"?"HTTP-RESPONSE-FROM-HOST":"NOT-FOUND";
-              port.postMessage({ok:true,response:{status: path==="/index.php"||path==="/data.php"?200:404,
-                 headers:[["Content-Type",path==="/index.php"?"text/html; charset=utf-8":"text/plain"]],
+              const body=path==="/index.php"?content:path==="/data.php"?"HTTP-RESPONSE-FROM-HOST"
+                :path==="/post.php"?'<script>parent.postMessage({from:"guest-site",kind:"post",value:"DONE"},"*")</script>':"NOT-FOUND";
+              port.postMessage({ok:true,response:{status: ["/index.php","/data.php","/post.php"].includes(path)?200:404,
+                 headers:[["Content-Type",["/index.php","/post.php"].includes(path)?"text/html; charset=utf-8":"text/plain"]],
                  body:new TextEncoder().encode(body)}});
             }
           }
@@ -83,6 +84,12 @@ try {
       assert.equal(state.messages.find(m=>m.kind==="isolation")?.value?.stolen,false,"Untrusted guest must not read studio DOM");
       assert.equal(state.messages.find(m=>m.kind==="fetch")?.value,"HTTP-RESPONSE-FROM-HOST","Guest fetch() should reach host");
       assert.ok(state.requests.some(x=>new URL(x.url).pathname==="/data.php"),"Guest SW must route fetch");
+      await page.frameLocator("#preview").locator("#post").click();
+      await page.waitForFunction(()=>window.previewProof?.messages.some(x=>x.kind==="post"),null,{timeout:12000});
+      const afterSubmit=await page.evaluate(()=>window.previewProof);
+      assert.equal(afterSubmit.messages.find(x=>x.kind==="post")?.value,"DONE","POST navigation should return host HTML");
+      assert.equal(afterSubmit.requests.filter(x=>new URL(x.url).pathname==="/post.php"&&x.method==="POST").length,1,"POST must not replay");
+      console.log(name,"isolated POST navigation:",JSON.stringify(afterSubmit.requests));
       await page.close();
     } finally { await browser.close(); }
   }
