@@ -45,3 +45,35 @@ test("preview refuses guests without explicit host permission", async () => {
   await assert.rejects(guest.request({ url: "/index.php" }), /n'autorise pas/);
   await host.close(); guest.close();
 });
+
+test("each guest reuses only its own PHP session across sequential requests", async () => {
+  const calls = []; let next = 0; const removed = [];
+  const guests = new Map();
+  const host = new HostHttpGateway({
+    origin: "https://studio.mmi.place",
+    canPreview: () => true,
+    sessions: { create: async () => `php-${++next}`, remove: async id => removed.push(id) },
+    route: async (session, request) => {
+      calls.push({ session, method: request.method });
+      return { status: 200, headers: [], body: new Uint8Array([1]) };
+    },
+    send: (peer, frame) => guests.get(peer).receive(frame),
+  });
+  const makeGuest = peer => {
+    const guest = new GuestHttpGateway({
+      origin: "https://studio.mmi.place",
+      send: frame => host.receive(peer, frame),
+    });
+    guests.set(peer, guest);
+    return guest;
+  };
+  const alice = makeGuest("alice"), bob = makeGuest("bob");
+  await alice.request({ url: "/login.php", method: "POST", body: [1] });
+  await bob.request({ url: "/index.php" });
+  await alice.request({ url: "/dashboard.php" });
+  assert.equal(calls[0].session, calls[2].session);
+  assert.notEqual(calls[0].session, calls[1].session);
+  assert.deepEqual(calls.map(call => call.method), ["POST", "GET", "GET"]);
+  await host.close(); alice.close(); bob.close();
+  assert.deepEqual(removed.sort(), ["php-1", "php-2"]);
+});
