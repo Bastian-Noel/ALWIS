@@ -10,6 +10,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+  actions: read
 concurrency:
   group: studio-ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -20,7 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          fetch-depth: 0 # Restore verifies historical native sources, not today's mutable files
+          fetch-depth: 0 # Verify local sources against the pinned independent native QA artifact
           persist-credentials: false
       - uses: ./.github/actions/validated-studio
       - name: Retain the exact validated static site for publication

@@ -14,11 +14,11 @@ runs:
       with:
         path: build-work/editor-upstream
         key: ${{ runner.os }}-editor-engines-${{ hashFiles('apps/studio/editor/engines.lock.json') }}
-    - name: Restore pinned native release and verify sources
+    - name: Restore independently compiled PHP/MariaDB with verified sources and browser tests
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
-      run: python3 scripts/restore-deployment-engine.py
+      run: python3 scripts/restore_independent_native_qa.py
     - name: Build editors, verify source checks and assemble static files
       shell: bash
       run: |
@@ -44,9 +44,14 @@ runs:
         mkdir -p build-work/php
         npm install --prefix build-work/php --no-package-lock --ignore-scripts playwright@1.64.1
         build-work/php/node_modules/.bin/playwright install --with-deps --only-shell chromium firefox
-    - name: Compare pinned historical PHP 8.4 / HTTP / PDO / MySQLi reference in both browsers
+    - name: Validate pinned independent PHP 8.4 / HTTP / PDO / MySQLi on both browsers
       shell: bash
-      run: ALWIS_PARITY_LABEL=historical node tests/browser/native-parity.mjs chromium,firefox
+      run: ALWIS_PARITY_LABEL=independent-studio node tests/browser/native-parity.mjs chromium,firefox
+    - name: Validate Fetch/cURL and recovery after PHP fatal errors
+      shell: bash
+      run: |
+        node tests/browser/native-curl.mjs chromium,firefox
+        node tests/browser/native-error-recovery.mjs chromium,firefox
     - name: Validate native PHP and isolated SQL sessions over two real guests in both browsers
       shell: bash
       run: node tests/browser/collab-native-php-peers.mjs chromium,firefox

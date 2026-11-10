@@ -34,6 +34,7 @@ jobs:
           python3 -m unittest discover -s tests -p 'test_native_parity_attestation.py' -v
           python3 -m unittest discover -s tests -p 'test_native_license_evidence.py' -v
           python3 -m unittest discover -s tests -p 'test_native_qa_restore.py' -v
+          python3 -m unittest discover -s tests -p 'test_studio_independent_native_ci.py' -v
           python3 -m unittest discover -s tests -p 'test_curl_compat.py' -v
           python3 scripts/audit-native-license-evidence.py --output build-work/native-license-evidence.json
           python3 -m unittest discover -s tests -p 'test_archive_legacy_native.py' -v
