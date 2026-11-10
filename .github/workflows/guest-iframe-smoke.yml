@@ -31,5 +31,5 @@ jobs:
           mkdir -p build-work/php
           npm install --prefix build-work/php --no-package-lock --ignore-scripts playwright@1.64.1
           build-work/php/node_modules/.bin/playwright install --with-deps --only-shell chromium firefox
-      - name: Actual isolated guest preview: Chromium and Firefox
+      - name: "Actual isolated guest preview: Chromium and Firefox"
         run: node tests/browser/guest-iframe-parity.mjs
