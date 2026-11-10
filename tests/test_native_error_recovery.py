@@ -38,7 +38,10 @@ class NativeErrorRecoveryTests(unittest.TestCase):
         self.assertIn("pbl_mysql_owner_cleanup(owner)", code)
         self.assertIn("EMSCRIPTEN_KEEPALIVE int php_wasm_reusable(void)", code)
         worker = WORKER.read_text()
-        self.assertIn("module._php_wasm_reusable?.()", worker)
+        self.assertIn("module._php_wasm_reusable() !== 1", worker)
+        self.assertIn("typeof module._php_wasm_reusable !== 'function'", worker)
+        cmake = (ROOT / "engine/native/build/runtime-target.cmake").read_text()
+        self.assertIn("'_php_wasm_reusable'", cmake)
         self.assertIn("poisoned = true;", worker)
         self.assertIn("Native PHP SAPI startup or shutdown failed", worker)
 

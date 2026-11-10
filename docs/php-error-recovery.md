@@ -36,6 +36,8 @@ php_request_startup() and BEFORE running user code, never afterward.
 - A bailout escaping the PHP executor, failed startup, or bailout during
   shutdown marks the engine non-reusable. The worker sees
   php_wasm_reusable() returning zero and refuses unsafe subsequent work.
+  The export is part of the mandatory WASM ABI: missing functions also fail
+  closed instead of silently falling back to an older binary.
 - SQL owner cleanup closes and rolls back abandoned transactions and
   releases prepared statements and connections.
 - SG(server_context) remains live through php_request_shutdown() for

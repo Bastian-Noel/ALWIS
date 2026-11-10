@@ -148,7 +148,8 @@ async function request(input) {
   try {
     await module.ccall('php_wasm_run', 'number', ['string', 'number', 'number', 'number'], [script, 0, 0, 0], { async: true });
     const exitCode = module._php_wasm_exit_code();
-    if (module._php_wasm_reusable?.() === 0) {
+    if (typeof module._php_wasm_reusable !== 'function' ||
+        module._php_wasm_reusable() !== 1) {
       // Ordinary PHP exceptions are recoverable. A bailout escaping the SAPI
       // or a partial startup/shutdown is not; never run the next queued job
       // against an unsafe Zend/SQL context.
