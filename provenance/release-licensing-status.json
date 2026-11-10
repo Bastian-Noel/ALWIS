@@ -18,6 +18,11 @@
     {
       "id": "release-notice-verification",
       "summary": "Static notices and candidate corresponding sources are verifiable; independently compiled SHA 39f4b5d6cf785adafd5f994d11b88b491b7dcc21dbfedbefe896b871f5f4f6b6 passed all 17 browser parity probes in both Chromium and Firefox (Actions 42844495555). Final distribution-specific notices, source/binary SBOM, permission review and independent-candidate multi-client native end-to-end testing are outstanding; historical witness multi-client testing passed Actions 42849610482. A parity success does not authorize publication."
+    },
+    {
+      "id": "php-apache1-formatters",
+      "summary": "The actual WSL link includes PHP main/snprintf.c and main/spprintf.c, whose embedded Apache Group 1995-1998 notice retains an advertising clause. The PHP/Zend later-license election does not erase this third-party notice. Replace these implementations with compatible code and rebuild/retest before publication.",
+      "evidence": "provenance/php-formatting-license-review.md"
     }
   ],
   "scope": "This status blocks publication of static, Docker, and native releases containing the runtime. It does not prevent local development or validation builds.",
