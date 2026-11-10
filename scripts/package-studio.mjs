@@ -41,6 +41,12 @@ for(const name of ['LICENSE.md','NOTICE.md','THIRD-PARTY-NOTICES.md'])await copy
 await copy('provenance/release-licensing-status.json','RELEASE-LICENSING-STATUS.json');
 await copy('apps/studio/social-card.png','social-card.png');
 await copy('apps/studio/index.html','index.html');await copy('apps/studio/service-worker.mjs','service-worker.js');await copy('apps/studio/client-bootstrap.js','_pbl/client.js');
+// Keep the original versioned bootstrap for studio previews and add an
+// unversioned copy for the isolated preview origin (which cannot expose _alwis).
+const rawPreviewClient = await readFile(join(root,'apps/studio/client-bootstrap.js'));
+await mkdir(join(target,'_pbl'),{recursive:true});
+await writeFile(join(target,'_pbl/client.js'),rawPreviewClient);
+files.push({path:'_pbl/client.js',bytes:rawPreviewClient.length,sha256:createHash('sha256').update(rawPreviewClient).digest('hex')});
 await copy('apps/studio/collab/isolated-preview-sw.mjs','guest-sw.js');
 await copy('apps/studio/collab/isolated-preview-broker.mjs','guest-broker.mjs');
 const brokerHTML = Buffer.from('<!doctype html><html lang="fr"><meta charset="utf-8"><title>ALWIS · relais invité</title><script type="module" src="/guest-broker.mjs"></script></html>');
