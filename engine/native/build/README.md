@@ -25,6 +25,21 @@ node tests/browser/restart-native.mjs
 
 Les chemins par défaut sont vérifiés par build.sh. Réutiliser les objets préparés uniquement avec le SDK et les sources correspondants. Le manifeste de distribution doit couvrir les sources natives et les fichiers générés livrés ; [CONTRIBUTING](../../../CONTRIBUTING.md) explique les validations et la publication.
 
+## Nouveau runner ALWIS GPLv2 candidat (non compilé)
+
+La reconstruction ajoute `packages/php-native/src/runner.c` et `request-state.[ch]`
+avec des callbacks SAPI PHP 8.4 originaux, un corps HTTP binaire borné et
+l'intégration au propriétaire SQL déjà présent. Le chemin est **opt-in** via
+`--independent-runner` et `PBL_INDEPENDENT_PHP_RUNNER=ON` ; l'ancien générateur
+reste disponible comme témoin, sans prétendre redistribuer son ancien WASM.
+
+Le test compilé GCC du contrat de requêtes et la génération du `runtime.c`
+indépendant passent ; une vérification syntaxique contre des en-têtes PHP
+8.4.27 a été effectuée. **Ni le linker Emscripten ni la parité navigateur du
+nouveau runner ne sont validés.** Voir
+[`provenance/php-runner-reconstruction.md`](../../../provenance/php-runner-reconstruction.md)
+et [`provenance/joomengine-inspiration-map.md`](../../../provenance/joomengine-inspiration-map.md).
+
 ## Candidat de remplacement du patch de sessions tiers (non validé)
 
 Le script `scripts/build-independent-native.sh` ajoute les adaptations ALWIS de

@@ -22,7 +22,8 @@ emcmake cmake -S "$mariadb_source" -B "$mariadb_build" \
   -DCMAKE_BUILD_TYPE=Release -DWITH_EMBEDDED_SERVER=ON -DUPDATE_SUBMODULES=OFF \
   -DIMPORT_EXECUTABLES="$native_build/import_executables.cmake" \
   -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES="$spike_dir/attach.cmake" \
-  -DPBL_SPIKE_SOURCE="$spike_dir" -DPBL_PHP_BUILD="$php_build"
+  -DPBL_SPIKE_SOURCE="$spike_dir" -DPBL_PHP_BUILD="$php_build" \
+  -DPBL_INDEPENDENT_PHP_RUNNER="${PBL_INDEPENDENT_PHP_RUNNER:-OFF}"
 cmake --build "$mariadb_build" --target "${PBL_TARGET:-pbl-fusion}" -j"${JOBS:-3}"
 if [[ "${PBL_TARGET:-pbl-fusion}" == pbl-runtime ]]; then
   node "$repo_dir/scripts/inspect-wasm-abi.mjs" "$mariadb_build/runtime-dist/pbl-runtime.wasm" > "$mariadb_build/runtime-dist/abi.json"
