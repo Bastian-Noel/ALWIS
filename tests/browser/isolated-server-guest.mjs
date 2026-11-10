@@ -142,7 +142,12 @@ try {
       assert.equal(before.messages.find(m => m.type === "fetch")?.value, "GET-REACHED-OWNER:theme=dark");
       assert.ok(before.requests.every(r => r.url.startsWith(studioOrigin)), "Only the owner sees the normalized request URL");
       assert.ok(before.requests.some(r => new URL(r.url).pathname === "/data.php"));
-      await page.frameLocator("#untrusted-project").locator("#submit").click();
+      console.log(name, "pre-POST frames:", JSON.stringify(await Promise.all(
+        page.frames().map(async frame => ({
+          url: frame.url(),
+          body: (await frame.locator("body").innerHTML().catch(e => "frame not readable: " + e.message)).slice(0, 650),
+        })))));
+      await page.frameLocator("#untrusted-project").locator("#submit").click({ timeout: 6500 });
       await page.waitForFunction(() => window.__guestE2E.messages.some(m => m.type === "post"),
         null, { timeout: 20000 });
       const after = await page.evaluate(() => window.__guestE2E);
