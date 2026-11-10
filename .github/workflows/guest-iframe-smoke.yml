@@ -7,6 +7,8 @@ on:
       - 'apps/studio/service-worker.mjs'
       - 'apps/studio/client-bootstrap.js'
       - 'tests/browser/isolated-origin-guest.mjs'
+      - 'tests/browser/isolated-server-guest.mjs'
+      - 'server/server.mjs'
       - '.github/workflows/guest-iframe-smoke.yml'
   pull_request:
   workflow_dispatch:
@@ -33,3 +35,5 @@ jobs:
           build-work/php/node_modules/.bin/playwright install --with-deps --only-shell chromium firefox
       - name: "Actual isolated guest preview: Chromium and Firefox"
         run: node tests/browser/isolated-origin-guest.mjs
+      - name: "Real ALWIS dual-host server + guest cookie, fetch and POST"
+        run: node tests/browser/isolated-server-guest.mjs
