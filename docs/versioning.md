@@ -28,3 +28,7 @@ Ce format reste compatible avec les versions SemVer à trois éléments pour les
 
 Les versions historiques `v0.3.0-preview.*` restent inchangées pour conserver les références.
 Aucun tag nouveau ne doit être créé avant que le binaire, les vérifications et la documentation de cette version soient finalisés.
+
+## Notes de version provisoires
+
+La [bêta V1](release-notes/2026.11.0-beta.1.md) possède un brouillon de notes de version. Aucun tag, release, binaire ni image ne doit être publié avant la validation des licences et de la parité native.

@@ -39,7 +39,7 @@ Les projets sont stockés **localement dans votre navigateur**. Utilisez **Expor
 > [!NOTE]
 > Il faut Node.js 20 ou une version supérieure pour servir localement l'application. PHP et MariaDB sont exécutés en WebAssembly par le navigateur : aucune installation PHP/MySQL n'est nécessaire.
 >
-> Les **nouvelles distributions sont suspendues** jusqu'à la validation des sources et licences du runtime natif. Les anciennes releases restent des références fonctionnelles, sans garantie de conformité de redistribution.
+> Les **nouvelles distributions sont suspendues** jusqu'à la validation des sources et licences du runtime natif. Les anciennes releases restent des références fonctionnelles, sans garantie de conformité de redistribution. La CI peut utiliser ces anciennes versions comme **témoins vérifiés par SHA-256**, sans valider la reconstruction GPLv2.
 
 [Consulter le guide d'installation et l'édition Docker](https://github.com/Bastian-Noel/ALWIS/wiki/Installation)
 

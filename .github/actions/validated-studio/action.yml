@@ -28,6 +28,7 @@ runs:
         cc -std=c11 -Wall -Wextra -Werror -fsyntax-only -x c packages/sql-native/include/pbl_sql.h
         python3 -m compileall -q scripts
         python3 -m unittest discover -s tests -p 'test_native_concurrency.py' -v
+        python3 -m unittest discover -s tests -p 'test_native_restore.py' -v
         python3 -m unittest discover -s tests -p 'test_source_reuse.py' -v
         python3 -m unittest discover -s tests -p 'test_php_wasm_recovery.py' -v
         node scripts/package-studio.mjs

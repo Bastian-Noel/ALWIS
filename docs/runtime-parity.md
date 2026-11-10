@@ -7,9 +7,19 @@
 - **Révision de référence :** `bed7ca0ab47e155bf3ad9556c5abe4933f93e896` (ancienne compilation native).
 - **WASM historique SHA-256 :** `80df46b7b308b33475fde138eb1a295c01ffbf6ac685d17a74209eb224674e0f`.
 - **Fichier local :** `build-work/native-release/native-runtime-2026-11-03-stability/pbl-runtime.wasm` (s'il est disponible).
+- **Restauration du témoin CI :** la release native épinglée a disparu de GitHub. Le ZIP public historique [v0.3.0-preview.18](https://github.com/Bastian-Noel/ALWIS/releases/tag/v0.3.0-preview.18) contient **les mêmes octets** WASM et JS. SHA-256 du ZIP : `971c2576748f0c19bb0231deaf5270a859818ba4b16515228b8d163dad88928d`. Le manifeste immuable `provenance/historical-native-artifact.json` est vérifié contre le verrou (`05987b9ba2b112ff0abbfc6ea05430add57ea9e5f83ab2f6dcd8024ad51ed304`).
 - **Statut :** référence fonctionnelle **non redistribuable en tant que nouvelle release** : patch tiers ancien et source manquante.
 
 Ne pas remplacer ce fichier par le nouveau runtime ni renommer l'ancien binaire pour le faire passer pour GPLv2.
+
+Le script `scripts/restore-deployment-engine.py` vérifie **le ZIP entier, chaque binaire et les sources historiques** avant de copier les octets vers la cible de test. **Ce n'est pas une reconstruction GPLv2 ni une autorisation de publier.** Les workflows de publication conservent la vérification du statut des licences.
+
+~~~sh
+python3 -m unittest discover -s tests -p 'test_native_restore.py' -v
+python3 scripts/restore-deployment-engine.py
+~~~
+
+Les tests de parité natifs et navigateur du successeur GPLv2 restent à effectuer.
 
 ## Matrice de comparaison
 

@@ -1,6 +1,6 @@
 # Installer ALWIS
 
-[Accueil du wiki](https://github.com/Bastian-Noel/ALWIS/wiki) · [Premiers pas](README.md) · [Déployer le serveur](server-deployment.md)
+[Premiers pas](README.md) · [Déployer le serveur](server-deployment.md)
 
 ALWIS exécute PHP et MariaDB dans le navigateur. **Vous n'avez pas besoin d'installer PHP ou MySQL sur votre ordinateur.**
 
