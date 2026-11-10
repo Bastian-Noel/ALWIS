@@ -9,6 +9,7 @@ php_build=${PBL_PHP_BUILD:-"$repo_dir/build-work/php-minimal"}
 mariadb_source=${PBL_MARIADB_SOURCE:-"$repo_dir/build-work/mariadb-shallow"}
 mariadb_build=${PBL_MARIADB_BUILD:-"$repo_dir/build-work/bridge/.native-build/engine/wasm"}
 native_build=${PBL_NATIVE_BUILD:-"$repo_dir/build-work/bridge/.native-build/engine/native"}
+python3 "$repo_dir/scripts/prepare-php84-source.py" --output "$php_build" --verify-only >/dev/null
 [[ -f "$php_build/.libs/libphp.a" && -f "$native_build/import_executables.cmake" ]] || {
   echo 'Prepare PHP pthread archive and MariaDB host tools first; see README.md' >&2
   exit 1

@@ -9,6 +9,7 @@ import hashlib
 import json
 import tarfile
 from pathlib import Path
+from importlib import import_module
 from native_runner_provenance import verify as verify_independent_runner
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -30,6 +31,7 @@ MORE_SOURCES = (
     "engine/baseline/compat",
     "scripts/prepare-native-concurrency.py",
     "scripts/prepare-native-drivers.py",
+    "scripts/prepare-php84-source.py",
     "scripts/prepare-native-result-budget.py",
     "scripts/prepare-native-server.py",
     "scripts/build-independent-native.sh",
@@ -124,11 +126,14 @@ def build(out: Path, *, strict: bool):
     # Fail closed if the build still generated a wrapper from the missing fork.
     # Include the exact generated C translation units, not just regeneration scripts.
     runner = verify_independent_runner(ROOT)
+    php_fibers = import_module('prepare-php84-source')
+    fiber_receipt = php_fibers.prepare(ROOT / 'build-work/php-minimal', verify_only=True)
     generated = ROOT / runner['generatedSourceDirectory']
     files = source_files()
     out.parent.mkdir(parents=True, exist_ok=True)
     receipt = {"schemaVersion": 2, "archives": [], "firstPartyFiles": [],
-               "historicalJoomEngineForkIncluded": False, "independentPhpRunner": runner}
+               "historicalJoomEngineForkIncluded": False, "independentPhpRunner": runner,
+               "phpFiberAdapter": fiber_receipt}
     with tarfile.open(out, "w:gz") as bundle:
         for row, source in sources:
             name = "upstream/" + Path(row["path"]).name
@@ -140,6 +145,11 @@ def build(out: Path, *, strict: bool):
         for source, name in modified:
             bundle.add(source, arcname=name, recursive=False)
             receipt["patchedMariaDBFiles"].append({"path": name, "sha256":digest(source)})
+        # The final linked Zend fiber source is the adapted, pinned source,
+        # not the unmodified official tarball by itself.
+        fiber_dir = ROOT / 'build-work/php-minimal'
+        bundle.add(fiber_dir / 'Zend/zend_fibers.c', arcname='patched-php/Zend/zend_fibers.c', recursive=False)
+        bundle.add(fiber_dir / 'alwis-php84-fibers.json', arcname='patched-php/alwis-php84-fibers.json', recursive=False)
         for row in runner['generatedFiles']:
             source = generated / row['name']
             bundle.add(source, arcname='generated-native/' + row['name'], recursive=False)

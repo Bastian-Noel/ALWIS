@@ -128,6 +128,8 @@ class IndependentRunnerTests(unittest.TestCase):
         self.assertIn("'independentPhpRunner':runner_provenance", code)
         self.assertIn("runner==bundle.get('independentPhpRunner')", workflow)
         self.assertIn('Legacy fork', workflow)
+        self.assertIn("'phpFiberAdapter':fibers_receipt", code)
+        self.assertIn("bundle.get('phpFiberAdapter',{})", workflow)
 
     def test_new_runner_is_the_only_build_path(self):
         build = (ROOT / 'engine/native/build/runtime-target.cmake').read_text()

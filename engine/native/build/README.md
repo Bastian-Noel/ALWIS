@@ -8,12 +8,13 @@
 
 Le moteur historique a été archivé et retiré des anciens répertoires de sortie de compilation locaux. Le générateur `scripts/prepare-native-drivers.py` accepte uniquement `PHP_BUILD OUTPUT` et ne peut plus sélectionner `native/runtime.c` de JoomEngine. Le serveur MariaDB refuse également sa variante historique patchée avec l'API `l4m_session_*`.
 
-Les entrées suivantes doivent être préparées dans `build-work/` depuis leurs archives à révisions/empreintes verrouillées : un `build-work/php-minimal/.libs/libphp.a` pour la cible pthread, `build-work/mariadb-shallow` non patché, les outils hôtes `build-work/bridge/.native-build/engine/native/import_executables.cmake`, ainsi qu'**Emscripten 6.0.6**. Ne jamais utiliser une archive PHP ou MariaDB non vérifiée.
+Les entrées suivantes doivent être préparées dans `build-work/` depuis leurs archives à révisions/empreintes verrouillées : le source PHP 8.4.27 est maintenant préparé par `python3 scripts/prepare-php84-source.py` (patch Zend fibers dérivé de Sean Morris sous option GPLv2). Il doit ensuite produire un `build-work/php-minimal/.libs/libphp.a` pour la cible pthread, `build-work/mariadb-shallow` non patché, les outils hôtes `build-work/bridge/.native-build/engine/native/import_executables.cmake`, ainsi qu'**Emscripten 6.0.6**. Ne jamais utiliser une archive PHP ou MariaDB non vérifiée.
 
 ```sh
 # Vérification des composants C indépendants (ne compile pas le WASM)
 python3 -m unittest discover -s tests -p 'test_independent_php_runner.py' -v
 python3 -m unittest discover -s tests -p 'test_native_concurrency.py' -v
+python3 scripts/prepare-php84-source.py --verify-only
 python3 scripts/audit-native-inputs.py
 
 # Build natif uniquement après mise en place des prérequis Emscripten

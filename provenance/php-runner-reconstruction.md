@@ -44,6 +44,12 @@ Le manifeste de release requiert un reçu de sources (schéma 2) cohérent, les 
 
 Le contrôle local de syntaxe C du runner a été effectué en utilisant des **en-têtes PHP 8.4.27 officiels empaquetés pour le système hôte et une déclaration factice d'EM_JS**. Cette étape ne compile pas les callbacks JavaScript, n'émet pas de WASM et ne teste pas la liaison. Le code de comptage HTTP, lui, a été réellement compilé et exécuté sous GCC (`-Wall -Wextra -Werror`). Les prérequis du build réel (PHP Zend ZTS, Emscripten, MariaDB épinglé) doivent encore être assemblés dans un environnement compatible.
 
+## Source PHP 8.4.27 et fibers Emscripten
+
+`python3 scripts/prepare-php84-source.py` vérifie la **vraie archive PHP 8.4.27**, l'archive Sean Morris et le patch local `engine/patches/php-8.4.27-zend-fibers.patch`, puis prépare `build-work/php-minimal` à partir de zéro. Un appel `--verify-only` refuse une source modifiée ou partiellement patchée. L'adaptation porte **uniquement sur `Zend/zend_fibers.c`** et prend en compte la nouvelle branche ASAN/allocateur de piles présente en PHP 8.4.27. Patch sous l'option GPLv2 sur les parties Sean Morris couvertes, attribution via `LICENSES/seanmorris-php-wasm-NOTICE.txt`.
+
+SHA-256 de la nouvelle unité `Zend/zend_fibers.c` après application : `daeaf8150587f62c45c4e90cce87030f237ef1fe9eedc4e50395d90278370c15`. C'est un **reçu de source** ; les fibers ne sont pas encore testées en Emscripten, et la compilation PHP ZTS/pthreads reste à effectuer.
+
 ## Risques ouverts avant validation
 
 1. SAPI PHP : exactitude de l'ordre des fonctions startup/shutdown, cookies, sorties fatales, `HEAD`, état des superglobales et erreurs après une initialisation partielle.
