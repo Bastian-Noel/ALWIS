@@ -10,6 +10,11 @@ test('real guest PHP/JS preview gets an opaque sandbox origin, with no parent na
   const isolated = { previewOrigin: "https://guest.example", studioOrigin: "https://studio.example" };
   assert.equal(guestPreviewSandbox(true, isolated), "allow-scripts allow-forms allow-same-origin");
   assert.equal(isSafeGuestSandbox(guestPreviewSandbox(true, isolated), isolated), true);
+  // Sibling subdomains share Domain=.example.fr cookies; never grant a
+  // scriptable same-origin sandbox to attacker-controlled preview pages there.
+  const sibling = { previewOrigin: "https://preview.example.fr", studioOrigin: "https://studio.example.fr" };
+  assert.equal(guestPreviewSandbox(true, sibling), "allow-scripts allow-forms");
+  assert.equal(isSafeGuestSandbox("allow-scripts allow-same-origin", sibling), false);
   assert.equal(isSafeGuestSandbox(guestPreviewSandbox(true, isolated), {
     previewOrigin: "https://studio.example", studioOrigin: "https://studio.example",
   }), false);

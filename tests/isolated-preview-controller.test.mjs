@@ -10,6 +10,10 @@ const config = Object.freeze({
 
 test("isolated preview origin must differ from studio and use HTTPS", () => {
   assert.equal(validatePreviewOrigin("https://guest.example", config.studioOrigin), config.previewOrigin);
+  assert.throws(() => validatePreviewOrigin("https://preview.example.fr", "https://studio.example.fr"),
+    /site dédié|domaine de cookies/);
+  assert.equal(validatePreviewOrigin("https://preview-other-domain.net", "https://studio.example.fr"),
+    "https://preview-other-domain.net");
   for (const value of ["https://studio.example", "http://guest.example", "https://guest.example/path",
     "https://guest.example?mode=unsafe", "javascript:alert(1)"])
     assert.throws(() => validatePreviewOrigin(value, config.studioOrigin));

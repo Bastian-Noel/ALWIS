@@ -24,11 +24,23 @@ const previewOrigin = (() => {
   if (!value) return null; // disabled until DNS/TLS and reverse proxy are configured
   const url = new URL(value);
   const configuredStudio = new URL(process.env.PUBLIC_BASE_URL ?? "http://localhost:3000");
+  // A distinct origin is insufficient when sibling subdomains share
+  // Domain=.example.tld cookies. Require another registrable site.
+  const siteSuffix = hostname => {
+    const name = hostname.toLowerCase();
+    if (name === "localhost" || name.endsWith(".localhost")
+      || name === "127.0.0.1" || name === "[::1]") return null;
+    const labels = name.split(".").filter(Boolean);
+    return labels.length >= 2 ? labels.slice(-2).join(".") : null;
+  };
+  const previewSite = siteSuffix(url.hostname);
+  const studioSite = siteSuffix(configuredStudio.hostname);
   if (value !== url.origin || url.username || url.password || url.search || url.hash
       || url.origin === configuredStudio.origin
+      || (previewSite && studioSite && previewSite === studioSite)
       || (url.protocol !== "https:" &&
           !(url.protocol === "http:" && (url.hostname === "localhost" || url.hostname.endsWith(".localhost") || ["127.0.0.1", "[::1]"].includes(url.hostname))))) {
-    throw Error("ALWIS_PREVIEW_ORIGIN doit être une origine HTTPS distincte du studio (HTTP localhost seulement).");
+    throw Error("ALWIS_PREVIEW_ORIGIN exige un site HTTPS dédié différent du domaine de cookies du studio (HTTP localhost seulement).");
   }
   return url.origin;
 })();

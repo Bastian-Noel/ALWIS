@@ -13,12 +13,14 @@ Les paramètres Compose, variables d’environnement, secret administrateur, rev
 
 L'aperçu PHP interactif partagé **ne doit pas tourner sur la même origine que le studio**. Le code PHP peut générer du JavaScript arbitraire : une iframe même origine avec `allow-scripts` et `allow-same-origin` peut accéder au DOM du studio.
 
-Configurez une origine HTTPS distincte, par exemple un sous-domaine indépendant du studio :
+Configurez une origine HTTPS sur un domaine dédié indépendant du studio :
 
 ```dotenv
 PUBLIC_BASE_URL=https://studio.exemple.fr
-ALWIS_PREVIEW_ORIGIN=https://preview.exemple.fr
+ALWIS_PREVIEW_ORIGIN=https://alwis-preview-dedie.exemple.net
 ```
+
+**Sécurité des cookies : choisissez un domaine enregistrable distinct, pas simplement un autre sous-domaine.** `studio.exemple.fr` et `preview.exemple.fr` partageraient les éventuels cookies `Domain=.exemple.fr`, lisibles ou modifiables par le JavaScript du projet. Le serveur refuse désormais ce montage : utilisez un domaine réservé exclusivement aux aperçus non fiables, qui ne partage aucune authentification avec d'autres services. En environnement local, deux origines `localhost` différentes restent autorisées pour les tests.
 
 Les deux noms doivent joindre le **même conteneur ALWIS** via deux hôtes virtuels du reverse proxy. Conservez le **Host** et le protocole d'origine dans le proxy et activez TLS pour les deux. Le serveur n'expose que `guest-broker.html`, `guest-broker.mjs`, `guest-sw.js` et `_pbl/client.js` sur l'hôte d'aperçu ; le studio, l'administration et le signaling ne s'y affichent pas. Les scripts PHP et les fichiers du projet sont exécutés uniquement par le navigateur hôte.
 

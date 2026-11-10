@@ -4,6 +4,7 @@
  * but cannot access the studio DOM, credentials or request handlers.
  */
 import { guestPreviewURL, validGuestChannel } from "./guest-preview-route.mjs";
+import { separateOrigin } from "./preview-security.mjs";
 
 export function validatePreviewOrigin(value, studioOrigin) {
   if (typeof value !== "string" || !value) throw Error("Une origine d'aperçu dédiée est nécessaire.");
@@ -12,9 +13,9 @@ export function validatePreviewOrigin(value, studioOrigin) {
   if (preview.origin !== value || preview.username || preview.password
       || preview.pathname !== "/" || preview.search || preview.hash
       || preview.origin === studio.origin) throw Error("L'aperçu doit avoir une origine distincte du studio.");
-  if (preview.protocol !== "https:" &&
-      !(preview.protocol === "http:" && (preview.hostname === "localhost" || preview.hostname.endsWith(".localhost") || ["127.0.0.1", "[::1]"].includes(preview.hostname))))
-    throw Error("L'origine d'aperçu doit utiliser HTTPS (sauf localhost).");
+  if (!separateOrigin(preview.origin, studio.origin)) {
+    throw Error("L'aperçu doit utiliser un site dédié, distinct du studio et de son domaine de cookies, en HTTPS (localhost autorisé pour les tests).");
+  }
   return preview.origin;
 }
 
