@@ -22,6 +22,7 @@ const cases = [
   "parse", "check",
   "sql-error", "check",
   "caught", "check",
+  "memory", "check",
   "throw", "check",
 ];
 const server = createStudioServer({engineDist:dist});
@@ -65,10 +66,12 @@ try {
               throw Error(message + ": " + JSON.stringify(record) +
                 "\nPrevious requests: " + JSON.stringify(outcomes.slice(-5)));
             };
-            const fatal = ["throw","sql-error","parse"].includes(name);
+            const fatal = ["throw","sql-error","parse","memory"].includes(name);
             if (fatal) {
               if (response.exitCode===0) error("Fatal PHP error incorrectly returned exit code zero");
               if (response.status<500) error("Fatal PHP error incorrectly returned HTTP success");
+              if (name==="memory" && !stderr.includes("Allowed memory size"))
+                error("Zend memory_limit was not the source of the failure");
             } else if (name==="exit") {
               if (response.exitCode!==42) error("Unexpected explicit PHP exit code");
             } else if (name==="status") {

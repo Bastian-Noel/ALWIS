@@ -22,6 +22,13 @@ if ($mode === 'init') {
     $pdo->exec("INSERT INTO alwis_error_recovery VALUES ('rollback-sql')");
     // An uncaught PDOException must not poison PHP or commit a transaction.
     $pdo->exec('INSERT INTO alwis_table_that_does_not_exist VALUES (1)');
+ } elseif ($mode === 'memory') {
+    $pdo->beginTransaction();
+    $pdo->exec("INSERT INTO alwis_error_recovery VALUES ('rollback-memory')");
+    ini_set('memory_limit', '16M');
+    // Zend must enforce its own limit without exhausting the WASM heap.
+    $tooLarge = str_repeat('x', 32 * 1024 * 1024);
+    echo 'Memory limit unexpectedly bypassed';
 } elseif ($mode === 'parse') {
     // PHP parse errors thrown by eval() follow a separate Zend error path.
     eval('function broken syntax that cannot be parsed');
