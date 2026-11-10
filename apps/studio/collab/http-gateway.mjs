@@ -75,6 +75,10 @@ export class HostHttpGateway {
         if (result.file.size > HTTP_LIMITS.responseBytes) throw Error("HTTP file exceeds guest budget");
         body = new Uint8Array(await result.file.arrayBuffer());
       }
+      // A guest may lose the interactive-preview grant while PHP/SQL is
+      // executing. Never return its result after a mid-request revocation.
+      if (!await this.canPreview(from))
+        throw Error("L'hôte a retiré l'autorisation d'aperçu PHP interactif.");
       const response = normalizeHostResponse({ ...result, body, file: undefined });
       await this.flow.transfer(from, httpFrames("http-response", id,
         { status: response.status, headers: response.headers, cookies: this.#publicCookies(session) }, response.body));
@@ -91,8 +95,12 @@ export class HostHttpGateway {
   #publicCookies(session) {
     const cookies = this.cookieState(session);
     if (!Array.isArray(cookies)) return [];
+    // Defense in depth: even if an upstream sessions.list() accidentally
+    // returns all cookies, HttpOnly values can NEVER be exposed to guest JS.
+    const visible = cookies.filter(item => item && typeof item.name === "string"
+      && typeof item.value === "string" && item.httpOnly !== true);
     // A frame must remain under the relay's 12 KiB budget, including metadata.
-    return JSON.stringify(cookies).length <= 4096 ? cookies : [];
+    return JSON.stringify(visible).length <= 4096 ? visible : [];
   }
   async drop(from) { this.flow.drop(from); await this.registry.drop(from); }
   async close() { this.flow.close(); this.collector.reset(); await this.registry.close(); this.active.clear(); }

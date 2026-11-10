@@ -19,7 +19,7 @@ python3 -m unittest discover -s tests -p 'test_native_restore.py' -v
 python3 scripts/restore-deployment-engine.py
 ~~~
 
-Les tests de parité natifs et navigateur du successeur GPLv2 restent à effectuer.
+La reconstruction indépendante ALWIS a passé les **17 scénarios PHP/HTTP/PDO/MySQLi sur Chromium et Firefox** avec le même nouveau SHA-256, dans la CI GitHub Actions 42844495555. Cette parité fonctionnelle est démontrée pour les scénarios couverts ; la conformité légale, les tests de charge et la parité exhaustive du studio restent ouvertes.
 
 ## Matrice de comparaison
 
@@ -34,7 +34,7 @@ Les tests de parité natifs et navigateur du successeur GPLv2 restent à effectu
 | HTTP externe, timeout, gzip, 16 Mio | `tests/browser/network-native.mjs` | Même hash binaire, mêmes limites d'annulation |
 | Persistance après redémarrage | `tests/browser/disk-storage.mjs` | Aucune perte de fichiers ni d'état SQL |
 | Invité → hôte, contrat HTTP | `tests/collab-http-contract.test.mjs` | Pas de DOM partagé, cookies hôte, limites et non-rejeu POST |
-| Vrai aperçu invité bout en bout | **À ajouter** | Navigation et JavaScript locaux invités, requêtes PHP au navigateur hôte |
+| Vrai aperçu invité bout en bout | **En cours** | Deux vrais invités WebRTC/P2P et relais validés ; le parcours PHP/MariaDB avec sessions natives distinctes fait l’objet de tests navigateur dédiés, sans validation finale encore |
 
 ## Ordre d'exécution
 
@@ -45,3 +45,16 @@ Les tests de parité natifs et navigateur du successeur GPLv2 restent à effectu
 5. Préparer les sources correspondantes du nouveau binaire. Garder le verrou de redistribution jusqu'à validation.
 
 > Une source-only CI verte n'est pas un succès de parité : elle ne compile ni n'exécute PHP/MariaDB.
+
+
+## Nouveau runtime compilé et test de parité vérifié
+
+- **CI :** https://github.com/Bastian-Noel/ALWIS/actions/runs/42844495555 (réussie).
+- **WASM indépendant :** 38 242 096 octets ; SHA-256 39f4b5d6cf785adafd5f994d11b88b491b7dcc21dbfedbefe896b871f5f4f6b6.
+- **Corresponding sources :** archive de 254 740 830 octets ; sept sources amont verrouillées et les modifications ALWIS correspondantes.
+- **Chromium :** 17/17 cas de parité sur le même WASM et JS ; **Firefox :** 17/17 sur les mêmes octets.
+- **Sessions et MySQL :** tests de sessions, cookies, POST binaire, PDO/MySQLi et absence de connexions/statement résiduels réussis par requêtes natives dans les deux navigateurs.
+- **Transport collaboratif :** CI 42845820969, vrai serveur et vrais canaux WebRTC P2P / relais et reconnect/kick dans Chromium/Firefox ; la connexion de deux invités au runtime PHP/MariaDB historique a réussi dans la CI 42849610482. Les deux canaux étaient WebRTC P2P ; les sessions PHP étaient distinctes et les événements SQL partagés. Le même scénario reste à valider sur le nouveau WASM indépendant avant de conclure à une parité multiutilisateur complète.
+- **Attestation :** scripts/attest-independent-parity.py exige le SHA du WASM ET du JavaScript, les deux reçus, les 17 cas ordonnés et zéro connexion ou statement résiduel. Il ne peut pas lever le verrou légal.
+
+**Distinction fondamentale :** ces résultats sont des validations techniques sur runner de test ; le statut de redistribution reste blocked, les cinq revues de licence et de provenance ne sont pas soldées.

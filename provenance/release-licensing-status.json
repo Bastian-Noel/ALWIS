@@ -5,11 +5,11 @@
   "blockers": [
     {
       "id": "apache2-mariadb-patch",
-      "summary": "The currently pinned/distributed native binary still contains the legacy Apache-2.0 sessions patch incorporated into GPLv2 MariaDB. The ALWIS replacement candidate has not yet been rebuilt and validated and has not cleared the legal review."
+      "summary": "The currently pinned and distributed historical runtime still includes the Apache-2.0 JoomEngine sessions patch in GPLv2 MariaDB. An ALWIS-owned replacement WASM has now been independently compiled and passed 17 PHP/HTTP/PDO/MySQLi browser tests each in Chromium and Firefox (Actions 42844495555), but is NOT the distributed runtime and has not completed a release-specific compatibility/legal review."
     },
     {
       "id": "native-sbom-and-source",
-      "summary": "Source archives of MariaDB, PHP, Sean Morris php-wasm, Connector/C and wolfSSL are locally verified. The deleted JoomEngine PHP native wrapper source is not recovered, its API is not drop-in compatible with the GPLv2 fallback, and the exact linked license/SBOM inventory remains incomplete."
+      "summary": "Seven exact upstream archives (MariaDB, PHP official 8.4.27 release, php/php-src, Sean Morris php-wasm, Connector/C, wolfSSL, PCRE2) are SHA-256 verified and an independent corresponding-source bundle is produced in Actions 42844495555. The missing JoomEngine native wrapper is excluded. Full linker-to-component file-level SBOM and applicable licence exceptions for the final combined binary remain unaudited."
     },
     {
       "id": "editor-apache-boundary",
@@ -21,7 +21,7 @@
     },
     {
       "id": "release-notice-verification",
-      "summary": "Release-specific checks verify static notices. Native source/binary correspondence remains missing until an independently rebuilt WASM, complete corresponding-source bundle, and current matching browser receipts are available."
+      "summary": "Static notices and candidate corresponding sources are verifiable; independently compiled SHA 39f4b5d6cf785adafd5f994d11b88b491b7dcc21dbfedbefe896b871f5f4f6b6 passed all 17 browser parity probes in both Chromium and Firefox (Actions 42844495555). Final distribution-specific notices, source/binary SBOM, permission review and independent-candidate multi-client native end-to-end testing are outstanding; historical witness multi-client testing passed Actions 42849610482. A parity success does not authorize publication."
     }
   ],
   "scope": "This status blocks publication of static, Docker, and native releases containing the runtime. It does not prevent local development or validation builds.",

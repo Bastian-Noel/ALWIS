@@ -104,3 +104,63 @@ test("PHP cookies stay host-side, JavaScript cookies are scoped to each guest", 
   await assert.rejects(async () => alice.cookie("forged=1", "https://other.example/"), /Cross-origin/);
   await host.close(); alice.close(); bob.close();
 });
+
+test("host preview revocation during a PHP request refuses to return private response bytes", async () => {
+  let previewAllowed = true, resolveRoute, started;
+  const arrived = new Promise(resolve => started = resolve);
+  const sent = [];
+  let guest;
+  const host = new HostHttpGateway({
+    origin: "https://studio.mmi.place",
+    canPreview: () => previewAllowed,
+    sessions: { create: async () => "private-session", remove: async () => {} },
+    route: () => {
+      started();
+      return new Promise(resolve => { resolveRoute = resolve; });
+    },
+    send: (_peer, message) => {
+      sent.push(message.t);
+      guest.receive(message);
+      return true;
+    },
+  });
+  guest = new GuestHttpGateway({
+    origin: "https://studio.mmi.place",
+    send: message => host.receive("guest-a", message),
+  });
+  const request = guest.request({ url: "/private.php", method: "GET" });
+  await arrived;
+  previewAllowed = false;
+  resolveRoute({ status: 200, headers: [["Content-Type", "text/html"]],
+    body: new TextEncoder().encode("HOST-ONLY PHP SECRETS") });
+  await assert.rejects(request, /retiré l'autorisation/);
+  assert.equal(sent.filter(type => type === "http-response").length, 0,
+    "No protected PHP content may reach a revoked guest");
+  assert.equal(sent.filter(type => type === "http-error").length, 1);
+  guest.close();
+  await host.close();
+});
+
+
+test("HttpOnly PHP session cookies are never present in guest RPC metadata", async () => {
+  let guest;
+  const host = new HostHttpGateway({
+    origin: "https://studio.mmi.place", canPreview: () => true,
+    sessions: { create: async () => "private", remove: async () => {} },
+    cookieState: () => [
+      { name: "PHPSESSID", value: "not-for-guest", path: "/", httpOnly: true },
+      { name: "theme", value: "dark", path: "/", httpOnly: false },
+    ],
+    route: async () => ({ status: 200, headers: [["Content-Type", "text/plain"]],
+      body: new TextEncoder().encode("opaque-content") }),
+    send: (_peer, frame) => { guest.receive(frame); return true; },
+  });
+  guest = new GuestHttpGateway({
+    origin: "https://studio.mmi.place", send: frame => host.receive("guest", frame),
+  });
+  const result = await guest.request({ url: "/index.php" });
+  assert.deepEqual(result.cookies.map(x => x.name), ["theme"]);
+  assert.ok(!JSON.stringify(result).includes("not-for-guest"));
+  guest.close();
+  await host.close();
+});

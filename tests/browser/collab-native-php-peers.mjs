@@ -47,6 +47,7 @@ const php = [
   "<?php",
   "session_start();",
   "$_SESSION['count'] = ($_SESSION['count'] ?? 0) + 1;",
+  "$_SESSION['marker'] ??= bin2hex(random_bytes(12));",
   "$pdo = new PDO('mysql:dbname=test', 'root', '');",
   "$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);",
   "$pdo->exec('CREATE TABLE IF NOT EXISTS alwis_browser_guest_events (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, stamp VARCHAR(100) NOT NULL)');",
@@ -57,7 +58,7 @@ const php = [
   "} else { $raw = ''; }",
   "$total = (int) $pdo->query('SELECT COUNT(*) FROM alwis_browser_guest_events')->fetchColumn();",
   "header('Content-Type: application/json');",
-  "echo json_encode(['session' => session_id(), 'count' => $_SESSION['count'],",
+  "echo json_encode(['marker' => $_SESSION['marker'], 'count' => $_SESSION['count'],",
   "  'method' => $_SERVER['REQUEST_METHOD'], 'body' => bin2hex($raw), 'rows' => $total]);",
 ].join("\n");
 
@@ -159,7 +160,7 @@ async function runBrowser(name) {
     assert.equal(firstB.status, 200);
     assert.equal(firstA.response.count, 1);
     assert.equal(firstB.response.count, 1);
-    assert.notEqual(firstA.response.session, firstB.response.session, "Each guest must own a distinct PHPSESSID");
+    assert.notEqual(firstA.response.marker, firstB.response.marker, "Each guest must own a distinct PHPSESSID");
     for (const result of [firstA, firstB]) {
       assert.equal(result.publicCookies?.length ?? 0, 0, "Host-only PHP session cookie leaked");
       assert.ok(!result.headers.some(([key]) => key.toLowerCase() === "set-cookie"));
@@ -167,16 +168,16 @@ async function runBrowser(name) {
 
     const postA = await guestHTTP(alice, "POST", [0, 127, 128, 255]);
     assert.equal(postA.response.count, 2);
-    assert.equal(postA.response.session, firstA.response.session);
+    assert.equal(postA.response.marker, firstA.response.marker);
     assert.equal(postA.response.body, "007f80ff");
     assert.equal(postA.response.rows, 1);
     const postB = await guestHTTP(bob, "POST", [45, 0, 254]);
     assert.equal(postB.response.count, 2);
-    assert.equal(postB.response.session, firstB.response.session);
+    assert.equal(postB.response.marker, firstB.response.marker);
     assert.equal(postB.response.body, "2d00fe");
     assert.equal(postB.response.rows, 2);
     const againA = await guestHTTP(alice, "GET");
-    assert.equal(againA.response.session, firstA.response.session);
+    assert.equal(againA.response.marker, firstA.response.marker);
     assert.equal(againA.response.count, 3);
     assert.equal(againA.response.rows, 2);
 
@@ -186,6 +187,8 @@ async function runBrowser(name) {
     assert.deepEqual(await owner.evaluate(() => alwisHost.errors), []);
     const modes = await Promise.all([alice, bob].map(page =>
       page.evaluate(() => alwisGuest.hub.links.get("h")?.mode)));
+    assert.deepEqual(modes, ["p2p", "p2p"],
+      "Both native PHP guest sessions must use actual WebRTC data channels");
     console.log(name, "NATIVE PHP PDO/MariaDB OVER TWO GUEST BROWSERS: PASS",
       JSON.stringify({ sessionsDistinct: true, perGuestCounters: [3, 2],
         sharedSQLRows: 2, binaryPosts: true, phpCookiesPrivate: true, modes }));
