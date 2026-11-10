@@ -44,6 +44,9 @@ runs:
         mkdir -p build-work/php
         npm install --prefix build-work/php --no-package-lock --ignore-scripts playwright@1.64.1
         build-work/php/node_modules/.bin/playwright install --with-deps --only-shell chromium firefox
+    - name: Compare pinned historical PHP 8.4 / HTTP / PDO / MySQLi reference in both browsers
+      shell: bash
+      run: ALWIS_PARITY_LABEL=historical node tests/browser/native-parity.mjs chromium,firefox
     - name: Validate the shipped static package in Chromium and Firefox
       shell: bash
       run: |
