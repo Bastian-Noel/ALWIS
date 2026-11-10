@@ -1,0 +1,143 @@
+name: CI - independent PHP MariaDB native reconstruction
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Validate pinned sources, or also attempt Linux x86-64 WASM compilation
+        required: true
+        type: choice
+        default: sources
+        options: [sources, compile]
+permissions:
+  contents: read
+concurrency:
+  group: independent-native-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  pinned-sources:
+    name: Verify upstream and stage independent PHP/MariaDB
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: |
+            sources/seanmorris--php-wasm-1e1fb6703730759181e84c62bce35ee9129febb9.tar.gz
+            sources/shyim--lite4mariadb-24be9371a2f6c71250a2356631ad6feab2280b02.tar.gz
+            sources/MariaDB--mariadb-connector-c-5a6fe6016fc908518e7d2a8c128a5c108b511c17.tar.gz
+            sources/wolfSSL--wolfssl-1d363f3adceba9d1478230ede476a37b0dcdef24.tar.gz
+            build-work/source-archives/php-8.4.27.tar.xz
+          key: native-v1-${{ hashFiles('provenance/upstream-lock.json', 'provenance/submodules-lock.json', 'scripts/prepare-php84-source.py') }}
+      - name: Verify strict source-loader controls
+        run: |
+          python3 -m unittest discover -s tests -p test_native_source_staging.py -v
+          python3 -m unittest discover -s tests -p test_independent_php_runner.py -v
+          python3 -m unittest discover -s tests -p test_native_concurrency.py -v
+      - name: Fetch SHA-256 pinned upstream files and generate ALWIS-only sources
+        run: |
+          python3 scripts/prepare-independent-native-inputs.py --download --stage-root build-work/native-ci \
+            > build-work/native-inputs-ci.log
+          python3 scripts/prepare-independent-native-inputs.py --stage-root build-work/native-ci --verify-only
+          python3 scripts/prepare-php84-source.py --output build-work/native-ci/php-minimal --verify-only
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          record=json.loads(Path('build-work/native-ci/verified-inputs.json').read_text())
+          assert record['status']=='verified-sources-only'
+          assert record['nativeWasmCompiled'] is False
+          assert record['releaseApproved'] is False
+          assert len(record['thirdParty'])==5
+          print('REPRODUCIBLE SOURCES VERIFIED, not a compiled WASM or a release.')
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: independent-native-source-receipts
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            build-work/native-ci/verified-inputs.json
+            build-work/native-ci/php-minimal/alwis-php84-fibers.json
+            build-work/native-ci/independent-generated/driver-adapter.json
+            build-work/native-inputs-ci.log
+
+  candidate-native:
+    name: Build and browser-test newly compiled PHP/MariaDB (no publish)
+    if: github.event.inputs.mode == 'compile'
+    needs: pinned-sources
+    runs-on: ubuntu-24.04
+    timeout-minutes: 100
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24'
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: |
+            sources/seanmorris--php-wasm-1e1fb6703730759181e84c62bce35ee9129febb9.tar.gz
+            sources/shyim--lite4mariadb-24be9371a2f6c71250a2356631ad6feab2280b02.tar.gz
+            sources/MariaDB--mariadb-connector-c-5a6fe6016fc908518e7d2a8c128a5c108b511c17.tar.gz
+            sources/wolfSSL--wolfssl-1d363f3adceba9d1478230ede476a37b0dcdef24.tar.gz
+            build-work/source-archives/php-8.4.27.tar.xz
+          key: native-v1-${{ hashFiles('provenance/upstream-lock.json', 'provenance/submodules-lock.json', 'scripts/prepare-php84-source.py') }}
+      - name: Install host build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake ninja-build bison re2c autoconf automake \
+            libtool pkg-config libncurses-dev libssl-dev zlib1g-dev libpcre2-dev
+      - name: Reconstruct exactly pinned PHP, MariaDB and submodules
+        run: |
+          python3 scripts/prepare-independent-native-inputs.py --download --stage-root build-work
+          python3 scripts/prepare-php84-source.py --verify-only
+      - name: Install pinned Emscripten 6.0.6 (Linux x86-64)
+        run: |
+          git init -q build-work/emsdk
+          git -C build-work/emsdk remote add origin https://github.com/emscripten-core/emsdk.git
+          git -C build-work/emsdk fetch --depth 1 origin d7b4130688bfa348392b921ab04015aa15c4f154
+          git -C build-work/emsdk checkout --detach FETCH_HEAD
+          test "$(git -C build-work/emsdk rev-parse HEAD)" = d7b4130688bfa348392b921ab04015aa15c4f154
+          build-work/emsdk/emsdk install 6.0.6
+          build-work/emsdk/emsdk activate 6.0.6
+      - name: Build independent PHP/MariaDB native candidate, source bundle, and ABI
+        run: bash scripts/build-independent-native-ci.sh
+      - name: Install browser tests (ONLY after successful new native build)
+        run: |
+          mkdir -p build-work/php
+          npm install --prefix build-work/php --no-package-lock --ignore-scripts playwright@1.64.1
+          build-work/php/node_modules/.bin/playwright install --with-deps --only-shell chromium firefox
+      - name: Verify native PHP/HTTP/PDO/MySQLi parity on Chromium and Firefox
+        env:
+          ALWIS_PARITY_LABEL: independent-candidate
+          ALWIS_PARITY_RUNTIME_DIST: build-work/bridge/.native-build/engine/wasm/runtime-dist
+        run: node tests/browser/native-parity.mjs chromium,firefox
+      - name: Report only test receipts; NEVER distribute the blocked WASM
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          path=Path('build-work/independent-native-build.json')
+          status=json.loads(path.read_text()) if path.is_file() else {'status':'compile-not-completed'}
+          print('Candidate build status:',status)
+          print('Publication intentionally prohibited; GPLv2/source/notice gate unchanged.')
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: independent-native-build-receipts-not-binaries
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            build-work/independent-native-build.json
+            build-work/independent-native-adapter.json
+            build-work/php-minimal/alwis-php84-fibers.json
+            build-work/parity/independent-candidate-*.json

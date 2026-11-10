@@ -29,6 +29,7 @@ jobs:
         run: |
           python3 -m compileall -q scripts
           python3 -m unittest discover -s tests -p 'test_native_concurrency.py' -v
+          python3 -m unittest discover -s tests -p 'test_native_source_staging.py' -v
           python3 -m unittest discover -s tests -p 'test_independent_php_runner.py' -v
           python3 -m unittest discover -s tests -p 'test_archive_legacy_native.py' -v
           python3 -m unittest discover -s tests -p 'test_native_restore.py' -v
