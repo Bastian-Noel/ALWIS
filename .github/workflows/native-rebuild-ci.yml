@@ -46,6 +46,7 @@ jobs:
           python3 -m unittest discover -s tests -p test_native_concurrency.py -v
       - name: Fetch SHA-256 pinned upstream files and generate ALWIS-only sources
         run: |
+          mkdir -p build-work
           python3 scripts/prepare-independent-native-inputs.py --download --stage-root build-work/native-ci \
             > build-work/native-inputs-ci.log
           python3 scripts/prepare-independent-native-inputs.py --stage-root build-work/native-ci --verify-only
