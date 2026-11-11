@@ -16,4 +16,16 @@ runs:
         fi
         mkdir -p build-work/php
         npm install --prefix build-work/php --no-package-lock --ignore-scripts playwright@1.64.1
-        build-work/php/node_modules/.bin/playwright install --with-deps --only-shell chromium firefox
+        build-work/php/node_modules/.bin/playwright install --only-shell chromium firefox
+        # Ubuntu runners already provide the browsers' shared libraries in most images.
+        # Probe both actual pinned binaries; install OS packages only when necessary.
+        if ! node --input-type=module <<'JS'
+        import { chromium, firefox } from './build-work/php/node_modules/playwright/index.mjs';
+        for (const type of [chromium, firefox]) {
+          const browser = await type.launch({ headless: true, args: type === chromium ? ['--no-sandbox'] : [] });
+          await browser.close();
+        }
+        JS
+        then
+          build-work/php/node_modules/.bin/playwright install-deps chromium firefox
+        fi
