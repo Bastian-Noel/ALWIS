@@ -59,11 +59,12 @@
       "main/snprintf.c",
       "main/spprintf.c"
     ],
-    "version": "2026.11.0-beta.1",
+    "version": "2026.11.0-beta.2",
     "maintainerAuthorized": true,
     "thirdPartyPermissionGranted": false,
     "compatibilityFindingResolved": false,
     "noticeSha256": "98f8c06714504f5db3c23c5f51c089e49569d30ebe55683845670b9be6e10006",
-    "decision": "Explicit owner request to publish FTP/container while deferring these two upstream files. This is an internal release exception, not GPL compatibility clearance."
+    "decision": "Explicit owner request to publish the corrected FTP site and container as beta.2 on 2026-11-11. The same two unchanged upstream formatting files remain disclosed under the existing narrowly scoped internal exception; no third-party permission or compatibility clearance is claimed.",
+    "previousVersion": "2026.11.0-beta.1"
   }
 }

@@ -11,9 +11,9 @@ class PublicationPolicyTests(unittest.TestCase):
     def setUp(self):
         self.record = json.loads((ROOT / "provenance/release-licensing-status.json").read_text())
     def test_owner_exception_allows_only_recorded_release(self):
-        require_publication(self.record, ROOT, "2026.11.0-beta.1")
+        require_publication(self.record, ROOT, self.record["publicationException"]["version"])
         with self.assertRaisesRegex(ValueError, "version"):
-            require_publication(self.record, ROOT, "2026.11.0-beta.2")
+            require_publication(self.record, ROOT, "2099.12.0-beta.999")
     def test_unknown_blocker_is_not_silently_ignored(self):
         self.record["blockers"].append({"id": "new-incompatible-dependency"})
         with self.assertRaises(ValueError): require_publication(self.record, ROOT)
