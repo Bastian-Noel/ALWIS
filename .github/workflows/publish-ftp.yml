@@ -6,6 +6,10 @@ on:
         description: Release à créer avant le transfert FTP (ex. v2026.11.0-beta.1)
         type: string
         required: true
+      source_sha:
+        description: Commit main deja valide a deployer (vide = main courant)
+        type: string
+        required: false
 permissions:
   contents: read
 concurrency:
@@ -41,12 +45,26 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-          SOURCE_SHA: ${{ github.sha }}
+          SOURCE_SHA: ${{ inputs.source_sha || github.sha }}
         run: python3 scripts/verify-ci-artifact.py
+      - name: Record validated source for the container workflow
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          manifest=json.loads(Path('build-work/site/release.json').read_text())
+          Path('build-work/static-source.json').write_text(json.dumps({'revision':manifest['revision'],'version':manifest['version']}))
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: studio-static-source
+          path: build-work/static-source.json
+          if-no-files-found: error
+          retention-days: 14
       - name: Retain validated static package in the publication run
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: studio-static-${{ github.sha }}
+          name: studio-static-${{ inputs.source_sha || github.sha }}
           retention-days: 14
           include-hidden-files: true
           if-no-files-found: error
@@ -69,6 +87,7 @@ jobs:
           GH_REPO: ${{ github.repository }}
           RELEASE_TAG: ${{ inputs.version }}
           VALIDATED_RUN: ${{ github.run_id }}
+          SOURCE_SHA: ${{ inputs.source_sha || github.sha }}
           RELEASE_BEFORE_FTP: 'true'
         run: python3 scripts/release-validated-site.py
   publish:
@@ -87,7 +106,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-        run: gh run download "$GITHUB_RUN_ID" --name "studio-static-$GITHUB_SHA" --dir build-work/site
+        run: gh run download "$GITHUB_RUN_ID" --name "studio-static-${{ inputs.source_sha || github.sha }}" --dir build-work/site
       - name: Publish through passive FTP
         env:
           FTP_HOST: '141.253.111.13'
@@ -102,6 +121,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           RELEASE_TAG: ${{ inputs.version }}
+          SOURCE_SHA: ${{ inputs.source_sha || github.sha }}
         run: python3 scripts/record-ftp-release.py
       - name: Retain previous files privately for recovery
         if: always()

@@ -23,9 +23,8 @@ for record in release['files']:
  data=(source/path).read_bytes()
  if len(data)!=record['bytes'] or hashlib.sha256(data).hexdigest()!=record['sha256']:raise SystemExit('Package verification failed: '+str(path))
 # A PHP-capable host must serve these helpers as text, never execute them.
-files=sorted(p for p in source.rglob('*') if p.is_file())
-if any(p.suffix.lower()=='.php' for p in files):raise SystemExit('The static package must not contain remotely executable PHP files')
-if len(files)>100:raise SystemExit('Unexpected static file count')
+from static_package_inventory import verify_inventory
+files=verify_inventory(source, release)
 managed='''# BEGIN WASMWebServer managed headers
 <IfModule mod_headers.c>
   Header always set Cross-Origin-Opener-Policy "same-origin"

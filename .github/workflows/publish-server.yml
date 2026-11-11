@@ -37,21 +37,37 @@ jobs:
           RUN_ID: ${{ inputs.static_run_id }}
           SOURCE_SHA: ${{ inputs.source_sha }}
         run: test -n "$RUN_ID" && test -n "$SOURCE_SHA"
+      - name: Resolve the validated static source
+        id: source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.event.workflow_run.id || inputs.static_run_id }}
+          EXPECTED_SHA: ${{ inputs.source_sha }}
+        run: |
+          gh run download "$RUN_ID" --repo "$GITHUB_REPOSITORY" --name studio-static-source --dir build-work/source
+          python3 - <<'PY'
+          import json,os,re
+          from pathlib import Path
+          source=json.loads(Path('build-work/source/static-source.json').read_text())['revision']
+          assert re.fullmatch('[0-9a-f]{40}',source), 'Invalid source SHA'
+          assert not os.environ['EXPECTED_SHA'] or os.environ['EXPECTED_SHA']==source, 'Requested source differs from validated artifact'
+          with open(os.environ['GITHUB_OUTPUT'],'a') as output: output.write('sha='+source+'\n')
+          PY
       - name: Check out the exact static release source
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha || inputs.source_sha }}
+          ref: ${{ steps.source.outputs.sha }}
           persist-credentials: false
       - name: Download the validated static artifact
         env:
           GH_TOKEN: ${{ github.token }}
           RUN_ID: ${{ github.event.workflow_run.id || inputs.static_run_id }}
           GH_REPO: ${{ github.repository }}
-          SOURCE_SHA: ${{ github.event.workflow_run.head_sha || inputs.source_sha }}
+          SOURCE_SHA: ${{ steps.source.outputs.sha }}
         run: gh run download "$RUN_ID" --repo "$GH_REPO" --name "studio-static-$SOURCE_SHA" --dir build-work/server-site
       - name: Verify the static release artifact
         env:
-          SOURCE_SHA: ${{ github.event.workflow_run.head_sha || inputs.source_sha }}
+          SOURCE_SHA: ${{ steps.source.outputs.sha }}
         run: |
           python3 - <<'PY'
           import hashlib, json, os
@@ -84,7 +100,7 @@ jobs:
         run: printf '%s' "$GH_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
       - name: Build and publish the multi-architecture server image
         env:
-          SOURCE_SHA: ${{ github.event.workflow_run.head_sha || inputs.source_sha }}
+          SOURCE_SHA: ${{ steps.source.outputs.sha }}
         run: |
           VERSION=$(node -p "JSON.parse(require('fs').readFileSync('package.json','utf8')).version")
           TAG="${VERSION}"

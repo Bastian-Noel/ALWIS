@@ -16,11 +16,12 @@ jobs=api('actions/runs/'+run+'/jobs?per_page=100')['jobs']
 before_ftp=os.environ.get('RELEASE_BEFORE_FTP')=='true'
 required_job='Reuse successful CI package' if before_ftp else 'Transfer exactly released package over FTP'
 if not any(job['name']==required_job and job['conclusion']=='success' for job in jobs):raise SystemExit('The validated source job must have succeeded first')
-revision=record['head_sha'];output=Path('build-work/releases')/tag;output.mkdir(parents=True,exist_ok=True)
+revision=os.environ.get('SOURCE_SHA') or record['head_sha'];output=Path('build-work/releases')/tag;output.mkdir(parents=True,exist_ok=True)
 existing=subprocess.run(['gh','release','view',tag,'--repo',repo,'--json','isDraft,targetCommitish'],capture_output=True,text=True)
+published_existing=False
 if existing.returncode==0:
  value=json.loads(existing.stdout)
- if not value['isDraft']:raise SystemExit('Published versions are immutable; select a new version')
+ published_existing=not value['isDraft']
  if value['targetCommitish']!=revision:raise SystemExit('Existing draft points to a different revision; preserving it')
 artifacts=api('actions/runs/'+run+'/artifacts?per_page=100')['artifacts'];candidates=[a for a in artifacts if a['name']=='studio-static-'+revision and not a['expired']]
 if not candidates:raise SystemExit('Validated site artifact is unavailable')
@@ -45,6 +46,15 @@ with zipfile.ZipFile(archive)as source:
  with zipfile.ZipFile(site,'w',zipfile.ZIP_DEFLATED,compresslevel=6)as target:
   for item in sorted(entries,key=lambda i:i.filename):
    info=zipfile.ZipInfo(item.filename,date_time=(1980,1,1,0,0,0));info.compress_type=zipfile.ZIP_DEFLATED;info.external_attr=0o100644<<16;target.writestr(info,source.read(item))
+# A retry may deploy an immutable release only when its ZIP is byte-identical.
+if published_existing:
+ checks_dir=output/'published-checksums';checks_dir.mkdir(exist_ok=True)
+ subprocess.run(['gh','release','download',tag,'--repo',repo,'--pattern','SHA256SUMS','--dir',str(checks_dir),'--clobber'],check=True)
+ checks={line.split(None,1)[1].strip():line.split(None,1)[0] for line in (checks_dir/'SHA256SUMS').read_text().splitlines() if line.strip()}
+ with site.open('rb') as stream: actual=hashlib.file_digest(stream,'sha256').hexdigest()
+ if checks.get(site.name)!=actual:raise SystemExit('Published release differs from validated CI package; preserving immutable assets')
+ print('Reusing immutable release with identical verified ZIP:',tag)
+ raise SystemExit(0)
 # Preserve the broader CI receipts for the same source revision when available.
 validation_runs=api('actions/workflows/check.yml/runs?head_sha='+revision+'&status=success&per_page=10')['workflow_runs'];assets=[site]
 if validation_runs:
