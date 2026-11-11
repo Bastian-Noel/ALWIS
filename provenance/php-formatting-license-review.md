@@ -7,3 +7,14 @@ The [PHP licensing page](https://www.php.net/license/) explicitly preserves file
 The active release gate records this concrete issue. A compatible implementation must replace both translation units, retaining the PHP formatting API and tests for truncation, integer widths, floating point, PHP-specific format tokens and failure paths. Merely removing their notices is not a solution.
 
 Other advertising-clause hits in PHP include Berkeley-derived code; examine the University of California's 1999 removal and actual compiled branches individually rather than assigning every hit the same conclusion. The Bison parser skeletons carry their output exception. wolfSSL carries its MariaDB GPLv2 exception.
+
+## Follow-up verification requested by the maintainer
+
+11 November 2026. Checked the official PHP licensing page, the accepted PHP License Update RFC, PHP's licensing policy and MariaDB's licensing FAQ. No applicable supplemental permission was located in these sources. This is a bounded search result, not proof that no permission exists anywhere.
+
+- https://www.php.net/license/ preserves file-specific third-party conditions.
+- https://github.com/php/policies/blob/main/php-license.rst records consent from the PHP Group and Zend Technologies. It does not establish an Apache Group waiver for these portions.
+- https://wiki.php.net/rfc/php_license_update describes the PHP/Zend license upgrades; no specific authorization for these Apache formatter portions was identified.
+- https://mariadb.com/docs/general-resources/community/community/faq/licensing-questions/licensing-faq describes a FLOSS exception for the client library. That statement cannot be extended automatically to the embedded server linked here.
+
+The local exact-link replay selects both libphp.a(snprintf.o) and libphp.a(spprintf.o), and yields the same WASM hash as the tested runtime. This proves archive-member selection; it is not a claim that every function in those members survives dead-code elimination. No blanket release approval or blanket prohibition on distributing PHP follows from this finding.
