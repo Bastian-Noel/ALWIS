@@ -164,3 +164,41 @@ test("HttpOnly PHP session cookies are never present in guest RPC metadata", asy
   guest.close();
   await host.close();
 });
+
+
+test("a burst of page assets queues instead of exceeding the host limit; POST is executed once", async () => {
+  const calls = []; let active = 0, peak = 0;
+  const host = new HostHttpGateway({ origin: "https://example.org", canPreview: () => true,
+    sessions: { create: () => "private", remove() {} },
+    route: async (_session, req) => {
+      active++; peak = Math.max(active, peak); calls.push(req);
+      await new Promise(r => setTimeout(r, 5)); active--;
+      return { status: 200, headers: [], body: new Uint8Array([1]) };
+    }, send: (_peer, m) => setTimeout(() => guest.receive(m), 0) });
+  const guest = new GuestHttpGateway({ origin: "https://example.org", send: m => setTimeout(() => host.receive("guest", m), 0) });
+  const responses = await Promise.all(Array.from({length:24}, (_,i) => guest.request({ url: "/asset-"+i, method:i===10?"POST":"GET", body:i===10?[7]:[] })));
+  assert.ok(responses.every(r => r.status === 200));
+  assert.equal(calls.length,24); assert.equal(calls.filter(r=>r.method==="POST").length,1);
+  assert.ok(peak<=3); assert.equal(guest.queue.length,0);
+  guest.close(); await host.close();
+});
+
+test("queued HTTP requests are bounded and cancelled on disconnect without later execution", async () => {
+  const sent=[];
+  const guest=new GuestHttpGateway({ origin:"https://example.org",send:m=>sent.push(m),timeoutMs:2000 });
+  const results=[];
+  for(let i=0;i<36;i++) results.push(guest.request({url:"/asset-"+i}).catch(e=>e.message));
+  await new Promise(r=>setTimeout(r,0));
+  assert.equal(guest.inFlight,3); assert.equal(guest.queue.length,32);
+  guest.close(); const messages=await Promise.all(results);
+  assert.ok(messages.some(m=>/pleine/.test(m))); assert.equal(guest.queueBytes,0);
+  assert.equal(sent.filter(m=>m.t==="http-request").length,3);
+});
+
+
+test("disconnect before dispatch never sends a queued POST", async () => {
+  const sent=[];
+  const guest=new GuestHttpGateway({ origin:"https://example.org", send:m=>sent.push(m) });
+  const pending=guest.request({url:"/write.php",method:"POST",body:[1]});
+  guest.close(); await assert.rejects(pending,/déconnecté/); assert.equal(sent.length,0);
+});

@@ -117,15 +117,53 @@ export class GuestHttpGateway {
     this.pending = new Map();
     this.pendingCookies = new Map();
     this.nextId = 0;
+    this.queue = [];
+    this.queueBytes = 0;
+    this.inFlight = 0;
+    this.closed = false;
+  }
+  // Keep the host concurrency limit while absorbing a browser’s bounded asset burst.
+  enqueue(run, bytes = 0) {
+    if (this.closed) return Promise.reject(Error("L’aperçu distant a été déconnecté."));
+    if (this.queue.length >= 32 || this.queueBytes + bytes > 16 * 1024 * 1024)
+      return Promise.reject(Error("La file des requêtes de l’aperçu est pleine."));
+    return new Promise((resolve, reject) => {
+      const entry = { run, bytes, resolve, reject, deadline: Date.now() + this.timeoutMs };
+      entry.timer = setTimeout(() => {
+        const index = this.queue.indexOf(entry);
+        if (index < 0) return;
+        this.queue.splice(index, 1); this.queueBytes -= bytes;
+        reject(Error("Délai dépassé dans la file des requêtes de l’aperçu."));
+      }, this.timeoutMs);
+      entry.timer.unref?.();
+      this.queue.push(entry); this.queueBytes += bytes;
+      this.drain();
+    });
+  }
+  drain() {
+    while (!this.closed && this.queue.length && this.inFlight < HTTP_LIMITS.maxConcurrentPerGuest) {
+      const entry = this.queue.shift(); this.queueBytes -= entry.bytes; clearTimeout(entry.timer);
+      const remaining = entry.deadline - Date.now();
+      if (remaining <= 0) { entry.reject(Error("Délai dépassé avant l’envoi de la requête.")); continue; }
+      this.inFlight++;
+      Promise.resolve().then(() => {
+        if (this.closed) throw Error("L’aperçu distant a été déconnecté.");
+        return entry.run(remaining);
+      }).then(entry.resolve, entry.reject).finally(() => {
+        this.inFlight--; this.drain();
+      });
+    }
   }
   async request(value) {
-    if (this.pending.size >= HTTP_LIMITS.maxConcurrentPerGuest) throw Error("Too many concurrent guest HTTP requests");
     const normalized = normalizeGuestRequest(value, this.origin);
+    return this.enqueue(remaining => this.dispatchRequest(normalized, remaining), normalized.body.byteLength);
+  }
+  async dispatchRequest(normalized, timeoutMs) {
     const id = ++this.nextId;
     const meta = { url: normalized.url, method: normalized.method, headers: normalized.headers,
       destination: normalized.destination, name: this.name };
     return new Promise((resolve, reject) => {
-      const timer = setTimeout(() => { this.pending.delete(id); this.flow.abort("host", "http-request", id); reject(Error("L'hôte n'a pas répondu à la requête HTTP.")); }, this.timeoutMs);
+      const timer = setTimeout(() => { this.pending.delete(id); this.flow.abort("host", "http-request", id); reject(Error("L'hôte n'a pas répondu à la requête HTTP.")); }, timeoutMs);
       timer.unref?.();
       this.pending.set(id, { resolve, reject, timer });
       this.flow.transfer("host", httpFrames("http-request", id, meta, normalized.body)).catch(error => {
@@ -138,16 +176,17 @@ export class GuestHttpGateway {
     const normalized = normalizeGuestRequest({ url, method: "GET" }, this.origin);
     if (typeof value !== "string" || value.length > 4096 || /[\r\n\0]/.test(value))
       return Promise.reject(Error("Invalid guest cookie"));
-    if (this.pendingCookies.size >= HTTP_LIMITS.maxConcurrentPerGuest)
-      return Promise.reject(Error("Too many pending guest cookie updates"));
+    return this.enqueue(remaining => this.dispatchCookie(value, normalized.url, remaining));
+  }
+  dispatchCookie(value, url, timeoutMs) {
     const id = ++this.nextId;
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
         this.pendingCookies.delete(id); reject(Error("L'hôte ne répond pas à la mise à jour du cookie."));
-      }, this.timeoutMs);
+      }, timeoutMs);
       timer.unref?.();
       this.pendingCookies.set(id, { resolve, reject, timer });
-      if (this.send({ t: "http-cookie", id, url: normalized.url, value }) === false) {
+      if (this.send({ t: "http-cookie", id, url, value }) === false) {
         clearTimeout(timer); this.pendingCookies.delete(id); reject(Error("L'hôte est déconnecté."));
       }
     });
@@ -191,6 +230,11 @@ export class GuestHttpGateway {
     return true;
   }
   close() {
+    this.closed = true;
+    for (const entry of this.queue.splice(0)) {
+      clearTimeout(entry.timer); entry.reject(Error("L’aperçu distant a été déconnecté."));
+    }
+    this.queueBytes = 0;
     for (const pending of this.pending.values()) {
       clearTimeout(pending.timer);
       pending.reject(Error("L'aperçu distant a été déconnecté."));

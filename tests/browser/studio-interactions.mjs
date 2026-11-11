@@ -61,7 +61,7 @@ try {
     await page.locator('#ed1 .cm-content').waitFor();
     await page.waitForFunction(()=>document.documentElement.hasAttribute('data-guest-http-preview'));
    };
-   await join(guest,'Guest');
+   await join(guest,'Guest');console.log(name+': guest joined');
    await state(guest, async ({A})=>A.nav('schema'));
    // Real pointer drag beyond the original nonnegative world bounds.
    await state(host, ({S,ctx})=>{S.pan=[460,350];S.zoom=1;ctx.draw();});
@@ -95,7 +95,7 @@ try {
    const gtable=guest.locator('[data-drag="students"]');await gtable.focus();await gtable.press('ArrowLeft');
    const final=await state(guest,({S})=>[...S.pos.students]);
    await host.waitForFunction(async p=>JSON.stringify((await import('/apps/studio/workbench/state.mjs')).S.pos.students)===JSON.stringify(p),final);
-   await join(late,'Late');await state(late,async({A})=>A.nav('schema'));
+   console.log(name+': live and edge placement passed');await join(late,'Late');await state(late,async({A})=>A.nav('schema'));
    await late.waitForFunction(async p=>JSON.stringify((await import('/apps/studio/workbench/state.mjs')).S.pos.students)===JSON.stringify(p),final);
    // Explorer badges move to collapsed parent folders and back to the visible file.
    await state(host,async({A})=>A.nav('code'));await state(guest,async({A})=>{await A.nav('code');await A.openFile('/lib/bootstrap.php');});
@@ -104,6 +104,7 @@ try {
    await host.locator('#tree [data-path="/lib"][aria-expanded="false"] .cb-av').waitFor();
    await host.locator('#tree [data-path="/lib"]').click();
    await host.locator('#tree [data-path="/lib/bootstrap.php"] .cb-av').waitFor();
+   console.log(name+': badges and late joining passed');
    // Both popup paths use their role-specific HTTP preview, never a guest's null local hub.
    for(const page of [host,guest]) {
     await state(page,async({A})=>{await A.openFile('/index.php');await A.runFile('/index.php');});
@@ -116,7 +117,7 @@ try {
       await writeFile('build-work/studio-interactions/popup-failure-'+name+'.json',JSON.stringify(diagnostic,null,2));
       throw error;
     }
-    await popup.close();
+    await popup.close();console.log(name+': '+(page===host?'host':'guest')+' popup passed');
    }
    // Latest completed record is first without mutating chronological storage or selection.
    await state(host,({A})=>A.networkToggle());
@@ -130,7 +131,7 @@ try {
     window.releaseSave=null;
     ctx.engine.projects.save=async()=>{await new Promise(r=>window.releaseSave=r);return save();};
    });
-   await host.locator('#primary').click();
+   console.log(name+': network passed');await host.locator('#primary').click();
    await host.waitForFunction(()=>typeof window.releaseSave==='function');
    assert.equal(await host.locator('#primary').isDisabled(),true);
    assert.equal(await host.locator('#primary').getAttribute('aria-busy'),'true');
