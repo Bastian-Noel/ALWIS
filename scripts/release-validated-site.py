@@ -66,9 +66,11 @@ with zipfile.ZipFile(site) as payload:
  wasm=next(x for x in manifest['files'] if x['path'].endswith('/engine/pbl-runtime.wasm'))
  if native['wasmSha256']!=wasm['sha256']:raise SystemExit('Native source manifest does not match shipped WASM')
  native_run=api('actions/runs/'+str(native['runId']))
- if native_run['conclusion']!='success' or native_run['head_sha']!=native['sourceRevision']:raise SystemExit('Unverified native source run')
+ if native_run['conclusion']!='success' or native_run['head_sha']!=native['sourceRevision'] or native_run['path']!='.github/workflows/native-rebuild-ci.yml' or native_run['head_branch'] not in ('main','develop/2026-11-beta1-foundation'):raise SystemExit('Unverified native source run')
  native_dir=output/'native-sources'
  subprocess.run(['gh','run','download',str(native['runId']),'--repo',repo,'--name','independent-native-qa-with-sources','--dir',str(native_dir)],check=True)
+ proof=json.loads((native_dir/'qa-manifest.json').read_text())
+ if any(proof.get(k)!=native.get(k) for k in ('wasmSha256','sourcesSha256','sourceRevision')):raise SystemExit('Downloaded native proof differs from the shipped source manifest')
  sources=native_dir/'corresponding-sources.tar.gz'
  if hashlib.file_digest(sources.open('rb'),'sha256').hexdigest()!=native['sourcesSha256']:raise SystemExit('Corresponding sources checksum mismatch')
  assets.extend([sources,native_dir/'corresponding-sources.tar.gz.json',native_dir/'qa-manifest.json'])
