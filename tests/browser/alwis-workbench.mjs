@@ -257,7 +257,10 @@ try {
         );
       await page.locator("#ed1 .cm-content").press("Control+s");
       await page.waitForFunction(
-        () => document.querySelector("#primary").disabled,
+        () => {
+          const button = document.querySelector("#primary");
+          return button.disabled && button.dataset.saveState === "saved";
+        },
       );
       console.log(name, checks.length + 1);
       await page.locator('#codeTools button[data-tool="Formater"]').click();
