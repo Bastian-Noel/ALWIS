@@ -59,12 +59,12 @@
       "main/snprintf.c",
       "main/spprintf.c"
     ],
-    "version": "2026.11.0-beta.2",
+    "version": "2026.11.0-beta.3",
     "maintainerAuthorized": true,
     "thirdPartyPermissionGranted": false,
     "compatibilityFindingResolved": false,
     "noticeSha256": "98f8c06714504f5db3c23c5f51c089e49569d30ebe55683845670b9be6e10006",
-    "decision": "Explicit owner request to publish the corrected FTP site and container as beta.2 on 2026-11-11. The same two unchanged upstream formatting files remain disclosed under the existing narrowly scoped internal exception; no third-party permission or compatibility clearance is claimed.",
-    "previousVersion": "2026.11.0-beta.1"
+    "decision": "Owner-requested fixes to the published studio on 2026-11-11, continuing the authorized publication and scoped internal formatter exception. The native engine and the two upstream files are unchanged; their notices and unresolved compatibility finding remain disclosed. No third-party permission or legal clearance is claimed.",
+    "previousVersion": "2026.11.0-beta.2"
   }
 }

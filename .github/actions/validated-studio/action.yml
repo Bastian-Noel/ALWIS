@@ -51,6 +51,7 @@ runs:
       run: |
         node tests/browser/site-package.mjs
         node tests/browser/collab-banner.mjs
+        node tests/browser/studio-interactions.mjs
         node tests/browser/isolated-origin-guest.mjs
         node tests/browser/isolated-server-guest.mjs
         node tests/browser/collab-real-peers.mjs

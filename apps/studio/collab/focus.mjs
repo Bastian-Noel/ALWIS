@@ -375,17 +375,33 @@ export class FocusLayer {
   }
   #badges(files) {
     for (const old of qa("#tree .cb-badges")) old.remove();
-    for (const row of qa("#tree [data-path][data-kind=file]")) {
-      const list = files.get(row.dataset.path);
-      if (!list?.length) continue;
+    const rows = qa("#tree [data-path][data-kind]");
+    const byPath = new Map(rows.map(row => [row.dataset.path, row]));
+    const visible = new Map();
+    for (const [path, peers] of files) {
+      let row = byPath.get(path);
+      if (!row) {
+        // Attach to the nearest visible collapsed ancestor, never a sibling prefix.
+        row = rows.filter(r => r.dataset.kind === "dir" && r.getAttribute("aria-expanded") === "false"
+          && path.startsWith(r.dataset.path + "/"))
+          .sort((a, b) => b.dataset.path.length - a.dataset.path.length)[0];
+      }
+      if (!row) continue;
+      const people = visible.get(row) ?? new Map();
+      for (const peer of peers) people.set(peer.id, peer);
+      visible.set(row, people);
+    }
+    for (const [row, people] of visible) {
+      const list = [...people.values()];
+      const folder = row.dataset.kind === "dir";
       const wrap = document.createElement("span");
       wrap.className = "cb-badges";
-      wrap.setAttribute("aria-label", `Ouvert par ${list.map((p) => p.name).join(", ")}`);
+      wrap.setAttribute("aria-label", `${folder ? "Fichiers du dossier ouverts par" : "Ouvert par"} ${list.map((p) => p.name).join(", ")}`);
       list.forEach((p) => {
         const a = document.createElement("span");
         a.className = "cb-av cb-sm";
         a.style.cssText = cssVars(p.name, p.variant);
-        a.title = `${p.name} modifie ce fichier`;
+        a.title = `${p.name} modifie ${folder ? "un fichier dans ce dossier" : "ce fichier"}`;
         a.textContent = initial(p.name);
         wrap.append(a);
       });

@@ -32,6 +32,9 @@ export const S = {
   exOpen: false,
   applied: new Set(),
   dbDirty: false,
+  layoutDirty: false,
+  layoutVersion: 0,
+  saving: false,
   savedAt: null,
   saveFail: false,
   find: { open: false, i: 0 },
@@ -158,7 +161,8 @@ export const dirty = (p) => p in S.drafts && S.drafts[p] !== S.base[p];
 export const drafts = () => Object.keys(S.drafts).filter(dirty);
 export function persistState() {
   const d = drafts().length,
-    a = S.applied.size + (S.dbDirty ? 1 : 0);
+    a = S.applied.size + (S.dbDirty || S.layoutDirty ? 1 : 0);
+  if (S.saving) return { lvl: "w", t: "Enregistrement…", l: ["k", "w", ""] };
   if (S.saveFail)
     return { lvl: "e", t: "Sauvegarde échouée", l: ["e", "e", "e"] };
   if (d)

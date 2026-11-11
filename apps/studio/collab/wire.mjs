@@ -15,6 +15,8 @@ import { watchPreview, createMirror } from "./preview.mjs";
 import { guestPreviewSandbox } from "./preview-security.mjs";
 import { HostHttpGateway, GuestHttpGateway } from "./http-gateway.mjs";
 import { shareNetworkRecord, networkRecordReceiver } from "./shared-network.mjs";
+import { SchemaSync } from "./schema-sync.mjs";
+import { drawSchema } from "../workbench/views/schema.mjs";
 import { PreviewDelivery } from "./preview-delivery.mjs";
 import { IsolatedGuestPreviewController } from "./isolated-preview-controller.mjs";
 import { updatePreviewStatus } from "../workbench/views/code.mjs";
@@ -25,6 +27,29 @@ const throttle = (fn, ms) => { let t = 0, pending = null; return (...a) => { con
 
 export function installWiring(collab) {
   let run = null; // active role state, null when no session
+
+  ctx.schemaMoved = (db, table, pos, final) => run?.schema?.move(db, table, pos, final);
+  const applyPlacement = ({ db, table, pos }) => {
+    S.layouts ??= {};
+    const exists = Object.hasOwn(S.layouts, db);
+    if (!exists && Object.keys(S.layouts).length >= 128) return false;
+    const positions = exists ? S.layouts[db] : {};
+    if (!Object.hasOwn(positions, table) && Object.keys(positions).length >= 4096) return false;
+    const old = Object.hasOwn(positions, table) ? positions[table] : null;
+    if (old?.[0] === pos[0] && old?.[1] === pos[1]) return;
+    Object.defineProperty(positions, table, { value: [...pos], writable: true, configurable: true, enumerable: true });
+    Object.defineProperty(S.layouts, db, { value: positions, writable: true, configurable: true, enumerable: true });
+    if (db === S.db) {
+      S.pos = positions;
+      S.layoutDB = db;
+      if (S.view === "schema") drawSchema();
+    }
+    S.layoutDirty = true;
+    S.layoutVersion++;
+    ctx.shell();
+    ctx.schedulePersist?.();
+  };
+  const layoutSnapshot = () => ({ ...S.layouts, ...(S.db ? { [S.db]: S.pos } : {}) });
 
   const peerInfo = (id) => {
     const p = collab.session?.peer(id);
@@ -112,6 +137,7 @@ export function installWiring(collab) {
     const session = collab.session;
     const send = (to, m, o) => session.send(to, m, o);
     collab.previewEnabled = collab.config?.guestPreviewEnabled === true; // Deployment policy, never a per-user setting.
+    const schema = new SchemaSync({ host: true, send: m => session.broadcast(m), apply: applyPlacement, layouts: layoutSnapshot });
     const previewDelivery = new PreviewDelivery();
     const http = new HostHttpGateway({
       origin: location.origin,
@@ -161,8 +187,12 @@ export function installWiring(collab) {
     const onMessage = guard(({ from, msg }) => {
       if (["http-request", "http-ack", "http-error", "http-cookie"].includes(msg.t)) return http.receive(from, msg);
       switch (msg.t) {
+        case "schema-move":
+          if (session.peer(from)?.state === "online") schema.receive(msg);
+          return;
         case "hello":
           send(from, { t: "welcome", project: S.project, db: S.db, host: session.me.name, httpPreview: collab.previewEnabled });
+          schema.snapshot(m => send(from, m));
           for (const record of S.reqs.slice(-20)) shareNetworkRecord(record, message => send(from, message));
           pvWatch.resend(); focus.announce(true); return send(from, { t: "focus-state", ...focus.snapshot(from) });
         case "http-preview-status":
@@ -195,12 +225,12 @@ export function installWiring(collab) {
     });
     run = {
       role: "host",
-      focus,
+      schema, focus,
       local: (path, changes) => docs.local(path, changes),
       cursor: (path, a, h) => docs.hostCursor(path, a, h),
       stop() {
         collab.previewEnabled = false;
-        offMsg(); offDown(); offChanged(); offRequest(); unwrapQ(); focus.stop(); pvWatch.stop(); clearTimeout(changedTimer);
+        schema.stop(); offMsg(); offDown(); offChanged(); offRequest(); unwrapQ(); focus.stop(); pvWatch.stop(); clearTimeout(changedTimer);
         previewDelivery.reset();
         http.close().catch(error => log("warn", "guest_http_close", { message: error.message }));
       },
@@ -220,6 +250,7 @@ export function installWiring(collab) {
     const main = document.querySelector("#main");
     const release = showLoading(main, "Connexion au projet de l’hôte…");
     const send = (m, o) => session.send("h", m, o);
+    const schema = new SchemaSync({ send, apply: applyPlacement, layouts: layoutSnapshot });
     const rpc = new RpcGuest({ send, onBusy: (n) => document.documentElement.toggleAttribute("data-collab-busy", n > 0) });
     const receiveNetwork = networkRecordReceiver(record => {
       if (!S.reqs.some(item => item.id === record.id)) ctx.engine.emit("request", record);
@@ -269,7 +300,12 @@ export function installWiring(collab) {
     const mirror = createMirror({ container: () => document.querySelector("#pvFrames") });
     const sessionsFrame = ctx.engine.sessions?.frame;
     const sessionsList = ctx.engine.sessions?.list;
+    const sessionsRouteURL = ctx.engine.sessions?.routeURL;
     if (ctx.engine.sessions) {
+      ctx.engine.sessions.routeURL = (_id, path) => {
+        if (!interactivePreview || !preview) throw Error("Aperçu invité interactif indisponible.");
+        return preview.url(path);
+      };
       ctx.engine.sessions.frame = async (_id, path) => ({ src: interactivePreview && preview ? preview.url(path) : "about:blank" });
       ctx.engine.sessions.list = () => [{ id: "host", label: interactivePreview ? "Mon visiteur PHP" : "Aperçu de l’hôte", hue: "#276ac4", short: "invité", cookies: [], hidden: 0 }];
     }
@@ -298,7 +334,7 @@ export function installWiring(collab) {
       document.documentElement.setAttribute("data-collab-guest", "");
       Object.assign(S, {
         project: w.project || "Projet partagé", db: w.db ?? "test", dbCollapsed: false, files: [], base: {}, drafts: {}, tabs: [], active: null,
-        vdirs: new Set(), applied: new Set(), dbDirty: false, saveFail: false, reqs: [], wins: [], cat: null, dbs: [], table: null, pos: {},
+        vdirs: new Set(), applied: new Set(), dbDirty: false, saveFail: false, reqs: [], wins: [], cat: null, dbs: [], table: null, pos: {}, layouts: {}, layoutDB: null, layoutDirty: false, layoutVersion: 0,
         pv: false, pvDouble: false, pvPath: "/index.php", pvInfo: {}, pvSessions: ["host"], dmode: "data",
         qtext: "SELECT 1;", rs: null,
       });
@@ -321,6 +357,7 @@ export function installWiring(collab) {
       if (["http-response", "http-ack", "http-error", "http-cookie-result"].includes(msg.t)) return http.receive(msg);
       switch (msg.t) {
         case "welcome": return enter(msg);
+        case "schema-placement": if (from === "h") return schema.receive(msg); return;
         case "network-record": if (from === "h") return receiveNetwork(msg); return;
         case "http-preview-permission": return setInteractivePreview(!!msg.enabled);
         case "pv-scroll": if (!interactivePreview) mirror.scroll(msg.scroll); return;
@@ -355,12 +392,12 @@ export function installWiring(collab) {
       release();
       offMsg(); offPeer(); offStatus();
       preview?.stop(); http.close();
-      focus.stop(); unwrapQ(); restoreEngine(); unbindAll();
+      schema.stop(); focus.stop(); unwrapQ(); restoreEngine(); unbindAll();
       document.documentElement.removeAttribute("data-collab-guest");
       document.documentElement.removeAttribute("data-guest-http-preview");
       document.documentElement.removeAttribute("data-guest-preview-trusted");
       document.documentElement.removeAttribute("data-guest-preview-origin");
-      if (ctx.engine.sessions && sessionsFrame) { ctx.engine.sessions.frame = sessionsFrame; ctx.engine.sessions.list = sessionsList; }
+      if (ctx.engine.sessions && sessionsFrame) { ctx.engine.sessions.frame = sessionsFrame; ctx.engine.sessions.list = sessionsList; ctx.engine.sessions.routeURL = sessionsRouteURL; }
       Object.assign(ctx, { persist: saved.persist, schedulePersist: saved.schedulePersist });
       Object.assign(A, { openFile: saved.openFile, save: saved.save, close: saved.close });
       Object.assign(S, { mode: "launcher", project: null, files: [], base: {}, drafts: {}, tabs: [], active: null, cat: null, dbs: [], table: null, rs: null });
@@ -369,7 +406,7 @@ export function installWiring(collab) {
     }
     run = {
       role: "guest",
-      focus,
+      schema, focus,
       local: (path, changes) => docs.local(path, changes),
       cursor: (path, a, h) => docs.cursor(path, a, h),
       reconnect() {

@@ -37,3 +37,9 @@ Vérifiez les droits avant une modification et retirez l’accès lorsque la sé
 Commencez avec deux contextes navigateur distincts, ouvrez une même application, donnez-leur des profils différents et modifiez une donnée SQL. Vérifiez la séparation des sessions et la visibilité de la donnée commune. Testez ensuite la déconnexion de l’hôte et le retrait d’un invité. N’inférez pas la réussite de l’aperçu HTTP du seul fait que l’éditeur synchronise du texte.
 
 [Preuves des tests](runtime-parity.md) · [Dépannage](troubleshooting.md) · [Plan historique de migration](collaboration-http-migration.md)
+
+## Déplacements du schéma et présence dans les dossiers
+
+Les positions des tables sont communes : déplacer une table met à jour les autres participants pendant le déplacement. Les nouveaux invités retrouvent ce placement et l’hôte le conserve avec **Enregistrer**. Le zoom et le cadrage restent personnels, sauf si vous choisissez de suivre quelqu’un. Vous pouvez aller à gauche et au-dessus de l’origine ; près des bords, le déplacement entraîne le panoramique. Les flèches du clavier déplacent aussi une table sélectionnée.
+
+Dans l’explorateur, l’avatar d’une personne apparaît près de son fichier ouvert. Si ce fichier est caché par un dossier replié, l’avatar remonte sur ce dossier. Dépliez-le pour retrouver l’indicateur sur le fichier.

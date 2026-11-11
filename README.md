@@ -7,7 +7,7 @@
 Du code à la page web, des tables aux relations : construisez et explorez une application sans installer de serveur PHP ou SQL sur votre ordinateur.
 
 [![Studio en ligne](https://img.shields.io/badge/Essayer-le_studio-087e79)](https://studio.mmi.place/)
-[![Bêta](https://img.shields.io/badge/Version-2026.11_Beta_1-245edb)](https://github.com/Bastian-Noel/ALWIS/releases/tag/v2026.11.0-beta.1)
+[![Bêta](https://img.shields.io/badge/Version-2026.11_Beta_3-245edb)](https://github.com/Bastian-Noel/ALWIS/releases/tag/v2026.11.0-beta.3)
 [![CI](https://github.com/Bastian-Noel/ALWIS/actions/workflows/check.yml/badge.svg)](https://github.com/Bastian-Noel/ALWIS/actions/workflows/check.yml)
 
 **[Ouvrir ALWIS](https://studio.mmi.place/) · [Découvrir le wiki](https://github.com/Bastian-Noel/ALWIS/wiki) · [Télécharger](https://github.com/Bastian-Noel/ALWIS/releases)**
@@ -79,7 +79,7 @@ L’édition serveur permet aussi de partager une session de travail. Les invit�
 | Votre objectif | Le chemin le plus direct |
 |---|---|
 | Essayer immédiatement | [Ouvrir le studio](https://studio.mmi.place/), puis choisir le Campus |
-| Travailler localement | Télécharger le ZIP de la [version publiée](https://github.com/Bastian-Noel/ALWIS/releases/tag/v2026.11.0-beta.1), lancer `node serve.mjs`, ouvrir `http://127.0.0.1:8080` |
+| Travailler localement | Télécharger le ZIP de la [version publiée](https://github.com/Bastian-Noel/ALWIS/releases/tag/v2026.11.0-beta.3), lancer `node serve.mjs`, ouvrir `http://127.0.0.1:8080` |
 | Héberger votre instance | [Installer l’édition Docker](docs/server-deployment.md), disponible pour AMD64 et ARM64 |
 | Développer ALWIS | [Contribuer](CONTRIBUTING.md) et [comprendre l’architecture](docs/architecture.md) |
 
@@ -93,7 +93,7 @@ L’édition serveur permet aussi de partager une session de travail. Les invit�
 
 ## Une bêta documentée et vérifiable
 
-ALWIS 2026.11 Beta 1 utilise PHP 8.4.27 et MariaDB dans un runtime WASM reconstruit depuis les sources. Les validations couvrent Chromium et Firefox, PHP/SQL, les requêtes HTTP, la récupération après erreur et les invités HTTP. Consultez les [preuves et limites de validation](docs/runtime-parity.md), la [compatibilité](docs/compatibility.md) et le [dépannage](docs/troubleshooting.md).
+ALWIS 2026.11 Beta 3 utilise PHP 8.4.27 et MariaDB dans un runtime WASM reconstruit depuis les sources. Les validations couvrent Chromium et Firefox, PHP/SQL, les requêtes HTTP, la récupération après erreur et les invités HTTP. Consultez les [preuves et limites de validation](docs/runtime-parity.md), la [compatibilité](docs/compatibility.md) et le [dépannage](docs/troubleshooting.md).
 
 La publication bêta conserve une **exception de licence explicitement documentée sur deux fichiers historiques de formatage PHP**. Cette décision du mainteneur ne constitue pas une autorisation des tiers ni une conformité GPL intégrale établie. Le code original ALWIS est sous GPL-2.0-only, avec une exception MIT pour son éditeur ; les composants tiers gardent leurs licences et la documentation ses conditions propres. [Licences](LICENSE.md) · [Composants tiers](THIRD-PARTY-NOTICES.md) · [État détaillé de la publication](provenance/release-licensing-status.json).
 

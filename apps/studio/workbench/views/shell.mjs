@@ -94,14 +94,20 @@ export function drawShell() {
     $("#sPersist").innerHTML =
       `<span class="lamp ${p.lvl === "k" ? "ok" : p.lvl === "e" ? "err" : "warn"}"></span>${p.t}`;
     const d = drafts().length,
-      a = S.applied.size + (S.dbDirty ? 1 : 0),
+      a = S.applied.size + (S.dbDirty || S.layoutDirty ? 1 : 0),
       b = $("#primary");
-    b.disabled = !d && !a;
+    b.disabled = S.saving || (!d && !a);
+    b.setAttribute("aria-busy", String(!!S.saving));
+    b.setAttribute("aria-live", "polite");
     b.setAttribute(
       "aria-label",
-      d || a ? "Enregistrer le projet" : "Projet enregistré",
+      S.saving ? "Enregistrement du projet en cours" : d || a ? "Enregistrer le projet" : "Projet enregistré",
     );
-    b.innerHTML = `${ui.save}<span>${d || a ? "Enregistrer" : "Enregistré"}</span>`;
+    const buttonState = S.saving ? "saving" : d || a ? "pending" : "saved";
+    if (b.dataset.saveState !== buttonState) {
+      b.dataset.saveState = buttonState;
+      b.innerHTML = `${S.saving ? '<span class="save-spinner" aria-hidden="true"></span>' : ui.save}<span>${S.saving ? "Enregistrement…" : d || a ? "Enregistrer" : "Enregistré"}</span>`;
+    }
     b.title =
       "Enregistre tous les brouillons et conserve le projet dans ce navigateur.";
   }
@@ -274,7 +280,7 @@ Object.assign(A, {
   },
   async close() {
     const d = drafts().length,
-      a = S.applied.size + (S.dbDirty ? 1 : 0);
+      a = S.applied.size + (S.dbDirty || S.layoutDirty ? 1 : 0);
     let keep = true,
       savedDuringClose = false;
     if (d || a) {
@@ -350,6 +356,8 @@ Object.assign(A, {
           vdirs: new Set(),
           applied: new Set(),
           dbDirty: false,
+          layoutDirty: false,
+          layoutVersion: 0,
           savedAt: Date.now(),
           saveFail: false,
           reqs: [],
@@ -457,6 +465,8 @@ Object.assign(A, {
     if (projectSavePromise) return projectSavePromise;
     S.saving = true;
     S.saveFail = false;
+    ctx.shell();
+    let savedLayoutVersion;
     projectSavePromise = (async () => {
       try {
         // Keep the precise file-conflict diagnostic produced by apply().
@@ -467,6 +477,7 @@ Object.assign(A, {
         const ok = await task("Sauvegarde du projet", async () => {
           await eng().db.close();
           await eng().projects.save();
+          savedLayoutVersion = S.layoutVersion;
           await ctx.persist?.();
           await ctx.folder?.saveContext?.();
           return true;
@@ -477,6 +488,7 @@ Object.assign(A, {
         }
         S.applied.clear();
         S.dbDirty = false;
+        if (S.layoutVersion === savedLayoutVersion) S.layoutDirty = false;
         S.savedAt = Date.now();
         log("i", "Projet sauvegardé dans le navigateur");
         toast("Projet sauvegardé dans ce navigateur");
@@ -495,7 +507,7 @@ Object.assign(A, {
     return projectSavePromise;
   },
   persist(_, el) {
-    const pending = drafts().length || S.applied.size || S.dbDirty;
+    const pending = drafts().length || S.applied.size || S.dbDirty || S.layoutDirty;
     menu(el?.isConnected ? el : $("#chip"), 0, {
       html: `<div class="ph">Enregistrement du projet</div><div class="save-summary"><b>${esc(S.project)}</b><p>${pending ? "Des modifications sont à enregistrer." : "Toutes les modifications sont enregistrées."}</p><p class="hint">${ctx.folder ? "Les fichiers sont écrits dans votre dossier du PC. Les bases et le contexte sont sauvegardés dans .alwis." : "Votre projet est conservé dans ce navigateur. Exportez un ZIP pour une copie externe."}</p>${pending ? '<button class="btn pri" data-act="save">Enregistrer le projet</button>' : ""}${S.savedAt ? `<p class="hint">Dernier enregistrement à ${clock(new Date(S.savedAt)).slice(0, 5)}.</p>` : ""}</div>`,
     });
@@ -812,7 +824,7 @@ export function bindShell() {
     } else if (k === "escape" && S.find.open && !$("#modal").open) A.find();
   });
   addEventListener("beforeunload", (e) => {
-    if (S.mode === "work" && (drafts().length || S.applied.size || S.dbDirty)) {
+    if (S.mode === "work" && (drafts().length || S.applied.size || S.dbDirty || S.layoutDirty)) {
       e.preventDefault();
       e.returnValue = "";
     }

@@ -813,9 +813,12 @@ export function createStudioServices() {
             location.origin + "/",
           );
       },
-      routeURL: (session, path) => hub.routeURL(session, path),
+      routeURL: (session, path) => {
+        if (!hub || closing || opening) throw Error("Aucun projet disponible pour ouvrir l’aperçu.");
+        return hub.routeURL(session, path);
+      },
       async frame(session, path) {
-        return { src: hub.routeURL(session, path) };
+        return { src: services.sessions.routeURL(session, path) };
       },
     },
     memory: () => memory,

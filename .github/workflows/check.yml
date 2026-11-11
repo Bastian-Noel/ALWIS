@@ -47,6 +47,8 @@ jobs:
             apps/studio/editor/dist/ASSETS.json
             build-work/site-smoke.json
             build-work/site-updates.json
+            build-work/studio-interactions/*.json
+            build-work/studio-interactions/*.png
             build-work/disk-storage/results.json
             build-work/parity/*.json
             build-work/disk-storage/global-memory.json

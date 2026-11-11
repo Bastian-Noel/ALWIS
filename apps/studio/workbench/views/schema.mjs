@@ -33,7 +33,19 @@ const colIdx = (t, c) => t.columns.findIndex((k) => k.name === c);
 const tables = () => S.cat?.tables || [];
 const byName = (n) => tables().find((t) => t.name === n);
 let drag = null,
-  pan = null;
+  pan = null,
+  dragFrame = 0;
+
+function schemaChanged(names, final = false) {
+  S.layouts[S.db] = S.pos;
+  if (!final) {
+    S.layoutDirty = true;
+    S.layoutVersion++;
+    ctx.shell();
+    ctx.schedulePersist?.();
+  }
+  for (const table of names) ctx.schemaMoved?.(S.db, table, S.pos[table], final);
+}
 
 function layout() {
   Object.assign(S.pos, schemaLayout(tables()));
@@ -383,6 +395,8 @@ Object.assign(A, {
   schemaLayout() {
     layout();
     S.viewFit = false;
+    schemaChanged(Object.keys(S.pos));
+    schemaChanged(Object.keys(S.pos), true);
     drawSchema();
     toast("Tables réorganisées par dépendance");
   },
@@ -502,6 +516,30 @@ export function bindSchema() {
     for (const label of relation.querySelectorAll(".lab, .cardinality"))
       overlay.append(label.cloneNode(true));
   };
+  const moveTable = () => {
+    const [x, y] = pt(drag.pointer);
+    const next = [Math.round((x - drag.anchor[0]) / SNAP) * SNAP,
+      Math.round((y - drag.anchor[1]) / SNAP) * SNAP];
+    const previous = S.pos[drag.t];
+    if (next[0] === previous[0] && next[1] === previous[1]) return;
+    S.pos[drag.t] = next;
+    schemaChanged([drag.t]);
+    drawSchema();
+  };
+  const edgePan = () => {
+    dragFrame = 0;
+    if (!drag?.moved || drag.rel || !drag.pointer) return;
+    const r = sv.getBoundingClientRect(), p = drag.pointer;
+    const speed = (value, min, max) => value < min + 36 ? Math.min(16, (min + 36 - value) / 3)
+      : value > max - 36 ? -Math.min(16, (value - max + 36) / 3) : 0;
+    const dx = speed(p.clientX, r.left, r.right), dy = speed(p.clientY, r.top, r.bottom);
+    if (!dx && !dy) return;
+    S.pan = [S.pan[0] + dx, S.pan[1] + dy];
+    moveTable();
+    applyView();
+    dragFrame = requestAnimationFrame(edgePan);
+  };
+  const stopEdgePan = () => { cancelAnimationFrame(dragFrame); dragFrame = 0; };
   sv.addEventListener("pointerover", (e) =>
     showHint(e.target.closest("[data-rel]")),
   );
@@ -533,7 +571,8 @@ export function bindSchema() {
         t: hd.dataset.drag,
         sx: e.clientX,
         sy: e.clientY,
-        o: [...S.pos[hd.dataset.drag]],
+        anchor: pt(e).map((value, i) => value - S.pos[hd.dataset.drag][i]),
+        pointer: { clientX: e.clientX, clientY: e.clientY },
         moved: false,
       };
       return;
@@ -573,11 +612,9 @@ export function bindSchema() {
         dy = (e.clientY - drag.sy) / S.zoom;
       if (Math.abs(dx) + Math.abs(dy) > 3) drag.moved = true;
       if (drag.moved) {
-        S.pos[drag.t] = [
-          Math.max(0, Math.round((drag.o[0] + dx) / SNAP) * SNAP),
-          Math.max(0, Math.round((drag.o[1] + dy) / SNAP) * SNAP),
-        ];
-        drawSchema();
+        drag.pointer = { clientX: e.clientX, clientY: e.clientY };
+        moveTable();
+        if (!dragFrame) dragFrame = requestAnimationFrame(edgePan);
       }
       return;
     }
@@ -589,6 +626,8 @@ export function bindSchema() {
     }
   });
   sv.addEventListener("pointerup", (e) => {
+    stopEdgePan();
+    if (drag?.moved && !drag.rel) schemaChanged([drag.t], true);
     if (S.link) {
       const l = S.link;
       S.link = null;
@@ -632,6 +671,8 @@ export function bindSchema() {
     }
   });
   sv.addEventListener("pointercancel", () => {
+    stopEdgePan();
+    if (drag?.moved && !drag.rel) schemaChanged([drag.t], true);
     S.link = null;
     drag = null;
     pan = null;
@@ -671,6 +712,8 @@ export function bindSchema() {
     if (k) {
       e.preventDefault();
       S.pos[n] = [S.pos[n][0] + k[0], S.pos[n][1] + k[1]];
+      schemaChanged([n]);
+      schemaChanged([n], true);
       drawSchema();
       $(`[data-drag="${CSS.escape(n)}"]`)?.focus();
     } else if (e.key === "Enter") A.schemaSel(n);

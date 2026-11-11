@@ -633,7 +633,8 @@ Object.assign(A, {
         arg: cur,
         hint: esc(sessionOf(cur).label),
       },
-      { label: "Fenêtre avec une nouvelle session", act: "openWindowNew" },
+      ...(!document.documentElement.hasAttribute("data-collab-guest")
+        ? [{ label: "Fenêtre avec une nouvelle session", act: "openWindowNew" }] : []),
       "-",
       ...sessions().map((s) => ({
         label: `<span class="ident">${sw(s)}${esc(s.label)}</span>`,
@@ -646,50 +647,32 @@ Object.assign(A, {
     ]);
   },
   /** window.open doit être appelé avant tout await, sinon le navigateur bloque la fenêtre. */
-  openWindow(sid, path) {
+  async openWindow(sid, path) {
     sid = typeof sid === "string" && sid ? sid : S.pvSessions[0];
-    path =
-      typeof path === "string" && path.startsWith("/")
-        ? path
-        : S.active && isPage(S.active)
-          ? S.active
-          : S.pvPath;
+    path = typeof path === "string" && path.startsWith("/")
+      ? path : S.active && isPage(S.active) ? S.active : S.pvPath;
+    // Reserve synchronously in the click handler, then resolve the role-specific preview.
     const popup = window.open("about:blank", "_blank");
     if (!popup) return blocked();
-    S.wins.push({ id: Date.now() + Math.random(), path, session: sid, popup });
-    if (popup) popup.location.href = eng().sessions.routeURL(sid, path);
-    eng()
-      .sessions.frame(sid, path)
-      .catch(() => {});
-    log("i", `Fenêtre ouverte : ${path} (${sessionOf(sid).label})`);
-    ctx.draw();
-    toast(`Fenêtre ouverte · ${sessionOf(sid).label}`);
+    return showPreviewWindow(popup, sid, path);
   },
   openWindowFor(path) {
-    A.openWindow(S.pvSessions[0], path);
+    return A.openWindow(S.pvSessions[0], path);
   },
   async openWindowNew(path) {
+    if (document.documentElement.hasAttribute("data-collab-guest"))
+      return toast("Chaque invité utilise son propre visiteur. Choisissez Ouvrir dans une fenêtre.");
     const popup = window.open("about:blank", "_blank");
     if (!popup) return blocked();
-    const id = await eng().sessions.create();
-    const p =
-      typeof path === "string" && path.startsWith("/")
-        ? path
-        : S.active && isPage(S.active)
-          ? S.active
-          : S.pvPath;
-    S.wins.push({
-      id: Date.now() + Math.random(),
-      path: p,
-      session: id,
-      popup,
-    });
-    if (popup) popup.location.href = eng().sessions.routeURL(id, p);
-    eng()
-      .sessions.frame(id, p)
-      .catch(() => {});
-    ctx.draw();
-    toast("Fenêtre ouverte avec une nouvelle session");
+    try {
+      const id = await eng().sessions.create();
+      const p = typeof path === "string" && path.startsWith("/")
+        ? path : S.active && isPage(S.active) ? S.active : S.pvPath;
+      return await showPreviewWindow(popup, id, p);
+    } catch (error) {
+      popup.close();
+      fail("Ouverture de l’aperçu impossible.", error);
+    }
   },
   closeWin(id) {
     const w = S.wins.find((x) => String(x.id) === String(id));
@@ -702,6 +685,23 @@ Object.assign(A, {
     ctx.draw();
   },
 });
+async function showPreviewWindow(popup, session, path) {
+  try {
+    const frame = await eng().sessions.frame(session, path);
+    if (!frame?.src || frame.src === "about:blank")
+      throw Error("L’aperçu interactif est indisponible. Vérifiez la connexion à l’hôte et le mode d’aperçu.");
+    if (popup.closed) return;
+    popup.location.href = frame.src;
+    S.wins.push({ id: Date.now() + Math.random(), path, session, popup });
+    log("i", `Fenêtre ouverte : ${path} (${sessionOf(session)?.label ?? "visiteur"})`);
+    ctx.draw();
+    toast(`Fenêtre ouverte · ${sessionOf(session)?.label ?? "visiteur"}`);
+  } catch (error) {
+    try { popup.close(); } catch {}
+    fail("Ouverture de l’aperçu impossible.", error);
+  }
+}
+
 function blocked() {
   S.alert = {
     title: "Fenêtre bloquée.",

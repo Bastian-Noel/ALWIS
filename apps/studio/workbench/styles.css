@@ -3401,3 +3401,9 @@ select.in:focus { background-color:var(--sheet); }
 .import-file input, .import-group input { flex: none; margin-top: 4px; }
 .site-updating { position: fixed; inset: 0; z-index: 10000; display: grid; place-content: center; padding: 24px; color: var(--ink); background: var(--sheet); font-size: 18px; }
 .site-update-error { position: fixed; bottom: 32px; left: 12px; right: 12px; max-width: 680px; padding: 12px; color: var(--err); background: var(--sheet); border: 1px solid var(--err); z-index: 1000; }
+
+/* Checkpoint feedback: keep the action recognisable while preventing duplicate saves. */
+#primary[aria-busy="true"] { opacity:.7; cursor:wait; }
+.save-spinner { width:14px; height:14px; flex:none; border:2px solid currentColor; border-right-color:transparent; border-radius:50%; animation:save-spin .8s linear infinite; }
+@keyframes save-spin { to { transform:rotate(360deg); } }
+@media (prefers-reduced-motion:reduce) { .save-spinner { animation:none; } }
