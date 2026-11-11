@@ -12,15 +12,9 @@ if not re.fullmatch(r"v(?:20\d{2})\.(?:0[1-9]|1[0-2])\.\d+-(?:alpha|beta|rc)\.\d
 if tag != "v" + version:
     raise SystemExit(f"Release tag {tag} does not match package.json version {version}")
 record = json.loads(Path("provenance/release-licensing-status.json").read_text())
-if record.get("status") != "ready" or record.get("blockers"):
-    blockers = record.get("blockers") or []
-    print("::error title=Publication blocked by license review::The build and tests can run, but no static, FTP or Docker distribution is authorized.")
-    for item in blockers:
-        print("::error title=License blocker::" + item.get("id", "unknown") + ": " + item.get("summary", ""))
-    if os.environ.get("GITHUB_STEP_SUMMARY"):
-        with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as summary:
-            summary.write("### Publication blocked — licensing review\n\nThe CI build is independent of the release authorization. Resolve these before publishing:\n\n")
-            for item in blockers:
-                summary.write(f"- **{item.get('id','unknown')}**: {item.get('summary','')}\n")
-    raise SystemExit("Release blocked by provenance/release-licensing-status.json (not a build failure).")
-print(f"Licensing preflight passed for {tag}")
+from publication_policy import require_publication
+try:
+    require_publication(record, version=version)
+except ValueError as error:
+    raise SystemExit(str(error))
+print(f"Publication preflight passed for {tag}; recorded exceptions remain disclosed.")

@@ -1,4 +1,4 @@
-name: Publish FTP - validated studio
+name: 06 - Publication - FTP
 on:
   workflow_dispatch:
     inputs:

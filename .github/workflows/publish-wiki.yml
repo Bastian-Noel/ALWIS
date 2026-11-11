@@ -1,4 +1,4 @@
-name: Documentation - GitHub Wiki
+name: 05 - Documentation - Wiki
 on:
   push:
     branches: [main]

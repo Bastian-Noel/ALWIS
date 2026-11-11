@@ -162,7 +162,7 @@ class IndependentRunnerTests(unittest.TestCase):
 
     def test_release_manifest_tracks_independent_runner_without_legacy_archive(self):
         code = (ROOT / 'scripts/manifest-native-build.py').read_text()
-        workflow = (ROOT / '.github/workflows/native-distribution.yml').read_text()
+        workflow = (ROOT / '.github/archived-workflows/native-distribution.yml.disabled').read_text()
         self.assertIn("'historicalJoomEngineForkIncluded':False", code)
         self.assertIn("'independentPhpRunner':runner_provenance", code)
         self.assertIn("runner==bundle.get('independentPhpRunner')", workflow)

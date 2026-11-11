@@ -3,9 +3,8 @@
 from pathlib import Path,PurePosixPath
 import hashlib,json,os,re,subprocess,zipfile
 licensing=json.loads(Path('provenance/release-licensing-status.json').read_text())
-if licensing.get('status')!='ready' or licensing.get('blockers'):
- blockers='; '.join(item.get('summary',item.get('id','unknown blocker')) for item in licensing.get('blockers',[]))
- raise SystemExit('Release blocked by licensing status: '+(blockers or licensing.get('status','unknown')))
+from publication_policy import require_publication
+require_publication(licensing)
 repo=os.environ['GH_REPO'];tag=os.environ.get('RELEASE_TAG','');run=os.environ.get('VALIDATED_RUN','')
 if not re.fullmatch(r'v20\d{2}\.(?:0[1-9]|1[0-2])\.\d+(?:-(?:alpha|beta|rc)\.\d+)?',tag):raise SystemExit('Use a version such as v2026.11.0-beta.1 or v2026.11.0')
 if not run.isdigit():raise SystemExit('A validated workflow run ID is required')
@@ -15,7 +14,7 @@ record=api('actions/runs/'+run)
 if record['path']!='.github/workflows/publish-ftp.yml' or record['head_branch']!='main':raise SystemExit('Release source must be the FTP workflow on main')
 jobs=api('actions/runs/'+run+'/jobs?per_page=100')['jobs']
 before_ftp=os.environ.get('RELEASE_BEFORE_FTP')=='true'
-required_job='build' if before_ftp else 'publish'
+required_job='Reuse successful CI package' if before_ftp else 'Transfer exactly released package over FTP'
 if not any(job['name']==required_job and job['conclusion']=='success' for job in jobs):raise SystemExit('The validated source job must have succeeded first')
 revision=record['head_sha'];output=Path('build-work/releases')/tag;output.mkdir(parents=True,exist_ok=True)
 existing=subprocess.run(['gh','release','view',tag,'--repo',repo,'--json','isDraft,targetCommitish'],capture_output=True,text=True)
@@ -60,6 +59,19 @@ if len(assets)==1:
   validation=output/('ALWIS-'+tag[1:]+'-validation.zip')
   with validation.open('wb')as stream:subprocess.run(['gh','api',f'repos/{repo}/actions/artifacts/{proof[0]["id"]}/zip'],stdout=stream,check=True)
   assets.append(validation)
+# Publish exact corresponding sources alongside the browser binary.
+with zipfile.ZipFile(site) as payload:
+ native_path=next(x['path'] for x in manifest['files'] if x['path'].endswith('/engine/native-sources.json'))
+ native=json.loads(payload.read(native_path))
+ wasm=next(x for x in manifest['files'] if x['path'].endswith('/engine/pbl-runtime.wasm'))
+ if native['wasmSha256']!=wasm['sha256']:raise SystemExit('Native source manifest does not match shipped WASM')
+ native_run=api('actions/runs/'+str(native['runId']))
+ if native_run['conclusion']!='success' or native_run['head_sha']!=native['sourceRevision']:raise SystemExit('Unverified native source run')
+ native_dir=output/'native-sources'
+ subprocess.run(['gh','run','download',str(native['runId']),'--repo',repo,'--name','independent-native-qa-with-sources','--dir',str(native_dir)],check=True)
+ sources=native_dir/'corresponding-sources.tar.gz'
+ if hashlib.file_digest(sources.open('rb'),'sha256').hexdigest()!=native['sourcesSha256']:raise SystemExit('Corresponding sources checksum mismatch')
+ assets.extend([sources,native_dir/'corresponding-sources.tar.gz.json',native_dir/'qa-manifest.json'])
 checksums=output/'SHA256SUMS';lines=[]
 for file in assets:
  with file.open('rb')as stream:value=hashlib.file_digest(stream,'sha256').hexdigest()
@@ -83,6 +95,8 @@ Atelier web : code, aperçu PHP, bases MariaDB et sessions de visiteurs dans le 
 - **Exécution :** https://github.com/{repo}/actions/runs/{run}
 
 Le ZIP contient le site statique. Pour tester localement : `node serve.mjs` après extraction. Pour héberger, utiliser HTTPS et les en-têtes COOP/COEP indiqués dans `_headers`.
+
+**Exception connue :** le mainteneur autorise cette publication avec le point de compatibilité GPLv2 des deux fichiers de formatage PHP encore ouvert. Les notices sont conservées ; cette décision ne vaut pas autorisation des titulaires tiers. Les sources natives correspondantes sont jointes à cette release.
 
 **Licences :** lire les fichiers `LICENSE.md`, `NOTICE.md`, `THIRD-PARTY-NOTICES.md` et `LICENSES/` du ZIP. Le code original indépendant et le runtime natif ne sont pas placés sous une licence unique. Les sources et empreintes correspondant au runtime doivent accompagner sa redistribution.
 

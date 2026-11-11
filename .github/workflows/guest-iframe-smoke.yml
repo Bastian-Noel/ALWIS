@@ -1,4 +1,4 @@
-name: CI - real guest iframe HTTP
+name: 04 - HTTP - invites et collaboration
 on:
   push:
     branches: ['qa/guest-http-browser', 'develop/**']
@@ -29,11 +29,7 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '24'
-      - name: Install test browsers
-        run: |
-          mkdir -p build-work/php
-          npm install --prefix build-work/php --no-package-lock --ignore-scripts playwright@1.64.1
-          build-work/php/node_modules/.bin/playwright install --with-deps --only-shell chromium firefox
+      - uses: ./.github/actions/browser-tests
       - name: "Actual isolated guest preview: Chromium and Firefox"
         run: node tests/browser/isolated-origin-guest.mjs
       - name: "Real ALWIS dual-host server + guest cookie, fetch and POST"

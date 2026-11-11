@@ -1,4 +1,4 @@
-name: CI - validated studio
+name: 03 - Studio - build et tests
 on:
   push:
     branches: [main]

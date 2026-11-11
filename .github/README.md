@@ -1,39 +1,28 @@
-# ALWIS — GitHub Actions
+# GitHub Actions ALWIS
 
-## Workflows
-
-| Workflow | Trigger | Purpose |
+| Ordre | Fichier stable | Role |
 | --- | --- | --- |
-| check.yml | Push to main, PR, manual | Build and test once; publish studio-static-<SHA> and test receipts. |
-| publish-ftp.yml | Manual on main | Check license and version first, reuse exact successful CI package, create GitHub Release, then deploy that package via FTP. |
-| publish-server.yml | Successful FTP workflow or manual | Verify source artifact and licensing; publish multi-architecture GHCR image using Buildx cache. |
-| publish-wiki.yml | Documentation paths, manual | Publish documentation independently. |
-| native-distribution.yml | Manual | Verify native manifest and licensing before release. |
+| 01 | source-checks.yml | Contrats, tests unitaires et preparation des sources |
+| 02 | native-rebuild-ci.yml | Sources natives epinglees ; compilation manuelle avec mode=compile ou commit [native-rebuild] |
+| 03 | check.yml | Validation complete Studio Chromium/Firefox et paquet statique du commit exact |
+| 04 | guest-iframe-smoke.yml | Verification ciblee des invites HTTP et de leur isolation |
+| 05 | publish-wiki.yml | Documentation independante |
+| 06 | publish-ftp.yml | Manuel sur main : controle, reutilisation du paquet CI, release avec sources natives, transfert FTP |
+| 07 | publish-server.yml | Automatique apres FTP reussi : image GHCR AMD64/ARM64 du meme paquet |
 
-Important: a green CI means the code passed tests, not that redistribution rights are cleared. provenance/release-licensing-status.json must say ready with no blockers before any FTP, Docker or native distribution. Do not bypass this gate.
+Les noms affiches sont numerotes ; les noms de fichiers restent stables pour les appels API. Les deux workflows de migration retires sont conserves dans archived-workflows avec extension .disabled. Ils ne sont plus executables.
 
-## Release procedure
+## Caches
 
-1. Bump package.json and package-lock.json to a new version; commit and push main.
-2. Wait for successful CI on that exact SHA, which retains the static package for 14 days.
-3. Run publish-ftp.yml on main with version=v2026.11.0-beta.1 matching the package version.
-4. Verify the release, live FTP release.json and subsequent Docker run.
+- npm : cache setup-node, indexe par package-lock.json ; npm ci reste obligatoire.
+- Editeurs : archives amont indexees par engines.lock.json, empreintes verifiees au build.
+- Navigateurs : action partagee actions/browser-tests, meme cache Playwright 1.64.1 pour les workflows 02/03/04 ; dependances systeme installees et tests toujours executes.
+- Sources natives : sept archives epinglees et verifiees, cache commun aux jobs de preparation et de compilation.
+- Conteneur : cache Buildx GHA scope=alwis-server pour AMD64/ARM64.
+- Aucun cache de projet utilisateur ni remplacement d'un artefact valide par un binaire historique. Un cache ne vaut pas une validation.
 
-## Caches and validation
+## Publication
 
-- npm ci always enforces the lock; setup-node caches npm downloads.
-- Editor engines are cached by their lock hash and still checksum-verified.
-- Chromium and Firefox downloads are cached; real browser tests still execute.
-- Docker uses a scoped GHA Buildx layer cache for AMD64 and ARM64.
-- Publishing reuses the exact verified CI artifact rather than rebuilding.
+Attendre le succes de 03 sur main, puis lancer 06 avec version=v2026.11.0-beta.1 correspondant a package.json. Le workflow 07 suit automatiquement le succes de 06. La release fournit le paquet statique et les sources du WASM correspondant exactement a son empreinte.
 
-## Failure meanings
-
-- CI error: test or build issue; inspect retained receipts.
-- Preflight error: licensing or version issue; no distribution occurs.
-- Missing CI artifact: rerun CI on the exact SHA, never substitute another build.
-- Release error: FTP does not run; inspect validation and release permissions.
-- FTP error: check deployment verification and retained previous-site artifact.
-- Docker error: check source SHA, static checksums and GHCR permissions.
-
-Historical, non-executing workflow templates were removed from the current tree; see Git history if needed.
+publication_policy.py est le controle commun au preflight, a la release, au FTP et au conteneur. Pour cette version, le titulaire a demande une exception interne limitee a main/snprintf.c et main/spprintf.c. Elle ne supprime ni leurs notices ni le constat de compatibilite non resolu ; elle ne confere aucun droit tiers. Tout autre blocage, une version differente ou une notice alteree est refuse.

@@ -46,3 +46,7 @@ DrawDB, ChartDB, Outerbase Studio, XYFlow, PHP-WASM projects and other repositor
 ## Deferred legacy PHP formatting issue (11 November 2026)
 
 PHP `main/snprintf.c` and `main/spprintf.c` retain Apache Group 1995-1998 terms, including an advertising clause. Their exact embedded notice is reproduced in `LICENSES/PHP-formatting-legacy.txt`. The maintainer has deferred replacement and authorized continued development builds and QA. This internal exception does not relicense third-party code, establish GPLv2 compatibility, or clear the release gate. See `provenance/php-formatting-license-review.md`. These are two source files with multiple functions; the issue is not represented as a resolved or legally minor defect.
+
+## Publication decision for 2026.11.0-beta.1
+
+The owner explicitly authorized FTP/container publication with an internal exception limited to PHP `main/snprintf.c` and `main/spprintf.c`. The incompatibility finding remains disclosed; this decision grants no third-party permission and is not represented as GPL compatibility clearance. Original notices remain in `LICENSES/PHP-formatting-legacy.txt`. The authoritative status is now `authorized-with-exception`; historical statements that publication was blocked describe earlier review stages. `scripts/publication_policy.py` rejects any additional blocker, a changed notice, an expanded file list, or a different release version. The exact native corresponding-source archive and its receipts accompany the GitHub release.

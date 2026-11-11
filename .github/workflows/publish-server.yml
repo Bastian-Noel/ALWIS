@@ -1,7 +1,7 @@
-name: Publish ALWIS server container
+name: 07 - Publication - conteneur
 on:
   workflow_run:
-    workflows: ["Publish FTP - validated studio"]
+    workflows: ["06 - Publication - FTP"]
     types: [completed]
     branches: [main]
   workflow_dispatch:
@@ -59,8 +59,10 @@ jobs:
           root = Path('build-work/server-site')
           release = json.loads((root / 'release.json').read_text())
           licensing = json.loads((root / 'RELEASE-LICENSING-STATUS.json').read_text())
-          if licensing.get('status') != 'ready' or licensing.get('blockers'):
-              raise SystemExit('Server image publication is blocked by licensing status: ' + '; '.join(item['summary'] for item in licensing.get('blockers', [])))
+          import sys
+          sys.path.insert(0, 'scripts')
+          from publication_policy import require_publication
+          require_publication(licensing, root)
           package = json.loads(Path('package.json').read_text())
           if release['revision'] != os.environ['SOURCE_SHA']:
               raise SystemExit('Static artifact revision does not match its validated source run.')
@@ -141,8 +143,10 @@ jobs:
           python3 - <<'PY'
           import json,pathlib
           record=json.loads(pathlib.Path('provenance/release-licensing-status.json').read_text())
-          if record.get('status')!='ready' or record.get('blockers'):
-              raise SystemExit('Container alias update blocked by licensing status: '+'; '.join(item.get('summary',item.get('id','unknown blocker')) for item in record.get('blockers',[])))
+          import sys
+          sys.path.insert(0, 'scripts')
+          from publication_policy import require_publication
+          require_publication(record)
           PY
       - name: Validate existing version tag
         env:

@@ -34,16 +34,7 @@ runs:
         node scripts/package-studio.mjs
         python3 scripts/verify-studio-legal.py build-work/site
         python3 scripts/verify-editor-boundary.py build-work/site
-    - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
-      with:
-        path: ~/.cache/ms-playwright
-        key: ${{ runner.os }}-studio-playwright-1.64.1
-    - name: Install pinned real browsers
-      shell: bash
-      run: |
-        mkdir -p build-work/php
-        npm install --prefix build-work/php --no-package-lock --ignore-scripts playwright@1.64.1
-        build-work/php/node_modules/.bin/playwright install --with-deps --only-shell chromium firefox
+    - uses: ./.github/actions/browser-tests
     - name: Validate pinned independent PHP 8.4 / HTTP / PDO / MySQLi on both browsers
       shell: bash
       run: ALWIS_PARITY_LABEL=independent-studio node tests/browser/native-parity.mjs chromium,firefox

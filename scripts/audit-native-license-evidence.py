@@ -158,7 +158,7 @@ def check(strict_archives=False, source_root=None):
         raise ValueError("PHP v4 / Zend v3 licensing notice is incomplete")
     headers = build_inputs()
     gate = json.loads((ROOT / "provenance/release-licensing-status.json").read_text())
-    if gate.get("status") not in ("blocked", "ready") or not isinstance(gate.get("blockers"), list):
+    if gate.get("status") not in ("blocked", "ready", "authorized-with-exception") or not isinstance(gate.get("blockers"), list):
         raise ValueError("Invalid publication review record")
     if gate["status"] == "ready" and gate["blockers"]:
         raise ValueError("Ready publication record still has open blockers")

@@ -15,6 +15,7 @@ mandatory = [
     "THIRD-PARTY-NOTICES.md",
     "RELEASE-LICENSING-STATUS.json",
     "LICENSES/README.md",
+    "LICENSES/PHP-formatting-legacy.txt",
     "LICENSES/PolyForm-Noncommercial-1.0.0.txt",
     "LICENSES/seanmorris-php-wasm-NOTICE.txt",
     "LICENSES/GPL-2.0-only.txt",

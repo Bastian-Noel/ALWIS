@@ -1,4 +1,4 @@
-name: CI - source contracts and documentation
+name: 01 - Sources - contrats et tests
 on:
   push:
     branches: [main, 'develop/**']
@@ -28,6 +28,7 @@ jobs:
       - name: Independent native source checks
         run: |
           python3 -m compileall -q scripts
+          python3 -m unittest discover -s tests -p 'test_publication_policy.py' -v
           python3 -m unittest discover -s tests -p 'test_native_concurrency.py' -v
           python3 -m unittest discover -s tests -p 'test_native_source_staging.py' -v
           python3 -m unittest discover -s tests -p 'test_independent_php_runner.py' -v

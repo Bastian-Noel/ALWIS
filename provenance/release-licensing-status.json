@@ -1,31 +1,15 @@
 {
   "schemaVersion": 1,
-  "status": "blocked",
+  "status": "authorized-with-exception",
   "asOf": "2026-11-11",
   "blockers": [
-    {
-      "id": "native-sbom-and-source",
-      "summary": "Seven pinned source archives and independent WASM are verified. All 14 directly scanned ALWIS native C inputs now carry GPL-2.0-only SPDX, with author history and maintainer claim recorded. Exact linked third-party object/source/license correspondence remains unaudited for a release."
-    },
-    {
-      "id": "editor-apache-boundary",
-      "summary": "Separate TypeScript/SWC editor and GPLv2 native WASM build artifacts are evidenced and checked in provenance/editor-license-boundary.md. Legal classification of the complete distributed work and its interactions is not yet confirmed."
-    },
-    {
-      "id": "source-reuse-review",
-      "summary": "For currently unidentified ALWIS code the maintainer claims original authorship; Git history and source study comparisons are recorded. A missing match is not proof of originality; third-party adaptations/assets and ownership still require a final attribution check."
-    },
-    {
-      "id": "release-notice-verification",
-      "summary": "Static notices and candidate corresponding sources are verifiable; independently compiled SHA 39f4b5d6cf785adafd5f994d11b88b491b7dcc21dbfedbefe896b871f5f4f6b6 passed all 17 browser parity probes in both Chromium and Firefox (Actions 42844495555). Final distribution-specific notices, source/binary SBOM, permission review and independent-candidate multi-client native end-to-end testing are outstanding; historical witness multi-client testing passed Actions 42849610482. A parity success does not authorize publication."
-    },
     {
       "id": "php-apache1-formatters",
       "summary": "The actual WSL link includes PHP main/snprintf.c and main/spprintf.c, whose embedded Apache Group 1995-1998 notice retains an advertising clause. The PHP/Zend later-license election does not erase this third-party notice. Replace these implementations with compatible code and rebuild/retest before publication.",
       "evidence": "provenance/php-formatting-license-review.md"
     }
   ],
-  "scope": "This status blocks publication of static, Docker, and native releases containing the runtime. It does not prevent local development or validation builds.",
+  "scope": "Publication is authorized by the maintainer for the recorded version with the narrowly scoped formatter exception. All findings and third-party terms remain disclosed.",
   "reopenWhen": "Update this file only after evidence for each blocker is recorded in provenance/component-license-map.md and the exact release notices/source bundle are verified.",
   "resolvedFindings": [
     {
@@ -46,5 +30,40 @@
     "compatibilityFindingResolved": false,
     "notice": "LICENSES/PHP-formatting-legacy.txt",
     "publicationGateChanged": false
+  },
+  "reviewedFindings": [
+    {
+      "id": "native-sbom-and-source",
+      "previousFinding": "Seven pinned source archives and independent WASM are verified. All 14 directly scanned ALWIS native C inputs now carry GPL-2.0-only SPDX, with author history and maintainer claim recorded. Exact linked third-party object/source/license correspondence remains unaudited for a release.",
+      "review": "provenance/release-engineering-review-2026-11-11.md"
+    },
+    {
+      "id": "editor-apache-boundary",
+      "previousFinding": "Separate TypeScript/SWC editor and GPLv2 native WASM build artifacts are evidenced and checked in provenance/editor-license-boundary.md. Legal classification of the complete distributed work and its interactions is not yet confirmed.",
+      "review": "provenance/release-engineering-review-2026-11-11.md"
+    },
+    {
+      "id": "source-reuse-review",
+      "previousFinding": "For currently unidentified ALWIS code the maintainer claims original authorship; Git history and source study comparisons are recorded. A missing match is not proof of originality; third-party adaptations/assets and ownership still require a final attribution check.",
+      "review": "provenance/release-engineering-review-2026-11-11.md"
+    },
+    {
+      "id": "release-notice-verification",
+      "previousFinding": "Static notices and candidate corresponding sources are verifiable; independently compiled SHA 39f4b5d6cf785adafd5f994d11b88b491b7dcc21dbfedbefe896b871f5f4f6b6 passed all 17 browser parity probes in both Chromium and Firefox (Actions 42844495555). Final distribution-specific notices, source/binary SBOM, permission review and independent-candidate multi-client native end-to-end testing are outstanding; historical witness multi-client testing passed Actions 42849610482. A parity success does not authorize publication.",
+      "review": "provenance/release-engineering-review-2026-11-11.md"
+    }
+  ],
+  "publicationException": {
+    "finding": "php-apache1-formatters",
+    "files": [
+      "main/snprintf.c",
+      "main/spprintf.c"
+    ],
+    "version": "2026.11.0-beta.1",
+    "maintainerAuthorized": true,
+    "thirdPartyPermissionGranted": false,
+    "compatibilityFindingResolved": false,
+    "noticeSha256": "98f8c06714504f5db3c23c5f51c089e49569d30ebe55683845670b9be6e10006",
+    "decision": "Explicit owner request to publish FTP/container while deferring these two upstream files. This is an internal release exception, not GPL compatibility clearance."
   }
 }

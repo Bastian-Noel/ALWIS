@@ -1,4 +1,4 @@
-name: CI - independent PHP MariaDB native reconstruction
+name: 02 - WASM - independent PHP MariaDB native reconstruction
 on:
   push:
     branches: [main, 'develop/2026-11-beta1-foundation']
@@ -152,11 +152,7 @@ jobs:
         run: bash scripts/build-independent-native-ci.sh
       - name: Record exact upstream licensing evidence (no release authorization)
         run: python3 scripts/audit-native-license-evidence.py --require-archives --source-root build-work --output build-work/native-license-evidence.json
-      - name: Install browser tests (ONLY after successful new native build)
-        run: |
-          mkdir -p build-work/php
-          npm install --prefix build-work/php --no-package-lock --ignore-scripts playwright@1.64.1
-          build-work/php/node_modules/.bin/playwright install --with-deps --only-shell chromium firefox
+      - uses: ./.github/actions/browser-tests
       - name: Verify native PHP/HTTP/PDO/MySQLi parity on Chromium and Firefox
         env:
           ALWIS_PARITY_LABEL: independent-candidate

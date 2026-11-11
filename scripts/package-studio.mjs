@@ -35,6 +35,7 @@ for(const entry of await readdir(join(root,'apps/studio/database')))if(/\.mjs$/.
 await copy('apps/studio/database/sql-export.php','apps/studio/sql-export.source.txt');
 for(const name of ['codemirror.mjs','formatter-worker.mjs','definitions.json','javascript-worker.mjs','lsp-worker.mjs','php-lsp.wasm','superhtml.wasm','swc.wasm','THIRD-PARTY.txt'])await copy('apps/studio/editor/dist/'+name,'apps/studio/editor/dist/'+name);
 for(const name of ['pbl-runtime.mjs','pbl-runtime.wasm'])await copy('build-work/bridge/.native-build/engine/wasm/runtime-dist/'+name,'engine/'+name);
+await copy('build-work/bridge/.native-build/engine/wasm/runtime-dist/qa-native-manifest.json','engine/native-sources.json');
 // License obligations accompany the EXACT bytes served to every browser.
 for(const entry of await readdir(join(root,'LICENSES'),{withFileTypes:true}))if(entry.isFile())await copy('LICENSES/'+entry.name,'LICENSES/'+entry.name);
 for(const name of ['LICENSE.md','NOTICE.md','THIRD-PARTY-NOTICES.md'])await copy(name,name);
