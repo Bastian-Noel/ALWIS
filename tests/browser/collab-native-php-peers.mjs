@@ -155,6 +155,17 @@ async function runBrowser(name) {
     await owner.waitForFunction(() => alwisHost.hub.peers.length === 3 && alwisHost.hub.links.size === 2,
       null, { timeout: 15_000 });
 
+    // A signaling seat is not an open WebRTC data channel. This test measures
+    // native PHP over established P2P; negotiation buffering is covered by
+    // collab-peer-transport and the real workbench/transport journeys.
+    await owner.waitForFunction(() => [...alwisHost.hub.links.values()].every(link =>
+      !link.negotiating && link.mode === "p2p" && link.dc?.readyState === "open"),
+      null, { timeout: 15000 });
+    await Promise.all([alice, bob].map(page => page.waitForFunction(() => {
+      const link = alwisGuest.hub.links.get("h");
+      return link && !link.negotiating && link.mode === "p2p" && link.dc?.readyState === "open";
+    }, null, { timeout: 15000 })));
+
     const [firstA, firstB] = await Promise.all([guestHTTP(alice, "GET"), guestHTTP(bob, "GET")]);
     assert.equal(firstA.status, 200);
     assert.equal(firstB.status, 200);
