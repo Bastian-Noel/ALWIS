@@ -366,6 +366,8 @@ Object.assign(A, {
           dbs: [],
           table: null,
           pos: {},
+          layouts: {},
+          layoutDB: null,
           viewFit: false,
           schemaSel: null,
           pv: false,

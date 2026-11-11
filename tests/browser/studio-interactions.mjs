@@ -4,7 +4,7 @@ import { readFile, mkdir, writeFile } from "node:fs/promises";
 import { chromium, firefox } from "../../build-work/php/node_modules/playwright/index.mjs";
 import { createStudioServer } from "../../scripts/serve-studio.mjs";
 import { createCollabHub } from "../../server/collab-hub.mjs";
-const server = createStudioServer(), handler = server.listeners("request")[0];
+const server = createStudioServer({ engineDist: process.env.ALWIS_INTERACTION_ENGINE }), handler = server.listeners("request")[0];
 const hub = createCollabHub();
 let origin;
 server.removeAllListeners("request");
@@ -109,7 +109,14 @@ try {
     await state(page,async({A})=>{await A.openFile('/index.php');await A.runFile('/index.php');});
     const event=page.waitForEvent('popup');await page.locator('[data-act="openWindow"]').click();const popup=await event;
     await popup.waitForURL(url=>url.pathname.includes(page===host?'/__pbl/':'/__alwis-guest/'));
-    await popup.getByText('Campus des Tilleuls',{exact:true}).waitFor();await popup.close();
+    try { await popup.getByText('Campus des Tilleuls',{exact:true}).waitFor(); }
+    catch(error) {
+      const diagnostic={browser:name,role:page===host?'host':'guest',url:popup.url(),body:await popup.locator('body').innerText().catch(()=>''),logs:await state(page,({S})=>S.logs.slice(-12))};
+      console.error('Popup diagnostic:',JSON.stringify(diagnostic));
+      await writeFile('build-work/studio-interactions/popup-failure-'+name+'.json',JSON.stringify(diagnostic,null,2));
+      throw error;
+    }
+    await popup.close();
    }
    // Latest completed record is first without mutating chronological storage or selection.
    await state(host,({A})=>A.networkToggle());
@@ -135,6 +142,8 @@ try {
    await host.reload();await host.locator('#stext').filter({hasText:'Prêt'}).waitFor();
    await state(host,async({A},browser)=>{await A.open('interactions-'+browser);await A.nav('schema');},name);
    assert.deepEqual(await state(host,({S})=>S.pos.students),final,'saved placement survives actual project reopening');
+   await state(host,async({A},browser)=>{await A.close();await A.open('fresh-'+browser,'demo');await A.nav('schema');},name);
+   assert.notDeepEqual(await state(host,({S})=>S.pos.students),final,'a new project must not inherit another project’s placement');
    assert.deepEqual(errors,[]);
    reports.push({browser:name,popup:true,newestFirst:true,liveSchema:true,negativeCoordinates:true,edgePan:true,lateJoin:true,folderPresence:true,saveFeedback:true,reopen:true});
    await writeFile('build-work/studio-interactions/results.json',JSON.stringify(reports,null,2)+'\n');
