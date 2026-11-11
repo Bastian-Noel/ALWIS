@@ -32,7 +32,7 @@ subprocess.run(["gh", "run", "download", str(run["id"]), "--repo", repo, "--name
 manifest = json.loads((root / "release.json").read_text())
 package = json.loads(Path("package.json").read_text())
 if manifest.get("revision") != sha or manifest.get("version") != package["version"] or manifest.get("workingChanges"):
-    raise SystemExit("Artifact revision/version/clean-source verification failed")
+    raise SystemExit("Artifact revision/version/clean-source verification failed: " + repr(manifest.get("sourceChanges", [])))
 for record in manifest["files"]:
     path = Path(record["path"])
     if path.is_absolute() or ".." in path.parts or not (root / path).is_file():

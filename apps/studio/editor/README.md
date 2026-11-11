@@ -32,7 +32,7 @@ Mesures ponctuelles Chromium/Firefox dans les reçus de services, **capacités l
 | SuperHTML | 16,94 Mio après diagnostic | — |
 | SWC | 3,06 Mio après analyse JS | — |
 
-Le tas JS de TypeScript, le code compilé et les autres processus du navigateur ne sont pas inclus. Les binaires de téléchargement sont plus gros que ces capacités ; voir ASSETS.json. Les services sont chargés au besoin, aucun CDN n'est requis.
+Le tas JS de TypeScript, le code compilé et les autres processus du navigateur ne sont pas inclus. Les binaires de téléchargement sont plus gros que ces capacités ; voir `dist/ASSETS.json` apres compilation. Les services sont chargés au besoin, aucun CDN n'est requis.
 
 ## Éditeur SQL
 
@@ -51,7 +51,7 @@ PLAYWRIGHT_BROWSERS_PATH=/workspace/.cache/ms-playwright node tests/browser/edit
 node scripts/package-studio.mjs
 ```
 
-`fetch-editor-engines.py` vérifie les SHA-256 des archives officielles et des WASM ; les sources/licences sont identifiées dans engines.lock.json, licenses/ et THIRD-PARTY.txt de l'archive distribuée. `editor:build` assemble les dépendances npm épinglées et copie ces binaires amont : il ne prétend pas recompiler leurs sources Rust/Zig. Les binaires générés restent hors Git ; les reçus et ASSETS.json sont conservés.
+`fetch-editor-engines.py` vérifie les SHA-256 des archives officielles et des WASM ; les sources/licences sont identifiées dans engines.lock.json, licenses/ et THIRD-PARTY.txt de l'archive distribuée. `editor:build` assemble les dépendances npm épinglées et copie ces binaires amont : il ne prétend pas recompiler leurs sources Rust/Zig. Les binaires générés restent hors Git ; les reçus sont conservés et le manifeste courant est généré dans `dist/ASSETS.json`, hors Git. Le fichier `ASSETS.json` à la racine est une référence historique.
 
 Preuves dans `apps/studio/receipts/editor/` : services et atelier sur Chromium/Firefox ; audit axe 4.11.1 sur onze états Chromium, 320 px et texte à 200 %. Lecteurs d'écran et Safari non vérifiés. Les skills d'interface et la revue sont référencés dans REVIEW.md.
 

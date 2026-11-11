@@ -27,6 +27,6 @@ for(const name of ['php-parser','linguist-languages'])for(const file of ['LICENS
 }
 for(const name of await readdir('apps/studio/editor/licenses'))notices+=name+'\n'+await readFile('apps/studio/editor/licenses/'+name,'utf8')+'\n';
 await writeFile(out+'/THIRD-PARTY.txt',notices);
-const files=[];for(const name of await readdir(out)){const data=await readFile(out+'/'+name);files.push({name,bytes:data.length,sha256:createHash('sha256').update(data).digest('hex')});}
-await writeFile('apps/studio/editor/ASSETS.json',JSON.stringify({sources:{phpLsp:'https://github.com/PHPantom-dev/phpantom_lsp/releases/tag/0.11.1',superhtml:'https://github.com/kristoff-it/superhtml/releases/tag/v0.7.1'},files},null,2)+'\n');
+const files=[];for(const name of await readdir(out)){if(name==='ASSETS.json')continue;const data=await readFile(out+'/'+name);files.push({name,bytes:data.length,sha256:createHash('sha256').update(data).digest('hex')});}
+await writeFile(out+'/ASSETS.json',JSON.stringify({sources:{phpLsp:'https://github.com/PHPantom-dev/phpantom_lsp/releases/tag/0.11.1',superhtml:'https://github.com/kristoff-it/superhtml/releases/tag/v0.7.1'},files},null,2)+'\n');
 console.log('Editor assets built:',files.length,'files');

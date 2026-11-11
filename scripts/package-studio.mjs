@@ -72,5 +72,6 @@ for(const generated of ['_headers','serve.mjs','LIRE-MOI.txt']){
   const data=await readFile(join(target,generated));
   files.push({path:generated,bytes:data.length,sha256:createHash('sha256').update(data).digest('hex')});
 }
-await writeFile(join(target,'release.json'),JSON.stringify({builtAt:new Date().toISOString(),revision,version,assetBase,workingChanges:!!execFileSync('git',['status','--porcelain'],{cwd:root,encoding:'utf8'}).trim(),scope:'Static prototype. PHP and MariaDB execute in the browser; project data stays in browser storage.',files},null,2)+'\n');
+const sourceChanges=execFileSync('git',['status','--porcelain'],{cwd:root,encoding:'utf8'}).trim();
+await writeFile(join(target,'release.json'),JSON.stringify({builtAt:new Date().toISOString(),revision,version,assetBase,workingChanges:!!sourceChanges,sourceChanges:sourceChanges?sourceChanges.split('\n'):[],scope:'Static prototype. PHP and MariaDB execute in the browser; project data stays in browser storage.',files},null,2)+'\n');
 console.log(JSON.stringify({directory:relative(root,target),files:files.length,bytes:files.reduce((n,f)=>n+f.bytes,0),revision}));
