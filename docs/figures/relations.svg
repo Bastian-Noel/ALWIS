@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img"><title>Une classe, plusieurs élèves</title><desc>Extrait réel du modèle Campus : students.class_id référence classes.id.</desc><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10" fill="#526674"/></marker></defs>
+<rect x="0" y="0" width="1200" height="760" rx="12" fill="#ffffff" stroke="none"/>
+<text x="48" y="46" fill="#087e79" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="19" font-weight="700">ALWIS / GUIDE VISUEL</text>
+<text x="48" y="112" fill="#172b3a" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="42" font-weight="700">Une classe, plusieurs élèves</text>
+<text x="48" y="159" fill="#526674" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="23" font-weight="400">Extrait réel du modèle Campus : students.class_id référence classes.id.</text>
+<path d="M48 189 H1152" stroke="#dbe3e8"/>
+<rect x="48" y="248" width="502" height="286" rx="12" fill="#fff" stroke="#d4dfe5"/>
+<rect x="48" y="248" width="502" height="64" rx="12" fill="#eaf7f3" stroke="none"/>
+<text x="72" y="290" fill="#087e79" font-family="ui-monospace,DejaVu Sans Mono,monospace" font-size="29" font-weight="700">classes</text>
+<text x="72" y="354" fill="#526674" font-family="ui-monospace,DejaVu Sans Mono,monospace" font-size="21" font-weight="400">id (PK)     name</text>
+<text x="72" y="407" fill="#172b3a" font-family="ui-monospace,DejaVu Sans Mono,monospace" font-size="23" font-weight="400">1           3e Tilleul</text>
+<rect x="650" y="248" width="502" height="286" rx="12" fill="#fff" stroke="#d4dfe5"/>
+<rect x="650" y="248" width="502" height="64" rx="12" fill="#eaf7f3" stroke="none"/>
+<text x="674" y="290" fill="#087e79" font-family="ui-monospace,DejaVu Sans Mono,monospace" font-size="29" font-weight="700">students</text>
+<text x="674" y="354" fill="#526674" font-family="ui-monospace,DejaVu Sans Mono,monospace" font-size="21" font-weight="400">id     user_id     class_id (FK)</text>
+<text x="674" y="407" fill="#172b3a" font-family="ui-monospace,DejaVu Sans Mono,monospace" font-size="23" font-weight="400">1      4           1</text>
+<text x="674" y="455" fill="#172b3a" font-family="ui-monospace,DejaVu Sans Mono,monospace" font-size="23" font-weight="400">2      5           1</text>
+<path d="M562 385 L635 385" fill="none" stroke="#526674" stroke-width="2.5" marker-end="url(#arrow)"/>
+<text x="576" y="347" fill="#087e79" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="22" font-weight="700">1:N</text>
+<text x="48" y="603" fill="#526674" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="24" font-weight="400">Les deux élèves appartiennent à la même classe ; la clé étrangère évite un identifiant</text>
+<text x="48" y="638" fill="#526674" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="24" font-weight="400">orphelin.</text>
+<text x="48" y="673" fill="#526674" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="24" font-weight="400">La relation porte sur les clés, pas sur la position des lignes à l’écran.</text>
+<path d="M48 711 H1152" stroke="#dbe3e8"/>
+<text x="48" y="743" fill="#526674" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="18" font-weight="400">Schéma explicatif · les captures d’interface sont présentées séparément</text>
+<text x="1028" y="743" fill="#526674" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="18" font-weight="400">2026.11</text>
+</svg>

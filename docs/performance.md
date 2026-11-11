@@ -1,5 +1,7 @@
 # Mémoire et performances mesurées
 
+> Rapport historique du 5 novembre 2026, conservé avec sa révision et ses résultats. Il ne mesure pas le nouveau build indépendant de la bêta. Pour comprendre les périmètres avant les chiffres, lisez [Mémoire en bref](performance-summary.md).
+
 [← Vue simplifiée avec graphiques](performance-summary.md)
 
 > Dernière campagne intégrée : 5 novembre 2026, Windows 11, révision [`5038537f558e95307f18bd8e9738e20e9ab3fab`](https://github.com/Bastian-Noel/ALWIS/commit/5038537f558e95307f18bd8e9738e20e9ab3fab), Playwright 1.64.1. Les chiffres décrivent cette révision de test, pas automatiquement chaque version publiée.

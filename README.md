@@ -2,89 +2,101 @@
 
 # ALWIS
 
-**Un environnement PHP et MariaDB directement dans votre navigateur.**
+### Votre atelier PHP & MariaDB. Dans un onglet.
 
-Écrivez du code, consultez vos données et ouvrez un vrai aperçu HTTP, sans installer de serveur PHP ou SQL sur votre ordinateur.
+Du code à la page web, des tables aux relations : construisez et explorez une application sans installer de serveur PHP ou SQL sur votre ordinateur.
 
+[![Studio en ligne](https://img.shields.io/badge/Essayer-le_studio-087e79)](https://studio.mmi.place/)
+[![Bêta](https://img.shields.io/badge/Version-2026.11_Beta_1-245edb)](https://github.com/Bastian-Noel/ALWIS/releases/tag/v2026.11.0-beta.1)
 [![CI](https://github.com/Bastian-Noel/ALWIS/actions/workflows/check.yml/badge.svg)](https://github.com/Bastian-Noel/ALWIS/actions/workflows/check.yml)
-[![Version](https://img.shields.io/badge/2026.11-Beta%201-8250df)](docs/versioning.md)
-[![Documentation](https://img.shields.io/badge/Guide-Wiki-2563eb)](https://github.com/Bastian-Noel/ALWIS/wiki)
 
-**[Installation](https://github.com/Bastian-Noel/ALWIS/wiki/Installation)** · **[Premiers pas](https://github.com/Bastian-Noel/ALWIS/wiki/Premiers-pas)** · **[Documentation](https://github.com/Bastian-Noel/ALWIS/wiki)** · **[Suivi du développement](https://github.com/Bastian-Noel/ALWIS/issues/1)**
+**[Ouvrir ALWIS](https://studio.mmi.place/) · [Découvrir le wiki](https://github.com/Bastian-Noel/ALWIS/wiki) · [Télécharger](https://github.com/Bastian-Noel/ALWIS/releases)**
+
+![L’éditeur ALWIS et le Campus exécuté en PHP, côte à côte.](docs/images/alwis-code-light.png)
 
 </div>
 
-![L'interface d'ALWIS : code, aperçu et données d'un projet d'exemple](apps/studio/social-card.png)
+## Ouvrez un projet. Voyez-le vivre.
 
-## Développer sans installer de serveur
+Choisissez l’exemple **Campus** pour découvrir une application déjà construite : élèves, cours, présences, notes, messages et documents. Modifiez une page, relancez l’aperçu et observez le résultat. Vous pouvez aussi créer votre projet ou importer une archive ZIP.
 
-| **Code et aperçu** | **SQL et relations** | **Plusieurs visiteurs** |
-| :--- | :--- | :--- |
-| PHP, HTML, CSS et JavaScript avec coloration, complétion et formatage. | MariaDB, PDO, MySQLi, tables et schéma relationnel dans le navigateur. | Sessions isolées par cookies, un projet et une base partagés. |
-| ![Éditeur et aperçu ALWIS](docs/images/alwis-code-light.png) | ![Schéma SQL ALWIS](docs/images/alwis-schema-light.png) | ![Sessions visiteurs ALWIS](docs/images/alwis-sessions.png) |
+![L’accueil propose un projet, un exemple, un ZIP ou un dossier local.](docs/images/alwis-start.png)
 
-Les projets sont stockés **localement dans votre navigateur**. Utilisez **Exporter ZIP** pour en conserver une copie indépendante.
+[Votre première visite guidée →](docs/README.md)
 
-## Essayer ALWIS
+## Le code et son résultat, au même endroit
 
-1. Récupérez une version disponible dans les [releases GitHub](https://github.com/Bastian-Noel/ALWIS/releases).
-2. Décompressez l'archive, puis lancez dans ce dossier :
+Éditeur avec coloration, complétion, recherche et outils de formatage ; arborescence du projet ; aperçu de votre site avec navigation et requêtes HTTP. PHP s’exécute réellement en WebAssembly dans le navigateur. MariaDB démarre au premier besoin SQL.
 
-   ```bash
-   node serve.mjs
-   ```
+![Le thème sombre, avec le code PHP et son résultat.](docs/images/alwis-code-dark.png)
 
-3. Ouvrez **http://127.0.0.1:8080** et choisissez « Exemple scolaire » pour découvrir l'éditeur.
+[Explorer l’éditeur](docs/ide-workflows.md) · [Comprendre le fonctionnement](docs/concepts.md)
 
-> [!NOTE]
-> Il faut Node.js 20 ou une version supérieure pour servir localement l'application. PHP et MariaDB sont exécutés en WebAssembly par le navigateur : aucune installation PHP/MySQL n'est nécessaire.
->
-> Les **nouvelles distributions sont suspendues** jusqu'à la validation des sources et licences du runtime natif. Les anciennes releases restent des références fonctionnelles, sans garantie de conformité de redistribution. La CI peut utiliser ces anciennes versions comme **témoins vérifiés par SHA-256**, sans valider la reconstruction GPLv2.
+## Les données deviennent visibles
 
-[Consulter le guide d'installation et l'édition Docker](https://github.com/Bastian-Noel/ALWIS/wiki/Installation)
+Ouvrez une table, examinez ses lignes, exécutez une requête ou modifiez sa structure. Les vues **Données**, **Structure** et **Schéma** vous aident à passer du résultat visible au modèle qui l’explique.
 
-## Ce qui est disponible
+![Les tables du Campus et les élèves dans la grille de données.](docs/images/alwis-data-light.png)
 
-| Travail | Où aller |
-| --- | --- |
-| Créer ou importer un projet | **Accueil** : projet vide, exemple ou import ZIP |
-| Modifier une page et voir le rendu | **Code → Aperçu** |
-| Parcourir des tables et lancer du SQL | **Données** |
-| Visualiser clés et relations | **Schéma** |
-| Tester plusieurs identités utilisateur | **Sessions** |
-| Comprendre les requêtes et erreurs | **Serveur** |
-| Sauvegarder les fichiers | **Enregistrer**, puis **Exporter ZIP** |
+![La structure d’une table : colonnes, types et contraintes.](docs/images/alwis-structure.png)
 
-**Collaboration :** l'édition serveur permet déjà l'échange de code et l'accès distant à certaines opérations fichiers/SQL. Le véritable aperçu HTTP par invité — exécuté chez l'hôte, sans miroir du DOM — est en cours de développement. [Fonctionnement et limites](docs/collaboration.md).
+Une valeur SQL mérite mieux qu’une case dans un tableau. Le wiki explique pourquoi `NULL`, un texte vide et zéro ont des sens différents, comment conserver les grands entiers et pourquoi un montant décimal doit garder sa précision.
 
-## Architecture en bref
+![Quatre valeurs qui se ressemblent visuellement, mais représentent quatre situations différentes.](docs/images/figures/valeurs.png)
 
-```mermaid
-flowchart LR
-    A["Projet dans le navigateur"] --> E["Éditeur"]
-    E --> H["Aperçu HTTP"]
-    H --> PHP["PHP · WebAssembly"]
-    PHP --> DB["MariaDB · WebAssembly"]
-    A --> S["Sauvegarde locale / ZIP"]
-```
+[Prendre en main SQL](docs/sql-workflows.md) · [Comprendre les valeurs et leurs types](docs/sql-values.md)
 
-Aucune base MariaDB n'est hébergée par le serveur ALWIS. Pour le partage collaboratif, **le navigateur hôte conserve le projet et exécute PHP et SQL**.
+## Reliez les tables. Comprenez votre application.
 
-[Architecture](docs/architecture.md) · [Stockage](docs/storage-opfs.md) · [Compatibilité](docs/compatibility.md) · [Déploiement](docs/server-deployment.md)
+La vue Schéma rend les relations visibles. Dans le Campus, un élève est lié à un utilisateur et à une classe ; une inscription associe un élève à un cours. Les guides vous montrent comment lire ces liens et choisir une clé adaptée.
 
-## Version 1 · Beta
+![Le schéma relationnel du Campus dans ALWIS.](docs/images/alwis-schema-light.png)
 
-Le développement suit désormais les identifiants **`YYYY.MM.PATCH-beta.N`**. Exemple : `v2026.11.0-beta.1`, affiché **2026.11 · Beta 1**.
+[Clés et relations, avec exemples →](docs/sql-relations.md)
 
-La [roadmap V1](https://github.com/Bastian-Noel/ALWIS/issues/1) couvre la parité du runtime GPLv2, le nouvel aperçu invité et les tests navigateur. Les publications officielles et les images Docker sont soumises à des vérifications de fonctionnalité, de sécurité et de licences.
+## Plusieurs visiteurs, une même application
 
-[Convention de versionnement](docs/versioning.md) · [Contribuer](CONTRIBUTING.md) · [Proposer une amélioration](https://github.com/Bastian-Noel/ALWIS/issues/new/choose)
+Testez des profils distincts avec les sessions de l’aperçu : chacun garde ses cookies et sa session PHP, tandis que les données SQL du projet restent communes. Le Campus fournit des profils fictifs pour observer ce comportement sans créer de comptes réels.
 
-<details>
-<summary><strong>Licences, attributions et sources natives</strong></summary>
+![La gestion des sessions et des visiteurs de démonstration.](docs/images/alwis-sessions.png)
 
-Le code logiciel original ALWIS détenu par Bastian Noël est proposé sous **GPL-2.0-only**, avec utilisation commerciale autorisée ; ses adaptateurs d’éditeur originaux sont sous **MIT**. La documentation originale reste sous **CC BY-NC-SA**. Les composants tiers conservent leurs licences et notices ; voir `LICENSE.md`. La redistribution du runtime exige encore les preuves et sources correspondantes indiquées dans le statut de publication.
+L’édition serveur permet aussi de partager une session de travail. Les invités peuvent utiliser un aperçu HTTP interactif exécuté par le navigateur hôte. Ce mode demande une configuration serveur et une origine d’aperçu HTTPS dédiée ; le lien du studio statique ne suffit pas à le mettre en place.
 
-L'attribution obligatoire figure dans [NOTICE.md](NOTICE.md). Consultez [LICENSE.md](LICENSE.md), les [notices tierces](THIRD-PARTY-NOTICES.md), la [cartographie par composant](provenance/component-license-map.md) et le [statut de distribution](provenance/release-licensing-status.json) pour les limites et obligations actuelles.
+![Le trajet des requêtes d’un invité vers le navigateur hôte.](docs/images/figures/collaboration.png)
 
-</details>
+[Découvrir le Campus](docs/school-example.md) · [Partager et collaborer](docs/collaboration.md)
+
+## Gardez votre travail. Emportez votre projet.
+
+**Enregistrer** conserve un point de reprise dans le navigateur. **Exporter ZIP** produit une copie transportable des fichiers et des bases. Le wiki explique ces deux gestes, la différence avec un dossier du PC et ce qu’un export n’emporte pas, notamment les sessions privées des visiteurs.
+
+![Du travail en mémoire à la sauvegarde du navigateur, puis à une archive indépendante.](docs/images/figures/sauvegarde.png)
+
+[Bien sauvegarder un projet →](docs/saving-projects.md)
+
+## Choisissez votre point de départ
+
+| Votre objectif | Le chemin le plus direct |
+|---|---|
+| Essayer immédiatement | [Ouvrir le studio](https://studio.mmi.place/), puis choisir le Campus |
+| Travailler localement | Télécharger le ZIP de la [version publiée](https://github.com/Bastian-Noel/ALWIS/releases/tag/v2026.11.0-beta.1), lancer `node serve.mjs`, ouvrir `http://127.0.0.1:8080` |
+| Héberger votre instance | [Installer l’édition Docker](docs/server-deployment.md), disponible pour AMD64 et ARM64 |
+| Développer ALWIS | [Contribuer](CONTRIBUTING.md) et [comprendre l’architecture](docs/architecture.md) |
+
+![Découvrir, pratiquer, approfondir : trois parcours de documentation.](docs/images/figures/parcours.png)
+
+**Découvrir :** [les concepts](docs/concepts.md) → [premiers pas](docs/README.md) → [Campus](docs/school-example.md).
+
+**Pratiquer :** [code](docs/ide-workflows.md) → [SQL](docs/sql-workflows.md) → [relations](docs/sql-relations.md) → [transactions](docs/sql-transactions.md).
+
+**Approfondir :** [HTTP](docs/http-runtime.md) → [stockage](docs/storage-opfs.md) → [architecture](docs/architecture.md) → [compilation WASM](docs/native-qa-build.md).
+
+## Une bêta documentée et vérifiable
+
+ALWIS 2026.11 Beta 1 utilise PHP 8.4.27 et MariaDB dans un runtime WASM reconstruit depuis les sources. Les validations couvrent Chromium et Firefox, PHP/SQL, les requêtes HTTP, la récupération après erreur et les invités HTTP. Consultez les [preuves et limites de validation](docs/runtime-parity.md), la [compatibilité](docs/compatibility.md) et le [dépannage](docs/troubleshooting.md).
+
+La publication bêta conserve une **exception de licence explicitement documentée sur deux fichiers historiques de formatage PHP**. Cette décision du mainteneur ne constitue pas une autorisation des tiers ni une conformité GPL intégrale établie. Le code original ALWIS est sous GPL-2.0-only, avec une exception MIT pour son éditeur ; les composants tiers gardent leurs licences et la documentation ses conditions propres. [Licences](LICENSE.md) · [Composants tiers](THIRD-PARTY-NOTICES.md) · [État détaillé de la publication](provenance/release-licensing-status.json).
+
+Les captures montrent le studio publié ; les planches sont des schémas pédagogiques. [Sources et méthode des illustrations](docs/illustrations.md).
+
+[Signaler un problème](https://github.com/Bastian-Noel/ALWIS/issues) · [Historique des versions](https://github.com/Bastian-Noel/ALWIS/releases)

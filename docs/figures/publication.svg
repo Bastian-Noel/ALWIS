@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img"><title>Du commit validé au site et au conteneur</title><desc>L’application et les outils de déploiement peuvent avoir des commits différents.</desc><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10" fill="#526674"/></marker></defs>
+<rect x="0" y="0" width="1200" height="760" rx="12" fill="#ffffff" stroke="none"/>
+<text x="48" y="46" fill="#087e79" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="19" font-weight="700">ALWIS / GUIDE VISUEL</text>
+<text x="48" y="112" fill="#172b3a" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="42" font-weight="700">Du commit validé au site et au conteneur</text>
+<text x="48" y="159" fill="#526674" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="23" font-weight="400">L’application et les outils de déploiement peuvent avoir des commits différents.</text>
+<path d="M48 189 H1152" stroke="#dbe3e8"/>
+<rect x="48" y="272" width="336" height="248" rx="12" fill="#eef3ff" stroke="none"/>
+<rect x="48" y="272" width="5" height="248" rx="0" fill="#245edb" stroke="none"/>
+<text x="72" y="315" fill="#245edb" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="27" font-weight="700">Valider</text>
+<text x="72" y="360" fill="#172b3a" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="23" font-weight="400">CI navigateur,</text>
+<text x="72" y="393" fill="#172b3a" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="23" font-weight="400">inventaire des</text>
+<text x="72" y="426" fill="#172b3a" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="23" font-weight="400">fichiers, version et</text>
+<text x="72" y="459" fill="#172b3a" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="23" font-weight="400">empreintes du paquet.</text>
+<path d="M392 396 L422 396" fill="none" stroke="#526674" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="432" y="272" width="336" height="248" rx="12" fill="#eaf7f3" stroke="none"/>
+<rect x="432" y="272" width="5" height="248" rx="0" fill="#087e79" stroke="none"/>
+<text x="456" y="315" fill="#087e79" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="27" font-weight="700">Publier la release</text>
+<text x="456" y="360" fill="#172b3a" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="23" font-weight="400">ZIP immuable, sources</text>
+<text x="456" y="393" fill="#172b3a" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="23" font-weight="400">correspondantes du</text>
+<text x="456" y="426" fill="#172b3a" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="23" font-weight="400">WASM et sommes</text>
+<text x="456" y="459" fill="#172b3a" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="23" font-weight="400">SHA-256.</text>
+<path d="M776 396 L806 396" fill="none" stroke="#526674" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="816" y="272" width="336" height="248" rx="12" fill="#f2f5f7" stroke="none"/>
+<rect x="816" y="272" width="5" height="248" rx="0" fill="#526674" stroke="none"/>
+<text x="840" y="315" fill="#526674" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="27" font-weight="700">Distribuer</text>
+<text x="840" y="360" fill="#172b3a" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="23" font-weight="400">FTP : même contenu.</text>
+<text x="840" y="393" fill="#172b3a" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="23" font-weight="400">GHCR : image</text>
+<text x="840" y="426" fill="#172b3a" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="23" font-weight="400">AMD64/ARM64 du même</text>
+<text x="840" y="459" fill="#172b3a" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="23" font-weight="400">paquet.</text>
+<text x="48" y="568" fill="#526674" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="24" font-weight="400">Le contrôle de publication applique une exception interne documentée pour deux fichiers</text>
+<text x="48" y="603" fill="#526674" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="24" font-weight="400">PHP.</text>
+<text x="48" y="638" fill="#526674" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="24" font-weight="400">Cette exception ne signifie pas que le problème de compatibilité de licence est</text>
+<text x="48" y="673" fill="#526674" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="24" font-weight="400">corrigé.</text>
+<path d="M48 711 H1152" stroke="#dbe3e8"/>
+<text x="48" y="743" fill="#526674" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="18" font-weight="400">Schéma explicatif · les captures d’interface sont présentées séparément</text>
+<text x="1028" y="743" fill="#526674" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="18" font-weight="400">2026.11</text>
+</svg>

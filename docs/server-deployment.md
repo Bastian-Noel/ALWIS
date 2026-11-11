@@ -26,5 +26,12 @@ Les deux noms doivent joindre le **même conteneur ALWIS** via deux hôtes virtu
 
 Sans `ALWIS_PREVIEW_ORIGIN`, l'aperçu HTTP des invités est **désactivé** ; le miroir DOM historique reste utilisé. Le bouton de permission PHP ne peut pas activer un aperçu non isolé. Le studio n'installe jamais le Service Worker invité sur son propre nom de domaine.
 
-> [!WARNING]
-> La connexion WebRTC/relai, les cookies et la persistance doivent encore être validés de bout en bout avec deux vrais navigateurs invités sur un vrai site PHP, avant déploiement public. La disponibilité de ce code en branche de développement ne constitue pas une autorisation de publier un WASM ancien non conforme.
+## État de validation et version disponible
+
+Le parcours de deux vrais invités, les sessions privées et la base partagée ont été validés dans Chromium et Firefox sur le runtime indépendant. Cette preuve sur runner ne remplace pas la vérification DNS/TLS de votre propre instance. [Preuves et limites](runtime-parity.md).
+
+L’image publique `ghcr.io/bastian-noel/alwis-server:2026.11.0-beta.1` est disponible pour **linux/amd64 et linux/arm64**. `latest` suit la publication courante ; figez un tag numéroté si vous voulez maîtriser vos mises à jour. Publier cette image ne met pas à jour automatiquement un conteneur déjà lancé.
+
+![Du paquet vérifié au site statique et à l’image conteneur.](images/figures/publication.png)
+
+[Schéma SVG](figures/publication.svg) · [Installation Compose](deployment.md) · [Dépannage](troubleshooting.md).

@@ -1,0 +1,103 @@
+{
+  "origin": "https://studio.mmi.place/",
+  "capturedAt": "2026-11-11T02:11:18.433Z",
+  "scope": "Real UI, isolated browser context, fictitious demonstration data; no server project was modified.",
+  "records": [
+    {
+      "file": "alwis-start.png",
+      "revision": "be76a72a2067a8ba792089a529d0e52e43cf9e78",
+      "viewport": {
+        "width": 1500,
+        "height": 1000
+      }
+    },
+    {
+      "file": "alwis-start-dark.png",
+      "revision": "be76a72a2067a8ba792089a529d0e52e43cf9e78",
+      "viewport": {
+        "width": 1500,
+        "height": 1000
+      }
+    },
+    {
+      "file": "alwis-mobile.png",
+      "revision": "be76a72a2067a8ba792089a529d0e52e43cf9e78",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "file": "alwis-code-light.png",
+      "revision": "be76a72a2067a8ba792089a529d0e52e43cf9e78",
+      "viewport": {
+        "width": 1500,
+        "height": 1000
+      }
+    },
+    {
+      "file": "alwis-code-dark.png",
+      "revision": "be76a72a2067a8ba792089a529d0e52e43cf9e78",
+      "viewport": {
+        "width": 1500,
+        "height": 1000
+      }
+    },
+    {
+      "file": "alwis-data-light.png",
+      "revision": "be76a72a2067a8ba792089a529d0e52e43cf9e78",
+      "viewport": {
+        "width": 1500,
+        "height": 1000
+      }
+    },
+    {
+      "file": "alwis-data-dark.png",
+      "revision": "be76a72a2067a8ba792089a529d0e52e43cf9e78",
+      "viewport": {
+        "width": 1500,
+        "height": 1000
+      }
+    },
+    {
+      "file": "alwis-structure.png",
+      "revision": "be76a72a2067a8ba792089a529d0e52e43cf9e78",
+      "viewport": {
+        "width": 1500,
+        "height": 1000
+      }
+    },
+    {
+      "file": "alwis-schema-light.png",
+      "revision": "be76a72a2067a8ba792089a529d0e52e43cf9e78",
+      "viewport": {
+        "width": 1500,
+        "height": 1000
+      }
+    },
+    {
+      "file": "alwis-schema-dark.png",
+      "revision": "be76a72a2067a8ba792089a529d0e52e43cf9e78",
+      "viewport": {
+        "width": 1500,
+        "height": 1000
+      }
+    },
+    {
+      "file": "alwis-sessions.png",
+      "revision": "be76a72a2067a8ba792089a529d0e52e43cf9e78",
+      "viewport": {
+        "width": 1500,
+        "height": 1000
+      }
+    },
+    {
+      "file": "alwis-values.png",
+      "revision": "be76a72a2067a8ba792089a529d0e52e43cf9e78",
+      "viewport": {
+        "width": 1500,
+        "height": 1000
+      }
+    }
+  ]
+}

@@ -1,37 +1,64 @@
-# QA build of the independent PHP/MariaDB engine
+# Compiler et vérifier le moteur WebAssembly
 
-Historical native binaries may be used as read-only comparison witnesses.
-They must never be copied into the next ALWIS FTP ZIP or Docker image.
+Ce parcours s’adresse aux développeurs du runtime. Pour utiliser ALWIS, prenez le paquet de la release : vous n’avez pas besoin de compiler PHP ou MariaDB. Pour modifier le C, les pilotes ou les options natives, il faut reconstruire et tester le nouveau moteur, sans reprendre un binaire historique.
 
-The independent GitHub Actions job builds PHP 8.4.27 and MariaDB from seven
-SHA-256-pinned upstream archives, with original GPLv2 ALWIS source. A successful
-candidate requires real browser parity, cURL HTTP tests, two real guests,
-sustained load and restart/crash recovery checks. The QA artifact has a
-short retention period, requires authenticated GitHub access, and contains
-both compiled WASM/JS and its complete corresponding source tarball:
+## Environnement de référence
 
-- independent-native-qa-with-sources/runtime/pbl-runtime.wasm and .mjs
-- independent-native-build.json (Chromium and Firefox parity proof)
-- qa-manifest.json (WASM, JavaScript and all native-input SHA-256 hashes)
-- corresponding-sources.tar.gz and matching receipt
-- native-license-evidence.json (releaseApproved false)
+La reconstruction CI utilise Ubuntu 24.04 **Linux x86-64**, PHP **8.4.27** et Emscripten **6.0.6**. WSL Ubuntu sur un PC x86-64 convient pour ce parcours. Travaillez dans le système de fichiers Linux pour éviter le coût d’une grosse compilation dans `/mnt/c` ; gardez un clone dédié et de l’espace pour les sources, objets et archives.
 
-To consume, execute python3 scripts/restore_independent_native_qa.py.
-If config/independent-native-qa.json exists, its explicit committed lock
-specifies the mandatory GitHub Actions run ID and exact checksums. If it does
-not exist yet, restoration searches only COMPLETED SUCCESSFUL native CI runs
-on the ALWIS development branch, and requires an artifact with exactly the
-same SHA-256 for EVERY tracked native input as the current checkout.
-It also validates GitHub workflow name and run SHA, compiled WASM/JS, full
-original-source archive, licensing evidence and real Chromium/Firefox parity.
-The historical JoomEngine WASM hash is explicitly rejected. No fallback.
+La recette exacte et les dépendances sont dans le [workflow 02](../.github/workflows/native-rebuild-ci.yml). Il installe notamment les outils C/C++, CMake, Ninja, Bison, re2c, Autoconf/Automake, libtool et les dépendances de construction hôte. Ne remplacez pas les versions épinglées par « la dernière » si vous voulez reproduire les conditions du build.
 
-The chosen run ID and exact hashes are written to
-build-work/independent-native-qa-selection.json; the QA FTP/Docker workflow
-verifies its exact new engine using that record even if no committed pin
-exists. This is an authenticated build-time attestation, not permission to
-publish. An explicit source-control pin can be committed after all tests pass.
+## Préparer les sources vérifiées
 
-Build artifacts produced for internal QA ARE NOT a public release approval.
-The FTP/Docker release gates still check legal notices and licensing status;
-test artifacts do not bypass them.
+Depuis la racine du clone Linux :
+
+```sh
+python3 scripts/prepare-independent-native-inputs.py --download --stage-root build-work
+python3 scripts/prepare-php84-source.py --verify-only
+```
+
+Le préparateur vérifie sept archives amont avec leurs SHA-256 et construit un arbre jetable. Les verrous de provenance sont conservés dans `provenance/`. Une préparation réussie est une preuve de sources cohérentes, pas encore une preuve de WASM compilé.
+
+## Installer l’outil épinglé et compiler
+
+Sur un clone neuf sans SDK préparé, reprenez le bloc d’installation Emscripten du workflow. Il vérifie la révision emsdk `d7b4130688bfa348392b921ab04015aa15c4f154`, installe puis active `6.0.6` sous `build-work/emsdk`.
+
+```sh
+bash scripts/build-independent-native-ci.sh
+```
+
+Cette recette charge l’environnement Emscripten, vérifie sa version, construit les outils hôte MariaDB, PCRE2, PHP embarqué puis le runtime fusionné. Elle utilise un parallélisme borné. Une erreur ne doit jamais entraîner un remplacement silencieux par un vieux WASM.
+
+Les résultats compilés se trouvent sous `build-work/bridge/.native-build/engine/wasm/runtime-dist/`. Les sources correspondantes et leurs reçus permettent de relier ce résultat aux archives amont et aux modifications ALWIS.
+
+## Tester les octets réellement construits
+
+Installez les dépendances Node et les navigateurs comme le fait [l’action partagée navigateur](../.github/actions/browser-tests/action.yml), puis utilisez la cible native :
+
+```sh
+export ALWIS_PARITY_RUNTIME_DIST=build-work/bridge/.native-build/engine/wasm/runtime-dist
+export ALWIS_PARITY_LABEL=independent-candidate
+node tests/browser/native-parity.mjs chromium,firefox
+node tests/browser/native-curl.mjs chromium,firefox
+python3 scripts/attest-independent-parity.py
+node tests/browser/collab-native-php-peers.mjs chromium,firefox
+node tests/browser/native-error-recovery.mjs chromium,firefox
+node tests/browser/database-stability.mjs chromium,firefox
+```
+
+La validation complète ajoute le build de l’éditeur, la charge courte et la reprise :
+
+```sh
+npm ci
+npm run editor:build
+node tests/browser/load-native.mjs chromium,firefox
+node tests/browser/restart-native.mjs chromium,firefox
+```
+
+Ne concluez pas à une parité uniquement parce que PHP affiche un texte. Il faut vérifier les sessions, corps binaires, transactions, limites, requêtes suivantes et compteurs de ressources. [Matrice de preuves](runtime-parity.md).
+
+## Restaurer un build déjà validé
+
+`scripts/restore_independent_native_qa.py` sélectionne un artefact CI autorisé par les verrous et l’identité des entrées natives. Il contrôle WASM, JavaScript, archives et reçus. Les sélections sont consignées sous `build-work/`. Les artefacts Actions expirent ; les sources et reçus de la release constituent la distribution durable.
+
+Une compilation locale peut avoir un hash différent du runner : conservez son propre manifeste. L’exception de publication de la bêta n’est pas une approbation de toutes les versions futures ; le [contrôle de publication](../scripts/publication_policy.py) reste distinct des tests techniques.

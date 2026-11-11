@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img"><title>NULL, texte vide et zéro : quatre sens</title><desc>Une cellule vide visuellement ne suffit pas à connaître sa valeur SQL.</desc><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10" fill="#526674"/></marker></defs>
+<rect x="0" y="0" width="1200" height="760" rx="12" fill="#ffffff" stroke="none"/>
+<text x="48" y="46" fill="#087e79" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="19" font-weight="700">ALWIS / GUIDE VISUEL</text>
+<text x="48" y="112" fill="#172b3a" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="42" font-weight="700">NULL, texte vide et zéro : quatre sens</text>
+<text x="48" y="159" fill="#526674" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="23" font-weight="400">Une cellule vide visuellement ne suffit pas à connaître sa valeur SQL.</text>
+<path d="M48 189 H1152" stroke="#dbe3e8"/>
+<rect x="48" y="240" width="252" height="330" rx="12" fill="#fff5e5" stroke="none"/>
+<text x="72" y="306" fill="#a96413" font-family="ui-monospace,DejaVu Sans Mono,monospace" font-size="43" font-weight="700">NULL</text>
+<text x="72" y="357" fill="#a96413" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="25" font-weight="700">Absence</text>
+<text x="72" y="402" fill="#172b3a" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="23" font-weight="400">Valeur inconnue</text>
+<text x="72" y="435" fill="#172b3a" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="23" font-weight="400">ou non</text>
+<text x="72" y="468" fill="#172b3a" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="23" font-weight="400">renseignée.</text>
+<rect x="330" y="240" width="252" height="330" rx="12" fill="#eef3ff" stroke="none"/>
+<text x="354" y="306" fill="#245edb" font-family="ui-monospace,DejaVu Sans Mono,monospace" font-size="43" font-weight="700">&#x27;&#x27;</text>
+<text x="354" y="357" fill="#245edb" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="25" font-weight="700">Texte vide</text>
+<text x="354" y="402" fill="#172b3a" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="23" font-weight="400">Une chaîne</text>
+<text x="354" y="435" fill="#172b3a" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="23" font-weight="400">présente, de</text>
+<text x="354" y="468" fill="#172b3a" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="23" font-weight="400">longueur zéro.</text>
+<rect x="612" y="240" width="252" height="330" rx="12" fill="#eaf7f3" stroke="none"/>
+<text x="636" y="306" fill="#087e79" font-family="ui-monospace,DejaVu Sans Mono,monospace" font-size="43" font-weight="700">0</text>
+<text x="636" y="357" fill="#087e79" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="25" font-weight="700">Nombre zéro</text>
+<text x="636" y="402" fill="#172b3a" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="23" font-weight="400">Un nombre</text>
+<text x="636" y="435" fill="#172b3a" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="23" font-weight="400">utilisable dans</text>
+<text x="636" y="468" fill="#172b3a" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="23" font-weight="400">un calcul.</text>
+<rect x="894" y="240" width="252" height="330" rx="12" fill="#f2f5f7" stroke="none"/>
+<text x="918" y="306" fill="#526674" font-family="ui-monospace,DejaVu Sans Mono,monospace" font-size="43" font-weight="700">&#x27;0&#x27;</text>
+<text x="918" y="357" fill="#526674" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="25" font-weight="700">Texte zéro</text>
+<text x="918" y="402" fill="#172b3a" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="23" font-weight="400">Un caractère ;</text>
+<text x="918" y="435" fill="#172b3a" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="23" font-weight="400">son type reste</text>
+<text x="918" y="468" fill="#172b3a" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="23" font-weight="400">textuel.</text>
+<text x="48" y="638" fill="#526674" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="24" font-weight="400">Testez l’absence avec IS NULL, et non avec = NULL.</text>
+<text x="48" y="673" fill="#526674" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="24" font-weight="400">Le type de la colonne et le mode de saisie déterminent l’interprétation.</text>
+<path d="M48 711 H1152" stroke="#dbe3e8"/>
+<text x="48" y="743" fill="#526674" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="18" font-weight="400">Schéma explicatif · les captures d’interface sont présentées séparément</text>
+<text x="1028" y="743" fill="#526674" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="18" font-weight="400">2026.11</text>
+</svg>

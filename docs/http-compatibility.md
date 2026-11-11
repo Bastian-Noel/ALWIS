@@ -1,48 +1,39 @@
-# ALWIS HTTP compatibility in PHP 8.4 (browser Fetch)
+# HTTP et cURL : capacités et limites du navigateur
 
-The independent PHP/MariaDB WASM relies on browser Fetch, Asyncify and the
-native PHP HTTP stream wrapper; there are no unrestricted TCP sockets.
+Les flux HTTP PHP et le sous-ensemble cURL reposent sur Fetch, Asyncify et l’adaptateur HTTP du runtime. Sept cas navigateur ont été validés dans Chromium et Firefox avec le build indépendant : il s’agit d’une compatibilité testée sur ces scénarios, pas d’une implémentation complète de libcurl.
 
-## Candidate functionality (requires native Chromium/Firefox validation)
+![L’appel réseau quitte PHP par les API du navigateur.](images/figures/http.png)
 
-- PHP file_get_contents over HTTP(S) with GET/POST/custom method, request
-  headers, binary bodies, ignore_errors, redirect behavior and timeouts.
-- cURL compatibility subset: curl_init, curl_setopt, curl_setopt_array,
-  curl_exec, curl_errno, curl_error, curl_getinfo, curl_close, curl_reset,
-  curl_copy_handle, curl_escape, curl_unescape and curl_version.
-- Common cURL options: URL, RETURNTRANSFER, POST, POSTFIELDS, HTTPHEADER,
-  CUSTOMREQUEST, USERAGENT, TIMEOUT, TIMEOUT_MS, HEADER, NOBODY, HTTPGET,
-  FAILONERROR and FOLLOWLOCATION.
-- Fixed limits: 8 MiB request body, 16 MiB response, at most 180 seconds
-  per Fetch, bounded header counts and lengths.
-- Following redirects requires explicit CURLOPT_FOLLOWLOCATION. Without it,
-  Fetch refuses redirects. Browser security may hide redirected response data.
-- NativeRuntime.abortHttp() cancels only the current Asyncify Fetch directly
-  from the Worker event loop; it cannot preempt CPU-only PHP or an SQL query.
+## Fonctions prises en charge
 
-## Self-site requests and deadlock prevention
+Les flux PHP permettent notamment `file_get_contents` en HTTP(S), les méthodes et en-têtes personnalisés, les corps binaires, `ignore_errors`, les redirections et les délais, sous réserve des règles du navigateur.
 
-The current native worker executes only one PHP script at a time. PHP
-synchronously calling another PHP script from the same site would await its
-own queue, leading to deadlock. To fail safely, ALWIS:
-1. reads existing same-site static files directly from /workspace on GET;
-2. refuses dynamic same-site routes and non-GET methods with a descriptive
-   cURL error, even when the site's router rewrites URLs without .php suffix;
-3. uses browser Fetch for other HTTP(S) requests, subject to CORS and TLS.
+Le sous-ensemble cURL expose `curl_init`, `curl_setopt`, `curl_setopt_array`, `curl_exec`, `curl_errno`, `curl_error`, `curl_getinfo`, `curl_close`, `curl_reset`, `curl_copy_handle`, `curl_escape`, `curl_unescape` et `curl_version`. Les options courantes comprennent URL, RETURNTRANSFER, POST, POSTFIELDS, HTTPHEADER, CUSTOMREQUEST, USERAGENT, TIMEOUT, TIMEOUT_MS, HEADER, NOBODY, HTTPGET, FAILONERROR et FOLLOWLOCATION.
 
-Dynamic PHP self-subrequests therefore remain UNSUPPORTED until an
-independent re-entrant PHP executor or second worker can be validated.
+Les options inconnues renvoient `false`. L’objet `CurlHandle` est un objet de compatibilité PHP lorsque l’extension native n’est pas présente ; son identité de classe n’équivaut pas à celle de libcurl amont.
 
-## Unsupported options and known limits
+## Des limites distinctes
 
-This is a safe compatibility subset, NOT complete native libcurl. No
-curl_multi, raw sockets, proxy CONNECT, custom TLS, cookie jars, CURLFile
-multipart uploads, or unbounded redirects. Unknown options return false.
-The CurlHandle class is a PHP userland compatibility object when ext/curl
-is absent; class identity does not match upstream native libcurl.
+| Limite | Valeur | Interprétation |
+|---|---:|---|
+| Corps de requête | 8 Mio | Volume maximal envoyé par cet adaptateur |
+| Réponse | 16 Mio | Volume maximal reçu, pas une autorisation de charger arbitrairement la RAM |
+| Attente Fetch | 180 secondes au maximum | Plafond d’une attente réseau ; une limite plus courte peut être demandée |
 
-The GPL-2.0-only shim is embedded in the corresponding-source WASM build via
-auto_prepend_file, not copied from JoomEngine. Browser acceptance must pass:
-tests/browser/native-curl.mjs in Chromium and Firefox, and the PHP source
-fixture fixtures/compatibility/native-curl.php. Until those tests pass on
-the new binary, treat the feature as implemented but UNVERIFIED.
+Les nombres et longueurs d’en-têtes sont aussi bornés. `NativeRuntime.abortHttp()` annule le Fetch courant depuis la boucle du worker ; il n’interrompt pas un calcul PHP purement CPU ni une requête SQL en cours.
+
+Les redirections exigent explicitement `CURLOPT_FOLLOWLOCATION`. Sans cette option, Fetch les refuse. Le navigateur peut masquer des informations de réponse lors de redirections ou refuser un accès CORS/TLS ; PHP ne contourne pas ces restrictions.
+
+## Appeler son propre site
+
+Le worker exécute un seul script PHP à la fois. Attendre une autre page PHP du même moteur reviendrait à attendre une tâche placée derrière soi dans la file. Pour éviter ce blocage :
+
+1. Les GET vers des fichiers statiques locaux existants lisent directement le contenu du projet.
+2. Les routes PHP dynamiques locales et les méthodes autres que GET sont refusées avec une erreur explicite, même si une réécriture cache l’extension `.php`.
+3. Les autres destinations HTTP(S) utilisent Fetch, avec CORS et TLS.
+
+## Ce qui n’est pas fourni
+
+Pas de `curl_multi`, sockets brutes, proxy CONNECT, TLS personnalisé, cookie jar complet ou uploads multipart via `CURLFile`. Pour un formulaire envoyé par une page à son projet, utilisez l’aperçu HTTP normal : ce n’est pas la même opération qu’un appel sortant depuis PHP.
+
+Les fixtures sont [native-curl.php](../fixtures/compatibility/native-curl.php) et le [test navigateur](../tests/browser/native-curl.mjs). [Preuves de validation](runtime-parity.md) · [Trajet HTTP](http-runtime.md) · [Dépannage](troubleshooting.md).

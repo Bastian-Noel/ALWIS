@@ -1,55 +1,35 @@
-# Ce qui fonctionne et les limites
+# Compatibilité et limites à connaître
 
-[← Guide illustré](README.md)
-
-ALWIS est une **préversion**, conçue pour apprendre, faire des exercices et tester de petits sites.
+ALWIS permet d’exécuter et d’explorer des projets PHP/SQL dans le navigateur. Sa compatibilité doit se lire fonction par fonction : une page PHP simple, une extension native particulière et un serveur réseau complet ne demandent pas les mêmes capacités.
 
 ## Navigateurs
 
-| Navigateur | Utilisation |
-|---|---|
-| **Chrome / Chromium** | Parcours automatisés de l’éditeur, PHP et SQL |
-| **Edge** | Accès au dossier du PC possible ; pas de validation dédiée complète |
-| **Firefox** | Parcours automatisés prévus ; utilisez le ZIP pour les fichiers du PC |
-| **Safari** | Pas de validation complète |
+**Chromium et Firefox** sont couverts par les validations automatisées du runtime indépendant et les parcours réels du studio. Les tests vérifient notamment PHP/PDO/MySQLi, les requêtes HTTP, les sessions et la reprise après erreur. Edge partage la base Chromium, mais ne doit pas être présenté comme une validation dédiée. Safari ne dispose pas ici d’une validation complète équivalente.
 
-> [!NOTE]
-> Les dernières modifications de l’IDE ont été vérifiées dans Chromium. Firefox n’était pas installé dans l’environnement de cette vérification.
+L’accès direct à un dossier du PC dépend des API et permissions du navigateur. Le ZIP reste la voie de transport à privilégier quand cet accès n’est pas disponible. Les navigateurs mobiles peuvent imposer des contraintes supplémentaires de mémoire, stockage et confort d’édition.
 
-## Dans un projet
+![L’accueil sur une largeur mobile ; les captures de travail sont présentées sur ordinateur.](images/alwis-mobile.png)
 
-| Vous pouvez… | À savoir |
-|---|---|
-| Exécuter du PHP et utiliser MariaDB | La compatibilité avec toutes les extensions PHP n’est pas garantie |
-| Utiliser PDO et MySQLi | Certaines fonctions avancées ont des limites |
-| Éditer PHP, HTML, JavaScript, CSS et JSON | Les corrections automatiques ne couvrent pas toutes les erreurs |
-| Tester plusieurs visiteurs | Les fichiers et la base restent communs |
-| Sauvegarder dans le navigateur | Une suppression des données du navigateur peut effacer le projet |
-| Exporter fichiers et bases en ZIP | Les sessions des visiteurs sont exclues |
-| Modifier un dossier du PC | Chrome/Edge ; pas de synchronisation complète |
+## PHP et SQL
 
-[Comprendre les sauvegardes et les dossiers →](ide-workflows.md)
+Le moteur publié utilise PHP 8.4.27 et MariaDB dans un même WASM. PDO et MySQLi sont couverts par les tests ; cela ne signifie pas que toutes les extensions PHP d’un hébergement classique sont disponibles. Les entiers PHP sont signés sur 32 bits. Les valeurs SQL plus grandes doivent conserver leur forme exacte, souvent textuelle. [Guide des valeurs](sql-values.md).
 
-## Si le projet est volumineux
+Un seul script PHP s’exécute à la fois dans ce runtime. Il ne s’agit pas d’un pool de processus PHP-FPM. Les sous-requêtes dynamiques PHP vers le même moteur sont refusées pour éviter un blocage. La parallélisation native supplémentaire reste un sujet d’évolution.
 
-- L’édition de texte est limitée à **1 Mio par fichier**.
-- L’analyse du code est limitée à **256 K caractères par document**.
-- Le schéma affiche au maximum **50 tables et 2 000 colonnes**.
-- La grille affiche **100 lignes par page** ; son CSV exporte le résultat courant.
+## Réseau et services externes
 
-La RAM dépend du navigateur, du projet et des outils ouverts. La mémoire affichée pour le moteur n’est pas toute la mémoire du navigateur.
+Les appels HTTP PHP utilisent Fetch et restent soumis à CORS/TLS. Le sous-ensemble cURL ne fournit pas les sockets TCP, `curl_multi`, les proxys CONNECT ou une configuration TLS arbitraire. Un projet qui attend Redis, un serveur SMTP ou une extension réseau spécifique n’est pas automatiquement portable. [Référence HTTP/cURL](http-compatibility.md).
 
-[Comprendre les mesures en quelques graphiques →](performance-summary.md)
+## Stockage et mémoire
 
-<details>
-<summary>Références techniques et preuves</summary>
+Les quotas du navigateur peuvent être plus petits que les limites ALWIS. Effacer les données du site, changer d’origine ou travailler en navigation privée affecte la conservation. Exportez des copies indépendantes.
 
-- [Extensions PHP et tests](../engine/fusion/PHP-ESSENTIALS-RECEIPT.md)
-- [Fonctions MySQLi et limites](../engine/fusion/MYSQLI-106-RECEIPT.md)
-- [Fonctionnement de l’éditeur](../apps/studio/editor/README.md)
-- [Architecture et limites du runtime](architecture.md)
-- [Collaboration et limites de l’aperçu invité](collaboration.md)
+La mémoire WASM commence à 256 Mio et peut atteindre 512 Mio dans la configuration publiée ; ce n’est pas une promesse de RAM totale du navigateur. Les fichiers, interfaces et tampons d’export ajoutent leurs allocations. [Mémoire en bref](performance-summary.md) · [Budgets de stockage](storage-opfs.md).
 
-Les tests automatisés ne remplacent pas une validation manuelle complète avec un lecteur d’écran.
+## Collaboration et publication
 
-</details>
+L’aperçu distant interactif exige un hôte disponible, les droits appropriés et une origine HTTPS dédiée. Le studio statique peut être essayé sans cette infrastructure. Les profils Campus sont démonstratifs et sans mot de passe.
+
+La publication 2026.11 Beta 1 conserve une exception de licence sur deux fichiers historiques PHP ; les tests fonctionnels ne valent pas autorisation des tiers. Consultez [l’état de licence](../provenance/release-licensing-status.json).
+
+[Installer](installation.md) · [Dépanner](troubleshooting.md) · [Voir les preuves de validation](runtime-parity.md)

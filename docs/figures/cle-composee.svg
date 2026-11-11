@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img"><title>Quand l’identité est un couple</title><desc>Campus : la clé primaire de enrollments réunit student_id et course_id.</desc><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10" fill="#526674"/></marker></defs>
+<rect x="0" y="0" width="1200" height="760" rx="12" fill="#ffffff" stroke="none"/>
+<text x="48" y="46" fill="#087e79" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="19" font-weight="700">ALWIS / GUIDE VISUEL</text>
+<text x="48" y="112" fill="#172b3a" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="42" font-weight="700">Quand l’identité est un couple</text>
+<text x="48" y="159" fill="#526674" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="23" font-weight="400">Campus : la clé primaire de enrollments réunit student_id et course_id.</text>
+<path d="M48 189 H1152" stroke="#dbe3e8"/>
+<text x="72" y="246" fill="#526674" font-family="ui-monospace,DejaVu Sans Mono,monospace" font-size="26" font-weight="700">student_id</text>
+<text x="400" y="246" fill="#526674" font-family="ui-monospace,DejaVu Sans Mono,monospace" font-size="26" font-weight="700">course_id</text>
+<text x="770" y="246" fill="#526674" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="26" font-weight="700">Résultat</text>
+<rect x="48" y="286" width="1104" height="78" rx="12" fill="#eaf7f3" stroke="none"/>
+<text x="80" y="336" fill="#172b3a" font-family="ui-monospace,DejaVu Sans Mono,monospace" font-size="32" font-weight="400">1</text>
+<text x="416" y="336" fill="#172b3a" font-family="ui-monospace,DejaVu Sans Mono,monospace" font-size="32" font-weight="400">1</text>
+<text x="770" y="335" fill="#087e79" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="25" font-weight="700">Inscription valide</text>
+<rect x="48" y="386" width="1104" height="78" rx="12" fill="#eef3ff" stroke="none"/>
+<text x="80" y="436" fill="#172b3a" font-family="ui-monospace,DejaVu Sans Mono,monospace" font-size="32" font-weight="400">1</text>
+<text x="416" y="436" fill="#172b3a" font-family="ui-monospace,DejaVu Sans Mono,monospace" font-size="32" font-weight="400">2</text>
+<text x="770" y="435" fill="#245edb" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="25" font-weight="700">Autre cours : valide</text>
+<rect x="48" y="486" width="1104" height="78" rx="12" fill="#fff5e5" stroke="none"/>
+<text x="80" y="536" fill="#172b3a" font-family="ui-monospace,DejaVu Sans Mono,monospace" font-size="32" font-weight="400">1</text>
+<text x="416" y="536" fill="#172b3a" font-family="ui-monospace,DejaVu Sans Mono,monospace" font-size="32" font-weight="400">1</text>
+<text x="770" y="535" fill="#a96413" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="25" font-weight="700">Même couple : refusé</text>
+<text x="48" y="638" fill="#526674" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="24" font-weight="400">Chaque identifiant peut se répéter séparément ; le couple complet doit rester unique.</text>
+<path d="M48 711 H1152" stroke="#dbe3e8"/>
+<text x="48" y="743" fill="#526674" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="18" font-weight="400">Schéma explicatif · les captures d’interface sont présentées séparément</text>
+<text x="1028" y="743" fill="#526674" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="18" font-weight="400">2026.11</text>
+</svg>

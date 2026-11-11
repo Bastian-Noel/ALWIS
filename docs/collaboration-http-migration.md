@@ -1,6 +1,8 @@
 # Migration : aperçu HTTP invité sans miroir DOM
 
-[Roadmap](https://github.com/Bastian-Noel/ALWIS/issues/1) · [Collaboration actuelle](collaboration.md) · [Parité PHP](runtime-parity.md)
+> **Plan et journal historiques.** Les états intermédiaires ci-dessous ne décrivent pas tous la bêta publiée. Pour le fonctionnement actuel, consultez [Collaboration](collaboration.md), [le trajet HTTP](http-runtime.md) et [les validations](runtime-parity.md).
+
+[Parcours du wiki](wiki-home.md) · [Collaboration actuelle](collaboration.md) · [Parité PHP](runtime-parity.md)
 
 ## Objectif
 

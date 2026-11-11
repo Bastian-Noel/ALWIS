@@ -1,5 +1,15 @@
 # Mémoire et performances, en bref
 
+## D’abord, distinguer les mesures
+
+![La taille sur disque, le tas WASM et la mémoire du navigateur ne mesurent pas la même chose.](images/figures/memoire.png)
+
+[Schéma SVG](figures/memoire.svg)
+
+Le build natif actuel démarre avec 256 Mio de mémoire linéaire et un plafond de 512 Mio. Ce plafond ne comprend pas toute la RAM du navigateur. Les graphiques ci-dessous proviennent d’une **campagne historique du 5 novembre**, antérieure à la reconstruction indépendante publiée : ils expliquent une méthode et des ordres de grandeur, sans constituer un nouveau benchmark de la bêta.
+
+## Mesures historiques conservées
+
 **Pour comprendre l’ordre de grandeur**, comparez d’abord des scénarios complets. Les mesures viennent d’un test Windows du 5 novembre 2026 ; ce n’est pas une promesse de consommation sur chaque ordinateur.
 
 [Lire la méthode et toutes les mesures](performance.md) · [Découvrir le fonctionnement](../README.md)

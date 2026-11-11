@@ -1,75 +1,31 @@
-# ALWIS independent PHP 8.4: isolated lifecycle after fatal errors
+# Erreurs PHP : nettoyer une requête et repartir correctement
 
-Status: **runner fix and tests added; real Chromium/Firefox CI rebuild still
-required**. No production change or release approval.
+Un moteur WASM reste vivant entre plusieurs requêtes. Il faut donc que la fin d’une page, même en erreur, ne transmette pas son statut, ses connexions ou sa transaction abandonnée à la page suivante. La bêta vérifie ce comportement avec **18 requêtes successives par navigateur**, dans Chromium et Firefox.
 
-## Failure observed in CI
+![Chaque requête possède son démarrage, son exécution et son nettoyage.](images/figures/cycle-php.png)
 
-In GitHub Actions run 42882807112, the native browser test performed:
+[Version SVG](figures/cycle-php.svg)
 
-1. a normal PHP/PDO request establishing a committed SQL record;
-2. a PHP request throwing an uncaught RuntimeException inside a transaction;
-3. a normal POST request in the SAME long-lived WASM.
+## Ce que voit l’utilisateur
 
-The third request returned PHP exit code 255 with no diagnostic, even though
-the runtime had completed 17 parity tests and real P2P guest requests in both
-browsers.
+Une exception non capturée ou une erreur fatale appartient à la requête qui l’a produite. Une requête suivante correcte doit pouvoir renvoyer HTTP 200 avec son propre résultat. Un `exit(42)` ne doit pas imposer ce code de sortie aux requêtes suivantes. Un statut volontaire 429 doit aussi rester local à sa réponse.
 
-## Root cause in the official PHP 8.4 SAPI lifecycle
+La récupération ne signifie pas que tous les effets ont disparu. Les connexions et transactions SQL abandonnées sont nettoyées ; les écritures PHP déjà effectuées dans les fichiers ne sont pas annulées par ce nettoyage. [Transactions et limites d’atomicité](sql-transactions.md).
 
-The upstream php_execute_script() entrypoint does NOT reset EG(exit_status).
-Fatal PHP errors and explicit exit(42) may leave a nonzero exit status that
-the ALWIS runner mistakenly copied to subsequent requests.
+## Deux états natifs à remettre à zéro
 
-The official PHP 8.4 helper php_execute_simple_script() explicitly resets
-EG(exit_status) before executing a script. ALWIS uses the HTTP SAPI, not this
-CLI helper. It now resets EG(exit_status) after each successful
-php_request_startup() and BEFORE running user code, never afterward.
+Le runner réinitialise `EG(exit_status)` après un `php_request_startup()` réussi, avant l’exécution du code utilisateur. Il réinitialise aussi `SG(sapi_headers).http_response_code` à 200 avant le démarrage de la requête suivante. Ces deux états sont indépendants : un code de sortie réparé ne suffit pas si le statut HTTP reste 500.
 
-## Engine isolation and cleanup
+`SG(server_context)` reste valide jusqu’à `php_request_shutdown()` pour que POST, `php://input` et les cookies soient correctement traités ; il est nettoyé ensuite. Le nettoyage SQL libère connexions et statements et annule les transactions laissées ouvertes.
 
-- Ordinary uncaught PHP exceptions are cleaned up by PHP's normal shutdown
-  sequence, which lets the SAME WASM handle subsequent requests.
-- If PHP reports an uncaught error before headers are emitted, ALWIS sends
-  HTTP 500 instead of incorrectly returning HTTP 200.
-- An explicit nonzero PHP exit code belongs only to its current request.
-- A bailout escaping the PHP executor, failed startup, or bailout during
-  shutdown marks the engine non-reusable. The worker sees
-  php_wasm_reusable() returning zero and refuses unsafe subsequent work.
-  The export is part of the mandatory WASM ABI: missing functions also fail
-  closed instead of silently falling back to an older binary.
-- SQL owner cleanup closes and rolls back abandoned transactions and
-  releases prepared statements and connections.
-- SG(server_context) remains live through php_request_shutdown() for
-  HTTP POST, php://input and cookie parsing, then is cleared afterward.
+## Quand le moteur doit être refusé
 
-## Browser regression test
+Un échec de démarrage, un bailout échappant à l’exécuteur ou un échec de shutdown peut rendre le moteur non réutilisable. `php_wasm_reusable()` l’expose au worker, qui refuse de poursuivre dans un état déclaré dangereux. Une ABI incomplète ne doit pas provoquer un repli silencieux sur un ancien binaire.
 
-tests/browser/native-error-recovery.mjs uses ONE native runtime per browser
-for 14 consecutive requests, covering: normal SQL, unhandled PHP exception
-and rollback, two subsequent POSTs, exit(42) then POST, ParseError then POST,
-uncaught PDOException in an open SQL transaction then POST, caught exception
-then POST, and another fatal exception followed by a successful POST.
+La mémoire PHP est également couverte : le patch Emscripten des chunks Zend évite les libérations partielles incompatibles avec le modèle mémoire, tout en conservant `memory_limit`. Le plafond du tas WASM et la limite PHP ne désignent pas la même chose. [Lire les niveaux de mémoire](performance-summary.md).
 
-Each operation validates HTTP status, exit code, body, SQL row count and
-the absence of leaked native SQL connections or prepared statements.
-Failing runs persist diagnostics to build-work/native-recovery/browser.json.
-The test must succeed in Chromium and Firefox alongside existing parity,
-two-guest WebRTC/PDO, load, restart and source-license checks.
+## Vérification et diagnostic
 
-## Second bug verified against the actual next native compilation
+Le [test navigateur](../tests/browser/native-error-recovery.mjs) exerce notamment exception non capturée, ParseError, PDOException en transaction, sortie non nulle, statut explicite et dépassement de mémoire, chacun suivi de requêtes de contrôle. Les résultats inspectent statut HTTP, code de sortie, corps et ressources SQL résiduelles.
 
-GitHub Actions run 42888968248 proved that resetting EG(exit_status)
-eliminated the stale exit code: the successful POST after a fatal exception
-returned exitCode=0 and correct PHP/SQL JSON. However it still produced
-HTTP 500. Inspection of the EXACT official PHP 8.4.27 main/SAPI.c found that
-sapi_activate() resets the per-request header list and headers_sent, but its
-http_response_code=200 assignment is intentionally commented out. ALWIS has
-to reset SG(sapi_headers).http_response_code=200 itself BEFORE
-php_request_startup() for every request in its long-lived HTTP SAPI.
-This preserves errors (500) in the failing request and lets the next
-successful request return HTTP 200.
-
-The expanded browser regression now has 16 requests per browser, including
-an explicitly generated HTTP 429 followed by a successful HTTP 200, so neither
-fatal errors nor application-set HTTP statuses can leak between requests.
+Les correctifs sont dans le [runner PHP](../packages/php-native/src/runner.c) et le [patch mémoire](../engine/patches/php-8.4.27-wasm-chunks.patch). Les reçus sont produits sous `build-work/native-recovery/` ; la [page de parité](runtime-parity.md) identifie le build validé. Pour une erreur de votre application, commencez par le [dépannage](troubleshooting.md).

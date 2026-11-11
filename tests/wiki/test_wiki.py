@@ -27,8 +27,8 @@ class WikiTests(unittest.TestCase):
         self.assertEqual(self.builder.convert(code, 'README.md'), code)
 
     def test_deployment_compose_example_matches_the_shipped_file(self):
-        deployment = (ROOT / 'docs/deployment.md').read_text()
-        compose = (ROOT / 'server/compose.yaml').read_text().rstrip()
+        deployment = (ROOT / 'docs/deployment.md').read_text(encoding='utf-8')
+        compose = (ROOT / 'server/compose.yaml').read_text(encoding='utf-8').rstrip()
         self.assertIn('```yaml\n' + compose + '\n```', deployment)
         self.assertIn('ghcr.io/bastian-noel/alwis-server:latest', compose)
         self.assertIn('${ALWIS_DATA_DIR:-./data}:/data', compose)
@@ -48,13 +48,13 @@ class WikiTests(unittest.TestCase):
             (output / 'Personal.md').write_text('Keep this')
             self.builder.build(output)
             first = (output / 'Home.md').read_bytes()
-            manifest = json.loads((output / wiki.MANIFEST).read_text())
+            manifest = json.loads((output / wiki.MANIFEST).read_text(encoding='utf-8'))
             (output / 'old.png').write_text('old asset')
             manifest['files'].append('old.png')
             (output / wiki.MANIFEST).write_text(json.dumps(manifest))
             self.builder.build(output)
             self.assertFalse((output / 'old.png').exists())
-            self.assertEqual((output / 'Personal.md').read_text(), 'Keep this')
+            self.assertEqual((output / 'Personal.md').read_text(encoding='utf-8'), 'Keep this')
             self.assertEqual(first, (output / 'Home.md').read_bytes())
             self.assertTrue((output / '_Sidebar.md').is_file())
             self.assertTrue((output / 'assets/docs/images/alwis-start.png').is_file())
@@ -63,8 +63,8 @@ class WikiTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             output = Path(tmp)
             self.builder.build(output)
-            home = (output / 'Home.md').read_text()
-            installation = (output / 'Installation.md').read_text()
+            home = (output / 'Home.md').read_text(encoding='utf-8')
+            installation = (output / 'Installation.md').read_text(encoding='utf-8')
             self.assertNotEqual(home, installation)
             self.assertNotIn('<div align=', installation)
             self.assertIn('## Installation locale', installation)
@@ -79,7 +79,7 @@ class WikiTests(unittest.TestCase):
             self.assertIn('raw.githubusercontent.com/wiki/Bastian-Noel/ALWIS/assets/docs/images/alwis-start.png', home)
 
     def test_performance_page_uses_the_new_measurement_and_metric(self):
-        performance = (ROOT / 'docs/performance.md').read_text()
+        performance = (ROOT / 'docs/performance.md').read_text(encoding='utf-8')
         self.assertIn('5038537f558e95307f18bd8e9738e20e9ab3fab', performance)
         self.assertIn('mémoire résidente privée', performance)
         self.assertIn('236,2 ± 0,6', performance)
@@ -88,7 +88,7 @@ class WikiTests(unittest.TestCase):
         self.assertNotIn('542,41', performance)
 
     def test_simple_performance_guide_links_to_full_report_and_graphs(self):
-        summary = (ROOT / 'docs/performance-summary.md').read_text()
+        summary = (ROOT / 'docs/performance-summary.md').read_text(encoding='utf-8')
         self.assertIn('images/memory-situations-2026-11-05.png', summary)
         self.assertIn('images/memory-module-costs-2026-11-05.png', summary)
         self.assertTrue((ROOT / 'docs/images/memory-situations-2026-11-05.png').is_file())
@@ -108,7 +108,7 @@ class WikiTests(unittest.TestCase):
             page.write_text('Personal content')
             with self.assertRaises(ValueError):
                 self.builder.build(tmp)
-            self.assertEqual(page.read_text(), 'Personal content')
+            self.assertEqual(page.read_text(encoding='utf-8'), 'Personal content')
 
     def test_manifest_symlink_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -119,7 +119,7 @@ class WikiTests(unittest.TestCase):
             (output / wiki.MANIFEST).symlink_to(target)
             with self.assertRaises(ValueError):
                 self.builder.build(output)
-            self.assertEqual(target.read_text(), '{}')
+            self.assertEqual(target.read_text(encoding='utf-8'), '{}')
 
 
 if __name__ == '__main__':

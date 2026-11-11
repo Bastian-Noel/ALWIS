@@ -1,81 +1,47 @@
-# Architecture d'ALWIS
+# Architecture : un projet web dans un navigateur
 
-[Premiers pas](README.md) · [Collaboration](collaboration.md) · [Stockage](storage-opfs.md) · [Limites](compatibility.md)
+ALWIS sépare le studio, l’exécution du projet et les services de partage. Cette séparation explique où chercher une panne, ce qui reste local et pourquoi un conteneur serveur n’est pas un hébergement PHP classique.
 
-**ALWIS est un studio web : le navigateur exécute PHP et MariaDB, pas le serveur HTTP.** Un conteneur Docker peut servir l'application et la signalisation collaborative, sans devenir le serveur SQL du projet.
+![Du navigateur de l’aperçu au moteur PHP et à ses données.](images/figures/execution.png)
 
-## 1. Un aperçu PHP, sans serveur PHP distant
+[Version SVG](figures/execution.svg)
 
-```mermaid
-flowchart LR
-  E["Code / Projet"] --> F["Fichiers du projet"]
-  P["Aperçu (iframe)"] --> SW["Service Worker"]
-  SW --> H["Studio : ProjectHub"]
-  H --> W["Worker + PHP WASM"]
-  W --> SQL["MariaDB native (à la demande)"]
-  W --> F
-  SQL --> B["Base du projet"]
-  W --> SW
-  SW --> P
-```
+## Interface et coordination
 
-- Le **Service Worker** reçoit les requêtes de l'aperçu et les envoie au studio qui possède le projet.
-- Le **ProjectHub** charge les fichiers et demande au runtime PHP d'exécuter les scripts.
-- **MariaDB démarre au premier besoin SQL.** PHP et MariaDB sont liés dans un même runtime WASM, mais l'initialisation SQL est différée.
-- Le résultat revient comme une réponse HTTP normale : HTML, CSS, médias, redirections, cookies ou erreur.
+Le studio fournit les vues Code, Données, Schéma et Sessions. Le ProjectHub coordonne l’état du projet et les opérations autorisées. Les composants de transport ne doivent pas accéder librement à toutes les fonctions du runtime : ils présentent des opérations bornées et contrôlées.
 
-## 2. Un projet, plusieurs visiteurs
+L’aperçu utilise le Service Worker pour relier des requêtes web aux fichiers et scripts du projet. Il conserve la méthode, les en-têtes, le corps et l’identité du visiteur. [Trajet HTTP détaillé](http-runtime.md).
 
-Chaque session virtuelle a ses **cookies et sa session PHP**. Tous les visiteurs d'un projet utilisent les **mêmes fichiers et la même base SQL**.
+## Un runtime natif PHP et MariaDB
 
-```mermaid
-flowchart TD
-  A["Visiteur A : cookies A"] --> S["Projet partagé"]
-  B["Visiteur B : cookies B"] --> S
-  S --> PHP["PHP WASM"]
-  PHP --> DB["MariaDB : mêmes tables"]
-```
+Le build indépendant réunit PHP 8.4.27 et MariaDB dans un module WebAssembly, avec un worker d’orchestration JavaScript. MariaDB est initialisé au premier besoin SQL. PDO et MySQLi accèdent au moteur embarqué ; ils ne contactent pas automatiquement une base distante.
 
-Cela sert à tester un site avec un élève et un professeur, par exemple. Cette séparation reproduit des usages courants ; elle ne crée pas une frontière de sécurité contre du code hostile.
+Le worker exécute une requête PHP à la fois. Asyncify permet d’attendre certaines opérations asynchrones, notamment Fetch ; il ne rend pas l’exécution PHP arbitrairement parallèle ou réentrante. Les sous-requêtes PHP dynamiques vers ce même moteur sont refusées pour éviter un auto-blocage.
 
-## 3. Où vont les données ?
+Le build utilise Emscripten 6.0.6. Les entiers PHP restent sur 32 bits ; les grands entiers SQL sont conservés sous forme textuelle exacte par les adaptateurs. [Valeurs et conversions](sql-values.md) · [Reconstruction du moteur](native-qa-build.md).
 
-| Élément | Endroit |
-| --- | --- |
-| Code et fichiers du projet | Stockage local du navigateur et cache du runtime |
-| Base SQL | MariaDB WASM, avec sauvegarde locale du projet |
-| Sessions PHP et cookies | Isolation virtuelle par visiteur |
-| ZIP exporté | Fichier téléchargé sur le PC |
-| Configuration d'un serveur Docker | SQLite dans le volume du conteneur |
-| Travail collaboratif | Le navigateur hôte reste propriétaire des fichiers et de SQL |
+## Stockage et générations
 
-**Sauvegarder et exporter ne sont pas équivalents.** Si le navigateur est effacé, les données locales peuvent disparaître. Exportez un ZIP pour conserver une copie transportable.
+![Catalogue, fichiers et bases : des rôles de stockage distincts.](images/figures/stockage.png)
 
-## 4. Que se passe-t-il en collaboration ?
+[Version SVG](figures/stockage.svg)
 
-```mermaid
-flowchart LR
-  G["Invité : éditeur"] <--> WS["WebSocket / signalisation"]
-  WS <--> A["Hôte : navigateur"]
-  G --> RPC["Demandes fichiers / SQL"]
-  RPC --> A
-  A --> W["PHP + MariaDB WASM"]
-```
+Les contenus volumineux utilisent le stockage disque du navigateur quand il est disponible, tandis que le catalogue et les générations permettent de retrouver un point de reprise cohérent. La sauvegarde du projet associe fichiers et bases SQL. L’export ZIP produit un format transportable ; les sessions privées des visiteurs sont exclues.
 
-L'hôte exécute le runtime. Les invités peuvent synchroniser le code et utiliser certaines commandes fichiers/SQL via l'hôte. Leur aperçu est actuellement une **copie du DOM**, sans exécution indépendante des scripts de la page. Un aperçu distant pleinement interactif demanderait un relais HTTP supplémentaire.
+Les limites de fichiers, d’archives et de mémoire répondent à des contraintes différentes. Le maximum de mémoire WASM ne représente pas la consommation totale du navigateur. [Stockage détaillé](storage-opfs.md) · [Mémoire](performance-summary.md).
 
-Voir [les fonctions et limites du partage](collaboration.md).
+## Hôte et invités
 
-## 5. Où lire le code ?
+Le navigateur hôte conserve le projet et exécute les requêtes des invités. Les visiteurs utilisent des sessions PHP distinctes et une base commune. L’édition serveur fournit la signalisation et le relais nécessaires ; l’aperçu HTTP invité fonctionne sur une origine HTTPS séparée. Sans cette configuration, un aperçu de compatibilité peut rester limité à des instantanés sans scripts.
 
-| Composant | Chemin |
-| --- | --- |
-| Interface | `apps/studio/workbench/` |
-| Routage d'aperçu | `apps/studio/service-worker.mjs` |
-| Projet et sessions | `apps/studio/project-hub.mjs`, `packages/runtime/src/client-sessions.mjs` |
-| Runtime PHP/SQL | `packages/runtime/src/native-runtime.mjs` |
-| Adaptateurs SQL natifs | `packages/sql-native/` |
-| Collaboration | `apps/studio/collab/`, `server/collab-hub.mjs` |
-| Image serveur | `server/Dockerfile` |
+Le conteneur peut conserver ses réglages d’administration dans SQLite. Cette base de configuration n’est pas la MariaDB des projets. [Collaboration](collaboration.md) · [Rôle du serveur](server-deployment.md).
 
-**Limite de validation :** le patch natif MariaDB alternatif reste expérimental ; ses tests structurels n'attestent pas sa stabilité dans un WASM recompilé. Voir [l'état du remplacement](../engine/patches/INDEPENDENT-SESSION-MIGRATION.md) et [les droits de distribution](../LICENSE.md).
+## Erreurs, frontières et sécurité
+
+Le cycle PHP nettoie les connexions et transactions abandonnées. Le runtime est refusé pour les requêtes suivantes si un état natif non réutilisable est détecté. Une transaction SQL annulée ne rembobine pas les fichiers déjà écrits par PHP. Les limites de débits et de volumes s’ajoutent à la séparation des origines, sans fournir une isolation de conteneur adversarial.
+
+Le code partagé reste du code à évaluer avec prudence. Les profils fictifs du Campus et les pseudonymes d’invitation ne constituent pas une identité forte. Les validations navigateur attestent des parcours testés, pas une preuve de sécurité exhaustive.
+
+## Lire les sources
+
+Partez de `apps/studio/` pour l’interface, de `packages/runtime/` pour l’exécution, de `server/` pour les services et de `scripts/` pour la construction et la publication. Les tests navigateur sont dans `tests/browser/`. La [référence de parité](runtime-parity.md) donne les preuves et les limites de la version publiée.

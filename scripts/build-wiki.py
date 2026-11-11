@@ -11,6 +11,19 @@ from pathlib import Path
 from urllib.parse import quote, unquote, urlsplit
 
 PAGES = {
+    'docs/wiki-home.md': ('Home', 'Accueil'),
+    'docs/concepts.md': ('Comprendre-ALWIS', 'Comprendre ALWIS'),
+    'docs/saving-projects.md': ('Bien-sauvegarder', 'Bien sauvegarder'),
+    'docs/sql-values.md': ('Types-SQL-et-valeurs', 'Types SQL et valeurs'),
+    'docs/sql-relations.md': ('Relations-et-cles', 'Relations et clés'),
+    'docs/sql-transactions.md': ('Transactions-SQL', 'Transactions SQL'),
+    'docs/http-runtime.md': ('Requetes-HTTP', 'Du clic à PHP : requêtes HTTP'),
+    'docs/troubleshooting.md': ('Depannage', 'Dépannage'),
+    'docs/http-compatibility.md': ('HTTP-et-cURL', 'Compatibilité HTTP et cURL'),
+    'docs/php-error-recovery.md': ('Erreurs-PHP', 'Erreurs PHP et récupération'),
+    'docs/native-qa-build.md': ('Compiler-le-WASM', 'Compiler et vérifier le WASM'),
+    'docs/illustrations.md': ('Illustrations', 'Illustrations et exports'),
+
     'docs/installation.md': ('Installation', 'Installer ALWIS'),
     'docs/README.md': ('Premiers-pas', 'Premiers pas'),
     'docs/project-workflows.md': ('Projets-ZIP-et-dossiers', 'Créer, importer et sauvegarder'),
@@ -122,56 +135,15 @@ class Builder:
             raise ValueError('Output must not replace the source checkout')
         files = {}
         for source, (slug, _) in PAGES.items():
-            text = (self.root / source).read_text()
+            text = (self.root / source).read_text(encoding='utf-8')
             files[slug + '.md'] = '<!-- Generated from ' + source + '; edit the repository source. -->\n\n' + self.convert(text, source)
-        # GitHub opens Home.md first. Keep it focused on common tasks and visual entry points.
-        files['Home.md'] = f'''# Bienvenue dans ALWIS
-
-**Écrivez du code, lancez votre site et travaillez avec vos données dans le navigateur.**
-
-[Ouvrir le studio](https://studio.mmi.place/) · [Installer ALWIS]({self.wiki}Installation) · [Télécharger une version]({self.repo}/releases)
-
-| Créer ou importer un projet | Écrire et prévisualiser | Explorer SQL et les tables | Tester plusieurs visiteurs |
-|---|---|---|---|
-| ![Accueil : projet, ZIP ou dossier local.]({self.link('docs/images/alwis-start.png', 'README.md')}) | ![Éditeur de code et aperçu du site.]({self.link('docs/images/alwis-code-light.png', 'README.md')}) | ![Base, tables et grille de données.]({self.link('docs/images/alwis-data-light.png', 'README.md')}) | ![Sessions de démonstration du Campus.]({self.link('docs/images/alwis-sessions.png', 'README.md')}) |
-| [Projets, ZIP et dossiers PC]({self.wiki}Projets-ZIP-et-dossiers) | [Code, formatage et complétion]({self.wiki}Editeur-et-sauvegardes) | [Bases, requêtes SQL et relations]({self.wiki}Bases-SQL-et-relations) | [Exemple Campus]({self.wiki}Campus) |
-
-## Trouver rapidement un guide
-
-| Vous voulez… | Ouvrez… |
-|---|---|
-| Découvrir l’interface en quelques étapes | [Premiers pas illustrés]({self.wiki}Premiers-pas) |
-| Relier des clés et visualiser le schéma | [Guide SQL et relations]({self.wiki}Bases-SQL-et-relations) · [Capture du schéma]({self.link('docs/images/alwis-schema-light.png', 'README.md')}) |
-| Enregistrer dans le navigateur ou exporter en ZIP | [Sauvegarder et transporter un projet]({self.wiki}Projets-ZIP-et-dossiers) |
-| Héberger l’édition serveur avec Compose | [Configuration, variables et commandes]({self.wiki}Publication) · [Rôle et limites du conteneur]({self.wiki}Serveur-Docker) |
-| Comprendre les mesures mémoire | [Vue graphique]({self.wiki}Performance) · [Rapport complet]({self.wiki}Mesures-memoire-detaillees) |
-
-## Le fonctionnement en un coup d’œil
-
-```mermaid
-flowchart LR
-  P[Projet dans le navigateur] --> C[Éditeur]
-  C --> A[Aperçu du site]
-  A --> PHP[PHP WebAssembly]
-  PHP -->|si le projet utilise SQL| DB[MariaDB WebAssembly]
-  DB --> O[Données · SQL · Schéma]
-  P --> S[Sauvegarde navigateur]
-  S --> Z[Export ZIP]
-```
-
-**Les projets restent dans le navigateur.** Le conteneur Docker sert l’interface ; il n’héberge pas les projets ni le moteur SQL.
-
-## Aide et guides avancés
-
-[Compatibilité]({self.wiki}Compatibilite) · [Mémoire en bref]({self.wiki}Performance) · [Architecture]({self.wiki}Architecture) · [Signaler un problème]({self.repo}/issues)
-'''
         sidebar = f'**[Accueil ALWIS]({self.wiki}Home)**\n\n'
         groups = [
-            ('Commencer', ['docs/installation.md', 'docs/README.md']),
-            ('Créer et travailler', ['docs/project-workflows.md', 'docs/ide-workflows.md', 'docs/sql-workflows.md', 'docs/school-example.md']),
-            ('Sauvegarder et dépanner', ['docs/storage-opfs.md', 'docs/compatibility.md']),
-            ('Mémoire et performances', ['docs/performance-summary.md']),
-            ('Hébergement et publication', ['docs/server-deployment.md', 'docs/deployment.md']),
+            ('Découvrir', ['docs/concepts.md', 'docs/README.md', 'docs/school-example.md', 'docs/installation.md']),
+            ('Pratiquer', ['docs/project-workflows.md', 'docs/ide-workflows.md', 'docs/saving-projects.md', 'docs/collaboration.md', 'docs/troubleshooting.md']),
+            ('Comprendre les données', ['docs/sql-workflows.md', 'docs/sql-values.md', 'docs/sql-relations.md', 'docs/sql-transactions.md']),
+            ('Approfondir la technique', ['docs/architecture.md', 'docs/http-runtime.md', 'docs/http-compatibility.md', 'docs/php-error-recovery.md', 'docs/storage-opfs.md', 'docs/compatibility.md', 'docs/performance-summary.md', 'docs/runtime-parity.md', 'docs/native-qa-build.md']),
+            ('Déployer', ['docs/server-deployment.md', 'docs/deployment.md']),
         ]
         for heading, sources in groups:
             sidebar += f'**{heading}**\n\n'
@@ -184,9 +156,8 @@ flowchart LR
                 sidebar += f'- [{title}]({self.wiki}{slug})\n'
             sidebar += '\n'
         sidebar += '<details>\n<summary>Développement et documentation technique</summary>\n\n'
-        for source in ['CONTRIBUTING.md', 'docs/architecture.md', 'docs/performance.md',
-                       'docs/collaboration.md', 'docs/versioning.md', 'docs/runtime-parity.md',
-                       'docs/collaboration-http-migration.md', 'docs/wiki-publication.md']:
+        for source in ['CONTRIBUTING.md', 'docs/performance.md', 'docs/versioning.md',
+                       'docs/collaboration-http-migration.md', 'docs/wiki-publication.md', 'docs/illustrations.md']:
             slug, title = PAGES[source]; sidebar += f'- [{title}]({self.wiki}{slug})\n'
         files['_Sidebar.md'] = sidebar + f'\n</details>\n\n[Code source]({self.repo}) · [Versions]({self.repo}/releases)\n'
         files['_Footer.md'] = f'[Accueil]({self.wiki}Home) · [Sources de la documentation]({self.repo}/tree/main/docs) · [Version {self.revision[:7]}]({self.repo}/commit/{self.revision})\n\nDocumentation publiée automatiquement. Pour la corriger, modifiez les fichiers du dépôt.\n'
@@ -194,7 +165,7 @@ flowchart LR
         manifest = output / MANIFEST
         if manifest.is_symlink():
             raise ValueError('Unsafe wiki manifest path')
-        previous = json.loads(manifest.read_text()).get('files', []) if manifest.exists() else []
+        previous = json.loads(manifest.read_text(encoding='utf-8')).get('files', []) if manifest.exists() else []
         current = set(files) | set(self.assets)
         # Only remove files recorded by a previous generation; handwritten pages survive.
         for name in set(previous) - current:
@@ -210,10 +181,10 @@ flowchart LR
             if target.exists() and name not in previous and name not in {'Home.md', '_Sidebar.md', '_Footer.md'}:
                 raise ValueError('Unmanaged wiki file would be overwritten: ' + name)
         for name, text in files.items():
-            (output / name).write_text(text.rstrip() + '\n')
+            (output / name).write_text(text.rstrip() + '\n', encoding='utf-8', newline='\n')
         for name, source in self.assets.items():
             target = output / name; target.parent.mkdir(parents=True, exist_ok=True); shutil.copyfile(source, target)
-        manifest.write_text(json.dumps({'source_revision': self.revision, 'files': sorted(current)}, indent=2) + '\n')
+        manifest.write_text(json.dumps({'source_revision': self.revision, 'files': sorted(current)}, indent=2) + '\n', encoding='utf-8', newline='\n')
         print(f'Wiki generated: {len(files)} pages, {len(self.assets)} images; source {self.revision[:7]}')
 
 

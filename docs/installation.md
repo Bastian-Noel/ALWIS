@@ -1,39 +1,32 @@
-# Installer ALWIS
+# Installer ou ouvrir ALWIS
 
-[Premiers pas](README.md) · [Déployer le serveur](server-deployment.md)
+Le moyen le plus rapide est d’[ouvrir le studio en ligne](https://studio.mmi.place/) puis de choisir l’exemple Campus. PHP et MariaDB s’exécutent dans le navigateur ; leur installation sur le PC n’est pas nécessaire.
 
-ALWIS exécute PHP et MariaDB dans le navigateur. **Vous n'avez pas besoin d'installer PHP ou MySQL sur votre ordinateur.**
+![L’accueil du studio.](images/alwis-start.png)
 
 ## Installation locale
 
-1. Téléchargez un ZIP publié depuis les [versions GitHub](https://github.com/Bastian-Noel/ALWIS/releases).
-2. Décompressez le ZIP dans un dossier de votre choix.
-3. Avec [Node.js 20+](https://nodejs.org/) installé, ouvrez un terminal dans le dossier et lancez :
+1. Téléchargez le **paquet statique ZIP** de la [version 2026.11 Beta 1](https://github.com/Bastian-Noel/ALWIS/releases/tag/v2026.11.0-beta.1), plutôt que l’archive GitHub du seul code source.
+2. Décompressez-le dans un dossier.
+3. Avec [Node.js 20 ou supérieur](https://nodejs.org/) installé, ouvrez un terminal dans ce dossier :
 
-   ```sh
-   node serve.mjs
-   ```
+```sh
+node serve.mjs
+```
 
 4. Ouvrez **http://127.0.0.1:8080** dans Chromium ou Firefox.
-5. Créez un projet ou essayez **l'exemple Campus**.
+5. Choisissez le Campus et suivez les [premiers pas](README.md).
 
-> [!IMPORTANT]
-> Les nouvelles distributions sont actuellement suspendues pendant la mise en conformité du runtime natif. Les anciens ZIP servent de référence technique et ne prouvent pas une conformité de redistribution.
+N’ouvrez pas directement le fichier HTML via `file://` : le studio a besoin de son serveur HTTP et de ses ressources. Le ZIP publié comprend le runtime construit ; cloner les sources est un autre parcours, destiné au [développement](../CONTRIBUTING.md).
 
-## Héberger ALWIS
+## Héberger votre instance
 
-Pour permettre le partage entre plusieurs navigateurs, il faut l'**édition serveur**. Elle fournit la page web et le service de collaboration, **pas** la base de données de vos projets.
+L’image `ghcr.io/bastian-noel/alwis-server:2026.11.0-beta.1` est publiée pour **linux/amd64 et linux/arm64**. Elle sert l’interface et les services de collaboration ; les projets et leur moteur PHP/SQL restent dans le navigateur hôte.
 
-Consultez la [configuration Docker](server-deployment.md), puis la [description des services](deployment.md).
+Suivez le [guide Docker](server-deployment.md) pour l’installation, puis la [référence Compose et publication](deployment.md). Pour l’aperçu HTTP des invités, prévoyez une origine HTTPS dédiée en plus du domaine du studio.
 
-## Questions fréquentes
+## Conserver ses projets
 
-| Question | Réponse |
-| --- | --- |
-| Faut-il installer PHP ou MariaDB ? | Non, ils s'exécutent en WebAssembly. |
-| Où sont les fichiers ? | Dans le stockage local du navigateur. |
-| Puis-je travailler sans Internet ? | Certaines fonctionnalités peuvent fonctionner après le chargement initial ; vérifiez la disponibilité des ressources. |
-| Comment conserver une copie ? | Utilisez **Exporter ZIP** régulièrement. |
-| Puis-je inviter quelqu'un ? | Oui sur l'édition serveur, avec les limites précisées dans [Collaboration](collaboration.md). |
+Un serveur local n’est pas une sauvegarde de vos projets. Ils dépendent du stockage du navigateur et de l’origine utilisée. Enregistrez puis exportez régulièrement un ZIP. Un mode hors ligne ne doit pas être supposé complet sans vérifier les ressources nécessaires à votre projet.
 
-Pour apprendre à utiliser l'éditeur, poursuivez avec les [premiers pas illustrés](README.md).
+La bêta est publiée avec une exception de licence documentée ; consultez [l’état de publication](../provenance/release-licensing-status.json) avant redistribution. [Compatibilité](compatibility.md) · [Sauvegardes](saving-projects.md).

@@ -1,5 +1,11 @@
 # Créer, importer et sauvegarder un projet
 
+Un projet rassemble ses fichiers et ses bases. Choisissez votre mode de départ selon la copie que vous voulez modifier : créer dans le navigateur, importer une archive ou ouvrir un dossier du PC avec permission.
+
+![Importer crée une copie ; ouvrir un dossier local implique des permissions distinctes.](images/figures/import.png)
+
+Un import de dossier ne synchronise pas automatiquement les changements ultérieurs du PC. La base SQL reste dans le navigateur, y compris lorsque les fichiers texte sont écrits dans un dossier local. [Import : schéma SVG](figures/import.svg) · [Sauvegarde et restauration](saving-projects.md).
+
 [Accueil Wiki](https://github.com/Bastian-Noel/ALWIS/wiki) · [Premiers pas](README.md) · [Code](ide-workflows.md) · [Limites de stockage](storage-opfs.md)
 
 ![Accueil ALWIS : créer un projet, importer un ZIP ou ouvrir un dossier du PC.](images/alwis-start.png)

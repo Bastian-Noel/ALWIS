@@ -1,5 +1,11 @@
 # Code, sauvegardes et dossier du PC
 
+Travaillez avec le code et son résultat côte à côte. Choisissez un fichier dans l’arborescence, ouvrez son aperçu puis utilisez les commandes de recherche, de formatage et de navigation selon votre besoin. Les raccourcis détaillés ci-dessous évitent de quitter le clavier.
+
+![L’éditeur du Campus dans le thème sombre.](images/alwis-code-dark.png)
+
+Pour comprendre ce qui est durable après **Enregistrer**, consultez aussi [Bien sauvegarder](saving-projects.md).
+
 [Accueil Wiki](https://github.com/Bastian-Noel/ALWIS/wiki) · [Premiers pas](README.md) · [Projet, ZIP et dossier PC](project-workflows.md)
 
 ## Se déplacer au clavier

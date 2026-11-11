@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img"><title>Un grand entier ne doit perdre aucun chiffre</title><desc>Repères de capacité ; les longueurs de bandes ne sont pas une échelle numérique.</desc><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10" fill="#526674"/></marker></defs>
+<rect x="0" y="0" width="1200" height="760" rx="12" fill="#ffffff" stroke="none"/>
+<text x="48" y="46" fill="#087e79" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="19" font-weight="700">ALWIS / GUIDE VISUEL</text>
+<text x="48" y="112" fill="#172b3a" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="42" font-weight="700">Un grand entier ne doit perdre aucun chiffre</text>
+<text x="48" y="159" fill="#526674" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="23" font-weight="400">Repères de capacité ; les longueurs de bandes ne sont pas une échelle numérique.</text>
+<path d="M48 189 H1152" stroke="#dbe3e8"/>
+<text x="48" y="262" fill="#245edb" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="24" font-weight="700">PHP du build actuel</text>
+<rect x="48" y="283" width="1104" height="67" rx="12" fill="#eef3ff" stroke="none"/>
+<text x="72" y="327" fill="#172b3a" font-family="ui-monospace,DejaVu Sans Mono,monospace" font-size="28" font-weight="400">−2 147 483 648 … 2 147 483 647</text>
+<text x="48" y="392" fill="#a96413" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="24" font-weight="700">JavaScript Number</text>
+<rect x="48" y="413" width="1104" height="67" rx="12" fill="#fff5e5" stroke="none"/>
+<text x="72" y="457" fill="#172b3a" font-family="ui-monospace,DejaVu Sans Mono,monospace" font-size="28" font-weight="400">Entiers exacts jusqu’à 9 007 199 254 740 991</text>
+<text x="48" y="522" fill="#087e79" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="24" font-weight="700">MariaDB BIGINT</text>
+<rect x="48" y="543" width="1104" height="67" rx="12" fill="#eaf7f3" stroke="none"/>
+<text x="72" y="587" fill="#172b3a" font-family="ui-monospace,DejaVu Sans Mono,monospace" font-size="28" font-weight="400">Signé : jusqu’à 9 223 372 036 854 775 807</text>
+<text x="48" y="638" fill="#526674" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="24" font-weight="400">Hors de la plage PHP, les adaptateurs SQL conservent une représentation textuelle</text>
+<text x="48" y="673" fill="#526674" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="24" font-weight="400">exacte.</text>
+<path d="M48 711 H1152" stroke="#dbe3e8"/>
+<text x="48" y="743" fill="#526674" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="18" font-weight="400">Schéma explicatif · les captures d’interface sont présentées séparément</text>
+<text x="1028" y="743" fill="#526674" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="18" font-weight="400">2026.11</text>
+</svg>

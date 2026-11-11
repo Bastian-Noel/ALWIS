@@ -1,5 +1,11 @@
 # Stockage des projets sur disque
 
+Pour les gestes quotidiens, commencez par [Bien sauvegarder](saving-projects.md). Cette page de référence explique ensuite le stockage, les protections et les limites numériques.
+
+![Le catalogue et les générations organisent les fichiers et les bases.](images/figures/stockage.png)
+
+[Schéma SVG](figures/stockage.svg)
+
 Les fichiers du projet sont conservés dans **OPFS**, le disque privé du navigateur. IndexedDB conserve leur catalogue et les générations de sauvegarde. Ouvrir l’explorateur ne lit pas leur contenu. Les fichiers inconnus restent binaires ; un SVG est éditable mais n’entre pas automatiquement dans l’analyse du code.
 
 Les imports dossier et ZIP présentent d’abord une sélection. Les dépendances `node_modules`, `vendor`, caches et archives sont décochées par recommandation ; elles peuvent être incluses explicitement. Composer peut avoir besoin de `vendor/autoload.php`. Les fichiers sont copiés successivement, avec vérification de taille et CRC, avant ouverture d’un projet distinct. Annuler nettoie la copie provisoire. L’import ne modifie pas les fichiers du PC.

@@ -48,3 +48,23 @@ Les fenêtres d’une même session partagent leurs cookies ; les sessions diff�
 L’installation conserve les modifications lors des visites suivantes. Cliquez sur **Enregistrer**, puis **Exporter ZIP** pour une sauvegarde externe des fichiers et bases.
 
 Les sources lisibles de l’exemple sont dans [`fixtures/campus`](../fixtures/campus). Après modification, `npm run school:build` reconstruit le module distribué ; la CI refuse un module qui ne correspond plus aux sources. Le [scénario navigateur](../tests/browser/school-scenario.mjs) contrôle les sessions, PDO/MySQLi, conflits, droits, uploads, médias et reprise.
+
+## Trois exercices pour comprendre le modèle
+
+### 1. Retrouver l’élève derrière un identifiant
+
+Dans `students`, trouvez la ligne `id = 1`. Son `user_id = 4` mène à Alice Dupont dans `users`, tandis que `class_id = 1` mène à « 3e Tilleul » dans `classes`. Retrouvez ces liens dans Schéma puis exécutez la [jointure du guide SQL](sql-workflows.md).
+
+![Extrait des relations réelles du Campus.](images/figures/relations.png)
+
+### 2. Distinguer une note absente et zéro
+
+Dans `grades`, la paire `(assignment_id = 2, student_id = 1)` commence avec `score = NULL`. Elle signifie que la note n’est pas encore renseignée. Comparez le résultat d’un filtre `IS NULL` à celui de `score = 0`, puis lisez [les valeurs SQL](sql-values.md). Ne remplacez pas l’absence par zéro pour améliorer seulement l’apparence de la grille.
+
+### 3. Observer une session privée et une donnée commune
+
+Utilisez deux visiteurs. Changez le profil du premier et vérifiez que le second conserve le sien. Ajoutez ensuite une note au carnet commun et consultez-la depuis l’autre visiteur : la session est privée, la base du projet est commune.
+
+![Les identités de navigation ne créent pas des copies séparées de la base.](images/figures/sessions.png)
+
+Enregistrez le projet, exportez un ZIP et réimportez-le sous un autre nom. Vérifiez que vos fichiers et données reviennent, sans supposer que les connexions des visiteurs ont été exportées. [Bien sauvegarder](saving-projects.md).

@@ -1,104 +1,58 @@
 # Vos premiers pas avec ALWIS
 
-[Accueil Wiki](https://github.com/Bastian-Noel/ALWIS/wiki) · [Projets et ZIP](project-workflows.md) · [Code](ide-workflows.md) · [SQL et relations](sql-workflows.md) · [Campus](school-example.md)
+L’objectif de cette visite est de modifier une application et de retrouver votre travail après fermeture. Commencez par le [studio en ligne](https://studio.mmi.place/) ; aucune installation PHP ou MariaDB n’est nécessaire.
 
-## 1. Créer un projet
+## 1. Ouvrir le Campus
 
-1. Ouvrez ALWIS. [Besoin de l’installer ?](../README.md#démarrer)
-2. Saisissez un nom, par exemple `Mon-campus`.
-3. Choisissez **Exemple scolaire**, puis créez le projet.
+Depuis l’accueil, choisissez l’exemple Campus. Il contient du PHP, des ressources web et une base SQL. Les données sont fictives : vous pouvez expérimenter sur votre copie du projet.
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="images/alwis-start-dark.png">
-  <img src="images/alwis-start.png" alt="Nouvel accueil : créer un projet, importer un ZIP ou ouvrir un dossier du PC.">
-</picture>
+![L’accueil d’ALWIS.](images/alwis-start.png)
 
-> [!TIP]
-> Le Campus contient déjà des pages et des données. Vous pouvez essayer sans partir de zéro.
+## 2. Lire le code et voir son résultat
 
-## 2. Modifier une page
+Dans **Code**, ouvrez `index.php`, puis son aperçu. L’arborescence contient notamment les vues, les ressources et le code de traitement. Modifiez un texte visible dans une vue, puis actualisez l’aperçu pour constater le changement. Une modification enregistrée dans l’éditeur n’est pas encore une archive indépendante de votre projet.
 
-1. Dans **Code**, cliquez sur un fichier à gauche.
-2. Modifiez son contenu.
-3. Faites **Ctrl + S**, puis ouvrez **Aperçu**.
+![Le code du Campus et sa page d’accueil.](images/alwis-code-light.png)
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="images/alwis-code-dark.png">
-  <img src="images/alwis-code-light.png" alt="Un fichier PHP et son résultat dans l’aperçu intégré.">
-</picture>
+L’aperçu possède sa propre navigation. Sa barre d’adresse correspond à votre projet, pas à une URL de fichier sur le PC. Les formulaires exécutent du PHP dans le runtime du navigateur.
 
-| Outil | À quoi sert-il ? |
-|---|---|
-| **Formater** | Ranger le code et son indentation |
-| **Emmet** | Transformer une abréviation en HTML ou CSS |
-| **Problèmes** | Lire les erreurs et les corrections proposées |
-| **2 espaces / 4 espaces / Tabulations** | Choisir le décalage des lignes |
+## 3. Ouvrir les données
 
-[Voir les exemples et raccourcis →](ide-workflows.md#écrire-plus-vite)
+Passez dans **Données**, choisissez la base du Campus puis la table `students`. Vous voyez des identifiants : ils représentent des liens, pas directement des noms de personnes. La table `users` contient les noms ; `classes` décrit les classes.
 
-## 3. Explorer les données
+![Les lignes de la table students.](images/alwis-data-light.png)
 
-1. Ouvrez **Données**.
-2. Dépliez la base **school**, puis cliquez sur **students**.
-3. Double-cliquez sur une cellule modifiable pour changer sa valeur.
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="images/alwis-data-dark.png">
-  <img src="images/alwis-data-light.png" alt="Tables de la base school à gauche et lignes de students dans la grille.">
-</picture>
-
-| Onglet | Pour faire quoi ? |
-|---|---|
-| **Données** | Lire et modifier les lignes |
-| **Structure** | Ajouter ou modifier une colonne |
-| **Requête SQL** | Écrire une requête, par exemple `SELECT * FROM students;` |
-
-Un second clic sur le nom de la base replie sa liste. Les bases **système**, grisées, servent au moteur.
+Avant une modification, lisez l’onglet **Structure** : le type de colonne et les contraintes déterminent les valeurs acceptées. Pour obtenir les noms avec leurs classes, suivez la [première requête avec jointure](sql-workflows.md).
 
 ## 4. Comprendre les liens
 
-Ouvrez **Schéma** : chaque bloc est une table, chaque trait représente un lien.
+Dans **Schéma**, repérez le lien de `students.class_id` vers `classes.id`. Il signifie qu’un élève référence une classe existante. Déplacer un bloc dans le dessin sert à lire le modèle ; cela ne réaffecte pas un élève à une autre classe.
 
-- **Réorganiser** rapproche les tables liées.
-- Déplacez une table par son en-tête.
-- **Ajouter une colonne dans Données…** ouvre le formulaire complet.
+![Les tables et leurs liens dans le schéma du Campus.](images/alwis-schema-light.png)
 
-**Exemple :** une note appartient à un élève. Le lien relie la table des notes à celle des élèves.
+## 5. Tester deux visiteurs
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="images/alwis-schema-dark.png">
-  <img src="images/alwis-schema-light.png" alt="Tables du Campus reliées par leurs clés dans l’outil Schéma.">
-</picture>
+Ouvrez **Sessions** et utilisez des visiteurs distincts. Changez le profil de l’un dans le Campus, puis consultez l’autre. Les profils de démonstration sont sans mot de passe. Leurs sessions PHP diffèrent, alors que les données SQL du projet restent communes.
 
-## 5. Essayer plusieurs visiteurs
+![Les sessions de l’aperçu.](images/alwis-sessions.png)
 
-Dans **Sessions**, ouvrez une page pour **Professeur**, puis pour **Élève**.
+Une session locale d’aperçu et un invité distant sont deux usages différents. Le [guide de collaboration](collaboration.md) explique la configuration nécessaire pour accueillir un autre navigateur.
 
-![Sessions du Campus : Administration, Professeur, Élève et Parent, avec leurs boutons d’ouverture.](images/alwis-sessions.png)
+## 6. Enregistrer et emporter
 
-Les visiteurs partagent le même site et la même base, mais gardent leurs propres cookies et leur identité.
+Cliquez sur **Enregistrer**, attendez la fin de l’opération, puis exportez un ZIP depuis les actions du projet. Conservez ce fichier hors du stockage du site. Pour vérifier votre sauvegarde, réimportez l’archive dans un autre projet et contrôlez un fichier ainsi qu’une valeur SQL que vous avez changés.
 
-[Essayer une note ou un message →](school-example.md)
+![Les deux niveaux de sauvegarde du projet.](images/figures/sauvegarde.png)
 
-## 6. Garder une copie
+## Continuer selon votre objectif
 
-| Action | Résultat |
+| Vous voulez… | Poursuivre avec… |
 |---|---|
-| **Enregistrer** ou **Ctrl + S** | Tous les brouillons, fichiers et bases sont conservés dans ce navigateur |
-| **Exporter ZIP** | Une copie des fichiers et bases est téléchargée sur le PC |
+| Écrire plus confortablement | [Éditeur, recherche et raccourcis](ide-workflows.md) |
+| Modifier les tables | [Prise en main SQL](sql-workflows.md) |
+| Comprendre une cellule vide ou un grand nombre | [Types SQL et valeurs](sql-values.md) |
+| Éviter de perdre un projet | [Sauvegardes](saving-projects.md) |
+| Explorer l’application complète | [Campus](school-example.md) |
+| Résoudre un échec | [Dépannage](troubleshooting.md) |
 
-Sur petit écran, retrouvez le ZIP dans le menu du projet, en haut.
-
-> [!IMPORTANT]
-> Le ZIP est votre copie transportable. Les sessions des visiteurs ne sont pas incluses.
-
-## Un problème ?
-
-| Ce qui arrive | Quoi faire |
-|---|---|
-| Du code est souligné | Ouvrez **Problèmes** |
-| La page PHP ne fonctionne pas | Ouvrez **Serveur** et lisez le journal |
-| Serveur affiche un nombre d’erreurs | Consultez le journal : le compteur revient à zéro, l’historique reste |
-| Un fichier a changé ailleurs | Gardez une copie du brouillon avant de recharger |
-
-[Limites connues](compatibility.md) · [Dossier du PC et ZIP](project-workflows.md) · [Guide SQL détaillé](sql-workflows.md)
+[Accueil du wiki](wiki-home.md) · [Installer localement](installation.md)

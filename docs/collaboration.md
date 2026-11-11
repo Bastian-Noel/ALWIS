@@ -1,55 +1,39 @@
-# Collaborer sur ALWIS
+# Collaborer : partager le travail et tester des visiteurs
 
-[Architecture](architecture.md) · [Hébergement](server-deployment.md)
+ALWIS distingue les visiteurs de votre aperçu local et les personnes qui rejoignent une salle depuis un autre navigateur. Dans les deux cas, plusieurs identités peuvent utiliser une même application ; le transport et la configuration ne sont pas les mêmes.
 
-Le mode collaboratif sert à **éditer et explorer un même projet depuis plusieurs navigateurs**. L'instance serveur doit activer la collaboration ; la version statique ne fournit pas de relais central permanent.
+## Les visiteurs locaux
 
-## Comment ça marche ?
+La vue Sessions permet de tester des cookies et sessions PHP séparés. Les fichiers du projet et la base SQL restent partagés. Dans le Campus, changer le profil d’un visiteur ne doit pas connecter les autres au même profil.
 
-```mermaid
-sequenceDiagram
-  participant G as Invité
-  participant S as Serveur de signalisation
-  participant H as Navigateur hôte
-  participant R as Runtime PHP/SQL
-  G->>S: Rejoindre la salle
-  S->>H: Invité connecté
-  G->>H: Synchroniser le code / demande SQL
-  H->>R: Lire, écrire ou exécuter selon les droits
-  R-->>H: Résultat
-  H-->>G: Fichiers et résultats
-```
+![Sessions privées et données communes.](images/figures/sessions.png)
 
-Le propriétaire du projet **reste le navigateur hôte**, qui conserve les données et le runtime. Un invité ne démarre pas un autre PHP/MariaDB pour le projet partagé.
+Ces profils sont fictifs et sans mot de passe. Ils montrent le comportement d’une application multiutilisateur ; ils ne constituent pas une solution d’authentification sécurisée.
 
-## Fonctions existantes
+## Les invités distants
 
-- **Salon et invitation** : lien de partage, pseudo, reconnexion et gestion d'une participation.
-- **Édition synchronisée** : propagation des modifications et présence dans l'éditeur.
-- **Fichiers et SQL** : les outils de l'invité appellent des opérations autorisées sur l'hôte, avec limites de volume et de concurrence.
-- **Présence et focus** : pastilles, sélection et zones actives des participants.
-- **Aperçu suivi** : l'hôte envoie une représentation HTML de son aperçu, avec certains événements rejoués côté hôte.
+Le propriétaire ouvre une salle et partage son lien. Les invités rejoignent avec les droits que l’hôte leur accorde. L’édition synchronisée, la présence et les opérations sur les fichiers ou SQL passent par le protocole de collaboration. Le runtime et le stockage du projet restent chez l’hôte.
 
-## Ce qui n'est pas encore équivalent à un vrai navigateur invité
+![Le trajet HTTP d’un invité vers le navigateur propriétaire.](images/figures/collaboration.png)
 
-L'aperçu invité est **un miroir DOM**, pas une deuxième session PHP/HTTP distante exécutant librement JavaScript. Certains formulaires, scripts et interactions ne fonctionnent donc pas exactement comme dans un navigateur autonome.
+L’aperçu HTTP invité peut exécuter les scripts de la page dans le navigateur invité et transmettre ses requêtes PHP à l’hôte. Les cookies et sessions sont individualisés, tandis que les changements SQL sont communs. Deux vrais invités et ce partage de données ont été testés dans Chromium et Firefox sur le runtime indépendant.
 
-L'accès du navigateur invité dépend également de la connexion et de la disponibilité de l'hôte. Un lien de partage n'est pas un hébergement permanent.
+## Conditions de fonctionnement
 
-## Sécurité et exploitation
+Le serveur doit fournir la signalisation et les transports autorisés, avec HTTPS/WSS et le passage correct de l’en-tête `Upgrade` par le proxy. L’aperçu interactif invité demande **une origine HTTPS dédiée**, configurée dans `ALWIS_PREVIEW_ORIGIN`, distincte de celle du studio. Le DNS et le certificat de ce domaine doivent fonctionner chez l’invité.
 
-- Ne pas utiliser les pseudonymes comme preuve d'identité ; conserver une validation des droits côté hôte.
-- Limiter connexions, débits, fichiers, requêtes et résultats ; éviter toute opération libre sur le serveur.
-- Utiliser HTTPS/WSS et le bon passage de l'en-tête `Upgrade` sur le reverse proxy.
-- Les fichiers de projet et la base restent dans le navigateur de l'hôte ; les paramètres de l'instance Docker peuvent être persistés dans SQLite.
-- Le code partagé et ses droits ne sont pas isolés comme des conteneurs adversariaux : ne pas accueillir de code non fiable sans protection adaptée.
+Sans cette origine, l’aperçu HTTP interactif est désactivé. Un mode de repli peut envoyer des instantanés DOM sans scripts à l’invité concerné ; il ne faut pas confondre cette image de la page avec un navigateur invité pleinement interactif. La publication du ZIP FTP ne configure pas à elle seule ce service distant.
 
-## Fichiers importants
+[Configurer l’origine et le serveur](server-deployment.md) · [Trajet HTTP détaillé](http-runtime.md)
 
-`server/collab-hub.mjs` (salles et transport) · `apps/studio/collab/wire.mjs` (hôte et invité) · `apps/studio/collab/rpc.mjs` (opérations autorisées) · `apps/studio/collab/preview.mjs` (miroir d'aperçu).
+## Ce que signifie « partager »
 
-Les tests unitaires sont `tests/collab-*.test.mjs`. Ils vérifient l'orchestration et les contrôles du protocole, mais ne démontrent pas la sécurité en présence d'adversaires ni un aperçu HTTP distant complet.
+L’hôte doit rester disponible. Fermer son navigateur ne transforme pas la salle en hébergement permanent. Une reconnexion peut rétablir la participation, mais un navigateur absent ne peut exécuter les requêtes PHP.
 
-## Évolution utile
+Vérifiez les droits avant une modification et retirez l’accès lorsque la séance se termine. Un pseudonyme n’est pas une preuve d’identité. Le partage n’isole pas du code hostile comme le ferait un conteneur dédié à chaque personne. Les sauvegardes et les exportations restent la responsabilité du propriétaire du projet.
 
-Un vrai aperçu interactif pour chaque invité nécessiterait un routage **Service Worker invité → RPC HTTP → ProjectHub hôte**, avec identités PHP isolées, ressources binaires, cookies et politiques d'accès explicites. Ce n'est pas encore la fonctionnalité livrée.
+## Vérifier votre installation
+
+Commencez avec deux contextes navigateur distincts, ouvrez une même application, donnez-leur des profils différents et modifiez une donnée SQL. Vérifiez la séparation des sessions et la visibilité de la donnée commune. Testez ensuite la déconnexion de l’hôte et le retrait d’un invité. N’inférez pas la réussite de l’aperçu HTTP du seul fait que l’éditeur synchronise du texte.
+
+[Preuves des tests](runtime-parity.md) · [Dépannage](troubleshooting.md) · [Plan historique de migration](collaboration-http-migration.md)

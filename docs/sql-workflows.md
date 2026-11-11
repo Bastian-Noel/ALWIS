@@ -1,47 +1,55 @@
-# Bases de données, SQL et relations
+# Explorer les bases, les tables et les requêtes
 
-[Accueil Wiki](https://github.com/Bastian-Noel/ALWIS/wiki) · [Premiers pas illustrés](README.md) · [Exemple Campus](school-example.md)
+La vue Données vous permet de regarder le contenu d’une base sans écrire une page PHP pour chaque vérification. Utilisez-la pour comprendre ce que votre application stocke, puis passez à SQL quand vous voulez relier, filtrer ou calculer.
 
-Dans ALWIS, **Données** sert à parcourir les lignes et la structure. **Schéma** sert à visualiser et créer les relations. **Requête SQL** exécute le SQL sur la même base que le projet PHP.
+![Les données du Campus dans ALWIS.](images/alwis-data-light.png)
 
-## Parcourir et modifier une table
+## Trois vues, trois questions
 
-1. Ouvrez **Données** et développez la base à gauche.
-2. Choisissez une table pour voir sa grille.
-3. Recherchez ou filtrez les lignes ; double-cliquez sur une cellule modifiable pour la changer.
-4. Passez à **Structure** pour consulter les colonnes et en ajouter ou modifier.
+**Données : que contient la table ?** Chaque ligne est un enregistrement. Les cellules montrent les valeurs de ses colonnes. Le nom d’une colonne ne garantit ni son type ni sa signification : `class_id` est un identifiant, pas le nom de la classe.
 
-![La vue Données montre les bases, les tables et la grille paginée.](images/alwis-data-light.png)
+**Structure : quelles valeurs sont autorisées ?** Lisez le type, la nullabilité, la valeur par défaut et les clés. Une cellule refusée peut révéler une contrainte utile : clé unique déjà présente, référence inexistante ou texte trop long.
 
-## Écrire une requête
+**Schéma : comment les tables se relient-elles ?** Les liens suivent les clés étrangères. Une jointure SQL permet ensuite de réunir des informations dispersées entre plusieurs tables.
 
-Ouvrez **Requête SQL**, tapez une requête puis exécutez-la. Essayez par exemple avec le Campus :
+![Lire une structure avant de changer les données.](images/figures/structure.png)
+
+[Schéma SVG](figures/structure.svg)
+
+## Première requête : des élèves avec des noms
+
+Dans le Campus, `students.user_id` référence `users.id`, et `students.class_id` référence `classes.id`. Cette requête affiche l’élève et sa classe sans recopier les noms dans `students` :
 
 ```sql
-SELECT students.id, users.name
-FROM students
-JOIN users ON users.id = students.user_id
-ORDER BY users.name
-LIMIT 20;
+SELECT s.id, u.name, c.name AS classe
+FROM students AS s
+JOIN users AS u ON u.id = s.user_id
+JOIN classes AS c ON c.id = s.class_id
+ORDER BY u.name;
 ```
 
-Les projets qui n’utilisent pas SQL ne démarrent pas MariaDB avant le premier accès SQL. PDO, MySQLi et l’éditeur SQL accèdent à la base du projet.
+Une jointure ne crée pas de lien dans la structure : elle utilise une condition pour lire les lignes ensemble. Une clé étrangère, elle, protège la cohérence des écritures. Les deux ont des rôles complémentaires.
 
-## Voir et créer une relation
+## Lire les valeurs avant de les modifier
 
-1. Ouvrez **Schéma** pour voir les tables et leurs clés.
-2. Choisissez **Relier des tables** (ou **Données → Structure → Relation**).
-3. Sélectionnez les clés référencées et les colonnes correspondantes.
-4. Pour une clé composée, sélectionnez l’ensemble des colonnes ; choisissez ensuite le comportement de modification et de suppression.
+Une note non renseignée n’est pas forcément zéro. Dans le Campus, `grades.score` accepte `NULL`. Pour retrouver ces notes :
 
-![Le schéma présente les tables et les relations entre leurs clés.](images/alwis-schema-light.png)
-
-Exemple du Campus : les notes relient une activité à un élève. Une clé composée empêche de créer deux notes pour le même couple :
-
-```mermaid
-erDiagram
-  ASSIGNMENTS ||--o{ GRADES : contient
-  STUDENTS ||--o{ GRADES : reçoit
+```sql
+SELECT assignment_id, student_id, score
+FROM grades
+WHERE score IS NULL;
 ```
 
-[Essayer les notes, les inscriptions et les relations dans le Campus](school-example.md) · [Consulter les raccourcis et corrections SQL](ide-workflows.md)
+`= NULL` ne remplace pas `IS NULL`. Un texte vide, zéro et une absence SQL demandent des tests distincts. Les [types et valeurs](sql-values.md) détaillent ces cas, les grands entiers et les nombres décimaux.
+
+![La structure des colonnes dans le studio.](images/alwis-structure.png)
+
+## Écrire avec une intention précise
+
+Commencez par un `SELECT` qui retrouve les lignes visées. Une fois le filtre vérifié, utilisez la même condition pour votre `UPDATE` ou `DELETE`. Sans `WHERE`, l’opération peut toucher toute la table. Exportez une copie avant des changements importants ; une transaction permet d’annuler certaines opérations tant qu’elle n’a pas été validée.
+
+Pour PHP, le runtime expose PDO et MySQLi vers MariaDB embarqué. Dans les exemples locaux, la connexion PDO utilise `mysql:dbname=school;charset=utf8mb4`, l’utilisateur `root` et un mot de passe vide. Ce sont les paramètres du moteur embarqué de démonstration, pas des identifiants à reprendre pour une base publique.
+
+## Approfondir
+
+[Valeurs et types](sql-values.md) · [Relations et clés](sql-relations.md) · [Transactions](sql-transactions.md) · [Sauvegarder les bases](saving-projects.md) · [Exemple Campus](school-example.md)
