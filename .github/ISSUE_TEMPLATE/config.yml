@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Documentation ALWIS
+    url: https://github.com/Bastian-Noel/ALWIS/wiki
+    about: Consulter les guides avant de signaler un problème.

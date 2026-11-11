@@ -1,0 +1,56 @@
+--- a/Zend/zend_alloc.c
++++ b/Zend/zend_alloc.c
+@@ -887,6 +887,12 @@
+ 
+ static void *zend_mm_chunk_alloc_int(size_t size, size_t alignment)
+ {
++#ifdef __EMSCRIPTEN__
++	/* Browser mmap cannot release partial mappings used for Zend alignment.
++	 * Keep Zend MM accounting, but back whole chunks with aligned malloc. */
++	void *ptr = NULL;
++	return posix_memalign(&ptr, alignment, size) == 0 ? ptr : NULL;
++#else
+ 	void *ptr = zend_mm_mmap(size);
+ 
+ 	if (ptr == NULL) {
+@@ -943,6 +949,7 @@
+ #endif
+ 		return ptr;
+ 	}
++#endif
+ }
+ 
+ static void *zend_mm_chunk_alloc(zend_mm_heap *heap, size_t size, size_t alignment)
+@@ -965,7 +972,11 @@
+ 		return;
+ 	}
+ #endif
++#ifdef __EMSCRIPTEN__
++	free(addr);
++#else
+ 	zend_mm_munmap(addr, size);
++#endif
+ }
+ 
+ static int zend_mm_chunk_truncate(zend_mm_heap *heap, void *addr, size_t old_size, size_t new_size)
+@@ -979,7 +990,7 @@
+ 		}
+ 	}
+ #endif
+-#ifndef _WIN32
++#if !defined(_WIN32) && !defined(__EMSCRIPTEN__)
+ 	zend_mm_munmap((char*)addr + new_size, old_size - new_size);
+ 	return 1;
+ #else
+@@ -998,7 +1009,10 @@
+ 		}
+ 	}
+ #endif
+-#ifdef HAVE_MREMAP
++#if defined(__EMSCRIPTEN__)
++	/* No partial mapping growth: Zend falls back to allocate/copy/free. */
++	return 0;
++#elif defined(HAVE_MREMAP)
+ 	/* We don't use MREMAP_MAYMOVE due to alignment requirements. */
+ 	void *ptr = mremap(addr, old_size, new_size, 0);
+ 	if (ptr == MAP_FAILED) {

@@ -7,8 +7,8 @@ from pathlib import Path
 
 tag = os.environ.get("RELEASE_TAG", "")
 version = json.loads(Path("package.json").read_text())["version"]
-if not re.fullmatch(r"v\d+\.\d+\.\d+(?:-(?:alpha|beta|rc|preview)\.\d+)?", tag):
-    raise SystemExit("Invalid release tag: expected vX.Y.Z[-preview.N]")
+if not re.fullmatch(r"v(?:20\d{2})\.(?:0[1-9]|1[0-2])\.\d+-(?:alpha|beta|rc)\.\d+|v(?:20\d{2})\.(?:0[1-9]|1[0-2])\.\d+", tag):
+    raise SystemExit("Invalid release tag: expected vYYYY.MM.PATCH-(alpha|beta|rc).N or vYYYY.MM.PATCH")
 if tag != "v" + version:
     raise SystemExit(f"Release tag {tag} does not match package.json version {version}")
 record = json.loads(Path("provenance/release-licensing-status.json").read_text())

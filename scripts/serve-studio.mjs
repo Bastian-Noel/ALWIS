@@ -4,8 +4,9 @@ import { readFile, stat } from 'node:fs/promises';
 import { resolve, extname, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 const repo = resolve(fileURLToPath(new URL('../', import.meta.url)));
-const engine = resolve(repo, 'build-work/bridge/.native-build/engine/wasm/runtime-dist');
-export function createStudioServer() {
+const defaultEngine = resolve(repo, 'build-work/bridge/.native-build/engine/wasm/runtime-dist');
+export function createStudioServer({ engineDist = defaultEngine } = {}) {
+  const engine = resolve(engineDist);
   return createServer(async (request, response) => {
     response.setHeader('Cross-Origin-Opener-Policy', 'same-origin'); response.setHeader('Cross-Origin-Embedder-Policy', 'require-corp'); response.setHeader('Cache-Control', 'no-store');
     const pathname = new URL(request.url, 'http://localhost').pathname;

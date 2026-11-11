@@ -24,4 +24,24 @@ foreach([false,true] as $emulated){
  $pdo->exec('DELETE FROM stability_rows');
 }
 $checks[]='PDO native/emulated errors, transactions, cursor reuse and cross-driver rollback';
+// Values straddling PHP int32, JS Number and signed/unsigned SQL BIGINT limits.
+// Keep text parameters: casting before binding would already lose information.
+$exact=['-9223372036854775808','-2147483649','2147483648','9007199254740993','9223372036854775807','18446744073709551615'];
+foreach([false,true] as $emulated){
+ $pdo->setAttribute(PDO::ATTR_EMULATE_PREPARES,$emulated);
+ foreach($exact as $value){
+  $cast=$value==='18446744073709551615'?'UNSIGNED':'SIGNED';
+  $stmt=$pdo->prepare('SELECT CAST(? AS '.$cast.')');$stmt->execute([$value]);
+  $got=$stmt->fetchColumn();verify(is_string($got)&&$got===$value,'PDO BIGINT precision lost: '.$value);$stmt->closeCursor();
+ }
+}
+$m=new mysqli('localhost','root','','test');
+foreach($exact as $value){
+ $cast=$value==='18446744073709551615'?'UNSIGNED':'SIGNED';
+ $stmt=$m->prepare('SELECT CAST(? AS '.$cast.')');$stmt->bind_param('s',$value);$stmt->execute();$stmt->bind_result($got);$stmt->fetch();
+ verify(is_string($got)&&$got===$value,'MySQLi BIGINT precision lost: '.$value);$stmt->close();
+}
+$m->close();
+$checks[]='exact SQL BIGINT beyond PHP int32 and JavaScript safe integer range';
+
 echo json_encode(['ok'=>true,'checks'=>$checks]);

@@ -1,3 +1,4 @@
+/*! ALWIS original adapter — Copyright (c) 2026 Bastian Noël. SPDX-License-Identifier: MIT. See licenses/ALWIS-MIT.txt. */
 import {WASI,Fd,ConsoleStdout,PreopenDirectory,Directory,File,wasi} from '@bjorn3/browser_wasi_shim';
 // A bounded SPSC stdin ring allows synchronous WASI fd_read without blocking UI.
 self.onmessage=async({data})=>{

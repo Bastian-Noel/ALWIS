@@ -16,7 +16,7 @@ Important: a green CI means the code passed tests, not that redistribution right
 
 1. Bump package.json and package-lock.json to a new version; commit and push main.
 2. Wait for successful CI on that exact SHA, which retains the static package for 14 days.
-3. Run publish-ftp.yml on main with version=vX.Y.Z-preview.N matching the package version.
+3. Run publish-ftp.yml on main with version=v2026.11.0-beta.1 matching the package version.
 4. Verify the release, live FTP release.json and subsequent Docker run.
 
 ## Caches and validation

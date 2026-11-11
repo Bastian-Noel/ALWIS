@@ -1,5 +1,7 @@
 # ALWIS — remplacement candidat du patch MariaDB/WASM
 
+**Correction du 11 novembre 2026 :** la [notice du commit historique](https://github.com/joomengine/mariadb-wasm-bridge/blob/56d47b4dc867af313592efa09e12df470a36e129/patches/NOTICE) place explicitement le patch moteur et le glue modifié sous GPL-2.0-only. Leur attribution précédente à Apache-2.0 était erronée : la licence racine du dépôt ne remplace pas cette notice spécifique. Le moteur ALWIS indépendant reste retenu pour sa reconstruction vérifiable.
+
 **État : candidat de développement, non intégré au binaire distribué, sans validation de stabilité native et sans validation juridique.**
 
 Ce document décrit intégralement les changements fonctionnels du patch amont `independent-sessions.patch` de JoomEngine (179 lignes de diff, 5 fichiers, 11 hunks), sans recopier le code tiers. Source de comparaison : [commit épinglé](https://github.com/joomengine/mariadb-wasm-bridge/blob/56d47b4dc867af313592efa09e12df470a36e129/patches/engine/independent-sessions.patch). Référence MariaDB propre : `shyim/lite4mariadb@24be9371a2f6c71250a2356631ad6feab2280b02`.
@@ -40,4 +42,4 @@ Les invariants de synchronisation **ne constituent pas une preuve de stabilité*
 5. Vérifier la persistance après rechargement, comparer la mémoire et les erreurs avec le moteur actuellement validé et effectuer une revue de l'ordonnancement des verrous.
 6. Reconstituer le manifeste de sources natives, les licences et les notices puis réévaluer le blocage juridique **avant** d'autoriser FTP ou Docker.
 
-**Aucune étape 2–6 n'est considérée comme achevée par la seule présence de l'adaptateur.** Les anciens artefacts natifs épinglés peuvent toujours contenir le patch Apache original. La revue juridique devra également examiner le fait que ce travail a été effectué en connaissant le patch initial : il ne s'agit pas d'une démarche clean-room formelle. Ne pas changer `provenance/release-licensing-status.json` en `ready` sans preuves et audit.
+**Aucune étape 2–6 n'est considérée comme achevée par la seule présence de l'adaptateur.** Les anciens artefacts natifs épinglés peuvent toujours contenir le patch GPLv2 original. La revue juridique devra également examiner le fait que ce travail a été effectué en connaissant le patch initial : il ne s'agit pas d'une démarche clean-room formelle. Ne pas changer `provenance/release-licensing-status.json` en `ready` sans preuves et audit.

@@ -1,0 +1,27 @@
+JoomEngine modifications to lite4mariadb 0.1.2
+Copyright 2026 JoomEngine contributors
+
+Upstream source: https://github.com/shyim/lite4mariadb/tree/24be9371a2f6c71250a2356631ad6feab2280b02
+Source archive: https://github.com/shyim/lite4mariadb/archive/24be9371a2f6c71250a2356631ad6feab2280b02.tar.gz
+License: GPL-2.0-only; see vendor/lite4mariadb/COPYING. The engine patch and
+modified generated glue retain that license. Original notices remain applicable.
+
+patches/engine/independent-sessions.patch adds independent embedded MYSQL handles,
+including open/query/close ABI entry points. It raises the InnoDB buffer pool to
+64 MiB (maximum resize 256 MiB), the packet limit to 128 MiB, and reserves up to
+32 application sessions plus the internal management connection. Closing each
+connection lets MariaDB perform its normal rollback and session cleanup.
+
+The patch compiles with PTHREAD_POOL_SIZE=16 and PTHREAD_POOL_SIZE_STRICT=2.
+An exhausted worker pool returns EAGAIN instead of creating a worker that cannot
+initialize while synchronous native code blocks its creator. Generated browser
+logical CPU scheduling is capped at four so InnoDB leaves capacity for background
+services. The PHP runtime and native PDO source are unchanged.
+
+Reproduce from the pinned source and Emscripten 6.0.6:
+node scripts/build-engine.mjs
+
+The build script, complete patch, source URL, compiler identity and output hashes
+are included with the engine. joomengine-patches.json and the release manifest
+record the patch, generated glue and rebuilt WASM SHA-256 values. Ship this notice
+with the redistributed engine.

@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Release à créer avant le transfert FTP (ex. v0.3.0-preview.3)
+        description: Release à créer avant le transfert FTP (ex. v2026.11.0-beta.1)
         type: string
         required: true
 permissions:

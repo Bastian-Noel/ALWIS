@@ -2,7 +2,7 @@
 get_filename_component(PBL_REPO_SOURCE "${PBL_SPIKE_SOURCE}/../../.." ABSOLUTE)
 set(PBL_GENERATED "${CMAKE_BINARY_DIR}/pbl-native-sources")
 execute_process(COMMAND python3 "${PBL_REPO_SOURCE}/scripts/prepare-native-drivers.py"
-  "${PBL_REPO_SOURCE}/build-work/php" "${PBL_PHP_BUILD}" "${PBL_GENERATED}"
+  "${PBL_PHP_BUILD}" "${PBL_GENERATED}"
   COMMAND_ERROR_IS_FATAL ANY)
 execute_process(COMMAND python3 "${PBL_REPO_SOURCE}/scripts/prepare-native-server.py"
   "${CMAKE_SOURCE_DIR}/wasm/lite4mariadb.c" "${PBL_GENERATED}"
@@ -25,6 +25,8 @@ foreach(pbl_source IN LISTS pbl_embedded_sources)
 endforeach()
 set_property(TARGET sql_embedded PROPERTY SOURCES "${pbl_bounded_sources}")
 add_executable(pbl-runtime
+  "${PBL_REPO_SOURCE}/packages/php-native/src/request-state.c"
+  "${PBL_REPO_SOURCE}/packages/php-native/src/portability.c"
   "${PBL_GENERATED}/runtime.c" "${PBL_GENERATED}/mysql_driver.c"
   "${PBL_GENERATED}/pdo_mysql.c"
   "${PBL_GENERATED}/mysql_statement.c"
@@ -58,7 +60,8 @@ target_link_options(pbl-runtime PRIVATE ${pbl_runtime_options}
   "SHELL:-s MAXIMUM_MEMORY=536870912"
   "SHELL:-s DEFAULT_PTHREAD_STACK_SIZE=${PBL_PTHREAD_STACK_BYTES}"
   "SHELL:--embed-file ${PBL_GENERATED}/system-tables.sql@/mariadb/share/pbl-system-tables.sql"
+  "SHELL:--embed-file ${PBL_REPO_SOURCE}/packages/php-native/src/curl-compat.php@/tmp/.alwis-curl-compat.php"
   "SHELL:-s EXPORT_NAME=createPHP" -g2 "SHELL:-s ASSERTIONS=2"
-  "SHELL:-s EXPORTED_FUNCTIONS=['_php_wasm_run','_php_wasm_exit_code','_php_wasm_abi_version','_php_wasm_version','_php_wasm_add_server_variable','_php_wasm_setenv','_malloc','_free','_pbl_fs_write','_pbl_fs_remove','_pbl_fs_rename','_pbl_mysql_phase','_pbl_mysql_started','_pbl_mysql_connection_count','_pbl_mysql_stop','_pbl_mysql_statement_count','_pbl_mysql_statement_bytes','_pbl_sql_threads_used','_pbl_sql_threads_idle','_pbl_sql_threads_created','_pbl_sql_threads_peak','_pbl_console_open','_pbl_console_close','_pbl_console_query','_pbl_console_length','_pbl_console_more_results','_pbl_console_next_result','_pbl_console_error','_pbl_console_sqlstate','_pbl_console_errno','_pbl_heap_used','_pbl_heap_free']"
+  "SHELL:-s EXPORTED_FUNCTIONS=['_php_wasm_run','_php_wasm_exit_code','_php_wasm_reusable','_php_wasm_abi_version','_php_wasm_version','_php_wasm_add_server_variable','_php_wasm_setenv','_malloc','_free','_pbl_fs_write','_pbl_fs_remove','_pbl_fs_rename','_pbl_mysql_phase','_pbl_mysql_started','_pbl_mysql_connection_count','_pbl_mysql_stop','_pbl_mysql_statement_count','_pbl_mysql_statement_bytes','_pbl_sql_threads_used','_pbl_sql_threads_idle','_pbl_sql_threads_created','_pbl_sql_threads_peak','_pbl_console_open','_pbl_console_close','_pbl_console_query','_pbl_console_length','_pbl_console_more_results','_pbl_console_next_result','_pbl_console_error','_pbl_console_sqlstate','_pbl_console_errno','_pbl_heap_used','_pbl_heap_free']"
   "SHELL:-s EXPORTED_RUNTIME_METHODS=['FS','IDBFS','ENV','ccall','cwrap','UTF8ToString','stringToUTF8','lengthBytesUTF8','HEAPU8']")
 set_target_properties(pbl-runtime PROPERTIES SUFFIX ".mjs" RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/runtime-dist")

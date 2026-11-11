@@ -1,0 +1,24 @@
+name: Proposer une amélioration
+description: Faire évoluer une fonctionnalité sans compliquer l'interface.
+title: "[Évolution] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: Quel problème voulez-vous résoudre ?
+      placeholder: "Aujourd'hui, lorsque..."
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Solution souhaitée
+      description: Incluez le comportement attendu et un petit exemple si possible.
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Domaine
+      options: ["PHP / SQL", "Aperçu / multiutilisateur", "Éditeur", "Sauvegarde", "Documentation", "Autre"]

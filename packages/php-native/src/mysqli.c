@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2026 Bastian Noel
+ * SPDX-License-Identifier: GPL-2.0-only
+ */
 /* Native MySQLi subset over the SAME embedded C connection registry as PDO.
  * Implements the school fixture including by-reference prepared parameters.
  * No PHP shim, SQL JSON protocol or remote SQL socket is used.

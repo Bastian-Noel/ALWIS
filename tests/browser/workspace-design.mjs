@@ -1,3 +1,4 @@
+import {waitForAsyncCondition} from './async-condition.mjs';
 /** Real workspace interactions: one save action, project switching, inline files,
  * full-table literal search and visual simple/composite foreign keys. */
 import assert from "node:assert/strict";
@@ -119,7 +120,7 @@ try {
   await page.locator("#ed1 .cm-content").fill('<?php echo "Bonjour";');
   await page.keyboard.press("Control+s");
   await idle();
-  await page.waitForFunction(async () => {
+  await waitForAsyncCondition(page, async () => {
     const { S } = await import("/apps/studio/workbench/state.mjs");
     return !!S.savedAt && !S.applied.size && !Object.keys(S.drafts).length;
   });

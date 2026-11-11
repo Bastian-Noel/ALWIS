@@ -1,120 +1,67 @@
-# Recette native PHP/MariaDB
+# ALWIS — moteur PHP 8.4 + MariaDB indépendant (développement)
 
-`runtime-target.cmake` définit la cible de production `pbl-runtime` : pont C PDO/MySQLi, fichiers et réseau. `attach.cmake` injecte les cibles dans le build MariaDB sans modifier ses CMake amont. `CMakeLists.txt` et select-one.c conservent le témoin de liaison `pbl-fusion`, distinct du runtime. Le nom interne PBL_SPIKE_SOURCE reste conservé pour la compatibilité des recettes et du manifeste binaire.
+**Moteur actif dans la recette de compilation :** `packages/php-native/src/runner.c`, écrit pour ALWIS. La cible `pbl-runtime` compile ce runner et `request-state.c` dans **un même WASM** avec PHP 8.4.27, le moteur MariaDB et les couches PDO/MySQLi natives.
 
-## Utiliser le moteur validé
+**État vérifié le 10 novembre 2026 : source native compilée en WASM dans la CI Linux x86-64. La parité Chromium et Firefox reste incomplète.** Ce n'est pas le moteur de production et aucun script ici n'autorise sa publication.
 
-```sh
-python3 scripts/restore-deployment-engine.py
-```
+## Compilation du candidat
 
-Le verrou de release et les sources sont contrôlés. La recette actuelle partage PHP 8.4.27 et MariaDB avec Emscripten 6.0.6. Les réglages courants sont dans runtime-target.cmake et les générateurs scripts/prepare-native-*.py ; les paramètres de l’expérience initiale ci-dessous ne les remplacent pas.
+Le moteur historique a été archivé et retiré des anciens répertoires de sortie de compilation locaux. Le générateur `scripts/prepare-native-drivers.py` accepte uniquement `PHP_BUILD OUTPUT` et ne peut plus sélectionner `native/runtime.c` de JoomEngine. Le serveur MariaDB refuse également sa variante historique patchée avec l'API `l4m_session_*`.
 
-## Recompiler la cible actuelle
-
-Après préparation des sources épinglées, application des patchs et compilation des objets PHP pthread et des outils hôtes MariaDB :
+Les entrées suivantes doivent être préparées dans `build-work/` depuis leurs archives à révisions/empreintes verrouillées : le source PHP 8.4.27 est maintenant préparé par `python3 scripts/prepare-php84-source.py` (patch Zend fibers dérivé de Sean Morris sous option GPLv2). Il doit ensuite produire un `build-work/php-minimal/.libs/libphp.a` pour la cible pthread, `build-work/mariadb-shallow` non patché, les outils hôtes `build-work/bridge/.native-build/engine/native/import_executables.cmake`, ainsi qu'**Emscripten 6.0.6**. Ne jamais utiliser une archive PHP ou MariaDB non vérifiée.
 
 ```sh
-PBL_TARGET=pbl-runtime JOBS=3 bash engine/native/build/build.sh
-node engine/native/build/test-native-runtime.mjs
-node tests/browser/mysqli-complete.mjs
-node tests/browser/php-essentials.mjs
-node tests/browser/network-native.mjs
-node tests/browser/restart-native.mjs
+# Vérification des composants C indépendants (ne compile pas le WASM)
+python3 -m unittest discover -s tests -p 'test_independent_php_runner.py' -v
+python3 -m unittest discover -s tests -p 'test_native_concurrency.py' -v
+python3 scripts/prepare-php84-source.py --verify-only
+python3 scripts/audit-native-inputs.py
+
+# Build natif uniquement après mise en place des prérequis Emscripten
+PBL_TARGET=pbl-runtime JOBS=3 bash scripts/build-independent-native.sh
 ```
 
-Les chemins par défaut sont vérifiés par build.sh. Réutiliser les objets préparés uniquement avec le SDK et les sources correspondants. Le manifeste de distribution doit couvrir les sources natives et les fichiers générés livrés ; [CONTRIBUTING](../../../CONTRIBUTING.md) explique les validations et la publication.
+Le constructeur refuse un arbre MariaDB porteur du patch historique. La cible émet le WASM et le JS sous `build-work/bridge/.native-build/engine/wasm/runtime-dist/`. L'absence de ces fichiers correspond désormais à **aucun nouveau runtime disponible** ; ne jamais y recopier l'ancien pour simuler une compilation.
 
-## Candidat de remplacement du patch de sessions tiers (non validé)
+## Tests et gates
 
-Le script `scripts/build-independent-native.sh` ajoute les adaptations ALWIS de
-synchronisation Emscripten et de portabilité C **à une source MariaDB propre**
-dans `build-work/`. Il rejette la présence des API `l4m_session_*`
-issues du patch historique et exige les SHA-256 du commit source épinglé.
-Le gestionnaire multi-connexion reste celui de `packages/sql-native/`.
-Voir [l'analyse complète des 11 modifications](../../patches/INDEPENDENT-SESSION-MIGRATION.md)
-et les tests Python `tests/test_native_concurrency.py`.
+Après compilation, exécuter les tests PHP/SQL/HTTP, les tests des préparations PDO/MySQLi, les sessions concurrentes et les tests de parité sur **Chromium et Firefox**. La comparaison avec le témoin historique utilise les 17 scénarios de `tests/browser/native-parity.mjs` ; elle exige deux hash WASM différents.
 
-Ce mode n'a pas été recompilé et validé en navigateur avec la chaîne native ;
-les anciens artefacts et la protection de publication restent inchangés.
+Le paquet des sources correspondantes est préparé par `scripts/package-native-sources.py --strict`. Il inclut le code C d'ALWIS, les sources générées vérifiées et les archives amont verrouillées, **sans** le runner historique absent. La publication reste bloquée par `provenance/release-licensing-status.json` tant que les tests, licences et manifestes ne sont pas approuvés.
 
-## Préparation initiale conservée pour reproduction
+## Archives et références
 
-Les sections suivantes décrivent le témoin initial ; ses plafonds mémoire, capacités démontrées et commandes par défaut concernent pbl-fusion. Les preuves du runtime ultérieur sont dans engine/fusion/ et les guides actuels.
+- Archive de travail : `build-work/archives/legacy-native-2026-11-03-stability.tar.gz`, vérifiable par `python3 scripts/archive-legacy-native.py --verify-only`.
+- Configuration `config/native-runtime.json` : **verrou de témoin historique**, pas une configuration du nouveau runner. Les tests et la production existante ne sont pas modifiés.
+- [Reconstruction du runner](../../../provenance/php-runner-reconstruction.md), [inspirations et décisions JoomEngine](../../../provenance/joomengine-inspiration-map.md), [analyse des adaptations InnoDB](../../patches/INDEPENDENT-SESSION-MIGRATION.md).
+- [Anciennes notes de compilation, archivées](../../../provenance/legacy-native-build-notes.md).
 
-# Préparation historique du témoin de liaison
 
-This is a build/runtime experiment, not the final PDO/MySQLi backend. A successful syntax check or native archive alone does not close the browser gate. See the accompanying receipt for the latest actual result.
+## Reconstruction indépendante sur GitHub Actions (Linux x86-64)
 
-## Choice of sources and ABI
+Le script `scripts/prepare-independent-native-inputs.py` récupère uniquement les sept archives verrouillées et contrôle chaque SHA-256 **avant** extraction. Il reconstruit dans `build-work/native-ci` les sources PHP 8.4.27, Zend Fibers, MariaDB non patché et les unités PDO/MySQLi générées. L'archive JoomEngine manquante et son runner historique sont volontairement exclus.
 
-- PHP 8.4.27 from the official tarball pinned in JoomEngine `3b8cef42c020fbcbb6b41fad86716b7c8664b55b/versions.json`, SHA-256 `dcf93923b0e38e0d5252b25b796520b5a47761a08b3488b6d0b5d1115764d3f0`.
-- PHP's small embed/PDO/session configuration is rebuilt from source with `-pthread`. Its archive is not taken from the nonshared upstream PHP binary. The pinned JoomEngine `php-8.4-fibers.patch` adapts Zend fibers to Emscripten/Asyncify. PHP uses its supported external-PCRE configuration against MariaDB’s PCRE2 10.47; keeping both bundled PCRE copies produces duplicate symbols.
-- MariaDB `24be9371a2f6c71250a2356631ad6feab2280b02`, exact libmariadb/wolfSSL gitlinks, and the independently reviewed sessions patch from bridge `56d47b4dc867af313592efa09e12df470a36e129`. This uses its native server changes, not its Sean Morris PHP SIDE_MODULE PDO adapter.
-- Emscripten 6.0.6. Final link: shared memory/pthreads, C++ exceptions, Asyncify, 256 MiB initial, 2 GiB configured maximum, 16 MiB stack, 16 worker pool. These are experimental compatibility settings, not the final reduced SQL profile.
+La [CI de reconstruction](../../../.github/workflows/native-rebuild-ci.yml) se lance manuellement dans GitHub Actions avec le choix `sources` (vérification et reçus uniquement) ou `compile` (Emscripten 6.0.6 sur Linux x86-64 et tentative de lien du nouveau WASM). Le chemin de compilation est `scripts/build-independent-native-ci.sh`; il produit le candidat uniquement dans le workspace éphémère d'Actions et ne téléverse **jamais le WASM**. Les fichiers envoyés en artefacts Actions ne sont que des reçus de contrôle (et les logs restent consultables dans la CI).
 
-This is a new integration chain requiring its own validation. It does not assert interchangeability of the two upstream PHP/bridge families. The separate JoomEngine 0.1.1 witness remains intact.
+`compile` ne signifie pas que la reconstruction a réussi : seuls une compilation complète avec nouveau SHA-256, les deux tests Chromium/Firefox et la suite de parité constituent une validation technique. Même une compilation réussie **ne lève aucun verrou de licences** et ne permet pas FTP/GHCR. L'archive de sources correspondantes reste une obligation distincte de la reconstruction.
 
-`pbl_select_one()` is a PHP native function compiled into the final module. Its lazy bootstrap uses `l4m_open`; its query/result path calls `mysql_init`, `mysql_real_connect`, `mysql_real_query`, `mysql_store_result`, `mysql_fetch_row` and `RETVAL_STRINGL` directly. The SQL/results never pass through the upstream `l4m_query` JSON API or a JavaScript hostcall. The two engines share the libc allocator in the final link. `pbl_direct_calls` counts completed direct calls; PHP itself checks the result is exactly the string `1`.
 
-The test uses a dedicated browser worker and MariaDB's auxiliary pthread workers. One principal WASM module does not imply one operating-system thread.
+### Dernier échec réellement observé, 10 novembre 2026
 
-## Preparation on this instance
+[Rebuild Linux x86-64 GitHub Actions](https://github.com/Bastian-Noel/ALWIS/actions/runs/42798390821) : le C/C++ du serveur MariaDB et l'archive PHP pthread se sont compilés ; le premier lien `pbl-runtime` a échoué sur `getdtablesize`, non exporté par la libc Emscripten 6.0.6. Le module ALWIS `packages/php-native/src/portability.c` fournit désormais un substitut faible borné par `sysconf(_SC_OPEN_MAX)`, avec test C natif ; **le lien natif indépendant a depuis été validé, mais pas les 17 tests de parité dans les deux navigateurs**. Aucun contournement `--allow-undefined` n'est utilisé.
 
-`scripts/setup-cloud.sh` prepares rootless Debian 13 host tools and the pinned SDK. Activate them in each native-build shell:
+Le paquet de sources correspondantes doit désormais inclure également la **tarball officielle PHP 8.4.27 réellement compilée** et l'archive **PCRE2 10.47 réellement liée** ; les cinq autres snapshots vérifiés ne suffisaient pas. La provenance correspondante est verrouillée dans les scripts de vérification et la carte des licences.
 
-```sh
-source /workspace/toolchains/host/activate.sh
-source /workspace/WASMWebServer/build-work/emsdk/emsdk_env.sh
-```
 
-Do not refresh installed tools while compiling. The setup helper and `build.sh` use an exclusive/shared lock to prevent that conflict.
+### Nouvelles preuves de reconstruction (10 novembre 2026)
 
-The PHP source was downloaded with HTTPS and checked against the pinned SHA-256 before extraction to `build-work/php-minimal`. Apply the pinned fiber patch to this disposable source tree before building. An extensionless Autoconf probe must run as CommonJS, matching the upstream build recipe:
+La CI GitHub Actions 42803222230 a construit à partir de sources verrouillées un WASM indépendant de 38 242 083 octets, SHA-256 dedfcc6935697157d6bccae3ab597050bbbb89b5f6be9f28b3a946f8c83ed3c3. Les sept archives correspondantes étaient présentes et la validation navigateur a démarré. Version PHP, extensions et GET fonctionnaient dans Chromium. Le premier POST échouait car PHP 8.4 ne lit pas ses données lorsque SG(server_context) est nul. Le nouveau runner initialise ce contexte avant php_request_startup(), puis le libère après php_request_shutdown(). Le correctif a été validé en tests de source et intégré à la reconstruction 42844495555, dont les résultats doivent être consultés séparément.
 
-```sh
-cd /workspace/WASMWebServer
-patch -d build-work/php-minimal -p1 --fuzz=0 --batch --forward < build-work/php/patches/php-8.4-fibers.patch
-printf '%s\n' '{"type":"commonjs"}' > build-work/php-minimal/package.json
-cd build-work/php-minimal
-pcre_build=/workspace/WASMWebServer/build-work/bridge/.native-build/engine/wasm/extra/pcre2/src/pcre2-build
-PCRE2_CFLAGS="-I$pcre_build/interface -DPCRE2_STATIC" PCRE2_LIBS="$pcre_build/libpcre2-8.a" \
-  CFLAGS='-O2 -pthread' CXXFLAGS='-O2 -pthread' LDFLAGS='-pthread' \
-  emconfigure ./configure --disable-all --disable-cli --disable-cgi --disable-phpdbg \
-  --enable-embed=static --disable-fiber-asm --without-pcre-jit --without-pear \
-  --enable-pdo --enable-session --with-external-pcre ac_cv_func_fork=no ac_cv_func_vfork=no ac_cv_func_posix_spawn=no
-emmake make -j3 CPPFLAGS="-D_GNU_SOURCE -I$pcre_build/interface -DPCRE2_STATIC" libphp.la
-```
+Le binaire historique disponible sur le serveur ARM64 est un témoin de test et non une compilation indépendante. Aucun nouveau WASM n'est publié. La présence d'une archive de sources correspondantes ou de tests réussis ne change pas le statut légal bloqué.
 
-Build MariaDB’s PCRE2 target before configuring PHP against these paths; the original bundled-PCRE attempt is retained only as an error diagnosis. The generated header is in `pcre2-build/interface`, not its root. Preserve `-D_GNU_SOURCE` when overriding CPPFLAGS.
 
-Do not reapply the fiber patch to an already patched checkout. In that case, reuse the verified tree and build products.
+### Validation de parité indépendante passée
 
-MariaDB is fetched with `git init`/`git fetch --depth 1` at the pinned commit into `build-work/mariadb-shallow`; fetch its two submodules at their gitlinks. The pinned bridge builder applies and verifies its native sessions patch. Its `ENGINE_SOURCE_DIR` selects the disposable source tree and its host/cross outputs live under `build-work/bridge/.native-build/engine/{native,wasm}`.
+La CI GitHub Actions 42844495555 a terminé **avec succès** la compilation, l'archive de sources, puis les 17 scénarios natifs **dans Chromium et Firefox**. Nouveau WASM SHA-256 : 39f4b5d6cf785adafd5f994d11b88b491b7dcc21dbfedbefe896b871f5f4f6b6 ; longueur : 38 242 096 octets ; sources correspondantes : 254 740 830 octets. Les scénarios incluent PHP 8.4, GET, POST, POST binaire, statuts et redirections, cookies, sessions PHP, fichiers, PDO, MySQLi, nettoyage des connexions et erreur PHP.
 
-An interrupted host build can leave `import_executables.cmake` before producing all referenced tools. If a cross build reports a missing `gen_lex_token`, finish the host target explicitly rather than discarding valid cross outputs:
-
-```sh
-cmake --build build-work/bridge/.native-build/engine/native --target import_executables -j3
-```
-
-For a first rootless host configure, `CMAKE_PREFIX_PATH=/workspace/toolchains/host/usr` lets CMake find the extracted ncurses development files. The activation script supplies Bison's data directory and the explicit M4 binary path.
-
-## Link and browser gate
-
-```sh
-cd /workspace/WASMWebServer
-JOBS=3 bash engine/native/build/build.sh
-PLAYWRIGHT_BROWSERS_PATH=/workspace/.cache/ms-playwright \
-  node engine/native/build/test-browser.mjs \
-  build-work/bridge/.native-build/engine/wasm/fusion-dist \
-  build-work/php/node_modules/playwright/index.mjs
-```
-
-`build.sh` injects the target into the pinned MariaDB cross build using a deferred CMake include; it does not edit upstream CMake files. Existing PHP and server objects are reused. Override the documented `PBL_PHP_BUILD`, `PBL_MARIADB_SOURCE`, `PBL_MARIADB_BUILD` and `PBL_NATIVE_BUILD` variables only with compatible prepared outputs.
-
-The browser gate requires cross-origin isolation, no eager SQL startup, successful PHP evaluation, one completed native SELECT and exact output, then an explicit SQL shutdown. A 180-second worker timeout fails the test. Each successful browser writes a receipt; absent receipts are not success. On this cloud machine Firefox needs the supported outer process context because its profile startup fails in the restricted process namespace.
-
-## Not demonstrated by this spike
-
-A PHP SQL helper is not PDO/MySQLi compatibility. Repeated SQL restart, PHP-only execution while stopping SQL, independent owners, cancellation, SQL error/type coverage, storage recovery, resource limits and performance comparison still require later gates. The initial profile is intentionally not a memory optimization claim.
+Les reçus 42844495555 existaient déjà mais le build JSON conservait browserValidated=false, car le marquage précédait l'exécution des navigateurs. Le nouveau script de vérification scripts/attest-independent-parity.py n'actualise ce champ qu'en confrontant les empreintes exactes du WASM et de sa glue JS aux **deux** reçus, les 17 cas dans le bon ordre et l'absence de connexions natives résiduelles. Il laisse releaseApproved=false. Cette étape a été ajoutée à la CI de reconstruction ; elle ne publie aucun binaire.

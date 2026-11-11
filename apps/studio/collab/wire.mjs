@@ -12,6 +12,10 @@ import { cssVars } from "./colors.mjs";
 import { chunkText } from "./protocol.mjs";
 import { showLoading } from "./presence-ui.mjs";
 import { watchPreview, createMirror } from "./preview.mjs";
+import { guestPreviewSandbox } from "./preview-security.mjs";
+import { HostHttpGateway, GuestHttpGateway } from "./http-gateway.mjs";
+import { PreviewDelivery } from "./preview-delivery.mjs";
+import { IsolatedGuestPreviewController } from "./isolated-preview-controller.mjs";
 import { updatePreviewStatus } from "../workbench/views/code.mjs";
 
 const SQL = "#sql";
@@ -106,6 +110,17 @@ export function installWiring(collab) {
     if (S.mode !== "work" || !S.project) { collab.session?.leave(); return; }
     const session = collab.session;
     const send = (to, m, o) => session.send(to, m, o);
+    collab.previewEnabled = false; // Never persist PHP execution permission across rooms.
+    const previewDelivery = new PreviewDelivery();
+    const http = new HostHttpGateway({
+      origin: location.origin,
+      sessions: { create: label => ctx.engine.sessions.create(label), remove: id => ctx.engine.sessions.remove(id) },
+      route: (id, request) => ctx.engine.sessions.route(id, { ...request, remoteGuest: true }),
+      cookieState: id => ctx.engine.sessions.list().find(item => item.id === id)?.cookies ?? [],
+      setCookie: (id, value, url) => ctx.engine.sessions.cookie(id, value, url),
+      canPreview: from => collab.previewEnabled && session.peer(from)?.state === "online",
+      send, log,
+    });
     const rpc = new RpcHost({
       engine: ctx.engine, send, log,
       onWrite: guard((path, data) => { S.base[path] = data; delete S.drafts[path]; S.applied?.delete?.(path); redrawSoon(); }),
@@ -126,7 +141,11 @@ export function installWiring(collab) {
       peer: peerInfo, getCtx: ctxState, onViewport: applyViewport, onPeerView,
     });
     focus.start();
-    const pvWatch = watchPreview({ container: () => document.querySelector("#pvFrames"), send: (m, o) => session.broadcast({ ...m, info: S.pvInfo[S.pvSessions?.[0]] ?? null, path: S.pvPath }, o) });
+    const pvWatch = watchPreview({ container: () => document.querySelector("#pvFrames"), send: (m, o) => {
+      const recipients = previewDelivery.targets(session.links.keys(), collab.previewEnabled);
+      for (const peer of recipients)
+        session.send(peer, { ...m, info: S.pvInfo[S.pvSessions?.[0]] ?? null, path: S.pvPath }, o);
+    } });
     const unwrapQ = wrapQueries((m) => { session.broadcast({ ...m, from: "h" }); });
     let changedTimer;
     const offChanged = ctx.engine.on("changed", (c) => {
@@ -137,8 +156,17 @@ export function installWiring(collab) {
       }, 150);
     });
     const onMessage = guard(({ from, msg }) => {
+      if (["http-request", "http-ack", "http-error", "http-cookie"].includes(msg.t)) return http.receive(from, msg);
       switch (msg.t) {
-        case "hello": pvWatch.resend(); focus.announce(true); send(from, { t: "welcome", project: S.project, db: S.db, host: session.me.name }); return send(from, { t: "focus-state", ...focus.snapshot(from) });
+        case "hello": pvWatch.resend(); focus.announce(true); send(from, { t: "welcome", project: S.project, db: S.db, host: session.me.name, httpPreview: collab.previewEnabled }); return send(from, { t: "focus-state", ...focus.snapshot(from) });
+        case "http-preview-status":
+          if (session.peer(from)?.state === "online") {
+            const fallback = previewDelivery.update(from, {
+              enabled: collab.previewEnabled, usable: msg.usable === true,
+            });
+            if (fallback) pvWatch.resend();
+          }
+          return;
         case "focus-req": return send(from, { t: "focus-state", ...focus.snapshot(from) });
         case "rpc": return rpc.handle(from, msg);
         case "open": case "ops": case "sync": case "close-doc": return docs.handle(from, msg);
@@ -155,13 +183,29 @@ export function installWiring(collab) {
       }
     });
     const offMsg = collab.on("message", onMessage);
-    const offDown = collab.on("peer-down", ({ id }) => { docs.dropPeer(id); focus.drop(id); });
+    const offDown = collab.on("peer-down", ({ id }) => {
+      docs.dropPeer(id); focus.drop(id); previewDelivery.drop(id);
+      http.drop(id).catch(error => log("warn", "guest_http_drop", { message: error.message }));
+    });
     run = {
       role: "host",
       focus,
+      setPreviewAllowed(enabled) {
+        collab.previewEnabled = !!enabled && !!collab.config?.previewOrigin;
+        if (enabled && !collab.config?.previewOrigin)
+          collab.ui?.announce("Aperçu PHP interactif désactivé : une origine dédiée HTTPS doit être configurée.");
+        session.broadcast({ t: "http-preview-permission", enabled: collab.previewEnabled });
+        if (!collab.previewEnabled) { previewDelivery.reset(); pvWatch.resend(); }
+        collab.ui?.refresh();
+      },
       local: (path, changes) => docs.local(path, changes),
       cursor: (path, a, h) => docs.hostCursor(path, a, h),
-      stop() { offMsg(); offDown(); offChanged(); unwrapQ(); focus.stop(); pvWatch.stop(); clearTimeout(changedTimer); },
+      stop() {
+        collab.previewEnabled = false;
+        offMsg(); offDown(); offChanged(); unwrapQ(); focus.stop(); pvWatch.stop(); clearTimeout(changedTimer);
+        previewDelivery.reset();
+        http.close().catch(error => log("warn", "guest_http_close", { message: error.message }));
+      },
     };
     bindAll();
   }
@@ -179,15 +223,51 @@ export function installWiring(collab) {
     const release = showLoading(main, "Connexion au projet de l’hôte…");
     const send = (m, o) => session.send("h", m, o);
     const rpc = new RpcGuest({ send, onBusy: (n) => document.documentElement.toggleAttribute("data-collab-busy", n > 0) });
+    const http = new GuestHttpGateway({ origin: location.origin, name: session.me.name,
+      timeoutMs: 30_000, send });
+    const preview = collab.config?.previewOrigin
+      ? new IsolatedGuestPreviewController({
+          origin: collab.config.previewOrigin,
+          request: request => http.request(request),
+          cookie: (value, url) => http.cookie(value, url),
+          online: () => session.status === "live" && session.hostState === "online",
+        }) : null;
+    let interactivePreview = false;
+    const setInteractivePreview = async enabled => {
+      if (!!enabled === interactivePreview) return;
+      if (enabled) {
+        try {
+          if (!preview) throw Error("Aucune origine d'aperçu isolée n'est configurée.");
+          await preview.start(); interactivePreview = true;
+        }
+        catch (error) {
+          log("w", "Aperçu HTTP invité indisponible : " + error.message);
+          send({ t: "http-preview-status", usable: false });
+          return;
+        }
+      } else { interactivePreview = false; preview?.stop(); }
+      send({ t: "http-preview-status", usable: interactivePreview });
+      document.documentElement.toggleAttribute("data-guest-http-preview", interactivePreview);
+      if (interactivePreview) document.documentElement.dataset.guestPreviewOrigin = preview.origin;
+      else document.documentElement.removeAttribute("data-guest-preview-origin");
+      for (const frame of document.querySelectorAll("#pvFrames iframe"))
+        frame.setAttribute("sandbox", guestPreviewSandbox(interactivePreview, {
+          previewOrigin: preview?.origin, studioOrigin: location.origin,
+        }));
+      if (S.mode === "work" && S.pv) {
+        A.pvReload?.().catch(error => log("w", `Aperçu indisponible : ${error.message}`));
+      }
+    };
     const restoreEngine = installGuestEngine(ctx.engine, rpc);
     const docs = new DocGuest({ lib, send, peer: peerInfo, editorFor, myId: () => session.me.id, onHeadless: headless, onDesync: (p) => log("w", `Resynchronisation de ${p}`) });
-    const focus = new FocusLayer({ send: (m, o) => send(m, o), peer: peerInfo, getCtx: ctxState, onViewport: applyViewport, onPeerView, onPreview: (m) => send({ t: "preview-event", ...m }) });
+    const focus = new FocusLayer({ send: (m, o) => send(m, o), peer: peerInfo, getCtx: ctxState, onViewport: applyViewport, onPeerView, previewInteractive: () => interactivePreview,
+      onPreview: m => send({ t: "preview-event", ...m }) });
     const mirror = createMirror({ container: () => document.querySelector("#pvFrames") });
     const sessionsFrame = ctx.engine.sessions?.frame;
     const sessionsList = ctx.engine.sessions?.list;
     if (ctx.engine.sessions) {
-      ctx.engine.sessions.frame = async () => ({ src: "about:blank" });
-      ctx.engine.sessions.list = () => [{ id: "host", label: "Aperçu de l’hôte", hue: "#276ac4", short: "hôte", cookies: [], hidden: 0 }];
+      ctx.engine.sessions.frame = async (_id, path) => ({ src: interactivePreview && preview ? preview.url(path) : "about:blank" });
+      ctx.engine.sessions.list = () => [{ id: "host", label: interactivePreview ? "Mon visiteur PHP" : "Aperçu de l’hôte", hue: "#276ac4", short: "invité", cookies: [], hidden: 0 }];
     }
     const saved = { persist: ctx.persist, schedulePersist: ctx.schedulePersist, openFile: A.openFile, save: A.save, close: A.close };
     ctx.persist = async () => {};
@@ -230,12 +310,16 @@ export function installWiring(collab) {
       focus.start();
       send({ t: "focus-req" });
       bindAll();
+      await setInteractivePreview(!!w.httpPreview);
     });
 
     const onMessage = guard(({ from, msg }) => {
+      if (["http-response", "http-ack", "http-error", "http-cookie-result"].includes(msg.t)) return http.receive(msg);
       switch (msg.t) {
         case "welcome": return enter(msg);
+        case "http-preview-permission": return setInteractivePreview(!!msg.enabled);
         case "pv":
+          if (interactivePreview) return;
           S.pvInfo.host = msg.info ?? { status: 200, ms: 0 };
           updatePreviewStatus();
           if (msg.path) S.pvPath = msg.path;
@@ -264,8 +348,11 @@ export function installWiring(collab) {
       clearTimeout(timeout);
       release();
       offMsg(); offPeer(); offStatus();
+      preview?.stop(); http.close();
       focus.stop(); unwrapQ(); restoreEngine(); unbindAll();
       document.documentElement.removeAttribute("data-collab-guest");
+      document.documentElement.removeAttribute("data-guest-http-preview");
+      document.documentElement.removeAttribute("data-guest-preview-origin");
       if (ctx.engine.sessions && sessionsFrame) { ctx.engine.sessions.frame = sessionsFrame; ctx.engine.sessions.list = sessionsList; }
       Object.assign(ctx, { persist: saved.persist, schedulePersist: saved.schedulePersist });
       Object.assign(A, { openFile: saved.openFile, save: saved.save, close: saved.close });
@@ -278,11 +365,17 @@ export function installWiring(collab) {
       focus,
       local: (path, changes) => docs.local(path, changes),
       cursor: (path, a, h) => docs.cursor(path, a, h),
-      reconnect() { hello(); send({ t: "focus-req" }); rpc.replay(); docs.catchUpAll(); mirror.reapply(); },
+      reconnect() {
+        hello(); send({ t: "focus-req" }); rpc.replay(); docs.catchUpAll();
+        if (!interactivePreview) mirror.reapply();
+      },
       stop: leaveGuest,
     };
   }
 
+  collab.on("http-preview-toggle", enabled => {
+    if (run?.role === "host") run.setPreviewAllowed(enabled);
+  });
   collab.on("ready", () => {
     if (collab.session.role === "host") { if (!run) startHost(); }
     else startGuest();

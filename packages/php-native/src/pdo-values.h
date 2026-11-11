@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2026 Bastian Noel
+ * SPDX-License-Identifier: GPL-2.0-only
+ */
 /* External-client PDO uses text buffers even for prepared result columns.
  * Convert only SQL numeric types, within the integer range of this PHP build.
  * Decimal, oversized integers, binary values and numeric-looking text stay exact.

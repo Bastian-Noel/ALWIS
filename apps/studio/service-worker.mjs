@@ -1,4 +1,5 @@
 // Route preview clients to the live studio owner. The Service Worker never owns SQL.
+import { parseGuestPreviewURL, guestPreviewLocation, validGuestChannel } from "/apps/studio/collab/guest-preview-route.mjs";
 const owners = new Map();
 const database = new Promise((resolve, reject) => {
   const request = indexedDB.open('pbl-client-bindings', 1);
@@ -13,6 +14,26 @@ async function binding(id, value) {
     const request = value ? transaction.objectStore('clients').put(value, id) : transaction.objectStore('clients').get(id);
     request.onsuccess = () => resolve(value ?? request.result); request.onerror = () => reject(request.error);
   });
+}
+async function forgetBinding(id) {
+  const db = await database;
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction('clients', 'readwrite');
+    const request = transaction.objectStore('clients').delete(id);
+    request.onsuccess = () => resolve(); request.onerror = () => reject(request.error);
+  });
+}
+function studioClient(client) {
+  if (!client?.id || !client?.url) return false;
+  const url = new URL(client.url);
+  return url.origin === self.location.origin && ['/', '/apps/studio/', '/apps/studio/index.html'].includes(url.pathname);
+}
+async function guestOwner(channel) {
+  if (!validGuestChannel(channel)) throw Error('Canal d’aperçu invité invalide.');
+  const claim = await binding('guest:' + channel);
+  const client = claim?.client && await self.clients.get(claim.client);
+  if (!studioClient(client)) throw Error('Le studio invité n’est plus connecté. Rechargez sa fenêtre.');
+  return client;
 }
 function parsed(url) {
   const match = new URL(url).pathname.match(/^\/__pbl\/([A-Za-z0-9_-]+)\/([A-Za-z0-9_-]+)(\/.*)$/);
@@ -39,6 +60,22 @@ async function owner(project) {
 self.addEventListener('install', event => event.waitUntil(self.skipWaiting()));
 self.addEventListener('activate', event => event.waitUntil(self.clients.claim()));
 self.addEventListener('message', event => {
+  if (event.data?.type === 'pbl-guest-bind' || event.data?.type === 'pbl-guest-unbind') {
+    event.waitUntil((async () => {
+      try {
+        const channel = event.data.channel;
+        if (!validGuestChannel(channel) || !studioClient(event.source)) throw Error('Client invité invalide.');
+        const key = 'guest:' + channel;
+        const existing = await binding(key);
+        if (existing?.client && existing.client !== event.source.id && await self.clients.get(existing.client))
+          throw Error('Ce canal appartient à un autre studio.');
+        if (event.data.type === 'pbl-guest-bind') await binding(key, { client: event.source.id });
+        else if (existing?.client === event.source.id) await forgetBinding(key);
+        event.ports[0]?.postMessage({ ok: true });
+      } catch (error) { event.ports[0]?.postMessage({ ok: false, error: error.message }); }
+    })());
+    return;
+  }
   if (event.data?.type === 'pbl-owner') { owners.set(event.data.project, event.source.id); return; }
   if (event.data?.type === 'pbl-release') { if (owners.get(event.data.project) === event.source.id) owners.delete(event.data.project); return; }
   if (event.data?.type === 'pbl-cookie-state' && owners.get(event.data.project) === event.source.id) event.waitUntil((async () => {
@@ -51,7 +88,9 @@ self.addEventListener('message', event => {
     try {
       const route = await binding(event.source.id) ?? parsed(event.source.url);
       if (!route) throw Error('Unknown preview client');
-      const value = await rpc(await owner(route.project), { type: 'pbl-cookie', session: route.session, value: event.data.value, url: event.data.url });
+      const value = route.guestChannel
+        ? await rpc(await guestOwner(route.guestChannel), { type: 'pbl-guest-cookie', channel: route.guestChannel, value: event.data.value, url: event.data.url })
+        : await rpc(await owner(route.project), { type: 'pbl-cookie', session: route.session, value: event.data.value, url: event.data.url });
       event.ports[0]?.postMessage({ ok: true, value });
     } catch (error) { event.ports[0]?.postMessage({ ok: false, error: error.message }); }
   })());
@@ -60,9 +99,54 @@ self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin || (url.pathname.startsWith('/_pbl/') || url.pathname.startsWith('/_alwis/') || url.pathname === '/release.json')) return;
   event.respondWith((async () => {
-    const explicit = parsed(url.href);
-    const route = explicit ?? await binding(event.clientId) ?? await binding(event.replacesClientId);
+    const guestExplicit = parseGuestPreviewURL(url.href);
+    const explicit = guestExplicit ? null : parsed(url.href);
+    const route = (guestExplicit ? { guestChannel: guestExplicit.channel } : explicit) ?? await binding(event.clientId) ?? await binding(event.replacesClientId);
     if (!route) return fetch(event.request);
+    if (route.guestChannel) {
+      const channel = route.guestChannel;
+      const logical = new URL(url.href);
+      if (guestExplicit) logical.pathname = guestExplicit.path.split('?')[0];
+      if (event.resultingClientId) await binding(event.resultingClientId, { guestChannel: channel });
+      try {
+        const body = ['GET', 'HEAD'].includes(event.request.method) ? new Uint8Array() : new Uint8Array(await event.request.arrayBuffer());
+        if (body.byteLength > 8 * 1024 * 1024) return new Response('Requête trop volumineuse', { status: 413 });
+        const value = await rpc(await guestOwner(channel), { type: 'pbl-guest-route', channel, request: {
+          url: logical.href, destination: event.request.destination, method: event.request.method,
+          headers: [...event.request.headers], body,
+        } }, 35000);
+        if (Array.isArray(value.cookies)) {
+          // PHP Set-Cookie updates stay in the host jar; publish only non-HttpOnly cookies
+          // back to preview windows belonging to this guest channel.
+          for (const client of await self.clients.matchAll({ type: 'window', includeUncontrolled: true })) {
+            const current = await binding(client.id);
+            if (current?.guestChannel === channel) client.postMessage({
+              type: 'pbl-cookie-state', project: channel, session: channel, cookies: value.cookies,
+            });
+          }
+        }
+        const headers = new Headers(value.headers);
+        if (headers.has('Location')) headers.set('Location', guestPreviewLocation(headers.get('Location'), channel, logical.origin));
+        headers.set('Cross-Origin-Opener-Policy', 'same-origin');
+        headers.set('Cross-Origin-Embedder-Policy', 'require-corp');
+        headers.set('Cache-Control', 'no-store');
+        const noBody = event.request.method === 'HEAD' || [204, 205, 304].includes(value.status);
+        let responseBody = noBody ? null : value.body;
+        if (!noBody && value.status === 200 && ['document', 'iframe'].includes(event.request.destination)
+            && /text\/html/i.test(headers.get('Content-Type') ?? '')) {
+          const context = { project: channel, session: channel, prefix: `/__pbl-guest/${channel}/`,
+            logicalURL: logical.href, cookies: value.cookies ?? [] };
+          const config = JSON.stringify(context).replace(/</g, '\\u003c');
+          const bootstrap = `<script>window.__PBL_CONTEXT=${config};</script><script src="/_pbl/client.js"></script>`;
+          const html = new TextDecoder().decode(value.body);
+          responseBody = new TextEncoder().encode(/<head(?:\s[^>]*)?>/i.test(html)
+            ? html.replace(/<head(?:\s[^>]*)?>/i, match => match + bootstrap) : bootstrap + html);
+        }
+        return new Response(responseBody, { status: value.status, headers });
+      } catch (error) {
+        return new Response(error.message, { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
+      }
+    }
     const logical = new URL(url.href); logical.pathname = explicit ? explicit.path : url.pathname;
     if (event.resultingClientId) await binding(event.resultingClientId, { project: route.project, session: route.session });
     try {

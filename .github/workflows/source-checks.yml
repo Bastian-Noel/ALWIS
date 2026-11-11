@@ -1,0 +1,62 @@
+name: CI - source contracts and documentation
+on:
+  push:
+    branches: [main, 'develop/**']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: alwis-source-contracts-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  source:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Unit tests and HTTP guest/host contract
+        run: npm test
+      - name: Independent native source checks
+        run: |
+          python3 -m compileall -q scripts
+          python3 -m unittest discover -s tests -p 'test_native_concurrency.py' -v
+          python3 -m unittest discover -s tests -p 'test_native_source_staging.py' -v
+          python3 -m unittest discover -s tests -p 'test_independent_php_runner.py' -v
+          python3 -m unittest discover -s tests -p 'test_native_parity_attestation.py' -v
+          python3 -m unittest discover -s tests -p 'test_native_license_evidence.py' -v
+          python3 -m unittest discover -s tests -p 'test_native_qa_restore.py' -v
+          python3 -m unittest discover -s tests -p 'test_studio_independent_native_ci.py' -v
+          python3 -m unittest discover -s tests -p 'test_curl_compat.py' -v
+          python3 -m unittest discover -s tests -p 'test_native_error_recovery.py' -v
+          python3 scripts/audit-native-license-evidence.py --output build-work/native-license-evidence.json
+          python3 -m unittest discover -s tests -p 'test_archive_legacy_native.py' -v
+          python3 -m unittest discover -s tests -p 'test_native_restore.py' -v
+          python3 -m unittest discover -s tests -p 'test_source_reuse.py' -v
+          python3 -m unittest discover -s tests -p 'test_php_wasm_recovery.py' -v
+      - name: Wiki and versioning checks
+        run: |
+          python3 -m unittest discover -s tests/wiki -v
+          python3 scripts/build-wiki.py --output build-work/wiki-preview
+          node scripts/build-school.mjs --check
+          node --check apps/studio/collab/http-contract.mjs
+          python3 scripts/audit-native-inputs.py
+      - name: Explicitly report release blockers (informational)
+        run: |
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          status=json.loads(Path('provenance/release-licensing-status.json').read_text())
+          msg=f"Native redistribution: {status['status']} ({len(status.get('blockers', []))} blockers). Source-only checks never authorize publishing."
+          print(msg)
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as out:
+              out.write('## Source contracts\n\n' + msg + '\n\nFull browser/WASM CI and publication are separate gates.\n')
+          PY

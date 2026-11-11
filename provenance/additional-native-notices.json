@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "scope": "Exact upstream notices; does not assert final link inventory or release approval.",
+  "files": [
+    {
+      "archive": "sources/shyim--lite4mariadb-24be9371a2f6c71250a2356631ad6feab2280b02.tar.gz",
+      "sourcePath": "lite4mariadb-24be9371a2f6c71250a2356631ad6feab2280b02/storage/innobase/COPYING.Google",
+      "noticePath": "LICENSES/MariaDB-InnoDB-Google.txt",
+      "sha256": "9a978f3ead105a50bef951cabed57bc52090b062f63d3dc1c095e49027fd79be"
+    },
+    {
+      "archive": "sources/shyim--lite4mariadb-24be9371a2f6c71250a2356631ad6feab2280b02.tar.gz",
+      "sourcePath": "lite4mariadb-24be9371a2f6c71250a2356631ad6feab2280b02/storage/innobase/COPYING.Percona",
+      "noticePath": "LICENSES/MariaDB-InnoDB-Percona.txt",
+      "sha256": "e2eb48fd9d0e8b368cd74b888c5ad89fe5baa3176d509285ec06729116f9b164"
+    },
+    {
+      "archive": "sources/shyim--lite4mariadb-24be9371a2f6c71250a2356631ad6feab2280b02.tar.gz",
+      "sourcePath": "lite4mariadb-24be9371a2f6c71250a2356631ad6feab2280b02/zlib/LICENSE",
+      "noticePath": "LICENSES/MariaDB-zlib.txt",
+      "sha256": "e32ff4e00d9d94930537635291da39e7e612703334bf6fde8c7f1686fe8a45a2"
+    },
+    {
+      "archive": "build-work/source-archives/php-8.4.27.tar.xz",
+      "sourcePath": "php-8.4.27/ext/mbstring/libmbfl/LICENSE",
+      "noticePath": "LICENSES/PHP-libmbfl-LGPL-2.1.txt",
+      "sha256": "31d9cadcc63c15b79fc59c70f043956104a34c75f23f0ac0ada53c1edfeb88ca"
+    },
+    {
+      "archive": "build-work/source-archives/php-8.4.27.tar.xz",
+      "sourcePath": "php-8.4.27/ext/fileinfo/libmagic/LICENSE",
+      "noticePath": "LICENSES/PHP-libmagic.txt",
+      "sha256": "0bfa856a9930bddadbef95d1be1cf4e163c0be618e76ea3275caaf255283e274"
+    },
+    {
+      "archive": "build-work/source-archives/php-8.4.27.tar.xz",
+      "sourcePath": "php-8.4.27/ext/date/lib/LICENSE.rst",
+      "noticePath": "LICENSES/PHP-timelib-MIT.txt",
+      "sha256": "2120d029e7c67b9d08c1f665f1c3ed581206f00970b664cccdebe1419bf566e9"
+    },
+    {
+      "archive": "build-work/source-archives/php-8.4.27.tar.xz",
+      "sourcePath": "php-8.4.27/ext/standard/libavifinfo/LICENSE",
+      "noticePath": "LICENSES/PHP-libavifinfo-BSD.txt",
+      "sha256": "5d40dcb72f934c3d08e10ddb8ba4844de17bf6f9aabc1a382aacf8a8bf4567f8"
+    },
+    {
+      "archive": "build-work/source-archives/php-8.4.27.tar.xz",
+      "sourcePath": "php-8.4.27/TSRM/LICENSE",
+      "noticePath": "LICENSES/PHP-TSRM-BSD.txt",
+      "sha256": "fe97b8423e34199f7df3e65fd53c4df067a56ab6fe0f2296474ba7da0656460c"
+    }
+  ]
+}

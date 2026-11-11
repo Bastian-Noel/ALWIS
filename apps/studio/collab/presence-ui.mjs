@@ -36,9 +36,11 @@ const plural = (n, one, many) => `${n} ${n > 1 ? many : one}`;
 const secondsLeft = (until) => Math.max(0, Math.round((until - Date.now()) / 1000));
 
 export class PresenceUI {
-  constructor({ slot, onStart, onJoin, onLeave, onFollow, onFollowToggle, getFollowing, onKick, onLock, config }) {
+  constructor({ slot, onStart, onJoin, onLeave, onFollow, onFollowToggle, getFollowing, onKick, onLock,
+    onPreviewPermission, getPreviewPermission, config }) {
     this.slot = slot;
-    this.cb = { onStart, onJoin, onLeave, onFollow, onFollowToggle, getFollowing, onKick, onLock };
+    this.cb = { onStart, onJoin, onLeave, onFollow, onFollowToggle, getFollowing, onKick, onLock,
+      onPreviewPermission, getPreviewPermission };
     this.config = config;
     this.session = null;
     this.open = false;
@@ -203,6 +205,19 @@ export class PresenceUI {
         field, copy,
         el("p", { class: "cb-hint" }, s.locked ? "Les nouvelles personnes sont refusées pour le moment." : `Toute personne ayant ce lien peut rejoindre : ${free > 0 ? plural(free, "place libre", "places libres") : "session complète"}.`),
         lock));
+      const hasIsolatedPreview = !!this.config.previewOrigin;
+      wrap.append(el("section", { class: "cb-sec" },
+        el("p", { class: "cb-label" }, "Aperçu HTTP des invités"),
+        el("label", { class: "cb-check" },
+          el("input", { type: "checkbox", checked: !!this.cb.getPreviewPermission?.(),
+            disabled: !hasIsolatedPreview,
+            "aria-label": hasIsolatedPreview ? "Autoriser le PHP interactif des invités" : "Aperçu HTTP désactivé : domaine d'aperçu non configuré",
+            onchange: e => this.cb.onPreviewPermission?.(e.target.checked) }),
+          el("span", {}, "Autoriser le PHP interactif pour les invités")),
+        el("p", { class: "cb-hint" }, hasIsolatedPreview
+          ? "Les invités exécutent JavaScript sur un domaine séparé ; leurs requêtes PHP/SQL restent chez vous. En cas d'échec, un aperçu statique est proposé. Désactivé par défaut."
+          : "Indisponible : configurez ALWIS_PREVIEW_ORIGIN sur un domaine HTTPS réservé et différent du studio. En attendant, l'aperçu statique fonctionne.")));
+
     }
     const list = el("ul", { class: "cb-list" });
     const following = this.cb.getFollowing?.();

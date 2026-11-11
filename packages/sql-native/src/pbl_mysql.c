@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2026 Bastian Noel
+ * SPDX-License-Identifier: GPL-2.0-only
+ */
 #include "pbl_mysql.h"
 #include <stdlib.h>
 #include <stdio.h>

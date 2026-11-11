@@ -1,5 +1,6 @@
 # Séparation technique : éditeur Apache-2.0 et runtime MariaDB GPLv2
 
+**11 novembre 2026 — exception éditeur :** le code original détenu par Bastian Noël dans `apps/studio/editor/` est sous MIT (voir `LICENSES/ALWIS-editor-MIT.txt`), avec autorisation explicite du titulaire. Les composants tiers gardent leurs licences. Le worker incluant TypeScript n'est pas placé sous GPLv2 ; ses notices MIT et Apache-2.0 sont conservées dans le bundle de l'éditeur.
 **Revue des frontières de build, 10 novembre 2026.** Cette revue constate la séparation des binaires ; elle n’est pas une décision juridique définitive sur tous les échanges exécutés dans le navigateur.
 
 ## Ce qui est réellement assemblé

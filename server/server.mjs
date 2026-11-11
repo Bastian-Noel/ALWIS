@@ -18,6 +18,32 @@ if (!Number.isInteger(port) || port < 1 || port > 65535)
   throw new Error("PORT doit être compris entre 1 et 65535.");
 if (!/^[^:\u0000-\u001f\u007f]{1,64}$/.test(username))
   throw new Error("ALWIS_ADMIN_USER doit contenir de 1 à 64 caractères sans deux-points.");
+// A separate origin is mandatory when rendering untrusted guest PHP/JS.
+const previewOrigin = (() => {
+  const value = process.env.ALWIS_PREVIEW_ORIGIN?.trim();
+  if (!value) return null; // disabled until DNS/TLS and reverse proxy are configured
+  const url = new URL(value);
+  const configuredStudio = new URL(process.env.PUBLIC_BASE_URL ?? "http://localhost:3000");
+  // A distinct origin is insufficient when sibling subdomains share
+  // Domain=.example.tld cookies. Require another registrable site.
+  const siteSuffix = hostname => {
+    const name = hostname.toLowerCase();
+    if (name === "localhost" || name.endsWith(".localhost")
+      || name === "127.0.0.1" || name === "[::1]") return null;
+    const labels = name.split(".").filter(Boolean);
+    return labels.length >= 2 ? labels.slice(-2).join(".") : null;
+  };
+  const previewSite = siteSuffix(url.hostname);
+  const studioSite = siteSuffix(configuredStudio.hostname);
+  if (value !== url.origin || url.username || url.password || url.search || url.hash
+      || url.origin === configuredStudio.origin
+      || (previewSite && studioSite && previewSite === studioSite)
+      || (url.protocol !== "https:" &&
+          !(url.protocol === "http:" && (url.hostname === "localhost" || url.hostname.endsWith(".localhost") || ["127.0.0.1", "[::1]"].includes(url.hostname))))) {
+    throw Error("ALWIS_PREVIEW_ORIGIN exige un site HTTPS dédié différent du domaine de cookies du studio (HTTP localhost seulement).");
+  }
+  return url.origin;
+})();
 const trustProxy = process.env.TRUST_PROXY ?? "false";
 if (!["true", "false"].includes(trustProxy))
   throw new Error("TRUST_PROXY doit valoir true ou false.");
@@ -94,7 +120,7 @@ function validateSettings(input) {
       url.password ||
       url.search ||
       url.hash ||
-      (url.protocol !== "https:" && !["localhost", "127.0.0.1", "[::1]"].includes(url.hostname))
+      (url.protocol !== "https:" && !(url.hostname === "localhost" || url.hostname.endsWith(".localhost") || ["127.0.0.1", "[::1]"].includes(url.hostname)))
     )
       throw new Error("Utilisez une URL HTTPS publique (HTTP est permis sur localhost). ");
     result.publicBaseUrl = url.origin + url.pathname.replace(/\/$/, "");
@@ -114,7 +140,7 @@ function validateSettings(input) {
       if (
         !["https:", "http:"].includes(url.protocol) ||
         url.username || url.password || url.pathname !== "/" || url.search || url.hash ||
-        (url.protocol !== "https:" && !["localhost", "127.0.0.1", "[::1]"].includes(url.hostname))
+        (url.protocol !== "https:" && !(url.hostname === "localhost" || url.hostname.endsWith(".localhost") || ["127.0.0.1", "[::1]"].includes(url.hostname)))
       )
         throw new Error("Une origine doit contenir uniquement le protocole, l’hôte et le port.");
       return url.origin;
@@ -303,11 +329,38 @@ const server = createServer(async (request, response) => {
   response.setHeader("X-Content-Type-Options", "nosniff");
   response.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
   response.setHeader("Cache-Control", "no-store");
+  const pathname = new URL(request.url ?? "/", "http://localhost").pathname;
+  if (previewOrigin && requestOrigin(request) === previewOrigin) {
+    // The preview hostname is an untrusted application origin. NEVER serve
+    // the studio, administrative API, signaling or sensitive data here.
+    response.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+    response.setHeader("Cache-Control", "no-store");
+    if (request.method !== "GET" && request.method !== "HEAD") {
+      response.writeHead(405, { Allow: "GET, HEAD" }).end();
+      return;
+    }
+    if (pathname === "/guest-sw.js" || pathname === "/guest-broker.html"
+      || pathname === "/guest-broker.mjs" || pathname === "/_pbl/client.js") {
+      if (pathname === "/guest-broker.html") {
+        response.setHeader("Content-Security-Policy",
+          "default-src 'none'; script-src 'self'; worker-src 'self'; connect-src 'self'; "
+          + "frame-ancestors " + new URL(process.env.PUBLIC_BASE_URL ?? "http://localhost:3000").origin);
+      }
+      await staticFile(request, response, pathname);
+      return;
+    }
+    if (pathname.startsWith("/__alwis-guest/")) {
+      response.writeHead(503, { "Content-Type": "text/plain; charset=utf-8" })
+        .end("L'aperçu n'est pas connecté à son Service Worker.");
+      return;
+    }
+    response.writeHead(404).end("Page indisponible sur l'origine d'aperçu.");
+    return;
+  }
   if (request.method !== "GET" && request.method !== "HEAD" && request.method !== "POST") {
     response.writeHead(405, { Allow: "GET, HEAD, POST" }).end();
     return;
   }
-  const pathname = new URL(request.url ?? "/", "http://localhost").pathname;
   const settings = getSettings();
   const origin = request.headers.origin;
   if (!originAllowed(request, settings)) {
@@ -381,7 +434,7 @@ const server = createServer(async (request, response) => {
     }
   }
   if (pathname === "/api/collab/config" && (request.method === "GET" || request.method === "HEAD")) {
-    json(response, 200, { ...collab.publicConfig(), iceServers, path: "/collab" });
+    json(response, 200, { ...collab.publicConfig(), iceServers, path: "/collab", previewOrigin });
     return;
   }
   if (pathname === "/admin" || pathname === "/admin/") {

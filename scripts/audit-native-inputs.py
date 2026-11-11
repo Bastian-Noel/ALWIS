@@ -80,9 +80,26 @@ def audit():
             "candidate": data.get("adapter"),
             "validatedNativeWasmSha256": data.get("validatedNativeWasmSha256"),
         }
+    # An independent ALWIS SAPI source is an alternative to the missing fork
+    # archive, but it is NOT evidence that a corresponding WASM was compiled.
+    runner = ROOT / "packages/php-native/src/runner.c"
+    request_source = ROOT / "packages/php-native/src/request-state.c"
+    request_header = ROOT / "packages/php-native/src/request-state.h"
+    generator = (ROOT / "scripts/prepare-native-drivers.py").read_text()
+    build_script = (ROOT / "scripts/build-independent-native.sh").read_text()
+    independent_runner = {
+        "source": runner.relative_to(ROOT).as_posix(),
+        "sourceSha256": sha(runner.read_bytes()) if runner.is_file() else None,
+        "requestStatePresent": request_source.is_file() and request_header.is_file(),
+        "independentRunnerIsDefault": "write('runtime.c', Path(__file__).resolve().parents[1] / 'packages/php-native/src/runner.c', [])" in generator and "PBL_INDEPENDENT_PHP_RUNNER" not in build_script,
+        "compiledWithCandidate": False,
+        "nativeBrowserParity": False,
+    }
+    independent_runner["sourcePresent"] = bool(independent_runner["sourceSha256"] and
+        independent_runner["requestStatePresent"] and independent_runner["independentRunnerIsDefault"])
     requirements = {
         "nativeCompiler": bool(shutil.which("emcc") and shutil.which("emcmake")),
-        "phpWrapperForkArchived": output[1]["sourceArchiveVerified"],
+        "phpRunnerSourcePresent": output[1]["sourceArchiveVerified"] or independent_runner["sourcePresent"],
         "phpSourceArchiveVerified": output[2]["sourceArchiveVerified"],
         "mariaDBSourceArchiveVerified": output[0]["sourceArchiveVerified"],
         "independentPatchReceipt": bool(prebuilt.get("files")),
@@ -97,6 +114,8 @@ def audit():
         "knownRuntime": old,
         "components": output,
         "candidatePatch": prebuilt,
+        "candidateRunner": independent_runner,
+        "historicalPhpWrapperArchiveRecovered": output[1]["sourceArchiveVerified"],
         "preflight": requirements,
         "legalCaveat": "A source archive checksum and a successfully linked WASM do not, by themselves, establish permission to redistribute third-party expressions.",
     }

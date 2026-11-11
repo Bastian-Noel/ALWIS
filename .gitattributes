@@ -1,0 +1,13 @@
+/LICENSES/PHP-8.4.27-original-3.01.txt -text
+/LICENSES/Zend-Engine-original-2.00.txt -text
+/provenance/historical-native-artifact.json -text
+/engine/patches/php-8.4.27-zend-fibers.patch -text
+/LICENSES/MariaDB-InnoDB-Google.txt -text
+/LICENSES/MariaDB-InnoDB-Percona.txt -text
+/LICENSES/MariaDB-zlib.txt -text
+/LICENSES/PHP-libmbfl-LGPL-2.1.txt -text
+/LICENSES/PHP-libmagic.txt -text
+/LICENSES/** -text
+/engine/patches/php-8.4.27-wasm-chunks.patch -text
+
+provenance/joomengine-historical-engine-NOTICE.txt -text

@@ -1,3 +1,4 @@
+import {waitForAsyncCondition} from './async-condition.mjs';
 /** Regression checks for row identity, exact values and lightweight navigation. */
 import assert from "node:assert/strict";
 import {
@@ -56,7 +57,7 @@ try {
       assert.equal(await page.locator("#modal").isVisible(), true);
       await page.locator('[data-value="2"]').fill("00ff41");
       await page.locator("#modal [data-v=ok]").click();
-      await page.waitForFunction(async () => {
+      await waitForAsyncCondition(page, async () => {
         const { S } = await import("/apps/studio/workbench/state.mjs");
         return S.grid?.rows.length === 1 && S.lamp !== "busy";
       });

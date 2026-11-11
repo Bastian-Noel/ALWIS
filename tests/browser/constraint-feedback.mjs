@@ -1,3 +1,4 @@
+import {waitForAsyncCondition} from './async-condition.mjs';
 import { readBrowserProcessMemory } from "../../benchmarks/browser-process-memory.mjs";
 import assert from "node:assert/strict";
 import { mkdir, writeFile } from "node:fs/promises";
@@ -174,7 +175,7 @@ try {
       );
       await action("deleteRows", "0");
       await page.locator("#action-menu [data-ok]").click();
-      await page.waitForFunction(async () => {
+      await waitForAsyncCondition(page, async () => {
         const { S } = await import("/apps/studio/workbench/state.mjs");
         return S.total === 0;
       });

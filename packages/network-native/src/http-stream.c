@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2026 Bastian Noel
+ * SPDX-License-Identifier: GPL-2.0-only
+ */
 /* Browser HTTP read streams: real method/body/headers, CORS and browser rules.
  * No ordinary TCP/UDP sockets are promised. Fetch hides intermediate redirects.
  */
@@ -11,10 +14,13 @@
  * Asyncify suspends PHP while Fetch streams into at most 256 owned 64 KiB blocks.
  * Frame: status, header bytes, body bytes, error bytes (four uint32_t), then data.
  */
-EM_ASYNC_JS(unsigned char *,pbl_browser_fetch,(const char *url_ptr,const char *method_ptr,const char **header_ptr,const char *body_ptr,unsigned body_size,unsigned timeout_ms),{
+EM_ASYNC_JS(unsigned char *,pbl_browser_fetch,(const char *url_ptr,const char *method_ptr,const char **header_ptr,const char *body_ptr,unsigned body_size,unsigned timeout_ms,int follow_location),{
     const maxBody=16*1024*1024,blockSize=65536,encoder=new TextEncoder();
     const controller=new AbortController();
-    let timedOut=false,reader=null,blocks=[],length=0,status=0,headerBytes=new Uint8Array(),errorBytes=new Uint8Array();
+    let timedOut=false,canceled=false,reader=null,blocks=[],length=0,status=0,headerBytes=new Uint8Array(),errorBytes=new Uint8Array();
+    const abort=()=>{canceled=true;controller.abort();};
+    const context=Module.phpWasm;
+    if(context)context.pendingFetchAbort=abort;
     const timer=setTimeout(()=>{timedOut=true;controller.abort();},timeout_ms);
     try {
         const headers=new Headers();
@@ -22,7 +28,7 @@ EM_ASYNC_JS(unsigned char *,pbl_browser_fetch,(const char *url_ptr,const char *m
         const method=UTF8ToString(method_ptr);
         const response=await fetch(UTF8ToString(url_ptr),{method,headers,
             body:body_size?HEAPU8.slice(body_ptr,body_ptr+body_size):undefined,
-            credentials:'same-origin',redirect:'follow',signal:controller.signal});
+            credentials:'same-origin',redirect:follow_location?'follow':'error',signal:controller.signal});
         status=response.status;
         // Browsers expose the final response headers, not the wire HTTP version.
         let headerText='HTTP/1.1 '+status+' '+response.statusText+'\n';
@@ -51,9 +57,10 @@ EM_ASYNC_JS(unsigned char *,pbl_browser_fetch,(const char *url_ptr,const char *m
         }
     } catch(error){
         controller.abort();blocks=[];length=0;
-        errorBytes=encoder.encode(timedOut?'HTTP request timed out':String(error.message??error).slice(0,512));
+        errorBytes=encoder.encode(timedOut?'HTTP request timed out':canceled?'HTTP request canceled':String(error.message??error).slice(0,512));
     } finally {
         clearTimeout(timer);
+        if(context?.pendingFetchAbort===abort)delete context.pendingFetchAbort;
         if(reader)reader.releaseLock();
     }
     const frame=_malloc(16+headerBytes.length+length+errorBytes.length);
@@ -118,6 +125,8 @@ static php_stream *browser_open(php_stream_wrapper *wrapper,const char *path,con
     zval *ignore=context?php_stream_context_get_option(context,"http","ignore_errors"):NULL;
     zval *timeout=context?php_stream_context_get_option(context,"http","timeout"):NULL;
     zval *header=context?php_stream_context_get_option(context,"http","header"):NULL;
+    zval *redirect=context?php_stream_context_get_option(context,"http","follow_location"):NULL;
+    int follow_location=redirect?zend_is_true(redirect):1;
     if(method && Z_TYPE_P(method)==IS_STRING) {
         if(!Z_STRLEN_P(method) || Z_STRLEN_P(method)>=sizeof(request_method)) { php_stream_wrapper_log_error(wrapper,options,"Invalid HTTP method"); return NULL; }
         for(size_t i=0;i<Z_STRLEN_P(method);i++) if(Z_STRVAL_P(method)[i]<'A'||Z_STRVAL_P(method)[i]>'Z') { php_stream_wrapper_log_error(wrapper,options,"Invalid HTTP method"); return NULL; }
@@ -133,7 +142,7 @@ static php_stream *browser_open(php_stream_wrapper *wrapper,const char *path,con
         for(unsigned i=0;i<count;i++) efree(headers[i]);
         php_stream_wrapper_log_error(wrapper,options,"Invalid or oversized HTTP headers"); return NULL;
     }
-    unsigned char *frame=pbl_browser_fetch(path,request_method,(const char **)headers,request_body,request_size,timeout_ms);
+    unsigned char *frame=pbl_browser_fetch(path,request_method,(const char **)headers,request_body,request_size,timeout_ms,follow_location);
     for(unsigned i=0;i<count;i++) efree(headers[i]);
     if(!frame) { php_stream_wrapper_log_error(wrapper,options,"Browser HTTP response allocation failed"); return NULL; }
     const uint32_t *info=(const uint32_t *)frame;

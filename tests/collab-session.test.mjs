@@ -84,3 +84,33 @@ test("host and guest talk over the relay (no WebRTC) and a guest survives a netw
     void hostStore;
   } finally { await s.stop(); }
 });
+
+test("host kick terminates guest signaling instead of automatically rejoining", { skip: !hasWS }, async () => {
+  const s = await boot({ hostGraceMs: 2000, graceMs: 2000 });
+  let host, guest;
+  try {
+    globalThis.sessionStorage = mem();
+    host = new CollabSession({ path: "/collab", iceServers: [] }, { RTC: null });
+    host.host("Owner");
+    await until(() => host.status === "live");
+
+    globalThis.sessionStorage = mem();
+    guest = new CollabSession({ path: "/collab", iceServers: [] }, { RTC: null });
+    guest.join(host.room, "Untrusted guest");
+    await until(() => guest.status === "live" && host.peers.length === 2);
+
+    const removedId = guest.me.id;
+    host.kick(removedId);
+    await until(() => guest.status === "closed" && host.peers.length === 1);
+    assert.equal(guest.closedReason, "kicked");
+    assert.equal(guest.sig.state, "closed", "kicked clients must not schedule reconnect");
+    assert.equal(guest.links.size, 0);
+    await new Promise(resolve => setTimeout(resolve, 850)); // catches the default reconnect backoff
+    assert.equal(host.peers.length, 1, "kicked guest must not come back");
+    assert.equal(guest.sig.state, "closed");
+  } finally {
+    guest?.leave();
+    host?.leave();
+    await s.stop();
+  }
+});

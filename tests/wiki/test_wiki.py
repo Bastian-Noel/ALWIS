@@ -66,6 +66,8 @@ class WikiTests(unittest.TestCase):
             home = (output / 'Home.md').read_text()
             installation = (output / 'Installation.md').read_text()
             self.assertNotEqual(home, installation)
+            self.assertNotIn('<div align=', installation)
+            self.assertIn('## Installation locale', installation)
             self.assertIn('# Bienvenue dans ALWIS', home)
             self.assertIn('https://github.com/Bastian-Noel/ALWIS/wiki/Installation', home)
             self.assertIn('https://github.com/Bastian-Noel/ALWIS/wiki/Premiers-pas', home)

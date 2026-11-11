@@ -24,7 +24,29 @@ export class ProjectHub {
   async freeze(){this.busy=true;await Promise.allSettled([...this.inFlight]);}
   snapshot(){return {format:1,sessions:this.sessions.export()};}
   async saveSessions() { await writeState('sessions:' + this.key, this.sessions.export()); }
-  async createSession(label) { const id = this.sessions.create(label); await this.saveSessions(); return id; }
+  createSession(label) {
+    if (this.busy) throw Error('Le projet est occupé. Réessayez après l’opération en cours.');
+    return this.track((async () => {
+      const id = this.sessions.create(label);
+      try { await this.saveSessions(); }
+      catch (error) { this.sessions.sessions.delete(id); throw error; }
+      return id;
+    })());
+  }
+  createSessions(labels) {
+    if (this.busy) throw Error('Le projet est occupé. Réessayez après l’opération en cours.');
+    if (!Array.isArray(labels) || labels.length < 1 || labels.length > 16 || labels.some(label => typeof label !== 'string' || !label.trim() || label.length > 80))
+      throw Error('Liste de sessions invalide.');
+    return this.track((async () => {
+      const ids = this.sessions.createMany(labels);
+      try { await this.saveSessions(); }
+      catch (error) {
+        for (const id of ids) this.sessions.sessions.delete(id);
+        throw error;
+      }
+      return ids;
+    })());
+  }
   async removeSession(id) {
     if(this.busy)throw Error('Le projet est occupé. Réessayez après l’opération en cours.');
     const session=this.sessions.get(id);
@@ -99,7 +121,7 @@ export class ProjectHub {
       headers.push(['Content-Type', mime[pathname.split('.').pop()?.toLowerCase()] ?? 'application/octet-stream']);
     }
     const inspection = inspectBody(body, headers);
-    if (['document','iframe'].includes(input.destination) && headers.some(([name, value]) => name.toLowerCase() === 'content-type' && value.toLowerCase().includes('text/html'))) {
+    if (!input.remoteGuest && ['document','iframe'].includes(input.destination) && headers.some(([name, value]) => name.toLowerCase() === 'content-type' && value.toLowerCase().includes('text/html'))) {
       const context = { project: this.key, session: sessionId, prefix: this.routeURL(sessionId, '/'), logicalURL: url.href, cookies: session.jar.publicEntries() };
       const config = JSON.stringify(context).replace(/</g, '\\u003c');
       const bootstrap = `<script>window.__PBL_CONTEXT=${config};</script><script src="/_pbl/client.js"></script>`;

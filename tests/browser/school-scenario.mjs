@@ -131,11 +131,31 @@ export async function schoolScenario(page, assetBase) {
     await clients[1].locator("select[name=assignment]").selectOption("1");
     await clients[1].locator("select[name=student]").selectOption("2");
     await clients[1].getByRole("button", { name: "Charger la note" }).click();
+    // Service Worker navigation is asynchronous in Firefox. Do not fill
+    // the previous version of the form before the selected grade is loaded.
+    await clients[1].waitForFunction(() => {
+      const url = new URL(location.href);
+      return url.searchParams.get("assignment") === "1"
+        && url.searchParams.get("student") === "2"
+        && document.querySelector('#grade-form input[name="assignment_id"]')?.value === "1"
+        && document.querySelector('#grade-form input[name="student_id"]')?.value === "2";
+    }, null, { timeout: 15000 });
     await clients[1].getByLabel("Note sur 20").fill("17.75");
     await clients[1]
       .getByRole("button", { name: "Enregistrer", exact: true })
       .click();
-    await clients[1].locator("td").filter({ hasText: "17.75" }).waitFor();
+    try {
+      await clients[1].locator("td").filter({ hasText: "17.75" }).waitFor({ timeout: 18000 });
+    } catch (error) {
+      const state = await clients[1].evaluate(() => ({
+        url: location.href,
+        notice: document.querySelector(".notice")?.textContent?.trim() ?? null,
+        form: document.querySelector("#grade-form")?.outerHTML.slice(0, 1700) ?? null,
+        text: document.body.innerText.slice(0, 1800),
+      }));
+      throw Error("Shared school grade was not saved or reflected: " + JSON.stringify(state),
+        { cause: error });
+    }
     assert.equal(new URL(clients[1].url()).searchParams.get("assignment"), "1");
     await clients[2].goto(route(2, "assignments"));
     await clients[2].locator("td").filter({ hasText: "17.75" }).waitFor();

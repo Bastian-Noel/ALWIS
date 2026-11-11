@@ -2,6 +2,8 @@
 """Record source identity, build provenance and browser validation for a native release."""
 from pathlib import Path
 import hashlib,json,subprocess,sys,shutil
+from native_runner_provenance import verify as verify_independent_runner
+from importlib import import_module
 root=Path(__file__).resolve().parent.parent
 out=Path(sys.argv[1] if len(sys.argv)>1 else 'build-work/native-distribution')
 dist=root/'build-work/bridge/.native-build/engine/wasm/runtime-dist'
@@ -32,8 +34,20 @@ if not source_bundle.is_file() or not source_receipt.is_file():
 correspondence=json.loads(source_receipt.read_text())
 if hashlib.sha256(source_bundle.read_bytes()).hexdigest()!=correspondence['bundle']['sha256']:
  raise SystemExit('Corresponding source archive checksum mismatch')
-if len(correspondence.get('archives',[]))!=6:
- raise SystemExit('Corresponding source archives incomplete')
+if correspondence.get('schemaVersion') != 2 or correspondence.get('historicalJoomEngineForkIncluded') is not False:
+ raise SystemExit('Corresponding sources use unverified legacy fork or old receipt schema')
+expected_repos={'shyim/lite4mariadb','php/php-src','php/php-release','PCRE2Project/pcre2','seanmorris/php-wasm','MariaDB/mariadb-connector-c','wolfSSL/wolfssl'}
+if {record.get('repo') for record in correspondence.get('archives',[])}!=expected_repos or len(correspondence['archives'])!=len(expected_repos):
+ raise SystemExit('Corresponding independent native source archives incomplete')
+runner_provenance=verify_independent_runner(root)
+if correspondence.get('independentPhpRunner')!=runner_provenance:
+ raise SystemExit('Independent PHP SAPI generated files/source archive do not match')
+php_fibers=import_module('prepare-php84-source')
+fibers_receipt=php_fibers.prepare(root/'build-work/php-minimal',verify_only=True)
+if correspondence.get('phpFiberAdapter')!=fibers_receipt:
+ raise SystemExit('PHP 8.4 Zend fibers source receipt missing or stale')
+if not any(row.get('path')=='alwis/packages/php-native/src/runner.c' and row.get('sha256')==runner_provenance['sourceSha256'] for row in correspondence.get('firstPartyFiles',[])):
+ raise SystemExit('Independent PHP SAPI source missing from corresponding-source bundle')
 if correspondence.get('patchReceiptSha256')!=hashlib.sha256(receipt_path.read_bytes()).hexdigest():
  raise SystemExit('Corresponding sources do not match the independent adapter receipt')
 if len(correspondence.get('patchedMariaDBFiles',[]))!=3:
@@ -45,7 +59,7 @@ for suite in ['database-stability','mysqli-complete']:
   if not record.get('passed') or record['wasmSha256']!=files['pbl-runtime.wasm']['sha256']:raise SystemExit('Validation missing or stale: '+str(path))
   receipts.append({'path':str(path.relative_to(root)),'sha256':hashlib.sha256(path.read_bytes()).hexdigest()})
 sources=[]
-for pattern in ['packages/php-native/src/*','packages/sql-native/src/*','packages/sql-native/include/*','packages/files-native/src/*.c','packages/network-native/src/*.c','engine/native/build/*.cmake','engine/native/build/CMakeLists.txt','engine/native/build/build.sh','scripts/prepare-native-*.py','scripts/build-independent-native.sh','scripts/package-native-sources.py']:
+for pattern in ['packages/php-native/src/*','packages/sql-native/src/*','packages/sql-native/include/*','packages/files-native/src/*.c','packages/network-native/src/*.c','engine/native/build/*.cmake','engine/native/build/CMakeLists.txt','engine/native/build/build.sh','scripts/prepare-native-*.py','scripts/build-independent-native.sh','scripts/package-native-sources.py','scripts/native_runner_provenance.py','scripts/archive-legacy-native.py','scripts/prepare-php84-source.py','scripts/prepare-independent-native-inputs.py','scripts/build-independent-native-ci.sh']:
  sources.extend(p for p in root.glob(pattern) if p.is_file())
 paths=sorted(set(str(p.relative_to(root)) for p in sources))
 if subprocess.run(['git','diff','--quiet','HEAD','--',*paths],cwd=root).returncode:raise SystemExit('Commit native inputs before recording their source revision.')
@@ -55,7 +69,7 @@ for name in license_files:shutil.copy2(root/name,out/name)
 shutil.copytree(root/'LICENSES',out/'LICENSES',dirs_exist_ok=True)
 license_paths=license_files+['LICENSES/'+p.name for p in sorted((root/'LICENSES').iterdir()) if p.is_file()]
 license_records=[{'path':name,'bytes':(out/name).stat().st_size,'sha256':hashlib.sha256((out/name).read_bytes()).hexdigest()} for name in license_paths]
-manifest={'sourceRevision':subprocess.check_output(['git','rev-parse','HEAD'],cwd=root,text=True).strip(),'files':files,'sourceFiles':[{'path':p,'sha256':hashlib.sha256((root/p).read_bytes()).hexdigest()} for p in paths],'validation':receipts,'licensing':{'status':json.loads((root/'provenance/release-licensing-status.json').read_text())['status'],'files':license_records,'notes':'Component notices accompany the native artifact; this manifest does not override third-party license terms.'},'build':{'emscripten':'6.0.6 (checked by build.sh)','recipe':'scripts/build-independent-native.sh','target':'pbl-runtime','drivers':json.loads((dist.parent/'pbl-native-sources/driver-adapter.json').read_text())},'independentAdapter':independent,'correspondingSources':{'name':source_bundle.name,'sha256':correspondence['bundle']['sha256'],'bytes':correspondence['bundle']['bytes'],'archives':correspondence['archives'],'patchReceiptSha256':correspondence['patchReceiptSha256'],'patchedMariaDBFiles':correspondence['patchedMariaDBFiles']}}
+manifest={'sourceRevision':subprocess.check_output(['git','rev-parse','HEAD'],cwd=root,text=True).strip(),'files':files,'sourceFiles':[{'path':p,'sha256':hashlib.sha256((root/p).read_bytes()).hexdigest()} for p in paths],'validation':receipts,'licensing':{'status':json.loads((root/'provenance/release-licensing-status.json').read_text())['status'],'files':license_records,'notes':'Component notices accompany the native artifact; this manifest does not override third-party license terms.'},'build':{'emscripten':'6.0.6 (checked by build.sh)','recipe':'scripts/build-independent-native.sh','target':'pbl-runtime','drivers':json.loads((dist.parent/'pbl-native-sources/driver-adapter.json').read_text()),'independentPhpRunner':runner_provenance,'phpFiberAdapter':fibers_receipt},'independentAdapter':independent,'correspondingSources':{'name':source_bundle.name,'sha256':correspondence['bundle']['sha256'],'bytes':correspondence['bundle']['bytes'],'archives':correspondence['archives'],'patchReceiptSha256':correspondence['patchReceiptSha256'],'patchedMariaDBFiles':correspondence['patchedMariaDBFiles'],'historicalJoomEngineForkIncluded':False,'independentPhpRunner':runner_provenance,'phpFiberAdapter':fibers_receipt}}
 for name in files:shutil.copyfile(dist/name,out/name)
 shutil.copyfile(source_bundle,out/source_bundle.name)
 (out/'artifact.json').write_text(json.dumps(manifest,indent=2)+'\n')

@@ -1,15 +1,11 @@
 {
   "schemaVersion": 1,
   "status": "blocked",
-  "asOf": "2026-11-10",
+  "asOf": "2026-11-11",
   "blockers": [
     {
-      "id": "apache2-mariadb-patch",
-      "summary": "The currently pinned/distributed native binary still contains the legacy Apache-2.0 sessions patch incorporated into GPLv2 MariaDB. The ALWIS replacement candidate has not yet been rebuilt and validated and has not cleared the legal review."
-    },
-    {
       "id": "native-sbom-and-source",
-      "summary": "Source archives of MariaDB, PHP, Sean Morris php-wasm, Connector/C and wolfSSL are locally verified. The deleted JoomEngine PHP native wrapper source is not recovered, its API is not drop-in compatible with the GPLv2 fallback, and the exact linked license/SBOM inventory remains incomplete."
+      "summary": "Seven pinned source archives and independent WASM are verified. All 14 directly scanned ALWIS native C inputs now carry GPL-2.0-only SPDX, with author history and maintainer claim recorded. Exact linked third-party object/source/license correspondence remains unaudited for a release."
     },
     {
       "id": "editor-apache-boundary",
@@ -17,13 +13,38 @@
     },
     {
       "id": "source-reuse-review",
-      "summary": "An automated review verified the 11 pinned DrawDB/ChartDB/Outerbase/XYFlow files and detected no identical >=32-token sequences across selected local modules. Human review of adaptations, visual assets and other contributions is still required."
+      "summary": "For currently unidentified ALWIS code the maintainer claims original authorship; Git history and source study comparisons are recorded. A missing match is not proof of originality; third-party adaptations/assets and ownership still require a final attribution check."
     },
     {
       "id": "release-notice-verification",
-      "summary": "Release-specific checks verify static notices. Native source/binary correspondence remains missing until an independently rebuilt WASM, complete corresponding-source bundle, and current matching browser receipts are available."
+      "summary": "Static notices and candidate corresponding sources are verifiable; independently compiled SHA 39f4b5d6cf785adafd5f994d11b88b491b7dcc21dbfedbefe896b871f5f4f6b6 passed all 17 browser parity probes in both Chromium and Firefox (Actions 42844495555). Final distribution-specific notices, source/binary SBOM, permission review and independent-candidate multi-client native end-to-end testing are outstanding; historical witness multi-client testing passed Actions 42849610482. A parity success does not authorize publication."
+    },
+    {
+      "id": "php-apache1-formatters",
+      "summary": "The actual WSL link includes PHP main/snprintf.c and main/spprintf.c, whose embedded Apache Group 1995-1998 notice retains an advertising clause. The PHP/Zend later-license election does not erase this third-party notice. Replace these implementations with compatible code and rebuild/retest before publication.",
+      "evidence": "provenance/php-formatting-license-review.md"
     }
   ],
   "scope": "This status blocks publication of static, Docker, and native releases containing the runtime. It does not prevent local development or validation builds.",
-  "reopenWhen": "Update this file only after evidence for each blocker is recorded in provenance/component-license-map.md and the exact release notices/source bundle are verified."
+  "reopenWhen": "Update this file only after evidence for each blocker is recorded in provenance/component-license-map.md and the exact release notices/source bundle are verified.",
+  "resolvedFindings": [
+    {
+      "id": "apache2-mariadb-patch",
+      "resolution": "Withdrawn: historical patches/NOTICE explicitly licenses the engine patch and modified glue GPL-2.0-only. Repository-root Apache-2.0 was incorrectly applied to these files.",
+      "evidence": "https://github.com/joomengine/mariadb-wasm-bridge/blob/56d47b4dc867af313592efa09e12df470a36e129/patches/NOTICE",
+      "noticeSha256": "bd9a9d4e7357de8d04722e3888c69b7166ab093897dd0eabd5403867ab84a7fe"
+    }
+  ],
+  "developmentBuildException": {
+    "recordedAt": "2026-11-11",
+    "authorizedBy": "Repository owner, explicit instruction in chat",
+    "finding": "php-apache1-formatters",
+    "decision": "Defer replacement of legacy PHP formatting implementations; continue development compilation and QA with the current upstream code.",
+    "compilationAllowed": true,
+    "validationAllowed": true,
+    "thirdPartyPermissionGranted": false,
+    "compatibilityFindingResolved": false,
+    "notice": "LICENSES/PHP-formatting-legacy.txt",
+    "publicationGateChanged": false
+  }
 }

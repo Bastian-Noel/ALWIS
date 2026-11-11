@@ -1,0 +1,136 @@
+{
+  "sourceRevision": "bed7ca0ab47e155bf3ad9556c5abe4933f93e896",
+  "files": {
+    "pbl-runtime.mjs": {
+      "sha256": "5c68631f5096743a5958452dbf84b4d6e3b6420fefcebed732027e956cffd8ad",
+      "bytes": 469394
+    },
+    "pbl-runtime.wasm": {
+      "sha256": "80df46b7b308b33475fde138eb1a295c01ffbf6ac685d17a74209eb224674e0f",
+      "bytes": 38249621
+    }
+  },
+  "sourceFiles": [
+    {
+      "path": "engine/native/build/CMakeLists.txt",
+      "sha256": "8f80d87eb8135455b462036536ae15affde18f574e0df8cb979184edb11ee562"
+    },
+    {
+      "path": "engine/native/build/attach.cmake",
+      "sha256": "75442e4759fa08fb3eeb4c373c4409b2f6611d61745e08127f524f8b6901a92d"
+    },
+    {
+      "path": "engine/native/build/build.sh",
+      "sha256": "ec17a48ab31575beeb8dfb53fcf815496fd63d6a073bd28a74341ba9c8c24919"
+    },
+    {
+      "path": "engine/native/build/runtime-target.cmake",
+      "sha256": "33b52a755b222c1089c9fb53b9d6f35c1cffde2b7583f5bddfe73d75703153b2"
+    },
+    {
+      "path": "packages/files-native/src/files.c",
+      "sha256": "9298a9dd48807f328daf38a287022509197eaaa4383cbb309eb9682713ec3622"
+    },
+    {
+      "path": "packages/network-native/src/http-stream.c",
+      "sha256": "e58002576c791a6ed8d576dd2233d6d608835c961fecd50de419b9827b26f962"
+    },
+    {
+      "path": "packages/php-native/src/module.c",
+      "sha256": "fdae713d6577d413fba765f50c2d724e37b2d2041144980845dfc2dc2588e268"
+    },
+    {
+      "path": "packages/php-native/src/mysqli-extended.c",
+      "sha256": "b5b92905ef3ade87c6c0e7b48b4ab7fbe92756c5745c0d2dc870b5afc11588da"
+    },
+    {
+      "path": "packages/php-native/src/mysqli.c",
+      "sha256": "a2b43a1de7ca57be522505c1ce1f86239074d6c34288847a854f50ae09a44706"
+    },
+    {
+      "path": "packages/php-native/src/pdo-adapter.h",
+      "sha256": "3375b4c986acf84c531e6e27cfcdb59b0d637b25aa4e20cae217f6bbce3d975c"
+    },
+    {
+      "path": "packages/php-native/src/pdo-values.h",
+      "sha256": "2f4ad9c70040b55bc0be64d7d1657f0b66e4364e504bbe871aba89d6e73fbd5d"
+    },
+    {
+      "path": "packages/sql-native/include/pbl_mysql.h",
+      "sha256": "86322fc862290446545d972acaeabecb19e31083225f9f9d28097a788c2b42af"
+    },
+    {
+      "path": "packages/sql-native/include/pbl_sql.h",
+      "sha256": "5307f6f76143a699494c3467ef864d866dd955938a264c05b670da4b3bad69e1"
+    },
+    {
+      "path": "packages/sql-native/src/console.c",
+      "sha256": "5e3140dda641fc7c6a1bad32e7539e5d874ae00f17fbdb47d2bb0748a2531b8a"
+    },
+    {
+      "path": "packages/sql-native/src/pbl_mysql.c",
+      "sha256": "b0a3a6fd7107eab8f163bdefe8ca3f7780289e3d71e4bc158decbb5185da83db"
+    },
+    {
+      "path": "scripts/prepare-native-drivers.py",
+      "sha256": "17c205be7d7120e1744a2d2235a273d6818232ef10f5a0fd81f467d50a21e26b"
+    },
+    {
+      "path": "scripts/prepare-native-result-budget.py",
+      "sha256": "b45b7eddd593223580295771c90c9ad877f017ab273f6edfb0c2661904387b35"
+    },
+    {
+      "path": "scripts/prepare-native-server.py",
+      "sha256": "fa6d3492aef29c2c9b9a544c8c74cb52f9284c101c6f8155891a5d168dfc35a3"
+    }
+  ],
+  "validation": [
+    {
+      "path": "engine/fusion/receipts/database-stability/chromium.json",
+      "sha256": "a3c34efbc17f5fdbcd18bea65ff18c11ac274c7f14a406f12722e12fa7e8af6e"
+    },
+    {
+      "path": "engine/fusion/receipts/database-stability/firefox.json",
+      "sha256": "0f080c4ac4d02e9616d73c7ddcdc8397b6543509e75e7c9a58f60b8d05adc35a"
+    },
+    {
+      "path": "engine/fusion/receipts/mysqli-complete/chromium.json",
+      "sha256": "9ee8be3f12f5795e98f5ddacfada92e08b079927ec06b5dab2fa995e9e1a3207"
+    },
+    {
+      "path": "engine/fusion/receipts/mysqli-complete/firefox.json",
+      "sha256": "4e9d6026f4fdfe516a9b585cc327d51586f108025a3cf3f4fd224c949e3deb15"
+    }
+  ],
+  "build": {
+    "emscripten": "6.0.6 (checked by build.sh)",
+    "recipe": "engine/native/build/build.sh",
+    "target": "pbl-runtime",
+    "drivers": [
+      {
+        "source": "/workspace/WASMWebServer/build-work/php/native/runtime.c",
+        "generated": "runtime.c",
+        "originalSha256": "d6766cf79b6b07dd8ec106bc9f22cfa33b3088871222eabb11859bb5ad6490db",
+        "generatedSha256": "d0f9ca2c2740c10a9a26a7be3e66037596a6c9f7812704c8e080a8f368840bed"
+      },
+      {
+        "source": "/workspace/WASMWebServer/build-work/php-minimal/ext/pdo_mysql/mysql_driver.c",
+        "generated": "mysql_driver.c",
+        "originalSha256": "9d63ea770010ed5f3837a64025a5885bfa3bc266bc20d1b1dbfd2c939b2734aa",
+        "generatedSha256": "991bad1ff82850a4d1df1d3fc210d634274cec9073757d3f41ba9ac949e31059"
+      },
+      {
+        "source": "/workspace/WASMWebServer/build-work/php-minimal/ext/pdo_mysql/mysql_statement.c",
+        "generated": "mysql_statement.c",
+        "originalSha256": "3a7be4170ad448306b28abc215c508c961d7f07752b8ec4be28d0f8c342f8105",
+        "generatedSha256": "86ff14fddb86c2b324bf994b0467ef19329b0b7612f5c50603b56c80599577d2"
+      },
+      {
+        "source": "/workspace/WASMWebServer/build-work/php-minimal/ext/pdo_mysql/php_pdo_mysql_int.h",
+        "generated": "php_pdo_mysql_int.h",
+        "originalSha256": "3760436b7ddbd696db128f9b742c01cc98246d94c14c1addfcf80eb86ffaec5f",
+        "generatedSha256": "8df219ebb0e1eed296997a68e46933771ec2ee447c77469253272a969ff45731"
+      }
+    ]
+  }
+}

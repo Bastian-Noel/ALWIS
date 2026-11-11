@@ -9,6 +9,7 @@ php_build=${PBL_PHP_BUILD:-"$repo_dir/build-work/php-minimal"}
 mariadb_source=${PBL_MARIADB_SOURCE:-"$repo_dir/build-work/mariadb-shallow"}
 mariadb_build=${PBL_MARIADB_BUILD:-"$repo_dir/build-work/bridge/.native-build/engine/wasm"}
 native_build=${PBL_NATIVE_BUILD:-"$repo_dir/build-work/bridge/.native-build/engine/native"}
+python3 "$repo_dir/scripts/prepare-php84-source.py" --output "$php_build" --verify-only >/dev/null
 [[ -f "$php_build/.libs/libphp.a" && -f "$native_build/import_executables.cmake" ]] || {
   echo 'Prepare PHP pthread archive and MariaDB host tools first; see README.md' >&2
   exit 1
@@ -23,8 +24,8 @@ emcmake cmake -S "$mariadb_source" -B "$mariadb_build" \
   -DIMPORT_EXECUTABLES="$native_build/import_executables.cmake" \
   -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES="$spike_dir/attach.cmake" \
   -DPBL_SPIKE_SOURCE="$spike_dir" -DPBL_PHP_BUILD="$php_build"
-cmake --build "$mariadb_build" --target "${PBL_TARGET:-pbl-fusion}" -j"${JOBS:-3}"
-if [[ "${PBL_TARGET:-pbl-fusion}" == pbl-runtime ]]; then
+cmake --build "$mariadb_build" --target "${PBL_TARGET:-pbl-runtime}" -j"${JOBS:-3}"
+if [[ "${PBL_TARGET:-pbl-runtime}" == pbl-runtime ]]; then
   node "$repo_dir/scripts/inspect-wasm-abi.mjs" "$mariadb_build/runtime-dist/pbl-runtime.wasm" > "$mariadb_build/runtime-dist/abi.json"
 else
   node "$repo_dir/scripts/inspect-wasm-abi.mjs" "$mariadb_build/fusion-dist/pbl-fusion.wasm" > "$mariadb_build/fusion-dist/abi.json"

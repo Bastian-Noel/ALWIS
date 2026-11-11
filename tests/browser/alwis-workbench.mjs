@@ -1,3 +1,4 @@
+import {waitForAsyncCondition} from './async-condition.mjs';
 import assert from "node:assert/strict";
 import { mkdir, writeFile, readFile } from "node:fs/promises";
 import { resolve } from "node:path";
@@ -327,7 +328,7 @@ try {
       });
       await page.locator("#ed1 .cm-content").fill('<?php echo "saved";');
       await page.locator("#ed1 .cm-content").press("Control+s");
-      await page.waitForFunction(async () => {
+      await waitForAsyncCondition(page, async () => {
         const { S } = await import("/apps/studio/workbench/state.mjs");
         return !S.saving && S.lamp !== "busy";
       });

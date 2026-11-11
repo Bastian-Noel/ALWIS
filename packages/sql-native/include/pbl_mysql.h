@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2026 Bastian Noel
+ * SPDX-License-Identifier: GPL-2.0-only
+ */
 #ifndef PBL_MYSQL_H
 #define PBL_MYSQL_H
 #include <mysql.h>

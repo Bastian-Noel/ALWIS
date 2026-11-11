@@ -363,6 +363,7 @@ export function createStudioServices() {
         await measure();
       },
       async close(options) {
+        if (opening) throw Error("Attendez la fin de l’ouverture du projet avant de le fermer.");
         if (!hub) return;
         closing = true;
         try {
@@ -723,6 +724,12 @@ export function createStudioServices() {
       },
     },
     sessions: {
+      // Host-only HTTP entry point for a future permission-gated collaborative
+      // gateway. Reuse ProjectHub cookies, PHP sessions, routing and SQL locks.
+      route: (session, request) => {
+        if (!hub || closing) throw Error("Projet fermé");
+        return hub.route(session, request);
+      },
       async run(session, path) {
         validPath(path);
         if (!/\.php$/i.test(path)) throw Error("Choisissez un fichier PHP.");
@@ -750,7 +757,27 @@ export function createStudioServices() {
               hidden: s.jar.entries.filter((c) => c.httpOnly).length,
             }))
           : [],
-      create: (label) => hub.createSession(label),
+      create: (label) => {
+        if (!hub || closing || opening) throw Error("Projet indisponible pour créer une session.");
+        const current = hub;
+        return current.createSession(label).then((id) => {
+          if (hub !== current) throw Error("Le projet a été fermé pendant la création de la session.");
+          return id;
+        });
+      },
+      createMany: (labels) => {
+        if (!hub || closing || opening) throw Error("Projet indisponible pour créer les sessions.");
+        const current = hub;
+        return current.createSessions(labels).then((ids) => {
+          if (hub !== current) throw Error("Le projet a été fermé pendant la création des sessions.");
+          return ids;
+        });
+      },
+      /** Host-only virtual document.cookie mutations for permitted remote previews. */
+      cookie: (session, value, url) => {
+        if (!hub || closing) throw Error("Projet fermé");
+        return hub.setCookie(session, value, url);
+      },
       remove: (id) => hub.removeSession(id),
       async rename(session, label) {
         label = String(label).trim();

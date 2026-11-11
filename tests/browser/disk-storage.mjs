@@ -1,6 +1,8 @@
 import { readBrowserProcessMemory } from "../../benchmarks/browser-process-memory.mjs";
 import assert from "node:assert/strict";
-import { mkdir, writeFile, stat } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, writeFile, stat } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import {
   chromium,
   firefox,
@@ -13,7 +15,10 @@ const receipts = [],
   measurements = [];
 try {
   for (const engine of [chromium, firefox]) {
-    const browser = await engine.launch({
+    // A disk endurance test needs a normal profile: private browsing stores
+    // OPFS under a smaller memory-based quota unrelated to free disk space.
+    const profile = await mkdtemp(join(tmpdir(), "alwis-disk-storage-"));
+    const browser = await engine.launchPersistentContext(profile, {
       headless: true,
       ...(engine === chromium ? { args: ["--no-sandbox"] } : {}),
     });
@@ -32,6 +37,9 @@ try {
       });
       await page.goto("http://127.0.0.1:" + server.address().port);
       const downloaded = page.waitForEvent("download", { timeout: 180000 });
+      // Keep the original page.evaluate failure when cleanup closes the browser.
+      // The download rejection is still propagated by the await below.
+      downloaded.catch(() => {});
       const result = await page.evaluate(async () => {
         const { ProjectDisk, crcStep, classifyFile } =
           await import("/packages/runtime/src/project-disk.mjs");
@@ -277,6 +285,7 @@ try {
       );
     } finally {
       await browser.close();
+      await rm(profile, { recursive: true, force: true });
     }
   }
 } finally {

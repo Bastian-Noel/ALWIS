@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2026 Bastian Noel
+ * SPDX-License-Identifier: GPL-2.0-only
+ */
 /* Independent native SQL-console owner. Binary, length-delimited PBL1 frames.
  * Query/result bytes never cross a JSON/base64 SQL bridge.
  */
