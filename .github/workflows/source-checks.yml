@@ -30,6 +30,7 @@ jobs:
           python3 -m compileall -q scripts
           python3 -m unittest discover -s tests -p 'test_publication_policy.py' -v
           python3 -m unittest discover -s tests -p 'test_static_package_inventory.py' -v
+          python3 -m unittest discover -s tests -p 'test_ftp_directories.py' -v
           python3 -m unittest discover -s tests -p 'test_native_concurrency.py' -v
           python3 -m unittest discover -s tests -p 'test_native_source_staging.py' -v
           python3 -m unittest discover -s tests -p 'test_independent_php_runner.py' -v

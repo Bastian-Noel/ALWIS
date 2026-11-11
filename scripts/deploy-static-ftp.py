@@ -46,15 +46,11 @@ managed='''# BEGIN WASMWebServer managed headers
 '''
 ftp=ftplib.FTP(timeout=60);stage='.pbl-upload-'+release['revision'][:12]+'-'+uuid.uuid4().hex[:8]
 created=[]
+from ftp_directories import ensure_directories
+known_directories=set()
 def directories(path):
- current=''
- for part in PurePosixPath(path).parts:
-  if part in ('','.'):continue
-  if part in ('..','/') or '\n' in part or '\r' in part:raise ValueError('Unsafe remote directory')
-  current=(current+'/' if current else '')+part
-  try:ftp.mkd(current)
-  except ftplib.error_perm:
-   original=ftp.pwd();ftp.cwd(current);ftp.cwd(original)
+ ensure_directories(ftp,path,known_directories)
+
 def names(parent):
  try:return {name for name,info in ftp.mlsd(parent) if info.get('type') not in ('cdir','pdir')}
  except ftplib.error_perm:return {PurePosixPath(name).name for name in ftp.nlst(parent)}
