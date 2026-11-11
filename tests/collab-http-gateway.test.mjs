@@ -202,3 +202,15 @@ test("disconnect before dispatch never sends a queued POST", async () => {
   const pending=guest.request({url:"/write.php",method:"POST",body:[1]});
   guest.close(); await assert.rejects(pending,/déconnecté/); assert.equal(sent.length,0);
 });
+
+
+test("a queued POST expires before the preview broker timeout and is never sent later", async () => {
+  const sent=[];
+  const guest=new GuestHttpGateway({origin:"https://example.org",send:m=>sent.push(m),timeoutMs:1000,queueWaitMs:10});
+  const active=Array.from({length:3},()=>guest.request({url:"/slow.php"}).catch(e=>e));
+  const waiting=guest.request({url:"/write.php",method:"POST",body:[1]}).catch(e=>e);
+  await new Promise(r=>setTimeout(r,30));
+  assert.match((await waiting).message,/file/);assert.equal(guest.queue.length,0);
+  guest.close();await Promise.all(active);
+  assert.equal(sent.filter(m=>m.t==="http-request").length,3);
+});

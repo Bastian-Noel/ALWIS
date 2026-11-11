@@ -107,11 +107,12 @@ export class HostHttpGateway {
 }
 
 export class GuestHttpGateway {
-  constructor({ send, timeoutMs = 120_000, origin, name = "Invité" }) {
+  constructor({ send, timeoutMs = 120_000, queueWaitMs = 10_000, origin, name = "Invité" }) {
     this.send = send;
     this.origin = origin;
     this.name = name;
     this.timeoutMs = timeoutMs;
+    this.queueWaitMs = Math.min(timeoutMs, queueWaitMs);
     this.collector = new HttpFrameCollector({ timeoutMs, maxPending: 4 });
     this.flow = new HttpFrameFlow({ send: (_peer, frame) => this.send(frame), timeoutMs });
     this.pending = new Map();
@@ -134,7 +135,7 @@ export class GuestHttpGateway {
         if (index < 0) return;
         this.queue.splice(index, 1); this.queueBytes -= bytes;
         reject(Error("Délai dépassé dans la file des requêtes de l’aperçu."));
-      }, this.timeoutMs);
+      }, this.queueWaitMs);
       entry.timer.unref?.();
       this.queue.push(entry); this.queueBytes += bytes;
       this.drain();
