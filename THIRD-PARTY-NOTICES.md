@@ -42,3 +42,7 @@ DrawDB, ChartDB, Outerbase Studio, XYFlow, PHP-WASM projects and other repositor
 ## Release status
 
 `provenance/release-licensing-status.json` is authoritative for whether publication is enabled. Static, Docker, and native distribution are currently blocked pending a complete native source-to-binary inventory, review of the Apache-2.0 editor assets alongside the GPLv2 runtime, file-level comparison of recorded source studies, and release-specific verification of notices and corresponding sources. These notices do not cure those blockers.
+
+## Deferred legacy PHP formatting issue (11 November 2026)
+
+PHP `main/snprintf.c` and `main/spprintf.c` retain Apache Group 1995-1998 terms, including an advertising clause. Their exact embedded notice is reproduced in `LICENSES/PHP-formatting-legacy.txt`. The maintainer has deferred replacement and authorized continued development builds and QA. This internal exception does not relicense third-party code, establish GPLv2 compatibility, or clear the release gate. See `provenance/php-formatting-license-review.md`. These are two source files with multiple functions; the issue is not represented as a resolved or legally minor defect.

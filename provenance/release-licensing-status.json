@@ -34,5 +34,17 @@
       "evidence": "https://github.com/joomengine/mariadb-wasm-bridge/blob/56d47b4dc867af313592efa09e12df470a36e129/patches/NOTICE",
       "noticeSha256": "bd9a9d4e7357de8d04722e3888c69b7166ab093897dd0eabd5403867ab84a7fe"
     }
-  ]
+  ],
+  "developmentBuildException": {
+    "recordedAt": "2026-11-11",
+    "authorizedBy": "Repository owner, explicit instruction in chat",
+    "finding": "php-apache1-formatters",
+    "decision": "Defer replacement of legacy PHP formatting implementations; continue development compilation and QA with the current upstream code.",
+    "compilationAllowed": true,
+    "validationAllowed": true,
+    "thirdPartyPermissionGranted": false,
+    "compatibilityFindingResolved": false,
+    "notice": "LICENSES/PHP-formatting-legacy.txt",
+    "publicationGateChanged": false
+  }
 }

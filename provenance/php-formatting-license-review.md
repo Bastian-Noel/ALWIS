@@ -18,3 +18,9 @@ Other advertising-clause hits in PHP include Berkeley-derived code; examine the 
 - https://mariadb.com/docs/general-resources/community/community/faq/licensing-questions/licensing-faq describes a FLOSS exception for the client library. That statement cannot be extended automatically to the embedded server linked here.
 
 The local exact-link replay selects both libphp.a(snprintf.o) and libphp.a(spprintf.o), and yields the same WASM hash as the tested runtime. This proves archive-member selection; it is not a claim that every function in those members survives dead-code elimination. No blanket release approval or blanket prohibition on distributing PHP follows from this finding.
+
+## Maintainer decision: defer replacement, continue development builds
+
+On 11 November 2026 the repository owner explicitly requested that replacement be deferred to a future version and that compilation continue with a documented internal exception. Development builds and QA remain authorized. No formatter replacement is activated by this decision. This is a project scheduling decision, not permission from third-party copyright holders or a finding of GPL compatibility. The publication gate is unchanged.
+
+The scope is two upstream translation units with several formatting functions, not merely two isolated functions. The issue has not been classified as legally minor. Its original notice is retained in `LICENSES/PHP-formatting-legacy.txt` and the current code remains available in the pinned PHP source archive. No deadline or future release number is committed yet.
