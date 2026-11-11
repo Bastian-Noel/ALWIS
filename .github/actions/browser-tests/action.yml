@@ -9,6 +9,11 @@ runs:
         key: ${{ runner.os }}-studio-playwright-1.64.1
     - shell: bash
       run: |
+        # The Azure HTTP mirror can stall each font download on fresh runners.
+        # Keep Ubuntu's signed packages, using its official HTTPS archive.
+        if [ -f /etc/apt/apt-mirrors.txt ]; then
+          printf '%s\n' 'https://archive.ubuntu.com/ubuntu/' | sudo tee /etc/apt/apt-mirrors.txt >/dev/null
+        fi
         mkdir -p build-work/php
         npm install --prefix build-work/php --no-package-lock --ignore-scripts playwright@1.64.1
         build-work/php/node_modules/.bin/playwright install --with-deps --only-shell chromium firefox
