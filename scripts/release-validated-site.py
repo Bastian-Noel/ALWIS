@@ -46,14 +46,22 @@ with zipfile.ZipFile(archive)as source:
  with zipfile.ZipFile(site,'w',zipfile.ZIP_DEFLATED,compresslevel=6)as target:
   for item in sorted(entries,key=lambda i:i.filename):
    info=zipfile.ZipInfo(item.filename,date_time=(1980,1,1,0,0,0));info.compress_type=zipfile.ZIP_DEFLATED;info.external_attr=0o100644<<16;target.writestr(info,source.read(item))
-# A retry may deploy an immutable release only when its ZIP is byte-identical.
+# A retry verifies published ZIP bytes, then compares every payload byte with CI.
 if published_existing:
  checks_dir=output/'published-checksums';checks_dir.mkdir(exist_ok=True)
  subprocess.run(['gh','release','download',tag,'--repo',repo,'--pattern','SHA256SUMS','--dir',str(checks_dir),'--clobber'],check=True)
  checks={line.split(None,1)[1].strip():line.split(None,1)[0] for line in (checks_dir/'SHA256SUMS').read_text().splitlines() if line.strip()}
- with site.open('rb') as stream: actual=hashlib.file_digest(stream,'sha256').hexdigest()
- if checks.get(site.name)!=actual:raise SystemExit('Published release differs from validated CI package; preserving immutable assets')
- print('Reusing immutable release with identical verified ZIP:',tag)
+ published_dir=output/'published-assets';published_dir.mkdir(exist_ok=True)
+ subprocess.run(['gh','release','download',tag,'--repo',repo,'--pattern',site.name,'--dir',str(published_dir),'--clobber'],check=True)
+ published=published_dir/site.name
+ with published.open('rb') as stream: actual=hashlib.file_digest(stream,'sha256').hexdigest()
+ if checks.get(site.name)!=actual:raise SystemExit('Published ZIP checksum mismatch; preserving immutable release')
+ with zipfile.ZipFile(site) as candidate,zipfile.ZipFile(published) as released:
+  names=candidate.namelist()
+  if len(set(released.namelist()))!=len(released.namelist()) or set(names)!=set(released.namelist()):raise SystemExit('Published inventory differs from validated CI package')
+  for name in names:
+   if candidate.read(name)!=released.read(name):raise SystemExit('Published payload differs from validated CI package: '+name)
+ print('Reusing immutable release with verified identical payload:',tag)
  raise SystemExit(0)
 # Preserve the broader CI receipts for the same source revision when available.
 validation_runs=api('actions/workflows/check.yml/runs?head_sha='+revision+'&status=success&per_page=10')['workflow_runs'];assets=[site]

@@ -29,6 +29,6 @@ publication_policy.py est le controle commun au preflight, a la release, au FTP 
 
 ## Relancer une release existante
 
-Le champ optionnel source_sha du workflow 06 permet de reprendre un commit main deja valide. La version doit toujours correspondre au paquet. Une release publique existante est reutilisee seulement si le ZIP reconstruit depuis son artefact CI a exactement la meme empreinte que le ZIP publie ; ses fichiers ne sont jamais remplaces. Le workflow 07 lit le commit reel dans l'artefact studio-static-source, au lieu de supposer que le code de deploiement et le paquet applicatif ont la meme revision.
+Le champ optionnel source_sha du workflow 06 permet de reprendre un commit main deja valide. La version doit toujours correspondre au paquet. Une release publique existante est reutilisee seulement si le ZIP publie correspond a son empreinte SHA256SUMS et si chaque fichier est identique a l'artefact CI valide ; ses fichiers ne sont jamais remplaces. Le workflow 07 lit le commit reel dans l'artefact studio-static-source, au lieu de supposer que le code de deploiement et le paquet applicatif ont la meme revision.
 
 L'inventaire FTP doit correspondre exactement a release.json (avec au plus 250 fichiers et 128 Mio), sans PHP executable. L'ancienne limite fixe de 100 fichiers ne correspondait plus aux notices et ressources du Studio.
