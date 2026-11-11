@@ -17,6 +17,7 @@ from native_qa_artifact import hashfile, locked_inputs, LEGACY_SHA
 
 ROOT = Path(__file__).resolve().parents[1]
 CONFIG = ROOT / 'config/independent-native-qa.json'
+TRUSTED_NATIVE_BRANCHES = {'main', 'develop/2026-11-beta1-foundation'}
 
 
 def ensure_candidate(candidate, lock, root=ROOT):
@@ -70,7 +71,7 @@ def retrieve(run_id, target, directory=ROOT / 'build-work/native-qa-download'):
     meta = json.loads(result.stdout)
     if meta['conclusion'] != 'success' or meta['status'] != 'completed' or 'independent PHP MariaDB native reconstruction' not in meta['workflowName']:
         raise ValueError('Not a successful ALWIS independent-native CI run')
-    if meta['headSha'] != target['sourceRevision'] or meta['headBranch'] != 'develop/2026-11-beta1-foundation':
+    if meta['headSha'] != target['sourceRevision'] or meta['headBranch'] not in TRUSTED_NATIVE_BRANCHES:
         raise ValueError('Candidate run source revision or branch mismatch')
     if directory.exists() and any(directory.iterdir()):
         raise ValueError('QA download directory is not empty; refusing stale artifact')
@@ -92,7 +93,6 @@ def find_verified_compatible_candidate(root=ROOT):
     command = [
         'gh', 'run', 'list', '--repo', 'Bastian-Noel/ALWIS',
         '--workflow', 'native-rebuild-ci.yml',
-        '--branch', 'develop/2026-11-beta1-foundation',
         '--limit', '25',
         '--json', 'databaseId,status,conclusion,headSha',
     ]
@@ -192,7 +192,7 @@ def retrieve_run_metadata(run_id, target):
     if 'independent PHP MariaDB native reconstruction' not in record.get('workflowName',''):
         return False
     return (record.get('headSha') == target.get('sourceRevision') and
-            record.get('headBranch') == 'develop/2026-11-beta1-foundation')
+            record.get('headBranch') in TRUSTED_NATIVE_BRANCHES)
 
 
 def install_verified_candidate(candidate, proof, target_dir, run_id):

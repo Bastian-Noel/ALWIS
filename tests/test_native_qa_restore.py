@@ -56,6 +56,14 @@ class QARestoreTests(unittest.TestCase):
         self.lock = {key: self.manifest[key] for key in
             ("sourceRevision", "wasmSha256","glueSha256","sourcesSha256")}
 
+    def test_main_workflow_metadata_allowed_but_foreign_branch_refused(self):
+        for branch, expected in [('main', True), ('untrusted-upload', False)]:
+            metadata = {'status': 'completed', 'conclusion': 'success',
+                        'workflowName': 'CI - independent PHP MariaDB native reconstruction',
+                        'headSha': self.lock['sourceRevision'], 'headBranch': branch}
+            with patch.object(restore.subprocess, 'check_output', return_value=json.dumps(metadata)):
+                self.assertEqual(restore.retrieve_run_metadata(123, self.lock), expected)
+
     def test_only_source_pinned_new_wasm_is_accepted(self):
         self.assertEqual(
             restore.ensure_candidate(self.bundle, self.lock)["wasmSha256"],

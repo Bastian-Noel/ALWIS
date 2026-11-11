@@ -1,7 +1,7 @@
 name: CI - independent PHP MariaDB native reconstruction
 on:
   push:
-    branches: ['develop/2026-11-beta1-foundation']
+    branches: [main, 'develop/2026-11-beta1-foundation']
     paths:
       - '.github/workflows/native-rebuild-ci.yml'
       - 'scripts/prepare-independent-native-inputs.py'
@@ -235,7 +235,7 @@ jobs:
   revalidate-studio:
     name: Rerun Studio CI after native QA succeeds
     needs: candidate-native
-    if: ${{ github.ref == 'refs/heads/develop/2026-11-beta1-foundation' && needs.candidate-native.result == 'success' }}
+    if: ${{ (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop/2026-11-beta1-foundation') && needs.candidate-native.result == 'success' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
