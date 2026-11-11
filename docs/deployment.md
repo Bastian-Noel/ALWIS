@@ -124,7 +124,7 @@ Apache peut appliquer le bloc `.htaccess` fourni. Nginx doit recevoir sa propre 
 | 06 | FTP | Publication manuelle d’un paquet déjà validé |
 | 07 | Conteneur | Publication de l’image issue de ce paquet statique |
 
-Les définitions sont dans [.github/workflows](../.github/workflows). Les dépendances navigateur utilisent une action et un cache partagés ; npm, les bundles et les archives natives ont des identités de cache distinctes. Un cache accélère, mais ne prouve pas qu’un test a réussi.
+Les définitions sont dans [.github/workflows](../.github/workflows). La [référence des Actions et caches](../.github/ACTIONS.md) conserve les détails opérationnels. Les dépendances navigateur utilisent une action et un cache partagés ; npm, les bundles et les archives natives ont des identités de cache distinctes. Un cache accélère, mais ne prouve pas qu’un test a réussi.
 
 ## Publier avec 06 — FTP
 
