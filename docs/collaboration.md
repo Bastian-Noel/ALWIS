@@ -20,9 +20,9 @@ L’aperçu HTTP invité peut exécuter les scripts de la page dans le navigateu
 
 ## Conditions de fonctionnement
 
-Le serveur doit fournir la signalisation et les transports autorisés, avec HTTPS/WSS et le passage correct de l’en-tête `Upgrade` par le proxy. L’aperçu interactif invité demande **une origine HTTPS dédiée**, configurée dans `ALWIS_PREVIEW_ORIGIN`, distincte de celle du studio. Le DNS et le certificat de ce domaine doivent fonctionner chez l’invité.
+Le serveur doit fournir la signalisation en HTTPS/WSS et le passage de l’en-tête `Upgrade` par le proxy. ALWIS favorise le P2P et utilise le serveur en repli. Le badge **P2P** ou **Relais serveur** est visible par participant dans la fenêtre de partage ; les limites partagées du relais y sont indiquées lorsqu’il est utilisé.
 
-Sans cette origine, l’aperçu HTTP interactif est désactivé. Un mode de repli peut envoyer des instantanés DOM sans scripts à l’invité concerné ; il ne faut pas confondre cette image de la page avec un navigateur invité pleinement interactif. La publication du ZIP FTP ne configure pas à elle seule ce service distant.
+Deux variables règlent l’aperçu invité : `ALWIS_PREVIEW_MODE=static|interactive` et `ALWIS_PREVIEW_URL`. Le mode statique est le défaut. Le mode interactif peut utiliser une origine HTTPS distincte, y compris un sous-domaine ; si aucune origine séparée n’est configurée, l’invité doit confirmer sa confiance au projet. Cette confirmation autorise ses scripts à accéder au studio invité et à son stockage local. Un refus ou un échec garde le miroir sans scripts. La publication du ZIP FTP ne configure pas à elle seule ce service distant.
 
 [Configurer l’origine et le serveur](server-deployment.md) · [Trajet HTTP détaillé](http-runtime.md)
 

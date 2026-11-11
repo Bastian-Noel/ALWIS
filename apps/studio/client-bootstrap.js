@@ -3,6 +3,21 @@
   const context = window.__PBL_CONTEXT;
   if (!context) return;
   delete window.__PBL_CONTEXT;
+  if (context.prefix?.startsWith('/__alwis-guest/')) {
+    let lastPointer = 0, scrollTimer;
+    const post = (kind, extra = {}) => parent.postMessage({ type: 'alwis-preview-presence',
+      channel: context.project, kind, sx: scrollX, sy: scrollY, ...extra }, '*');
+    document.addEventListener('pointermove', e => {
+      if (performance.now() - lastPointer < 40) return;
+      lastPointer = performance.now(); post('pointer', { x: e.clientX + scrollX, y: e.clientY + scrollY });
+    }, { passive: true });
+    document.addEventListener('scroll', () => { clearTimeout(scrollTimer); scrollTimer = setTimeout(() => post('scroll'), 60); }, { capture: true, passive: true });
+    window.addEventListener('message', event => {
+      if (event.source !== parent || event.data?.type !== 'alwis-preview-scroll'
+          || event.data.channel !== context.project || !Number.isFinite(event.data.x) || !Number.isFinite(event.data.y)) return;
+      scrollTo(event.data.x, event.data.y);
+    });
+  }
   const physicalLocal = window.localStorage, physicalSession = window.sessionStorage;
   const storage = native => {
     const prefix = `pbl-client:${context.project}:${context.session}:`;

@@ -13,7 +13,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const root = resolve(fileURLToPath(new URL("../../", import.meta.url)));
 const playwright = await import(pathToFileURL(
-  join(root, "build-work/php/node_modules/playwright/index.mjs")).href);
+  process.env.ALWIS_PLAYWRIGHT_MODULE || join(root, "build-work/php/node_modules/playwright/index.mjs")).href);
 const siteRoot = await mkdtemp(join(tmpdir(), "alwis-real-server-guest-"));
 const site = join(siteRoot, "site");
 const data = join(siteRoot, "data");
@@ -63,7 +63,7 @@ const server = spawn(process.execPath, ["--disable-warning=ExperimentalWarning",
   env: { ...process.env, HOST: "127.0.0.1", PORT: String(port),
     ALWIS_ADMIN_PASSWORD: "temporary-browser-test-password-not-for-production",
     ALWIS_SITE_DIR: site, ALWIS_DATA_DIR: data,
-    PUBLIC_BASE_URL: studioOrigin, ALWIS_PREVIEW_ORIGIN: previewOrigin, TRUST_PROXY: "false" },
+    PUBLIC_BASE_URL: studioOrigin, ALWIS_PREVIEW_ORIGIN: previewOrigin, ALWIS_GUEST_PREVIEW_STATIC: "false", TRUST_PROXY: "false" },
   stdio: ["ignore", "pipe", "pipe"],
 });
 server.stdout.on("data", part => logs += part.toString());

@@ -14,7 +14,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const root = resolve(fileURLToPath(new URL("../../", import.meta.url)));
 const playwright = await import(pathToFileURL(
-  join(root, "build-work/php/node_modules/playwright/index.mjs")).href);
+  process.env.ALWIS_PLAYWRIGHT_MODULE || join(root, "build-work/php/node_modules/playwright/index.mjs")).href);
 const tmp = await mkdtemp(join(tmpdir(), "alwis-real-peers-"));
 const site = join(tmp, "site");
 const data = join(tmp, "data");
@@ -22,8 +22,10 @@ await mkdir(site);
 await mkdir(data);
 await copyFile(join(root, "apps/studio/collab/transport.mjs"), join(site, "transport.mjs"));
 await copyFile(join(root, "apps/studio/collab/session.mjs"), join(site, "session.mjs"));
+for (const name of ["presence-ui.mjs", "colors.mjs", "collab.css"])
+  await copyFile(join(root, "apps/studio/collab", name), join(site, name));
 await writeFile(join(site, "index.html"),
-  "<!doctype html><meta charset='utf-8'><title>ALWIS real browser peers</title>");
+  "<!doctype html><meta charset='utf-8'><title>ALWIS real browser peers</title><link rel='stylesheet' href='/collab.css'><main id='main'><div id='sharing'></div></main>");
 const probe = createServer();
 await new Promise(ok => probe.listen(0, "127.0.0.1", ok));
 const port = probe.address().port;
@@ -51,6 +53,10 @@ async function startClient(page, role, room, rtc) {
     if (!config.enabled) throw Error("Real server collaboration not enabled");
     config.iceServers = []; // loopback only, no public STUN/TURN dependency
     const s = new CollabSession(config, { RTC: rtc ? RTCPeerConnection : null });
+    const { PresenceUI } = await import("/presence-ui.mjs");
+    const ui = new PresenceUI({ slot: document.querySelector("#sharing"), config,
+      onLeave: () => s.leave(), getFollowing: () => null, onFollow() {}, onFollowToggle() {} });
+    ui.attach(s); ui.toggle(true);
     window.realPeers = { session: s, messages: [], statuses: [], modes: [], errors: [] };
     s.on("status", (state, reason) => realPeers.statuses.push({ state, reason }));
     s.on("message", message => realPeers.messages.push(message));
@@ -113,6 +119,11 @@ async function exchange(browser, rtc, name) {
     assert.equal(await guest.evaluate(tag => realPeers.messages.filter(m => m.msg?.tag === tag).length, tag2), 1);
 
     const initialMode = await guest.evaluate(() => realPeers.session.links.get("h")?.mode);
+    if (rtc) assert.equal(initialMode, "p2p", "loopback browsers must establish P2P");
+    const transport = rtc ? "p2p" : "relay";
+    await Promise.all([host, guest].map(page => page.locator(`[data-transport="${transport}"]`).waitFor({ state: "visible" })));
+    assert.equal(await guest.locator(`[data-transport="${transport}"]`).textContent(), rtc ? "P2P" : "Relais serveur");
+    if (!rtc) assert.match(await guest.locator(".cb-relay-limits").textContent(), /Budget partagé.*Kio\/s.*par session/);
     if (!rtc) {
       assert.equal(initialMode, "relay", "RTC-disabled path must use the real WebSocket relay");
       await guest.evaluate(() => realPeers.session.sig.ws.close(4000, "simulate drop"));

@@ -54,8 +54,6 @@ export async function initCollab() {
     },
     onKick: (id) => collab.session?.kick(id),
     onLock: (v) => collab.session?.setLocked(v),
-    onPreviewPermission: (v) => collab.emit("http-preview-toggle", !!v),
-    getPreviewPermission: () => collab.previewEnabled,
   });
   const url = new URL(location.href);
   const invite = url.searchParams.get("collab");

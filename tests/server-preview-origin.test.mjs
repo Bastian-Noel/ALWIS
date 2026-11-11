@@ -87,3 +87,56 @@ test("untrusted preview hostname serves only broker assets; studio and admin sta
     await rm(base,{recursive:true,force:true});
   }
 });
+
+
+for (const scenario of [
+  { name: "canonical-interactive", value: "true", origin: "sibling", enabled: true, trust: false, mode: "interactive", canonical: true },
+  { name: "canonical-static", value: "false", origin: "none", enabled: false, trust: false, mode: "static", canonical: true },
+  { name: "default-static", value: undefined, origin: "none", enabled: false, trust: false },
+  { name: "static-even-with-subdomain", value: "true", origin: "sibling", enabled: false, trust: false },
+  { name: "interactive-subdomain", value: "false", origin: "sibling", enabled: true, trust: false },
+  { name: "interactive-without-preview-host", value: "false", origin: "none", enabled: true, trust: true },
+  { name: "interactive-explicit-same-origin", value: "false", origin: "same", enabled: true, trust: true },
+]) test("deployment policy: " + scenario.name, { timeout: 15000 }, async () => {
+  const base = await mkdtemp(join(tmpdir(), "alwis-preview-policy-"));
+  const site = join(base, "site"), data = join(base, "data");
+  await mkdir(site); await mkdir(data);
+  await writeFile(join(site, "index.html"), "studio");
+  await writeFile(join(site, "guest-broker.html"), "broker");
+  const port = await randomPort(), host = "studio.localhost:" + port;
+  const env = { ...process.env, PORT: String(port), HOST: "127.0.0.1", TRUST_PROXY: "false",
+    ALWIS_SITE_DIR: site, ALWIS_DATA_DIR: data, PUBLIC_BASE_URL: "http://" + host,
+    ALWIS_ADMIN_PASSWORD: "test-only-policy-secret-at-least-20", ALWIS_PREVIEW_ORIGIN:
+      scenario.origin === "sibling" ? "http://preview.localhost:" + port : scenario.origin === "same" ? "http://" + host : "" };
+  for (const key of ["ALWIS_BASE_URL", "ALWIS_PREVIEW_MODE", "ALWIS_PREVIEW_URL", "ALWIS_TRUST_PROXY", "ALWIS_GUEST_PREVIEW_STATIC"]) delete env[key];
+  if (scenario.canonical) {
+    env.ALWIS_BASE_URL = env.PUBLIC_BASE_URL;
+    env.PUBLIC_BASE_URL = "http://legacy.localhost:3000";
+    env.ALWIS_TRUST_PROXY = "false";
+    env.ALWIS_PREVIEW_URL = env.ALWIS_PREVIEW_ORIGIN ? env.ALWIS_PREVIEW_ORIGIN + "/" : "";
+    env.ALWIS_PREVIEW_ORIGIN = "http://obsolete.invalid/path";
+    env.ALWIS_PREVIEW_MODE = scenario.mode;
+  }
+  if (scenario.value !== undefined) env.ALWIS_GUEST_PREVIEW_STATIC = scenario.value;
+  const child = spawn(process.execPath, ["server/server.mjs"], { cwd: root, env, stdio: "ignore" });
+  try {
+    let ready = false;
+    for (let i = 0; i < 60; i++) {
+      try { if ((await call(port, host, "/readyz")).status === 200) { ready = true; break; } } catch {}
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    assert.ok(ready);
+    assert.equal((await call(port, host, "/")).body, "studio", "same-origin preview must not hide the studio");
+    const config = JSON.parse((await call(port, host, "/api/collab/config")).body);
+    assert.equal(config.guestPreviewEnabled, scenario.enabled);
+    assert.equal(config.guestPreviewStatic, !scenario.enabled);
+    assert.equal(config.previewRequiresTrust, scenario.trust);
+    const broker = await call(port, host, "/__alwis-guest/" + "a".repeat(32) + "/__broker.html");
+    assert.equal(broker.status, scenario.trust ? 200 : 404);
+    if (scenario.trust) assert.match(broker.headers["content-security-policy"], /frame-ancestors http:/);
+  } finally {
+    child.kill();
+    if (child.exitCode === null) await new Promise(resolve => child.once("exit", resolve));
+    await rm(base, { recursive: true, force: true });
+  }
+});

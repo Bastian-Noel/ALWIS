@@ -114,3 +114,25 @@ test("host kick terminates guest signaling instead of automatically rejoining", 
     await s.stop();
   }
 });
+
+
+test("acknowledged relay retries throttled messages without dropping them", { skip: !hasWS }, async () => {
+  const server = await boot({ relayBytesPerSec: 1024, relayBurstBytes: 4096 });
+  const config = { path: "/collab", iceServers: [], relayAcknowledgements: true };
+  const host = new CollabSession(config, { RTC: null }), guest = new CollabSession(config, { RTC: null });
+  try {
+    globalThis.sessionStorage = mem(); host.host("Host");
+    await until(() => host.status === "live");
+    globalThis.sessionStorage = mem(); guest.join(host.room, "Guest");
+    await until(() => guest.status === "live" && host.links.size === 1);
+    const messages = []; let throttles = 0;
+    host.on("message", ({ msg }) => messages.push(msg));
+    guest.on("throttle", ({ ms }) => { if (ms) throttles++; });
+    guest.send("h", { id: "one", text: "x".repeat(3000) });
+    guest.send("h", { id: "two", text: "x".repeat(3000) });
+    await until(() => messages.length === 2, 7000);
+    assert.deepEqual(messages.map(message => message.id), ["one", "two"]);
+    assert.ok(throttles > 0, "test must exercise actual server throttling");
+    assert.equal(guest.links.get("h").outbox.length, 0);
+  } finally { guest.leave(); host.leave(); await server.stop(); }
+});

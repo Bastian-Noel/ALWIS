@@ -35,7 +35,7 @@ test("server edition protects settings, persists SQLite config and serves the st
   await writeFile(resolve(site, "index.html"), "<!doctype html><h1>ALWIS test</h1>");
   const port = await unusedPort();
   const address = `http://127.0.0.1:${port}`;
-  const adminPassword = "a-long-random-test-admin-secret-0123456789";
+  const adminPassword = "abc";
   const auth = "Basic " + Buffer.from(`admin:${adminPassword}`).toString("base64");
   const env = {
     ...process.env,

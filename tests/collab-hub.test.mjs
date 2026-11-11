@@ -217,3 +217,19 @@ test("disabled hub and bad names are refused", { skip: !hasWS }, async () => {
     c.close();
   } finally { await s.stop(); }
 });
+
+
+test("relay acknowledgements suppress duplicate retries with the same reference", { skip: !hasWS }, async () => {
+  const server = await boot();
+  let owner, participant;
+  try {
+    owner = await host(server.url); participant = await guest(server.url, owner.hosted.room, "Guest");
+    const frame = { t: "relay", to: "h", d: { id: "once" }, ref: "test:once" };
+    participant.c.send(frame);
+    await owner.c.next(message => message.t === "relay");
+    await participant.c.next(message => message.t === "relay-ack");
+    participant.c.send(frame);
+    await participant.c.next(message => message.t === "relay-ack");
+    assert.equal(owner.c.inbox.filter(message => message.t === "relay").length, 0, "no second delivery before second ack");
+  } finally { participant?.c.close(); owner?.c.close(); await server.stop(); }
+});

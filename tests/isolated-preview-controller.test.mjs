@@ -10,8 +10,8 @@ const config = Object.freeze({
 
 test("isolated preview origin must differ from studio and use HTTPS", () => {
   assert.equal(validatePreviewOrigin("https://guest.example", config.studioOrigin), config.previewOrigin);
-  assert.throws(() => validatePreviewOrigin("https://preview.example.fr", "https://studio.example.fr"),
-    /site dédié|domaine de cookies/);
+  assert.equal(validatePreviewOrigin("https://preview.alwis.mmi.place", "https://alwis.mmi.place"),
+    "https://preview.alwis.mmi.place");
   assert.equal(validatePreviewOrigin("https://preview-other-domain.net", "https://studio.example.fr"),
     "https://preview-other-domain.net");
   for (const value of ["https://studio.example", "http://guest.example", "https://guest.example/path",
@@ -53,4 +53,28 @@ test("broker authentication requires exact WindowProxy, channel and origin", asy
   assert.equal(new TextDecoder().decode(sent[0].response.body), config.studioOrigin + "/data.php");
   bridge.stop();
   assert.equal(listeners.has("message"),false);
+});
+
+
+test("same-origin compatibility requires deployment opt-in AND explicit guest trust before loading a broker", async () => {
+  const origin = config.studioOrigin;
+  assert.throws(() => new IsolatedGuestPreviewController({ origin, studioOrigin: origin, channel: config.channel }));
+  let created = 0, confirmations = 0;
+  const window = { addEventListener() {}, removeEventListener() {} };
+  const document = { createElement() { created++; return { setAttribute() {}, remove() {}, contentWindow: {} }; }, body: { append() {} } };
+  const refused = new IsolatedGuestPreviewController({ origin, studioOrigin: origin, channel: config.channel,
+    allowSameOrigin: true, confirmTrust: () => { confirmations++; return false; }, window, document });
+  await assert.rejects(refused.start(), /refusé/);
+  await assert.rejects(refused.start(), /refusé/);
+  assert.equal(created, 0, "no iframe or worker may be loaded before consent");
+  assert.equal(confirmations, 1, "refusal must not cause repeated prompts in the same room");
+  const accepted = new IsolatedGuestPreviewController({ origin, studioOrigin: origin, channel: config.channel,
+    allowSameOrigin: true, confirmTrust: () => true, window, document });
+  const ready = accepted.start();
+  assert.equal(created, 1);
+  assert.match(accepted.broker.src, new RegExp("/__alwis-guest/" + config.channel + "/__broker.html"));
+  assert.match(accepted.broker.src, /trustedSameOrigin=1/);
+  accepted.receive({ origin, source: accepted.broker.contentWindow, data: { type: "alwis-preview-ready", channel: config.channel } });
+  await ready;
+  accepted.stop();
 });

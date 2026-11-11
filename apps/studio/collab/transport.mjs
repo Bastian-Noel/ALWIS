@@ -114,7 +114,7 @@ export class Signaling extends Emitter {
 
 /** A logical link between this browser and one remote peer. */
 export class PeerLink extends Emitter {
-  constructor({ signaling, remoteId, initiator, gen = null, iceServers = [], p2pTimeoutMs = 3500, RTC = globalThis.RTCPeerConnection }) {
+  constructor({ signaling, remoteId, initiator, gen = null, iceServers = [], p2pTimeoutMs = 3500, p2pDeadlineMs = 15000, relayAcknowledgements = false, RTC = globalThis.RTCPeerConnection }) {
     super();
     this.sig = signaling;
     this.remote = remoteId;
@@ -127,9 +127,16 @@ export class PeerLink extends Emitter {
     this.pc = null;
     this.throttledUntil = 0;
     this.outbox = [];
+    this.relayAcknowledgements = relayAcknowledgements;
+    this.relayPending = null;
+    this.relayPrefix = Math.random().toString(36).slice(2);
+    this.relaySequence = 0;
     this.closed = false;
     this.stats = { p2pBytes: 0, relayBytes: 0 };
     this.p2pTimeoutMs = p2pTimeoutMs;
+    this.p2pDeadlineMs = Math.max(p2pTimeoutMs, p2pDeadlineMs);
+    this.pendingIce = [];
+    this.signalChain = Promise.resolve();
     this.negotiating = !!RTC; // hold messages while WebRTC negotiates; relay only on failure
     this.#startP2P();
   }
@@ -140,12 +147,14 @@ export class PeerLink extends Emitter {
       const pc = (this.pc = new this.RTC({ iceServers: this.iceServers }));
       pc.onicecandidate = (e) => e.candidate && this.#sig({ ice: e.candidate });
       pc.onconnectionstatechange = () => {
+        if (this.closed || this.pc !== pc) return;
         if (["failed", "closed"].includes(pc.connectionState)) this.#toRelay();
-        else if (pc.connectionState === "disconnected") setTimeout(() => pc.connectionState === "disconnected" && this.#toRelay(), 3000);
+        else if (pc.connectionState === "disconnected") setTimeout(() => this.pc === pc && pc.connectionState === "disconnected" && this.#toRelay(), 3000);
       };
       if (this.initiator) this.#bindChannel(pc.createDataChannel("alwis", { ordered: true }));
       else pc.ondatachannel = (e) => this.#bindChannel(e.channel);
-      this.p2pTimer = setTimeout(() => this.mode !== "p2p" && this.#toRelay(), this.p2pTimeoutMs);
+      this.p2pTimer = setTimeout(() => this.mode !== "p2p" && this.#toRelay(true), this.p2pTimeoutMs);
+      this.p2pDeadlineTimer = setTimeout(() => this.mode !== "p2p" && this.#toRelay(), this.p2pDeadlineMs);
       if (this.initiator) this.#offer();
     } catch { this.#toRelay(); }
   }
@@ -158,43 +167,58 @@ export class PeerLink extends Emitter {
     } catch { this.#toRelay(); }
   }
   /** Feed a `sig` message coming from the remote peer. */
-  async onSignal(d) {
+  onSignal(d) {
+    this.signalChain = this.signalChain.then(() => this.#applySignal(d));
+    return this.signalChain;
+  }
+  async #applySignal(d) {
     if (!this.pc || this.closed) return;
     try {
       if (d.sdp) {
-        await this.pc.setRemoteDescription(d.sdp);
+        const pc = this.pc;
+        await pc.setRemoteDescription(d.sdp);
+        if (this.closed || this.pc !== pc) return;
+        for (const ice of this.pendingIce.splice(0)) await pc.addIceCandidate(ice);
         if (d.sdp.type === "offer") {
           const a = await this.pc.createAnswer();
           await this.pc.setLocalDescription(a);
           this.#sig({ sdp: this.pc.localDescription });
         }
-      } else if (d.ice) await this.pc.addIceCandidate(d.ice);
+      } else if (d.ice) {
+        if (this.pc.remoteDescription?.type) await this.pc.addIceCandidate(d.ice);
+        else if (this.pendingIce.length < 256) this.pendingIce.push(d.ice);
+      }
     } catch { this.#toRelay(); }
   }
   #bindChannel(dc) {
     this.dc = dc;
     dc.onopen = () => {
+      if (this.closed || this.dc !== dc) return;
       clearTimeout(this.p2pTimer);
+      clearTimeout(this.p2pDeadlineTimer);
       this.negotiating = false;
       this.mode = "p2p";
       this.emit("mode", "p2p");
       this.#drain();
     };
-    dc.onclose = () => this.#toRelay();
+    dc.onclose = () => { if (this.dc === dc) this.#toRelay(); };
     dc.onmessage = (e) => {
       this.stats.p2pBytes += e.data.length;
       try { this.emit("message", JSON.parse(e.data)); } catch {}
     };
   }
-  #toRelay() {
+  #toRelay(keepPeer = false) {
     if (this.closed) return;
     clearTimeout(this.p2pTimer);
     this.negotiating = false;
     if (this.mode !== "relay") { this.mode = "relay"; this.emit("mode", "relay"); }
     else if (!this.announcedRelay) { this.announcedRelay = true; this.emit("mode", "relay"); }
-    try { this.pc?.close(); } catch {}
-    this.pc = null;
-    this.dc = null;
+    if (!keepPeer) {
+      clearTimeout(this.p2pDeadlineTimer);
+      const pc = this.pc;
+      this.pc = null; this.dc = null; this.pendingIce = [];
+      try { pc?.close(); } catch {}
+    }
     this.#drain();
   }
   /** Relay frames come through here (called by the session). */
@@ -202,9 +226,24 @@ export class PeerLink extends Emitter {
     this.stats.relayBytes += JSON.stringify(d).length;
     this.emit("message", d);
   }
-  onThrottle(retryMs) {
-    this.throttledUntil = Date.now() + retryMs;
-    setTimeout(() => this.#drain(), retryMs + 5);
+  onRelayAck(ref) {
+    if (this.relayPending?.ref === ref) {
+      this.relayPending = null; clearTimeout(this.relayAckTimer);
+    }
+    this.outbox = this.outbox.filter(entry => entry.ref !== ref);
+    this.#drain();
+  }
+  #retryRelay() {
+    clearTimeout(this.relayAckTimer);
+    if (!this.relayPending) return;
+    const entry = this.relayPending; this.relayPending = null;
+    this.outbox.unshift(entry);
+  }
+  onThrottle(retryMs, ref = null) {
+    this.throttledUntil = Date.now() + Math.max(0, Math.min(60000, Number(retryMs) || 0));
+    if (ref == null || this.relayPending?.ref === ref) this.#retryRelay();
+    clearTimeout(this.throttleTimer);
+    this.throttleTimer = setTimeout(() => { this.#drain(); this.emit("throttle", 0); }, this.throttledUntil - Date.now() + 5);
     this.emit("throttle", retryMs);
   }
   /**
@@ -215,7 +254,7 @@ export class PeerLink extends Emitter {
    */
   send(obj, { droppable = false, key = null, group = null } = {}) {
     if (this.closed) return false;
-    if (this.mode === "p2p" && this.dc?.readyState === "open") {
+    if (this.mode === "p2p" && this.dc?.readyState === "open" && !this.relayPending && !this.outbox.some(entry => entry.ref)) {
       if (this.dc.bufferedAmount > (group ? 400_000 : 1_000_000) && (droppable || group || key)) return false;
       const text = JSON.stringify(obj);
       this.stats.p2pBytes += text.length;
@@ -235,25 +274,37 @@ export class PeerLink extends Emitter {
     return true;
   }
   #drain() {
-    if (this.closed) return;
-    if (this.mode === "p2p" && this.dc?.readyState === "open") {
+    if (this.closed || this.relayPending) return;
+    if (this.mode === "p2p" && this.dc?.readyState === "open" && !this.relayPending && !this.outbox.some(entry => entry.ref)) {
       for (const e of this.outbox.splice(0)) this.send(e.o, { key: e.key, group: e.group });
       return;
     }
     if (this.negotiating) return; // P2P negotiating: hold briefly (bounded by p2pTimeoutMs)
     if (Date.now() < this.throttledUntil) return;
     while (this.outbox.length) {
-      let i = this.outbox.findIndex((e) => !e.group); // interactive traffic first, bulk after
+      // A retry with an uncertain acknowledgement must stay on the relay;
+      // the server deduplicates its ref before new P2P traffic can overtake it.
+      let i = this.outbox.findIndex(entry => entry.ref);
+      if (i < 0) i = this.outbox.findIndex(entry => !entry.group);
       if (i < 0) i = 0;
-      if (!this.sig.send({ t: "relay", to: this.remote, d: this.outbox[i].o })) return; // offline: keep for after resume
+      const entry = this.outbox[i];
+      if (this.relayAcknowledgements) entry.ref ??= this.relayPrefix + ":" + (++this.relaySequence);
+      if (!this.sig.send({ t: "relay", to: this.remote, d: entry.o, ...(entry.ref ? { ref: entry.ref } : {}) })) return;
       this.outbox.splice(i, 1);
-      this.stats.relayBytes += 100;
+      this.stats.relayBytes += new TextEncoder().encode(JSON.stringify(entry.o)).byteLength;
+      if (this.relayAcknowledgements) {
+        this.relayPending = entry;
+        this.relayAckTimer = setTimeout(() => { this.#retryRelay(); this.#drain(); }, 5000);
+        return;
+      }
     }
   }
   flushAfterResume() { this.#drain(); }
   close() {
     this.closed = true;
+    clearTimeout(this.throttleTimer); clearTimeout(this.relayAckTimer); this.relayPending = null;
     clearTimeout(this.p2pTimer);
+    clearTimeout(this.p2pDeadlineTimer);
     try { this.dc?.close(); } catch {}
     try { this.pc?.close(); } catch {}
     this.outbox.length = 0;

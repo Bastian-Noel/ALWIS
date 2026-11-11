@@ -10,11 +10,10 @@ test('real guest PHP/JS preview gets an opaque sandbox origin, with no parent na
   const isolated = { previewOrigin: "https://guest.example", studioOrigin: "https://studio.example" };
   assert.equal(guestPreviewSandbox(true, isolated), "allow-scripts allow-forms allow-same-origin");
   assert.equal(isSafeGuestSandbox(guestPreviewSandbox(true, isolated), isolated), true);
-  // Sibling subdomains share Domain=.example.fr cookies; never grant a
-  // scriptable same-origin sandbox to attacker-controlled preview pages there.
+  // Sibling subdomains are separate origins; identical hosts remain refused.
   const sibling = { previewOrigin: "https://preview.example.fr", studioOrigin: "https://studio.example.fr" };
-  assert.equal(guestPreviewSandbox(true, sibling), "allow-scripts allow-forms");
-  assert.equal(isSafeGuestSandbox("allow-scripts allow-same-origin", sibling), false);
+  assert.equal(guestPreviewSandbox(true, sibling), "allow-scripts allow-forms allow-same-origin");
+  assert.equal(isSafeGuestSandbox("allow-scripts allow-same-origin", sibling), true);
   assert.equal(isSafeGuestSandbox(guestPreviewSandbox(true, isolated), {
     previewOrigin: "https://studio.example", studioOrigin: "https://studio.example",
   }), false);
@@ -44,5 +43,13 @@ test("fallback is scoped to guests whose isolated-origin broker could not start"
   assert.match(wiring, /case "http-preview-status":/);
   assert.match(wiring, /send\(\{ t: "http-preview-status", usable: false \}\)/);
   assert.match(wiring, /previewDelivery\.drop\(id\)/);
-  assert.match(presence, /disabled: !hasIsolatedPreview/);
+  assert.doesNotMatch(presence, /onPreviewPermission|Autoriser le PHP interactif/);
+});
+
+
+test("same-origin trust deliberately enables script access but is never reported as isolation", () => {
+  const config = { previewOrigin: "https://studio.example", studioOrigin: "https://studio.example", trustedSameOrigin: true };
+  assert.equal(guestPreviewSandbox(true, config), "allow-scripts allow-forms allow-same-origin");
+  assert.equal(isSafeGuestSandbox(guestPreviewSandbox(true, config), config), false);
+  assert.equal(guestPreviewSandbox(true, { ...config, trustedSameOrigin: false }), "allow-scripts allow-forms");
 });

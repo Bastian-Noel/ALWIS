@@ -24,9 +24,11 @@ services:
       - no-new-privileges:true
     user: "10001:10001"
     environment:
-      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:?Définissez PUBLIC_BASE_URL dans .env}
-      TRUST_PROXY: ${TRUST_PROXY:-true}
-      ALWIS_PREVIEW_ORIGIN: ${ALWIS_PREVIEW_ORIGIN:-}
+      ALWIS_BASE_URL: ${ALWIS_BASE_URL:-${PUBLIC_BASE_URL:?Définissez ALWIS_BASE_URL dans .env}}
+      ALWIS_TRUST_PROXY: ${ALWIS_TRUST_PROXY:-${TRUST_PROXY:-true}}
+      ALWIS_PREVIEW_URL: ${ALWIS_PREVIEW_URL:-${ALWIS_PREVIEW_ORIGIN:-}}
+      ALWIS_PREVIEW_MODE: ${ALWIS_PREVIEW_MODE:-}
+      ALWIS_GUEST_PREVIEW_STATIC: ${ALWIS_GUEST_PREVIEW_STATIC:-true}
       ALWIS_ADMIN_PASSWORD: ${ALWIS_ADMIN_PASSWORD:?Définissez ALWIS_ADMIN_PASSWORD dans .env}
     ports:
       - "127.0.0.1:${ALWIS_PORT:-3100}:3000"
@@ -59,11 +61,11 @@ cp .env.example .env
 Il contient les deux valeurs à fournir :
 
 ```dotenv
-PUBLIC_BASE_URL=https://alwis.example.org
+ALWIS_BASE_URL=https://alwis.example.org
 ALWIS_ADMIN_PASSWORD=
 ```
 
-Générez le mot de passe avec `openssl rand -hex 32`, collez la sortie dans `.env`, puis protégez le fichier avec `chmod 600 .env`. Compose passe le mot de passe directement dans `ALWIS_ADMIN_PASSWORD`; aucun fichier de mot de passe ni secret Docker n’est utilisé. Ne versionnez jamais `.env`. Les personnes ayant accès à l’hôte Docker peuvent lire l’environnement du conteneur avec `docker inspect`.
+Choisissez le mot de passe administrateur ; `openssl rand -hex 32` permet aussi d’en générer un. Renseignez-le dans `.env`, puis protégez le fichier avec `chmod 600 .env`. Compose passe le mot de passe directement dans `ALWIS_ADMIN_PASSWORD`; aucun fichier de mot de passe ni secret Docker n’est utilisé. Ne versionnez jamais `.env`. Les personnes ayant accès à l’hôte Docker peuvent lire l’environnement du conteneur avec `docker inspect`.
 
 Le bind mount conserve SQLite dans `./data` à côté de `compose.yaml`, monté sous `/data` dans le conteneur. Préparez ses permissions pour l’utilisateur non-root :
 
@@ -86,12 +88,14 @@ Ouvrez `https://alwis.example.org/admin/server` derrière HTTPS. Le reverse prox
 
 | Priorité | Variable | Type et valeur conseillée | Rôle |
 |---|---|---|---|
-| Obligatoire | `PUBLIC_BASE_URL` | URL HTTPS publique ; HTTP permis sur localhost | Adresse canonique de l’instance. Le Compose refuse de démarrer si elle n’est pas définie. |
-| Obligatoire | `ALWIS_ADMIN_PASSWORD` | Au moins 20 octets ; `openssl rand -hex 32` produit 32 octets aléatoires | Mot de passe HTTP Basic de `/admin/server`, transmis directement dans l’environnement du conteneur. |
+| Obligatoire | `ALWIS_BASE_URL` | URL HTTPS publique ; HTTP permis sur localhost | Adresse canonique de l’instance. Le Compose refuse de démarrer si elle n’est pas définie. |
+| Obligatoire | `ALWIS_ADMIN_PASSWORD` | Non vide, sans longueur minimale imposée | Mot de passe HTTP Basic de `/admin/server`, transmis directement dans l’environnement du conteneur. |
+| Facultatif | `ALWIS_PREVIEW_MODE` | `static` (défaut) ou `interactive` | Deux modes imposés par le déploiement, sans option dans la fenêtre de partage. |
+| Facultatif | `ALWIS_PREVIEW_URL` | Origine HTTPS, éventuellement un sous-domaine | En mode interactif, les pages invitées utilisent cette origine. Si elle est vide ou identique au studio, chaque invité doit confirmer sa confiance ; un refus conserve le miroir statique. |
 | Recommandée | `ALWIS_PORT` | Entier, `3100` par défaut | Port hôte auquel se connecte le reverse proxy. Le service n’écoute publiquement que sur la boucle locale; le port interne reste `3000`. |
 | Recommandée | `ALWIS_DATA_DIR` | Dossier hôte, `./data` par défaut | Répertoire bind-mounté vers `/data` dans le conteneur. Il conserve la base SQLite des réglages; l’UID conteneur `10001` doit pouvoir y écrire. |
 | Optionnelle | `ALWIS_SERVER_IMAGE` | `ghcr.io/bastian-noel/alwis-server:latest` par défaut | Permet de choisir un tag de version précis au lieu de `latest`. Les tags sont listés dans [GitHub Packages](https://github.com/Bastian-Noel/ALWIS/pkgs/container/alwis-server). |
-| Optionnelle | `TRUST_PROXY` | Booléen, `true` dans ce Compose derrière le proxy local | Lit `X-Forwarded-Proto` pour reconnaître HTTPS après terminaison TLS. Mettez `false` si aucun proxy de confiance n’est utilisé. |
+| Optionnelle | `ALWIS_TRUST_PROXY` | Booléen, `true` dans ce Compose derrière le proxy local | Lit `X-Forwarded-Proto` pour reconnaître HTTPS après terminaison TLS. Mettez `false` si aucun proxy de confiance n’est utilisé. |
 | Optionnelle | `ALLOWED_ORIGINS` | Origines HTTPS exactes, séparées par des virgules ; vide par défaut | À configurer seulement si l’interface et l’API sont servies depuis des origines différentes. L’origine de l’instance est déjà autorisée. |
 | Optionnelle | `ALWIS_ADMIN_USER` | `admin` par défaut | Nom utilisé avec le mot de passe pour l’authentification d’administration. |
 | Diagnostic | `ALWIS_LOG_LEVEL` | `info` par défaut ; `warn` ou `error` pour réduire le journal | Niveau initial des logs. Les changements enregistrés dans `/admin/server` sont ensuite conservés dans SQLite. Les commandes `docker compose logs` et `docker stats` servent au diagnostic. |

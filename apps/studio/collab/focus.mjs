@@ -15,8 +15,8 @@ export class FocusLayer {
    * getCtx(): { view, dmode, table, db, active, pv, pvPath, pan, zoom, cw, ch } from the workbench state.
    * onViewport({cx, cy, zoom}): apply a shared schema viewport. onPeerView(id, state): a peer navigated.
    */
-  constructor({ send, peer, getCtx, onClick, onPreview, previewInteractive = () => false, onViewport, onPeerView }) {
-    Object.assign(this, { send, peer, getCtx, onClick, onPreview, previewInteractive, onViewport, onPeerView });
+  constructor({ send, peer, getCtx, onClick, onPreview, previewInteractive = () => false, isFollowing = () => false, onViewport, onPeerView }) {
+    Object.assign(this, { send, peer, getCtx, onClick, onPreview, previewInteractive, isFollowing, onViewport, onPeerView });
     this.remote = new Map(); // peerId -> { view, table, file, cell, col, ghost, ncol, mouse, rubber, at }
     this.own = null; // last view state we announced
     this.marks = [];
@@ -59,6 +59,20 @@ export class FocusLayer {
       const t = e.target;
       if (t.matches?.("input[data-g]") && !this.#ghostValues(true)) this.local("ghost", { ...ctx(), values: null });
       if (t.matches?.("input.ce")) { const cell = cellOf(t); if (cell) this.local("cell", { ...ctx(), r: +cell.dataset.r, c: +cell.dataset.c, editing: false }); }
+    });
+    on(window, "message", event => {
+      const m = event.data;
+      if (m?.type !== "alwis-preview-presence") return;
+      const frames = qa("#pvFrames iframe"), frame = frames.find(f => f.contentWindow === event.source);
+      if (!frame) return;
+      const url = new URL(frame.src, location.href);
+      const channel = url.pathname.match(/^\/__alwis-guest\/([a-f0-9]{32})\//)?.[1];
+      if (!channel || m.channel !== channel || event.origin !== url.origin || !Number.isFinite(m.sx) || !Number.isFinite(m.sy)) return;
+      frame.__cbScroll = { x: m.sx, y: m.sy };
+      if (m.kind === "pointer" && Number.isFinite(m.x) && Number.isFinite(m.y))
+        this.mouse.set("mouse", { k: "mouse", s: "pv", space: "document", frame: frames.indexOf(frame), x: m.x, y: m.y, click: false });
+      if (m.kind === "scroll" && Date.now() >= (frame.__cbApplyingScrollUntil || 0)) this.local("preview-scroll", { frame: frames.indexOf(frame), x: m.sx, y: m.sy }, true);
+      this.schedule();
     });
     on(document, "pointermove", (e) => this.#pointer(e, false), { passive: true });
     on(document, "pointerdown", (e) => this.#pointer(e, true), { passive: true });
@@ -153,6 +167,7 @@ export class FocusLayer {
     const key = `${Math.round(cx)}|${Math.round(cy)}|${Math.round(z * 100)}`;
     if (key === this.lastViewport) return;
     this.lastViewport = key;
+    this.schedule(); // reproject remote world pointers when our own pan/zoom changes
     if (this.applyingViewport) return; // that change came from somebody else
     this.lastViewportAt = Date.now();
     this.local("viewport", { cx, cy, zoom: z }, true);
@@ -167,7 +182,14 @@ export class FocusLayer {
     for (const [id, el] of [["pv", q("#pvFrames")], ["sv", q("#sv")]]) {
       if (!el) continue;
       const r = el.getBoundingClientRect();
-      if (r.width > 0 && clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom) return { s: id, x: (clientX - r.left) / r.width, y: (clientY - r.top) / r.height };
+      if (r.width > 0 && clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom) {
+        if (id === "sv") {
+          const c = this.getCtx(), z = c.zoom || 1;
+          return { s: id, space: "world", x: (clientX - r.left - (c.pan?.[0] || 0)) / z,
+            y: (clientY - r.top - (c.pan?.[1] || 0)) / z };
+        }
+        return { s: id, x: (clientX - r.left) / r.width, y: (clientY - r.top) / r.height };
+      }
     }
     return null;
   }
@@ -183,6 +205,11 @@ export class FocusLayer {
     for (const frame of qa("#pvFrames iframe")) {
       if (frame.__cbFocusBound) continue;
       frame.__cbFocusBound = true;
+      const listen = (target, type, handler, options) => {
+        target.addEventListener(type, handler, options);
+        this.listeners.push(() => target.removeEventListener(type, handler, options));
+      };
+      this.listeners.push(() => { delete frame.__cbFocusBound; delete frame.__cbDoc; });
       const bind = () => {
         let doc;
         try { doc = frame.contentDocument; } catch { return; } // cross-origin: no pointer inside it
@@ -193,7 +220,9 @@ export class FocusLayer {
           const s = this.#surface(f.left + e.clientX, f.top + e.clientY);
           if (!s) return null;
           this.hadSurface = true;
-          this.mouse.set("mouse", { k: "mouse", ...s, click: false });
+          this.mouse.set("mouse", { k: "mouse", s: "pv", space: "document",
+            frame: qa("#pvFrames iframe").indexOf(frame), x: e.clientX + doc.defaultView.scrollX,
+            y: e.clientY + doc.defaultView.scrollY, click: false });
           return s;
         };
         const target = (e) => {
@@ -201,9 +230,20 @@ export class FocusLayer {
           const i = el?.getAttribute?.("data-cbi");
           return { i: i == null ? null : +i, tag: el?.tagName ?? null };
         };
-        doc.addEventListener("pointermove", point, { passive: true });
-        doc.addEventListener("pointerdown", point, { passive: true });
-        doc.addEventListener("click", (e) => {
+        listen(doc, "scroll", e => {
+          this.schedule();
+          if (Date.now() >= (frame.__cbApplyingScrollUntil || 0)) this.local("preview-scroll", {
+            frame: qa("#pvFrames iframe").indexOf(frame), x: doc.defaultView.scrollX, y: doc.defaultView.scrollY,
+          }, true);
+          if (!this.onPreview || this.previewInteractive() || Date.now() < (frame.__cbApplyingScrollUntil || 0)) return;
+          const el = e.target;
+          const root = el === doc || el === doc.documentElement || el === doc.body;
+          this.onPreview({ kind: "scroll", i: root ? null : +(el.getAttribute?.("data-cbi") ?? -1),
+            x: root ? doc.defaultView.scrollX : el.scrollLeft, y: root ? doc.defaultView.scrollY : el.scrollTop });
+        }, { capture: true, passive: true });
+        listen(doc, "pointermove", point, { passive: true });
+        listen(doc, "pointerdown", point, { passive: true });
+        listen(doc, "click", (e) => {
           const at = point(e);
           // Intercept navigation ONLY in the inert DOM mirror. Real guest previews
           // and the host preview must retain native links, forms and JavaScript.
@@ -214,14 +254,14 @@ export class FocusLayer {
             if (mirror) this.onPreview({ kind: "click", ...at, ...target(e), button: e.button });
           }
         }, true);
-        for (const type of ["input", "change"]) doc.addEventListener(type, (e) => {
+        for (const type of ["input", "change"]) listen(doc, type, (e) => {
           const t = e.target;
           if (!t || !("value" in t)) return;
           if (this.onPreview && !this.previewInteractive())
             this.onPreview({ kind: type, ...target(e), target: { id: t.id, name: t.name, type: t.type, value: t.value, checked: t.checked } });
         }, true);
       };
-      frame.addEventListener("load", bind);
+      listen(frame, "load", bind);
       bind();
     }
   }
@@ -244,16 +284,33 @@ export class FocusLayer {
       case "ghost": st.ghost = m.values || m.col ? { table: m.table, col: m.col, values: m.values } : null; break;
       case "ncol": st.ncol = m.name == null ? null : { table: m.table, name: m.name, type: m.type, size: m.size, key: m.key }; break;
       case "rubber": st.rubber = m.rubber ?? null; break;
+      case "preview-scroll": {
+        st.previewScroll = { x: m.x, y: m.y, frame: m.frame };
+        if (this.isFollowing(from) && Number.isFinite(m.x) && Number.isFinite(m.y)) {
+          const frame = qa("#pvFrames iframe")[m.frame ?? 0];
+          if (frame) {
+            frame.__cbApplyingScrollUntil = Date.now() + 250;
+            try {
+              if (frame.contentDocument) frame.contentWindow.scrollTo(m.x, m.y);
+              else {
+                const url = new URL(frame.src, location.href), channel = url.pathname.match(/^\/__alwis-guest\/([a-f0-9]{32})\//)?.[1];
+                if (channel) frame.contentWindow.postMessage({ type: "alwis-preview-scroll", channel, x: m.x, y: m.y }, url.origin);
+              }
+            } catch {}
+          }
+        }
+        break;
+      }
       case "viewport": {
         st.viewport = { cx: m.cx, cy: m.cy, zoom: m.zoom };
-        // follow only when we are on the schema too and not in the middle of our own gesture
-        if (this.getCtx().view === "schema" && Date.now() - this.lastViewportAt > 700 && this.onViewport) {
+        // Remote navigation changes our viewport only for the explicitly followed peer.
+        if (this.isFollowing(from) && this.getCtx().view === "schema" && this.onViewport) {
           this.applyingViewport = true;
           try { this.onViewport(st.viewport); } finally { setTimeout(() => (this.applyingViewport = false), 150); }
         }
         break;
       }
-      case "mouse": st.mouse = m.s ? { s: m.s, x: m.x, y: m.y, click: m.click, at: Date.now() } : null; if (m.click && m.s) this.onClick?.(from, m); break;
+      case "mouse": st.mouse = m.s ? { s: m.s, space: m.space, frame: m.frame, x: m.x, y: m.y, click: m.click, at: Date.now() } : null; if (m.click && m.s) this.onClick?.(from, m); break;
     }
     st.at = Date.now();
     this.remote.set(from, st);
@@ -378,21 +435,15 @@ export class FocusLayer {
   #rubber(data, p) {
     const sv = q("#sv");
     if (!sv) return;
-    const { d, pan = [0, 0], zoom = 1 } = data;
+    const { d } = data;
     const path = document.createElementNS(SVGNS, "path");
     path.setAttribute("d", d);
     path.setAttribute("fill", "none");
     path.setAttribute("stroke-width", "2.5");
     path.setAttribute("stroke-dasharray", "6 4");
-    const c = this.getCtx();
-    const localZoom = Math.max(0.01, c.zoom ?? 1);
-    const s = zoom / localZoom;
-    const x = (pan[0] - (c.pan?.[0] ?? 0)) / localZoom;
-    const y = (pan[1] - (c.pan?.[1] ?? 0)) / localZoom;
-    path.setAttribute("transform", `translate(${x} ${y}) scale(${s})`);
     path.style.cssText = cssVars(p.name, p.variant) + ";stroke:var(--cb)";
     path.setAttribute("class", "cb-rubber");
-    (sv.querySelector("g") ?? sv).append(path);
+    (sv.querySelector("#layer") ?? sv).append(path);
     this.marks.push(path);
   }
   #mouse(id, m, p) {
@@ -408,11 +459,26 @@ export class FocusLayer {
       n.querySelector("span").textContent = p.name;
       document.body.append(n);
     }
-    n.style.cssText = cssVars(p.name, p.variant) + `;left:${r.left + m.x * r.width}px;top:${r.top + m.y * r.height}px`;
+    let x = r.left + m.x * r.width, y = r.top + m.y * r.height;
+    if (m.s === "sv" && m.space === "world") {
+      const c = this.getCtx();
+      x = r.left + m.x * (c.zoom || 1) + (c.pan?.[0] || 0);
+      y = r.top + m.y * (c.zoom || 1) + (c.pan?.[1] || 0);
+    } else if (m.s === "pv" && m.space === "document") {
+      const frame = qa("#pvFrames iframe")[m.frame ?? 0];
+      if (!frame) return n.remove();
+      const f = frame.getBoundingClientRect();
+      let scroll = frame.__cbScroll ?? { x: 0, y: 0 };
+      try { if (frame.contentDocument) scroll = { x: frame.contentWindow.scrollX, y: frame.contentWindow.scrollY }; } catch {}
+      x = f.left + m.x - scroll.x; y = f.top + m.y - scroll.y;
+      if (x < f.left || x > f.right || y < f.top || y > f.bottom) return n.remove();
+    }
+    if (x < r.left || x > r.right || y < r.top || y > r.bottom) return n.remove();
+    n.style.cssText = cssVars(p.name, p.variant) + `;left:${x}px;top:${y}px`;
     if (m.click) {
       const ring = document.createElement("div");
       ring.className = "cb-click";
-      ring.style.cssText = cssVars(p.name, p.variant) + `;left:${r.left + m.x * r.width}px;top:${r.top + m.y * r.height}px`;
+      ring.style.cssText = cssVars(p.name, p.variant) + `;left:${x}px;top:${y}px`;
       document.body.append(ring);
       setTimeout(() => ring.remove(), 700);
       m.click = false;
@@ -432,7 +498,7 @@ export function replayClick(m) {
  * coordinates are only a fallback.
  */
 export function replayPreview(m) {
-  if (!m || !["click", "input", "change"].includes(m.kind)) return false;
+  if (!m || !["click", "input", "change", "scroll"].includes(m.kind)) return false;
   const box = q("#pvFrames");
   if (!box) return false;
   const frame = qa("iframe", box).find((f) => f.offsetParent !== null) ?? q("iframe", box);
@@ -440,6 +506,10 @@ export function replayPreview(m) {
   try {
     const doc = frame.contentDocument, win = frame.contentWindow;
     if (!doc || !win) return false;
+    if (m.kind === "scroll" && !Number.isInteger(m.i)) {
+      if (!Number.isFinite(m.x) || !Number.isFinite(m.y)) return false;
+      win.scrollTo(m.x, m.y); return true;
+    }
     let el = null;
     if (Number.isInteger(m.i)) {
       const cand = doc.querySelectorAll("*")[m.i];
@@ -450,6 +520,10 @@ export function replayPreview(m) {
       el = doc.elementFromPoint(r.left + m.x * r.width - f.left, r.top + m.y * r.height - f.top);
     }
     if (!el) return false;
+    if (m.kind === "scroll") {
+      if (!Number.isFinite(m.x) || !Number.isFinite(m.y)) return false;
+      el.scrollLeft = m.x; el.scrollTop = m.y; return true;
+    }
     if (m.kind === "click") {
       if ((Number(m.button) || 0) === 0 && typeof el.click === "function") el.click();
       else el.dispatchEvent(new win.MouseEvent("click", { bubbles: true, cancelable: true, button: Number(m.button) || 0, view: win }));

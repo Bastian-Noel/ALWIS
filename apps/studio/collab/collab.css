@@ -100,3 +100,9 @@ tr.cb-ncol { outline:2px dashed var(--cb); }
 @keyframes cbClick { from { transform:scale(.3); opacity:1; } to { transform:scale(1.6); opacity:0; } }
 @media (prefers-reduced-motion:reduce) { .cb-pop,.cb-modal { animation:none; } .cb-av.away,.cb-spin,.cb-loading,.cb-click { animation:none; } .cm-cb-ins { animation-duration:.01s; } .cb-mouse { transition:none; } }
 @media (max-width:680px) { .cb-pop { position:fixed; top:56px; right:8px; left:8px; width:auto; } .cb-stack .cb-av:nth-child(n+3) { display:none; } }
+
+.cb-transport { display:inline-flex; align-items:center; gap:5px; justify-self:start; max-width:100%; margin-top:4px; padding:2px 6px; border:1px solid var(--seam-2); border-radius:4px; font-size:11px; line-height:1.4; color:var(--ink-2); }
+.cb-transport.direct { color:var(--ok); border-color:currentColor; }
+.cb-transport-icon { display:inline-flex; flex:none; }
+.cb-transport svg { width:18px; height:16px; fill:none; stroke:currentColor; stroke-width:1.5; }
+@media (max-width:480px) { .cb-row { flex-wrap:wrap; } .cb-row .cb-acts { margin-left:40px; } }

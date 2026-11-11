@@ -4,6 +4,20 @@ import { cssVars, initial } from "./colors.mjs";
 const NAME_KEY = "alwis-collab-name";
 const MAX_VISIBLE = 4;
 const svg = (id) => `<svg class="ic" aria-hidden="true" focusable="false"><use href="#i-${id}"/></svg>`;
+function transportBadge(link) {
+  const direct = link?.mode === "p2p" && link.dc?.readyState === "open";
+  const connecting = !link || link.negotiating;
+  const label = direct ? "P2P" : connecting ? "Connexion P2P…" : "Relais serveur";
+  const icon = direct
+    ? '<svg viewBox="0 0 20 16" aria-hidden="true"><circle cx="3" cy="8" r="2"/><circle cx="17" cy="8" r="2"/><path d="M6 8h8m-3-3 3 3-3 3"/></svg>'
+    : '<svg viewBox="0 0 20 16" aria-hidden="true"><rect x="3" y="2" width="14" height="5" rx="1"/><rect x="3" y="9" width="14" height="5" rx="1"/><path d="M6 4.5h1M6 11.5h1"/></svg>';
+  return el("span", { class: "cb-transport " + (direct ? "direct" : connecting ? "connecting" : "relay"),
+    "data-transport": direct ? "p2p" : connecting ? "connecting" : "relay",
+    title: direct ? "Échanges directs entre navigateurs, sans le budget du relais serveur."
+      : connecting ? "Tentative P2P en cours ; relais serveur disponible en repli."
+      : "Repli par le serveur, soumis aux limites partagées de la session." },
+    el("span", { class: "cb-transport-icon", html: icon }), label);
+}
 function el(tag, attrs = {}, ...kids) {
   const n = document.createElement(tag);
   for (const [k, v] of Object.entries(attrs)) {
@@ -37,10 +51,9 @@ const secondsLeft = (until) => Math.max(0, Math.round((until - Date.now()) / 100
 
 export class PresenceUI {
   constructor({ slot, onStart, onJoin, onLeave, onFollow, onFollowToggle, getFollowing, onKick, onLock,
-    onPreviewPermission, getPreviewPermission, config }) {
+    config }) {
     this.slot = slot;
-    this.cb = { onStart, onJoin, onLeave, onFollow, onFollowToggle, getFollowing, onKick, onLock,
-      onPreviewPermission, getPreviewPermission };
+    this.cb = { onStart, onJoin, onLeave, onFollow, onFollowToggle, getFollowing, onKick, onLock };
     this.config = config;
     this.session = null;
     this.open = false;
@@ -93,6 +106,7 @@ export class PresenceUI {
     session.on("status", () => { this.root.dataset.state = session.status; refresh(); });
     session.on("link", refresh);
     session.on("mode", refresh);
+    session.on("throttle", refresh);
     session.on("peer-away", ({ id }) => this.announce(`${session.peer(id)?.name ?? "Une personne"} a perdu la connexion. Sa place est gardée quelques instants.`));
     session.on("peer-down", ({ id, reason }) => reason === "grace-expired" && this.announce("Une place s’est libérée."));
     clearInterval(this.timer);
@@ -205,18 +219,6 @@ export class PresenceUI {
         field, copy,
         el("p", { class: "cb-hint" }, s.locked ? "Les nouvelles personnes sont refusées pour le moment." : `Toute personne ayant ce lien peut rejoindre : ${free > 0 ? plural(free, "place libre", "places libres") : "session complète"}.`),
         lock));
-      const hasIsolatedPreview = !!this.config.previewOrigin;
-      wrap.append(el("section", { class: "cb-sec" },
-        el("p", { class: "cb-label" }, "Aperçu HTTP des invités"),
-        el("label", { class: "cb-check" },
-          el("input", { type: "checkbox", checked: !!this.cb.getPreviewPermission?.(),
-            disabled: !hasIsolatedPreview,
-            "aria-label": hasIsolatedPreview ? "Autoriser le PHP interactif des invités" : "Aperçu HTTP désactivé : domaine d'aperçu non configuré",
-            onchange: e => this.cb.onPreviewPermission?.(e.target.checked) }),
-          el("span", {}, "Autoriser le PHP interactif pour les invités")),
-        el("p", { class: "cb-hint" }, hasIsolatedPreview
-          ? "Les invités exécutent JavaScript sur un domaine séparé ; leurs requêtes PHP/SQL restent chez vous. En cas d'échec, un aperçu statique est proposé. Désactivé par défaut."
-          : "Indisponible : configurez ALWIS_PREVIEW_ORIGIN sur un domaine HTTPS réservé et différent du studio. En attendant, l'aperçu statique fonctionne.")));
 
     }
     const list = el("ul", { class: "cb-list" });
@@ -232,6 +234,7 @@ export class PresenceUI {
       else if (!link) status = `${role} · connexion…`;
       else status = `${role} · ${link.mode === "p2p" ? "connexion directe" : "via le serveur (plus lent)"}`;
       const row = el("li", { class: "cb-row" + (peer.state === "away" ? " away" : "") }, avatar(peer, { me }), el("span", { class: "cb-who" }, el("b", {}, peer.name), el("small", {}, status)));
+      if (!me && peer.state === "online") row.querySelector(".cb-who").append(transportBadge(link));
       const actions = el("span", { class: "cb-acts" });
       if (!me && peer.state === "online") {
         actions.append(
@@ -243,6 +246,17 @@ export class PresenceUI {
       list.append(row);
     }
     wrap.append(el("section", { class: "cb-sec" }, el("p", { class: "cb-label" }, `Participants · ${s.peers.length}`), list));
+    const relay = [...s.links.values()].some(link => !link.negotiating && link.mode !== "p2p");
+    if (relay) {
+      const budget = s.limits?.relayBytesPerSec ?? this.config.relayBytesPerSec;
+      const maxFrame = s.limits?.maxMessageBytes ?? this.config.maxMessageBytes;
+      const paused = [...s.links.values()].some(link => link.throttledUntil > Date.now());
+      wrap.append(el("p", { class: "cb-hint cb-relay-limits", role: "status" },
+        (paused ? "Relais temporairement limité : les échanges reprennent automatiquement. " : "Le relais sert de repli au P2P. ")
+        + (budget ? `Budget partagé : ${Math.round(budget / 1024)} Kio/s par session. ` : "")
+        + (maxFrame ? `Taille maximale : ${Math.round(maxFrame / 1024)} Kio par message. ` : "")
+        + "Ces limites du relais ne s’appliquent pas aux échanges P2P."));
+    }
     wrap.append(el("button", { class: "btn cb-wide cb-leave", type: "button", onclick: () => this.cb.onLeave() }, s.isHost ? "Arrêter le partage" : "Quitter la session"));
     if (s.isHost) wrap.append(el("p", { class: "cb-foot" }, "Arrêter le partage déconnecte tout le monde. Vos fichiers ne sont pas modifiés."));
     return wrap;

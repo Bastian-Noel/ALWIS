@@ -123,7 +123,8 @@ export class CollabSession extends Emitter {
         if (link) link.onRelay(m.d);
         break;
       }
-      case "throttle": for (const l of this.links.values()) l.onThrottle(m.retryMs); break;
+      case "relay-ack": for (const l of this.links.values()) l.onRelayAck(m.ref); break;
+      case "throttle": for (const l of this.links.values()) l.onThrottle(m.retryMs, m.ref); break;
       case "undelivered": this.emit("undelivered", m); break;
       case "kicked":
         store.clear();
@@ -154,7 +155,7 @@ export class CollabSession extends Emitter {
   }
   #makeLink(id, initiator, gen) {
     this.links.get(id)?.close();
-    const link = new PeerLink({ signaling: this.sig, remoteId: id, initiator, gen, iceServers: this.config.iceServers ?? [], RTC: this.RTC });
+    const link = new PeerLink({ signaling: this.sig, remoteId: id, initiator, gen, iceServers: this.config.iceServers ?? [], relayAcknowledgements: this.config.relayAcknowledgements === true, RTC: this.RTC });
     link.on("message", (msg) => this.emit("message", { from: id, msg }));
     link.on("mode", (mode) => this.emit("mode", { id, mode }));
     link.on("throttle", (ms) => this.emit("throttle", { id, ms }));

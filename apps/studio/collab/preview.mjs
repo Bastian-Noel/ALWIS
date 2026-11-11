@@ -3,6 +3,29 @@
 import { chunkText } from "./protocol.mjs";
 
 const MAX = 700_000;
+export function previewScroll(frame) {
+  try {
+    const doc = frame.contentDocument, win = frame.contentWindow;
+    if (!doc || !win) return null;
+    return { x: win.scrollX, y: win.scrollY, elements: [...doc.querySelectorAll("*")]
+      .map((el, i) => ({ i, x: el.scrollLeft, y: el.scrollTop }))
+      .filter(p => p.x || p.y).slice(0, 200) };
+  } catch { return null; }
+}
+export function applyPreviewScroll(frame, scroll) {
+  if (!scroll || !Number.isFinite(scroll.x) || !Number.isFinite(scroll.y)) return;
+  try {
+    frame.__cbApplyingScrollUntil = Date.now() + 250;
+    frame.contentWindow.scrollTo(scroll.x, scroll.y);
+    const nodes = [...frame.contentDocument.querySelectorAll("[data-cbi]")];
+    const positions = new Map((scroll.elements ?? []).map(p => [p.i, p]));
+    for (const node of nodes) {
+      const p = positions.get(+node.dataset.cbi);
+      // documentElement/body scrolling belongs to window.scrollTo above.
+      if (!/^(HTML|BODY)$/.test(node.tagName)) { node.scrollLeft = p?.x ?? 0; node.scrollTop = p?.y ?? 0; }
+    }
+  } catch {}
+}
 
 export function snapshot(frame) {
   const doc = frame?.contentDocument;
@@ -40,7 +63,13 @@ export function snapshot(frame) {
 
 /** Host: watch the real frame and push snapshots when it changes. */
 export function watchPreview({ container, send, ms = 450, minGap = 900 }) {
-  let timer = null, last = "", lastAt = 0;
+  let timer = null, scrollTimer = null, last = "", lastAt = 0, stopped = false;
+  const watchers = new Map();
+  const pushScroll = () => {
+    if (stopped) return;
+    const scroll = previewScroll(container()?.querySelector("iframe"));
+    if (scroll) send({ t: "pv-scroll", scroll }, { key: "pv-scroll", droppable: true });
+  };
   const push = () => {
     const frame = container()?.querySelector("iframe");
     const html = snapshot(frame);
@@ -49,36 +78,50 @@ export function watchPreview({ container, send, ms = 450, minGap = 900 }) {
     lastAt = Date.now();
     const id = Math.random().toString(36).slice(2);
     const parts = chunkText(html, 12 * 1024);
-    parts.forEach((d, part) => send({ t: "pv", id, part, parts: parts.length, d }, { group: "pv" }));
+    parts.forEach((d, part) => send({ t: "pv", id, part, parts: parts.length, d, scroll: previewScroll(frame) }, { group: "pv" }));
   };
   const schedule = (delay = ms) => {
+    if (stopped) return;
     clearTimeout(timer);
     timer = setTimeout(push, Math.max(delay, minGap - (Date.now() - lastAt)));
   };
-  const watch = (frame) => {
-    frame.__cbWatched = true;
-    frame.addEventListener("load", () => {
+  const watch = frame => {
+    let cleanupDocument = () => {};
+    const bind = () => {
+      cleanupDocument();
       schedule();
       try {
         const doc = frame.contentDocument;
-        new MutationObserver(() => schedule()).observe(doc.documentElement, { subtree: true, childList: true, attributes: true, characterData: true });
-        // typing changes properties, not attributes: the observer cannot see it
-        for (const type of ["input", "change"]) doc.addEventListener(type, () => schedule(120), true);
+        if (!doc?.documentElement) return;
+        const observer = new MutationObserver(() => schedule());
+        observer.observe(doc.documentElement, { subtree: true, childList: true, attributes: true, characterData: true });
+        const onScroll = () => { clearTimeout(scrollTimer); scrollTimer = setTimeout(pushScroll, 80); };
+        const onInput = () => schedule(120);
+        doc.addEventListener("scroll", onScroll, true);
+        for (const type of ["input", "change"]) doc.addEventListener(type, onInput, true);
+        cleanupDocument = () => {
+          observer.disconnect(); doc.removeEventListener("scroll", onScroll, true);
+          for (const type of ["input", "change"]) doc.removeEventListener(type, onInput, true);
+        };
+        pushScroll();
       } catch {}
-    });
-    schedule();
+    };
+    frame.addEventListener("load", bind);
+    watchers.set(frame, () => { frame.removeEventListener("load", bind); cleanupDocument(); });
+    bind(); // Sharing may start after the host page has already loaded.
   };
   const iv = setInterval(() => {
     const frame = container()?.querySelector("iframe");
-    if (frame && !frame.__cbWatched) watch(frame);
+    for (const [known, cleanup] of watchers) if (known !== frame) { cleanup(); watchers.delete(known); }
+    if (frame && !watchers.has(frame)) watch(frame);
   }, 500);
-  return { resend: () => { last = ""; schedule(0); }, stop: () => { clearInterval(iv); clearTimeout(timer); } };
+  return { resend: () => { last = ""; schedule(0); }, stop: () => { stopped = true; clearInterval(iv); clearTimeout(timer); clearTimeout(scrollTimer); for (const cleanup of watchers.values()) cleanup(); watchers.clear(); } };
 }
 
 /** Guest: reassemble and display the mirror in every preview frame. */
 export function createMirror({ container }) {
   const bufs = new Map();
-  let pending = null, retry = null;
+  let pending = null, retry = null, scroll = null;
   const typing = (f) => { try { const a = f.contentDocument?.activeElement; return a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) && Date.now() - (f.__cbTyped ?? 0) < 1200; } catch { return false; } };
   const apply = () => {
     if (!pending) return;
@@ -91,12 +134,13 @@ export function createMirror({ container }) {
       try { sx = f.contentWindow.scrollX; sy = f.contentWindow.scrollY; } catch {}
       f.removeAttribute("src");
       f.setAttribute("sandbox", "allow-same-origin"); // no script can run: the snapshot is inert
-      f.addEventListener("load", () => { try { f.contentWindow.scrollTo(sx, sy); f.contentDocument.addEventListener("input", () => (f.__cbTyped = Date.now()), true); } catch {} }, { once: true });
+      f.addEventListener("load", () => { try { (scroll ? applyPreviewScroll(f, scroll) : f.contentWindow.scrollTo(sx, sy)); f.contentDocument.addEventListener("input", () => (f.__cbTyped = Date.now()), true); } catch {} }, { once: true });
       f.srcdoc = html;
     }
   };
   return {
     receive(m) {
+      if (m.scroll) scroll = m.scroll;
       const e = bufs.get(m.id) ?? bufs.set(m.id, { parts: [], got: 0 }).get(m.id);
       if (e.parts[m.part] === undefined) e.got++;
       e.parts[m.part] = m.d;
@@ -105,6 +149,10 @@ export function createMirror({ container }) {
       pending = e.parts.join("");
       apply();
       return true;
+    },
+    scroll(value) {
+      scroll = value;
+      for (const frame of container()?.querySelectorAll("iframe") ?? []) applyPreviewScroll(frame, scroll);
     },
     reapply: apply,
   };

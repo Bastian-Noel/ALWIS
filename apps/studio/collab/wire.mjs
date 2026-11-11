@@ -14,6 +14,7 @@ import { showLoading } from "./presence-ui.mjs";
 import { watchPreview, createMirror } from "./preview.mjs";
 import { guestPreviewSandbox } from "./preview-security.mjs";
 import { HostHttpGateway, GuestHttpGateway } from "./http-gateway.mjs";
+import { shareNetworkRecord, networkRecordReceiver } from "./shared-network.mjs";
 import { PreviewDelivery } from "./preview-delivery.mjs";
 import { IsolatedGuestPreviewController } from "./isolated-preview-controller.mjs";
 import { updatePreviewStatus } from "../workbench/views/code.mjs";
@@ -30,7 +31,7 @@ export function installWiring(collab) {
     return { id, name: p?.name ?? "Invité", variant: p?.variant ?? 0, state: p?.state ?? "online", css: cssVars(p?.name ?? "Invité", p?.variant ?? 0) };
   };
   const ctxState = () => ({ view: S.view, dmode: S.dmode, table: S.view === "schema" ? (S.schemaSel ?? S.table) : S.table, db: S.db, active: S.active, pv: S.pv, pvPath: S.pvPath, pan: S.pan, zoom: S.zoom, cw: document.querySelector("#canvas")?.clientWidth ?? 0, ch: document.querySelector("#canvas")?.clientHeight ?? 0 });
-  /** Shared schema viewport: same world point at the centre of the canvas for everybody. */
+  /** Follow mode: keep the same world point at the canvas centre. */
   const applyViewport = guard(({ cx, cy, zoom }) => {
     const box = document.querySelector("#canvas");
     if (!box || !box.clientWidth || !Number.isFinite(cx) || !Number.isFinite(zoom)) return;
@@ -110,7 +111,7 @@ export function installWiring(collab) {
     if (S.mode !== "work" || !S.project) { collab.session?.leave(); return; }
     const session = collab.session;
     const send = (to, m, o) => session.send(to, m, o);
-    collab.previewEnabled = false; // Never persist PHP execution permission across rooms.
+    collab.previewEnabled = collab.config?.guestPreviewEnabled === true; // Deployment policy, never a per-user setting.
     const previewDelivery = new PreviewDelivery();
     const http = new HostHttpGateway({
       origin: location.origin,
@@ -138,7 +139,7 @@ export function installWiring(collab) {
     });
     const focus = new FocusLayer({
       send: (m, o) => session.broadcast({ ...m, from: "h" }, o),
-      peer: peerInfo, getCtx: ctxState, onViewport: applyViewport, onPeerView,
+      peer: peerInfo, getCtx: ctxState, onViewport: applyViewport, onPeerView, isFollowing: id => collab.following === id,
     });
     focus.start();
     const pvWatch = watchPreview({ container: () => document.querySelector("#pvFrames"), send: (m, o) => {
@@ -148,6 +149,8 @@ export function installWiring(collab) {
     } });
     const unwrapQ = wrapQueries((m) => { session.broadcast({ ...m, from: "h" }); });
     let changedTimer;
+    const offRequest = ctx.engine.on("request", record => shareNetworkRecord(record,
+      message => session.broadcast(message)));
     const offChanged = ctx.engine.on("changed", (c) => {
       clearTimeout(changedTimer);
       changedTimer = setTimeout(async () => {
@@ -158,7 +161,10 @@ export function installWiring(collab) {
     const onMessage = guard(({ from, msg }) => {
       if (["http-request", "http-ack", "http-error", "http-cookie"].includes(msg.t)) return http.receive(from, msg);
       switch (msg.t) {
-        case "hello": pvWatch.resend(); focus.announce(true); send(from, { t: "welcome", project: S.project, db: S.db, host: session.me.name, httpPreview: collab.previewEnabled }); return send(from, { t: "focus-state", ...focus.snapshot(from) });
+        case "hello":
+          send(from, { t: "welcome", project: S.project, db: S.db, host: session.me.name, httpPreview: collab.previewEnabled });
+          for (const record of S.reqs.slice(-20)) shareNetworkRecord(record, message => send(from, message));
+          pvWatch.resend(); focus.announce(true); return send(from, { t: "focus-state", ...focus.snapshot(from) });
         case "http-preview-status":
           if (session.peer(from)?.state === "online") {
             const fallback = previewDelivery.update(from, {
@@ -190,19 +196,11 @@ export function installWiring(collab) {
     run = {
       role: "host",
       focus,
-      setPreviewAllowed(enabled) {
-        collab.previewEnabled = !!enabled && !!collab.config?.previewOrigin;
-        if (enabled && !collab.config?.previewOrigin)
-          collab.ui?.announce("Aperçu PHP interactif désactivé : une origine dédiée HTTPS doit être configurée.");
-        session.broadcast({ t: "http-preview-permission", enabled: collab.previewEnabled });
-        if (!collab.previewEnabled) { previewDelivery.reset(); pvWatch.resend(); }
-        collab.ui?.refresh();
-      },
       local: (path, changes) => docs.local(path, changes),
       cursor: (path, a, h) => docs.hostCursor(path, a, h),
       stop() {
         collab.previewEnabled = false;
-        offMsg(); offDown(); offChanged(); unwrapQ(); focus.stop(); pvWatch.stop(); clearTimeout(changedTimer);
+        offMsg(); offDown(); offChanged(); offRequest(); unwrapQ(); focus.stop(); pvWatch.stop(); clearTimeout(changedTimer);
         previewDelivery.reset();
         http.close().catch(error => log("warn", "guest_http_close", { message: error.message }));
       },
@@ -223,11 +221,16 @@ export function installWiring(collab) {
     const release = showLoading(main, "Connexion au projet de l’hôte…");
     const send = (m, o) => session.send("h", m, o);
     const rpc = new RpcGuest({ send, onBusy: (n) => document.documentElement.toggleAttribute("data-collab-busy", n > 0) });
+    const receiveNetwork = networkRecordReceiver(record => {
+      if (!S.reqs.some(item => item.id === record.id)) ctx.engine.emit("request", record);
+    });
     const http = new GuestHttpGateway({ origin: location.origin, name: session.me.name,
       timeoutMs: 30_000, send });
-    const preview = collab.config?.previewOrigin
+    const preview = collab.config?.guestPreviewEnabled
       ? new IsolatedGuestPreviewController({
-          origin: collab.config.previewOrigin,
+          origin: collab.config.previewOrigin || location.origin,
+          allowSameOrigin: collab.config.previewRequiresTrust === true,
+          confirmTrust: () => window.confirm("Faire confiance à ce projet ?\n\nAucun domaine d’aperçu séparé n’est configuré. Le JavaScript du projet pourra accéder à votre studio ALWIS, à son stockage local et aux projets accessibles dans ce navigateur. PHP et MariaDB restent chez l’hôte.\n\nAcceptez uniquement si vous faites confiance à l’hôte et au code du projet. Annuler conserve l’aperçu statique."),
           request: request => http.request(request),
           cookie: (value, url) => http.cookie(value, url),
           online: () => session.status === "live" && session.hostState === "online",
@@ -248,11 +251,12 @@ export function installWiring(collab) {
       } else { interactivePreview = false; preview?.stop(); }
       send({ t: "http-preview-status", usable: interactivePreview });
       document.documentElement.toggleAttribute("data-guest-http-preview", interactivePreview);
+      document.documentElement.toggleAttribute("data-guest-preview-trusted", interactivePreview && preview?.sameOrigin && preview.trustDecision === true);
       if (interactivePreview) document.documentElement.dataset.guestPreviewOrigin = preview.origin;
       else document.documentElement.removeAttribute("data-guest-preview-origin");
       for (const frame of document.querySelectorAll("#pvFrames iframe"))
         frame.setAttribute("sandbox", guestPreviewSandbox(interactivePreview, {
-          previewOrigin: preview?.origin, studioOrigin: location.origin,
+          previewOrigin: preview?.origin, studioOrigin: location.origin, trustedSameOrigin: preview?.trustDecision === true,
         }));
       if (S.mode === "work" && S.pv) {
         A.pvReload?.().catch(error => log("w", `Aperçu indisponible : ${error.message}`));
@@ -260,7 +264,7 @@ export function installWiring(collab) {
     };
     const restoreEngine = installGuestEngine(ctx.engine, rpc);
     const docs = new DocGuest({ lib, send, peer: peerInfo, editorFor, myId: () => session.me.id, onHeadless: headless, onDesync: (p) => log("w", `Resynchronisation de ${p}`) });
-    const focus = new FocusLayer({ send: (m, o) => send(m, o), peer: peerInfo, getCtx: ctxState, onViewport: applyViewport, onPeerView, previewInteractive: () => interactivePreview,
+    const focus = new FocusLayer({ send: (m, o) => send(m, o), peer: peerInfo, getCtx: ctxState, onViewport: applyViewport, onPeerView, isFollowing: id => collab.following === id, previewInteractive: () => interactivePreview,
       onPreview: m => send({ t: "preview-event", ...m }) });
     const mirror = createMirror({ container: () => document.querySelector("#pvFrames") });
     const sessionsFrame = ctx.engine.sessions?.frame;
@@ -317,7 +321,9 @@ export function installWiring(collab) {
       if (["http-response", "http-ack", "http-error", "http-cookie-result"].includes(msg.t)) return http.receive(msg);
       switch (msg.t) {
         case "welcome": return enter(msg);
+        case "network-record": if (from === "h") return receiveNetwork(msg); return;
         case "http-preview-permission": return setInteractivePreview(!!msg.enabled);
+        case "pv-scroll": if (!interactivePreview) mirror.scroll(msg.scroll); return;
         case "pv":
           if (interactivePreview) return;
           S.pvInfo.host = msg.info ?? { status: 200, ms: 0 };
@@ -352,6 +358,7 @@ export function installWiring(collab) {
       focus.stop(); unwrapQ(); restoreEngine(); unbindAll();
       document.documentElement.removeAttribute("data-collab-guest");
       document.documentElement.removeAttribute("data-guest-http-preview");
+      document.documentElement.removeAttribute("data-guest-preview-trusted");
       document.documentElement.removeAttribute("data-guest-preview-origin");
       if (ctx.engine.sessions && sessionsFrame) { ctx.engine.sessions.frame = sessionsFrame; ctx.engine.sessions.list = sessionsList; }
       Object.assign(ctx, { persist: saved.persist, schedulePersist: saved.schedulePersist });
@@ -373,9 +380,6 @@ export function installWiring(collab) {
     };
   }
 
-  collab.on("http-preview-toggle", enabled => {
-    if (run?.role === "host") run.setPreviewAllowed(enabled);
-  });
   collab.on("ready", () => {
     if (collab.session.role === "host") { if (!run) startHost(); }
     else startGuest();

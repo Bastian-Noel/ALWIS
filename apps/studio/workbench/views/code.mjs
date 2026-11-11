@@ -171,6 +171,7 @@ export function drawPv() {
   if (document.documentElement.hasAttribute("data-collab-guest")) {
     const sandbox = guestPreviewSandbox(document.documentElement.hasAttribute("data-guest-http-preview"), {
       previewOrigin: document.documentElement.dataset.guestPreviewOrigin,
+      trustedSameOrigin: document.documentElement.hasAttribute("data-guest-preview-trusted"),
       studioOrigin: location.origin,
     });
     $$("iframe", box).forEach(frame => frame.setAttribute("sandbox", sandbox));

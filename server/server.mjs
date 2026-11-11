@@ -18,37 +18,33 @@ if (!Number.isInteger(port) || port < 1 || port > 65535)
   throw new Error("PORT doit être compris entre 1 et 65535.");
 if (!/^[^:\u0000-\u001f\u007f]{1,64}$/.test(username))
   throw new Error("ALWIS_ADMIN_USER doit contenir de 1 à 64 caractères sans deux-points.");
-// A separate origin is mandatory when rendering untrusted guest PHP/JS.
+const baseURL = process.env.ALWIS_BASE_URL ?? process.env.PUBLIC_BASE_URL ?? "http://localhost:3000";
+const legacyStatic = process.env.ALWIS_GUEST_PREVIEW_STATIC?.trim();
+if (!process.env.ALWIS_PREVIEW_MODE && legacyStatic && !["true", "false"].includes(legacyStatic))
+  throw Error("ALWIS_GUEST_PREVIEW_STATIC doit valoir true ou false.");
+const previewMode = process.env.ALWIS_PREVIEW_MODE?.trim() || (legacyStatic === "false" ? "interactive" : "static");
+if (!["static", "interactive"].includes(previewMode))
+  throw Error("ALWIS_PREVIEW_MODE doit valoir static ou interactive.");
+const studioOrigin = new URL(baseURL).origin;
+// Isolated preview accepts a dedicated HTTPS hostname, including sibling subdomains.
 const previewOrigin = (() => {
-  const value = process.env.ALWIS_PREVIEW_ORIGIN?.trim();
+  const value = (process.env.ALWIS_PREVIEW_URL ?? process.env.ALWIS_PREVIEW_ORIGIN)?.trim();
   if (!value) return null; // disabled until DNS/TLS and reverse proxy are configured
   const url = new URL(value);
-  const configuredStudio = new URL(process.env.PUBLIC_BASE_URL ?? "http://localhost:3000");
-  // A distinct origin is insufficient when sibling subdomains share
-  // Domain=.example.tld cookies. Require another registrable site.
-  const siteSuffix = hostname => {
-    const name = hostname.toLowerCase();
-    if (name === "localhost" || name.endsWith(".localhost")
-      || name === "127.0.0.1" || name === "[::1]") return null;
-    const labels = name.split(".").filter(Boolean);
-    return labels.length >= 2 ? labels.slice(-2).join(".") : null;
-  };
-  const previewSite = siteSuffix(url.hostname);
-  const studioSite = siteSuffix(configuredStudio.hostname);
-  if (value !== url.origin || url.username || url.password || url.search || url.hash
-      || url.origin === configuredStudio.origin
-      || (previewSite && studioSite && previewSite === studioSite)
+  if (url.pathname !== "/" || url.username || url.password || url.search || url.hash
       || (url.protocol !== "https:" &&
           !(url.protocol === "http:" && (url.hostname === "localhost" || url.hostname.endsWith(".localhost") || ["127.0.0.1", "[::1]"].includes(url.hostname))))) {
-    throw Error("ALWIS_PREVIEW_ORIGIN exige un site HTTPS dédié différent du domaine de cookies du studio (HTTP localhost seulement).");
+    throw Error("ALWIS_PREVIEW_URL exige une URL HTTPS sans chemin (HTTP localhost seulement).");
   }
   return url.origin;
 })();
-const trustProxy = process.env.TRUST_PROXY ?? "false";
+const guestPreviewEnabled = previewMode === "interactive";
+const previewRequiresTrust = guestPreviewEnabled && (!previewOrigin || previewOrigin === studioOrigin);
+const trustProxy = process.env.ALWIS_TRUST_PROXY ?? process.env.TRUST_PROXY ?? "false";
 if (!["true", "false"].includes(trustProxy))
-  throw new Error("TRUST_PROXY doit valoir true ou false.");
-if (Buffer.byteLength(adminPassword) < 20)
-  throw new Error("ALWIS_ADMIN_PASSWORD doit contenir au moins 20 octets.");
+  throw new Error("ALWIS_TRUST_PROXY doit valoir true ou false.");
+if (!adminPassword)
+  throw new Error("ALWIS_ADMIN_PASSWORD est obligatoire.");
 await mkdir(dataDir, { recursive: true });
 
 const db = new DatabaseSync(resolve(dataDir, "server.sqlite"));
@@ -64,7 +60,7 @@ db.exec(`
 `);
 
 const defaults = {
-  publicBaseUrl: process.env.PUBLIC_BASE_URL ?? "http://localhost:3000",
+  publicBaseUrl: baseURL,
   allowedOrigins: (process.env.ALLOWED_ORIGINS ?? "")
     .split(",")
     .map((value) => value.trim())
@@ -330,7 +326,17 @@ const server = createServer(async (request, response) => {
   response.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
   response.setHeader("Cache-Control", "no-store");
   const pathname = new URL(request.url ?? "/", "http://localhost").pathname;
-  if (previewOrigin && requestOrigin(request) === previewOrigin) {
+  // Same-origin compatibility mode uses a narrow SW scope, never the studio root.
+  if (previewRequiresTrust && requestOrigin(request) === studioOrigin
+      && /^\/__alwis-guest\/[a-f0-9]{32}\/__broker\.html$/.test(pathname)) {
+    if (!["GET", "HEAD"].includes(request.method)) {
+      response.writeHead(405, { Allow: "GET, HEAD" }).end(); return;
+    }
+    response.setHeader("Content-Security-Policy",
+      "default-src 'none'; script-src 'self'; worker-src 'self'; connect-src 'self'; frame-ancestors " + studioOrigin);
+    await staticFile(request, response, "/guest-broker.html"); return;
+  }
+  if (previewOrigin && previewOrigin !== studioOrigin && requestOrigin(request) === previewOrigin) {
     // The preview hostname is an untrusted application origin. NEVER serve
     // the studio, administrative API, signaling or sensitive data here.
     response.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
@@ -344,7 +350,7 @@ const server = createServer(async (request, response) => {
       if (pathname === "/guest-broker.html") {
         response.setHeader("Content-Security-Policy",
           "default-src 'none'; script-src 'self'; worker-src 'self'; connect-src 'self'; "
-          + "frame-ancestors " + new URL(process.env.PUBLIC_BASE_URL ?? "http://localhost:3000").origin);
+          + "frame-ancestors " + new URL(baseURL).origin);
       }
       await staticFile(request, response, pathname);
       return;
@@ -434,7 +440,7 @@ const server = createServer(async (request, response) => {
     }
   }
   if (pathname === "/api/collab/config" && (request.method === "GET" || request.method === "HEAD")) {
-    json(response, 200, { ...collab.publicConfig(), iceServers, path: "/collab", previewOrigin });
+    json(response, 200, { ...collab.publicConfig(), iceServers, path: "/collab", relayAcknowledgements: true, previewOrigin, guestPreviewStatic: !guestPreviewEnabled, guestPreviewEnabled, previewRequiresTrust });
     return;
   }
   if (pathname === "/admin" || pathname === "/admin/") {

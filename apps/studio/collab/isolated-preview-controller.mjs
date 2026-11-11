@@ -1,20 +1,23 @@
 /**
- * Trusted studio half of the dedicated-origin guest HTTP preview.
- * A third-party PHP site can execute script in its own distinct origin,
- * but cannot access the studio DOM, credentials or request handlers.
+ * Studio half of guest HTTP preview. A separate origin isolates project scripts.
+ * Same-origin compatibility requires deployment opt-in and explicit guest trust;
+ * that mode grants project scripts access to the guest studio and local storage.
  */
 import { guestPreviewURL, validGuestChannel } from "./guest-preview-route.mjs";
 import { separateOrigin } from "./preview-security.mjs";
 
-export function validatePreviewOrigin(value, studioOrigin) {
+export function validatePreviewOrigin(value, studioOrigin, { allowSameOrigin = false } = {}) {
   if (typeof value !== "string" || !value) throw Error("Une origine d'aperçu dédiée est nécessaire.");
   const preview = new URL(value);
   const studio = new URL(studioOrigin);
   if (preview.origin !== value || preview.username || preview.password
       || preview.pathname !== "/" || preview.search || preview.hash
-      || preview.origin === studio.origin) throw Error("L'aperçu doit avoir une origine distincte du studio.");
-  if (!separateOrigin(preview.origin, studio.origin)) {
-    throw Error("L'aperçu doit utiliser un site dédié, distinct du studio et de son domaine de cookies, en HTTPS (localhost autorisé pour les tests).");
+      || (!allowSameOrigin && preview.origin === studio.origin)) throw Error("L'aperçu doit avoir une origine distincte du studio.");
+  const local = preview.protocol === "http:" && (preview.hostname === "localhost"
+    || preview.hostname.endsWith(".localhost") || ["127.0.0.1", "[::1]"].includes(preview.hostname));
+  if (!separateOrigin(preview.origin, studio.origin)
+      && !(allowSameOrigin && preview.origin === studio.origin && (preview.protocol === "https:" || local))) {
+    throw Error("L'aperçu doit utiliser un hôte distinct du studio, en HTTPS (localhost autorisé pour les tests).");
   }
   return preview.origin;
 }
@@ -34,10 +37,14 @@ export function guestPreviewHostRequest(message, { channel, previewOrigin, studi
 
 export class IsolatedGuestPreviewController {
   constructor({ origin, studioOrigin = globalThis.location?.origin, request, cookie,
+    allowSameOrigin = false, confirmTrust = () => false,
     online = () => true, channel = globalThis.crypto?.randomUUID?.().replaceAll("-", ""),
     document = globalThis.document, window = globalThis.window, timeoutMs = 12000 }) {
     if (!validGuestChannel(channel)) throw Error("Canal d'aperçu sécurisé invalide.");
-    this.origin = validatePreviewOrigin(origin, studioOrigin);
+    this.origin = validatePreviewOrigin(origin, studioOrigin, { allowSameOrigin });
+    this.sameOrigin = this.origin === studioOrigin;
+    this.confirmTrust = confirmTrust;
+    this.trustDecision = null;
     this.previewOrigin = this.origin;
     this.studioOrigin = studioOrigin;
     this.channel = channel;
@@ -58,6 +65,10 @@ export class IsolatedGuestPreviewController {
     if (this.active) return Promise.resolve();
     if (this.starting) return this.starting;
     if (!this.document || !this.window) return Promise.reject(Error("Fenêtre d'aperçu indisponible."));
+    if (this.sameOrigin) {
+      this.trustDecision ??= this.confirmTrust() === true;
+      if (!this.trustDecision) return Promise.reject(Error("Aperçu interactif refusé : le projet n'est pas approuvé."));
+    }
     this.starting = new Promise((resolve, reject) => {
       this.resolveReady = resolve;
       this.rejectReady = reject;
@@ -65,8 +76,10 @@ export class IsolatedGuestPreviewController {
       this.broker.hidden = true;
       this.broker.setAttribute("sandbox", "allow-scripts allow-same-origin");
       this.broker.setAttribute("aria-hidden", "true");
-      this.broker.src = this.origin + "/guest-broker.html?channel=" + this.channel
-        + "&studioOrigin=" + encodeURIComponent(this.studioOrigin);
+      const brokerPath = this.sameOrigin ? "/__alwis-guest/" + this.channel + "/__broker.html" : "/guest-broker.html";
+      this.broker.src = this.origin + brokerPath + "?channel=" + this.channel
+        + "&studioOrigin=" + encodeURIComponent(this.studioOrigin)
+        + (this.sameOrigin ? "&trustedSameOrigin=1" : "");
       this.window.addEventListener("message", this.handleMessage);
       this.timer = setTimeout(() => {
         this.stop();
@@ -114,6 +127,12 @@ export class IsolatedGuestPreviewController {
     this.active = false;
     this.starting = null;
     this.window?.removeEventListener("message", this.handleMessage);
+    if (this.sameOrigin && this.broker) {
+      const scope = this.origin + "/__alwis-guest/" + this.channel + "/";
+      this.window?.navigator?.serviceWorker?.getRegistration(scope).then(registration => {
+        if (registration?.scope === scope) return registration.unregister();
+      }).catch(() => {});
+    }
     this.broker?.remove();
     this.broker = null;
     this.rejectReady?.(Error("Aperçu invité arrêté."));

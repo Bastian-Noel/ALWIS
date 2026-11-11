@@ -1,6 +1,6 @@
 /**
  * Service Worker only for ALWIS's dedicated untrusted preview origin.
- * The studio's origin must NEVER register or serve this worker.
+ * On the studio origin, explicit trust uses only a per-channel narrow scope.
  * PHP/SQL, credentials and workspace files remain exclusively at the host.
  */
 const peers = new Map();
@@ -43,7 +43,8 @@ async function proxy(channel, message) {
   const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
   const broker = windows.find(client => {
     const url = new URL(client.url);
-    return url.pathname === "/guest-broker.html" && url.searchParams.get("channel") === channel;
+    return (url.pathname === "/guest-broker.html" || url.pathname === PREFIX + channel + "/__broker.html")
+      && url.searchParams.get("channel") === channel;
   });
   if (!broker) throw Error("Aperçu : le relais invité est déconnecté.");
   return new Promise((resolve, reject) => {
@@ -82,6 +83,7 @@ self.addEventListener("fetch", event => {
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
   if (["/guest-sw.js", "/guest-broker.html", "/guest-broker.mjs", "/_pbl/client.js"].includes(url.pathname)) return;
+  if (/^\/__alwis-guest\/[a-f0-9]{32}\/__broker\.html$/.test(url.pathname)) return;
   const explicit = extract(url.href);
   event.respondWith((async () => {
     const channel = explicit?.channel ?? await findChannel(event.clientId);

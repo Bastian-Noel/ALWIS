@@ -5,13 +5,15 @@ import { FocusLayer } from "../apps/studio/collab/focus.mjs";
 class PassiveObserver { observe() {} disconnect() {} }
 
 function fixture({ mirrored = false, interactive = false } = {}) {
-  const previous = { document: globalThis.document, MutationObserver: globalThis.MutationObserver };
+  const previous = { window: globalThis.window, document: globalThis.document, MutationObserver: globalThis.MutationObserver };
+  globalThis.window = new EventTarget();
   const doc = new EventTarget();
   doc.querySelectorAll = () => [];
   doc.querySelector = () => null;
   const frame = new EventTarget();
   frame.contentDocument = new EventTarget();
   frame.contentDocument.querySelectorAll = () => [];
+  frame.contentDocument.defaultView = { scrollX: 0, scrollY: 0 };
   frame.getBoundingClientRect = () => ({ left: 100, top: 100, right: 500, bottom: 350, width: 400, height: 250 });
   const previewBox = { getBoundingClientRect: () => ({ left: 100, top: 100, right: 500, bottom: 350, width: 400, height: 250 }) };
   doc.body = new EventTarget();
@@ -40,6 +42,7 @@ function fixture({ mirrored = false, interactive = false } = {}) {
     click, events,
     close: () => {
       layer.stop();
+      globalThis.window = previous.window;
       globalThis.document = previous.document;
       globalThis.MutationObserver = previous.MutationObserver;
     },

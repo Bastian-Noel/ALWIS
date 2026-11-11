@@ -372,10 +372,17 @@ export function createCollabHub({ getConfig = () => ({}), log = () => {}, now = 
     const target = to === "h" ? room.host : room.seats.get(to);
     if (!target?.conn) return conn.send({ t: "undelivered", to, ref: msg.ref ?? null });
     if (msg.t === "relay") {
+      const key = typeof msg.ref === "string" && msg.ref.length <= 100 ? me.id + ":" + msg.ref : null;
+      if (key && room.relaySeen.has(key)) return conn.send({ t: "relay-ack", ref: msg.ref });
       const wait = room.bucket.take(size);
       if (wait) return conn.send({ t: "throttle", retryMs: wait, ref: msg.ref ?? null });
     } else if (size > 16 * 1024) return conn.send({ t: "error", code: "sig-too-big" });
     target.conn.send({ t: msg.t, from: me.id, d: msg.d, ref: msg.ref });
+    if (msg.t === "relay" && typeof msg.ref === "string" && msg.ref.length <= 100) {
+      if (room.relaySeen.size >= 1024) room.relaySeen.delete(room.relaySeen.keys().next().value);
+      room.relaySeen.set(me.id + ":" + msg.ref, true);
+      conn.send({ t: "relay-ack", ref: msg.ref });
+    }
   }
 
   function onHost(conn, msg) {
@@ -414,6 +421,7 @@ export function createCollabHub({ getConfig = () => ({}), log = () => {}, now = 
       bucket: new Bucket(config.relayBytesPerSec, config.relayBurstBytes, now),
       host: { id: "h", name, variant: 0, conn, timer: null, awayUntil: 0 },
       seats: new Map(),
+      relaySeen: new Map(),
       byToken: new Map(),
     };
     rooms.set(code, room);
